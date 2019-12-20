@@ -33,7 +33,7 @@ workspace "Poly"
 
 OUTPUT_DIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-libraryDirs = {}
+-- libraryDirs = {}
 -- libraryDirs["GLFW"] = "Horizon/libs/GLFW"
 
 -- Functions for repeating project info
@@ -57,7 +57,7 @@ end
 -- Projects
 project "Poly"
 	location "Poly"
-	kind "WindowedApp"
+	kind "StaticLib"
 	cppdialect "C++17"
 
 	pchheader "polypch.h"
@@ -81,3 +81,26 @@ project "Poly"
 	filter "system:windows"
 		systemversion "latest"
 		-- links { "opengl32" }
+
+project "Sandbox"
+	location "Sandbox"
+	kind "WindowedApp"
+	cppdialect "C++17"
+
+	setDirs()
+	srcFiles()
+
+	includedirs
+	{
+		"Poly/libs/spdlog/include",
+		"Poly/src",
+		"Poly/libs"
+	}
+
+	links
+	{
+		"Poly"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
