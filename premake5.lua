@@ -1,6 +1,6 @@
 workspace "Poly"
 	architecture "x64"
-	startproject "Poly"
+	startproject "Sandbox"
 	language "C++"
 
 	configurations
