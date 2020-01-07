@@ -23,6 +23,12 @@
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\polypch.h" />
+    <ClInclude Include="src\Poly\Core\Layer.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Core\LayerStack.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">
@@ -35,5 +41,8 @@
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
+    <ClCompile Include="src\Poly\Core\LayerStack.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

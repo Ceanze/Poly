@@ -97,12 +97,15 @@
     <ClInclude Include="src\Poly.h" />
     <ClInclude Include="src\Poly\Core\Application.h" />
     <ClInclude Include="src\Poly\Core\EntryPoint.h" />
+    <ClInclude Include="src\Poly\Core\Layer.h" />
+    <ClInclude Include="src\Poly\Core\LayerStack.h" />
     <ClInclude Include="src\Poly\Core\Logger.h" />
     <ClInclude Include="src\Poly\Core\Window.h" />
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp" />
+    <ClCompile Include="src\Poly\Core\LayerStack.cpp" />
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
     <ClCompile Include="src\Poly\Core\Window.cpp" />
     <ClCompile Include="src\polypch.cpp">

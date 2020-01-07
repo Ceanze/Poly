@@ -18,11 +18,11 @@ namespace Poly {
 		static void init();
 
 		inline static std::shared_ptr<spdlog::logger> getCoreLogger() { return coreLogger; }
-		//inline static std::shared_ptr<spdlog::logger> getClientLogger() { return clientLogger; }
+		inline static std::shared_ptr<spdlog::logger> getClientLogger() { return clientLogger; }
 
 	private:
 		static std::shared_ptr<spdlog::logger> coreLogger;
-		//static std::shared_ptr<spdlog::logger> clientLogger;
+		static std::shared_ptr<spdlog::logger> clientLogger;
 	};
 }
 
@@ -34,11 +34,11 @@ namespace Poly {
 #define POLY_CORE_FATAL(...) ::Poly::Logger::getCoreLogger()->critical(__VA_ARGS__)
 
 // Client logger macros
-//#define POLY_TRACE(...) ::Poly::Logger::getClientLogger()->trace(__VA_ARGS__)
-//#define POLY_INFO(...) ::Poly::Logger::getClientLogger()->info(__VA_ARGS__)
-//#define POLY_WARN(...) ::Poly::Logger::getClientLogger()->warn(__VA_ARGS__)
-//#define POLY_ERROR(...) ::Poly::Logger::getClientLogger()->error(__VA_ARGS__)
-//#define POLY_FATAL(...) ::Poly::Logger::getClientLogger()->critical(__VA_ARGS__)
+#define POLY_TRACE(...) ::Poly::Logger::getClientLogger()->trace(__VA_ARGS__)
+#define POLY_INFO(...) ::Poly::Logger::getClientLogger()->info(__VA_ARGS__)
+#define POLY_WARN(...) ::Poly::Logger::getClientLogger()->warn(__VA_ARGS__)
+#define POLY_ERROR(...) ::Poly::Logger::getClientLogger()->error(__VA_ARGS__)
+#define POLY_FATAL(...) ::Poly::Logger::getClientLogger()->critical(__VA_ARGS__)
 
 
 #pragma warning(pop)

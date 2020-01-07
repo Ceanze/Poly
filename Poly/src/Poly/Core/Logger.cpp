@@ -10,7 +10,7 @@
 namespace Poly {
 
 	std::shared_ptr<spdlog::logger> Logger::coreLogger;
-	//std::shared_ptr<spdlog::logger> Logger::clientLogger;
+	std::shared_ptr<spdlog::logger> Logger::clientLogger;
 
 
 	void Logger::init()
@@ -20,7 +20,7 @@ namespace Poly {
 		coreLogger = spdlog::stderr_color_mt("POLY");
 		coreLogger->set_level(spdlog::level::trace);
 
-		//clientLogger = spdlog::stderr_color_mt("APP");
-		//clientLogger->set_level(spdlog::level::trace);
+		clientLogger = spdlog::stderr_color_mt("APP");
+		clientLogger->set_level(spdlog::level::trace);
 	}
 }
