@@ -2,6 +2,7 @@
 
 #include "Window.h"
 #include "LayerStack.h"
+#include "Poly/Events/EventBus.h"
 
 namespace Poly {
 
@@ -19,6 +20,8 @@ namespace Poly {
 		bool m_running = true;
 		Window* m_window;
 		LayerStack m_layerStack;
+
+		bool EventTester(TestEvent* e);
 	};
 
 	Application* CreateApplication();

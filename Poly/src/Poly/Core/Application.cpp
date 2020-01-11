@@ -1,39 +1,53 @@
 #include "polypch.h"
 #include "Application.h"
 
-Poly::Application::Application()
+namespace Poly
 {
-	m_window = new Window(800, 300, "Poly");
-	m_window->createConsole();
 
-	Poly::Logger::init();
-
-	POLY_CORE_INFO("Application created!");
-}
-
-Poly::Application::~Application()
-{
-}
-
-void Poly::Application::run()
-{
-	while (m_running)
+	Application::Application()
 	{
-		m_window->processMessages();
+		m_window = new Window(800, 300, "Poly");
+		m_window->createConsole();
 
-		for (auto layer : m_layerStack)
-			layer->onUpdate();
+		Poly::Logger::init();
+
+		POLY_CORE_INFO("Application created!");
+
+		EventBus::get().subscribe(this, &Application::EventTester);
 	}
-}
 
-void Poly::Application::pushLayer(Layer* layer)
-{
-	m_layerStack.pushLayer(layer);
-	layer->onAttach();
-}
+	Application::~Application()
+	{
+	}
 
-void Poly::Application::pushOverlay(Layer* layer)
-{
-	m_layerStack.pushOverlay(layer);
-	layer->onAttach();
+	void Application::run()
+	{
+		while (m_running)
+		{
+			m_window->processMessages();
+
+			for (auto layer : m_layerStack)
+				layer->onUpdate();
+		}
+	}
+
+	void Application::pushLayer(Layer* layer)
+	{
+		EventBus::get().publish(&TestEvent(32));
+		m_layerStack.pushLayer(layer);
+		layer->onAttach();
+	}
+
+	void Application::pushOverlay(Layer* layer)
+	{
+		m_layerStack.pushOverlay(layer);
+		layer->onAttach();
+	}
+
+	bool Application::EventTester(TestEvent* e)
+	{
+		POLY_CORE_INFO("GOT {}", e->test);
+
+		return true;
+	}
 }

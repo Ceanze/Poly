@@ -29,6 +29,9 @@
     <ClInclude Include="src\Poly\Core\LayerStack.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Events\EventBus.h" />
+    <ClInclude Include="src\Poly\Events\Event.h" />
+    <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">

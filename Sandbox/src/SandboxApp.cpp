@@ -7,7 +7,7 @@ public:
 
 	void onUpdate() override
 	{
-		POLY_INFO("Testlayer update!");
+		//POLY_INFO("Testlayer update!");
 	};
 };
 
