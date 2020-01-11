@@ -28,7 +28,7 @@ namespace Poly {
 	{
 	public:
 		EventBus() = default;
-		~EventBus() = default;
+		~EventBus();
 
 		// Publish an event
 		template<class EventType>
@@ -42,11 +42,19 @@ namespace Poly {
 		template<class T, class EventType>
 		void unsubscribe(T* instance, bool (T::* func)(EventType*));
 
+		// Unsubscribe all events
+		void unsubscribeAll();
+
 		static EventBus& get();
 
 	private:
 		std::unordered_map<std::type_index, HandlerList*> subscribers;
 	};
+
+	inline EventBus::~EventBus()
+	{
+		unsubscribeAll();
+	}
 
 	template<class EventType>
 	inline void EventBus::publish(EventType* e)
@@ -90,11 +98,31 @@ namespace Poly {
 			return;
 
 		unsigned ID = getID<T, EventType>(instance);
-		for (auto it : subs)
+		for (auto it = subs->begin(); it != subs->end(); it++)
 		{
 			if ((*it)->ID == ID)
+			{
 				subs->erase(it);
+				break;
+			}
 		}
+	}
+
+	inline void EventBus::unsubscribeAll()
+	{
+		for (auto it = subscribers.begin(); it != subscribers.end(); it++)
+		{
+			HandlerList* subs = (*it).second;
+			if (subs)
+			{
+				for (size_t i = 0; i < subs->size(); i++)
+				{
+					delete (*subs)[i];
+				}
+				delete subs;
+			}
+		}
+		subscribers.clear();
 	}
 
 	inline EventBus& EventBus::get()

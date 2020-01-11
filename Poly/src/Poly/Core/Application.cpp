@@ -18,6 +18,7 @@ namespace Poly
 
 	Application::~Application()
 	{
+
 	}
 
 	void Application::run()
@@ -34,6 +35,7 @@ namespace Poly
 	void Application::pushLayer(Layer* layer)
 	{
 		EventBus::get().publish(&TestEvent(32));
+
 		m_layerStack.pushLayer(layer);
 		layer->onAttach();
 	}
