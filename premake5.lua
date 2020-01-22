@@ -33,8 +33,8 @@ workspace "Poly"
 
 OUTPUT_DIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
--- libraryDirs = {}
--- libraryDirs["GLFW"] = "Horizon/libs/GLFW"
+libraryDirs = {}
+libraryDirs["GLFW"] = "Poly/libs/glfw"
 
 -- Functions for repeating project info
 
@@ -66,16 +66,27 @@ project "Poly"
 	setDirs()
 	srcFiles()
 
+	links
+	{
+		"vulkan-1"
+	}
+
 	includedirs
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/libs/spdlog/include",
-		-- "%{libraryDirs.GLFW}/include"
+		"%{libraryDirs.GLFW}/include"
 	}
 
 	libdirs
 	{
-		-- "%{libraryDirs.GLFW}/lib"
+		"%{libraryDirs.GLFW}/lib",
+		"C:/VulkanSDK/1.1.130.0/Lib"
+	}
+
+	sysincludedirs
+	{
+		"C:/VulkanSDK/1.1.130.0/Include"
 	}
 
 	filter "system:windows"
@@ -84,7 +95,7 @@ project "Poly"
 
 project "Sandbox"
 	location "Sandbox"
-	kind "WindowedApp"
+	kind "ConsoleApp"
 	cppdialect "C++17"
 
 	setDirs()

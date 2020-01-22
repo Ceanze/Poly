@@ -20,8 +20,6 @@ namespace Poly {
 		bool m_running = true;
 		Window* m_window;
 		LayerStack m_layerStack;
-
-		bool EventTester(TestEvent* e);
 	};
 
 	Application* CreateApplication();

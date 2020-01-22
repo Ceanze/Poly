@@ -7,6 +7,9 @@
     <Filter Include="Poly\Core">
       <UniqueIdentifier>{6122D660-CD8C-8AD7-16CB-3B7D8274682C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Poly\Events">
+      <UniqueIdentifier>{2D500AF4-9905-83E9-22FA-7CC08EAE79ED}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Poly.h" />
@@ -16,25 +19,34 @@
     <ClInclude Include="src\Poly\Core\EntryPoint.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Core\Logger.h">
-      <Filter>Poly\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Poly\Core\Window.h">
-      <Filter>Poly\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\polypch.h" />
     <ClInclude Include="src\Poly\Core\Layer.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Core\LayerStack.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Events\EventBus.h" />
-    <ClInclude Include="src\Poly\Events\Event.h" />
-    <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
+    <ClInclude Include="src\Poly\Core\Logger.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Core\Window.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Events\Event.h">
+      <Filter>Poly\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Events\EventBus.h">
+      <Filter>Poly\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h">
+      <Filter>Poly\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Core\LayerStack.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\Logger.cpp">
@@ -44,8 +56,5 @@
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
-    <ClCompile Include="src\Poly\Core\LayerStack.cpp">
-      <Filter>Poly\Core</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

@@ -12,8 +12,6 @@ namespace Poly
 		Poly::Logger::init();
 
 		POLY_CORE_INFO("Application created!");
-
-		EventBus::get().subscribe(this, &Application::EventTester);
 	}
 
 	Application::~Application()
@@ -44,12 +42,5 @@ namespace Poly
 	{
 		m_layerStack.pushOverlay(layer);
 		layer->onAttach();
-	}
-
-	bool Application::EventTester(TestEvent* e)
-	{
-		POLY_CORE_INFO("GOT {}", e->test);
-
-		return true;
 	}
 }
