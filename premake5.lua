@@ -33,8 +33,8 @@ workspace "Poly"
 
 OUTPUT_DIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-libraryDirs = {}
-libraryDirs["GLFW"] = "Poly/libs/glfw"
+-- libraryDirs = {}
+-- libraryDirs["GLFW"] = "Poly/libs/glfw"
 
 -- Functions for repeating project info
 
@@ -53,6 +53,8 @@ function setDirs()
 	objdir ("bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 end
 
+include "Poly/libs/glfw"
+
 
 -- Projects
 project "Poly"
@@ -68,19 +70,19 @@ project "Poly"
 
 	links
 	{
-		"vulkan-1"
+		"vulkan-1",
+		"glfw3"
 	}
 
 	includedirs
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/libs/spdlog/include",
-		"%{libraryDirs.GLFW}/include"
+		"%{prj.name}/libs/glfw/include"
 	}
 
 	libdirs
 	{
-		"%{libraryDirs.GLFW}/lib",
 		"C:/VulkanSDK/1.1.130.0/Lib"
 	}
 
