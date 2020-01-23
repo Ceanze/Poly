@@ -1,6 +1,3 @@
 [submodule "Poly/libs/spdlog"]
 	path = Poly/libs/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "Poly/libs/glfw"]
-	path = Poly/libs/glfw
-	url = https://github.com/Ceanze/glfw
