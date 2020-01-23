@@ -36,11 +36,11 @@ namespace Poly {
 
 		// Subscribe to an event
 		template<class T, class EventType>
-		void subscribe(T* instance, bool (T::*func)(EventType*));
+		void subscribe(T* instance, void (T::*func)(EventType*));
 
 		// Unsubscribe to an event
 		template<class T, class EventType>
-		void unsubscribe(T* instance, bool (T::* func)(EventType*));
+		void unsubscribe(T* instance, void (T::* func)(EventType*));
 
 		// Unsubscribe all events
 		void unsubscribeAll();
@@ -66,13 +66,12 @@ namespace Poly {
 
 		for (auto it : *subs)
 		{
-			if ((*it).exec(e))
-				break;
+			(*it).exec(e);
 		}
 	}
 
 	template<class T, class EventType>
-	inline void EventBus::subscribe(T* instance, bool(T::* func)(EventType*))
+	inline void EventBus::subscribe(T* instance, void(T::* func)(EventType*))
 	{
 		// Save the instance, member function pointer and the event type
 
@@ -90,7 +89,7 @@ namespace Poly {
 
 
 	template<class T, class EventType>
-	inline void EventBus::unsubscribe(T* instance, bool (T::* func)(EventType*))
+	inline void EventBus::unsubscribe(T* instance, void (T::* func)(EventType*))
 	{
 		HandlerList* subs = subscribers[typeid(EventType)];
 
