@@ -1,17 +1,20 @@
 #include "polypch.h"
 #include "Application.h"
+#include "GLFW/glfw3.h"
+#include "Poly/Events/EventBus.h"
 
 namespace Poly
 {
 
 	Application::Application()
 	{
-		m_window = new Window(800, 300, "Poly");
-		m_window->createConsole();
+		this->window = new Window(800, 300, "Poly");
 
 		Poly::Logger::init();
 
 		POLY_CORE_INFO("Application created!");
+
+		EventBus::get().subscribe(this, &Application::onCloseWindowEvent);
 	}
 
 	Application::~Application()
@@ -21,26 +24,29 @@ namespace Poly
 
 	void Application::run()
 	{
-		while (m_running)
+		while (this->running)
 		{
-			m_window->processMessages();
+			glfwPollEvents();
 
-			for (auto layer : m_layerStack)
+			for (auto layer : this->layerStack)
 				layer->onUpdate();
 		}
 	}
 
 	void Application::pushLayer(Layer* layer)
 	{
-		EventBus::get().publish(&TestEvent(32));
-
-		m_layerStack.pushLayer(layer);
+		this->layerStack.pushLayer(layer);
 		layer->onAttach();
 	}
 
 	void Application::pushOverlay(Layer* layer)
 	{
-		m_layerStack.pushOverlay(layer);
+		this->layerStack.pushOverlay(layer);
 		layer->onAttach();
+	}
+
+	void Application::onCloseWindowEvent(CloseWindowEvent* e)
+	{
+		this->running = false;
 	}
 }

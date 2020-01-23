@@ -17,9 +17,11 @@ namespace Poly {
 		void pushLayer(Layer* layer);
 		void pushOverlay(Layer* layer);
 	private:
-		bool m_running = true;
-		Window* m_window;
-		LayerStack m_layerStack;
+		bool running = true;
+		Window* window;
+		LayerStack layerStack;
+
+		void onCloseWindowEvent(CloseWindowEvent* e);
 	};
 
 	Application* CreateApplication();
