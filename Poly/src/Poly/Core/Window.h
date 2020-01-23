@@ -1,7 +1,6 @@
 #pragma once
 
 #include <polypch.h>
-#include <GLFW/glfw3.h>
 
 namespace Poly {
 
