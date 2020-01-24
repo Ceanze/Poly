@@ -47,7 +47,7 @@ namespace Poly {
 
 	void Window::closeWindowCallback(GLFWwindow* w)
 	{
-		EventBus::get().publish(&CloseWindowEvent());
+		POLY_EVENT_PUB(CloseWindowEvent());
 	}
 
 }

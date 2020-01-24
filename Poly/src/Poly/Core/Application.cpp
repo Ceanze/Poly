@@ -14,12 +14,12 @@ namespace Poly
 
 		POLY_CORE_INFO("Application created!");
 
-		EventBus::get().subscribe(this, &Application::onCloseWindowEvent);
+		POLY_EVENT_SUB(Application, onCloseWindowEvent);
 	}
 
 	Application::~Application()
 	{
-
+		POLY_EVENT_UNSUB(Application, onCloseWindowEvent);
 	}
 
 	void Application::run()

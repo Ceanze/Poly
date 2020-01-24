@@ -20,6 +20,15 @@
 	of the class, hence the requirement for the "this" param.
 **/
 
+/* cName = Class name, func = function */
+#define POLY_EVENT_SUB(cName, func) EventBus::get().subscribe(this, &cName::func);
+
+/* cName = Class name, func = function */
+#define POLY_EVENT_UNSUB(cName, func) EventBus::get().unsubscribe(this, &cName::func);
+
+/* ev = constructed event to be sent */
+#define POLY_EVENT_PUB(ev) EventBus::get().publish(&ev);
+
 namespace Poly {
 
 	typedef std::vector<HandlerFunctionBase*> HandlerList;
