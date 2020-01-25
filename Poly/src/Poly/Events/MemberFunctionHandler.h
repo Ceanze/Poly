@@ -18,25 +18,25 @@ namespace Poly
 	class HandlerFunctionBase
 	{
 	public:
-		bool exec(Event* e) { return call(e); }
+		void exec(Event* e) { call(e); }
 		unsigned ID = 0;
 
 	private:
-		virtual bool call(Event* e) = 0;
+		virtual void call(Event* e) = 0;
 	};
 
 	template<class T, class EventType>
 	class MemberFunctionHandler : public HandlerFunctionBase
 	{
 	public:
-		typedef bool (T::* MemberFunction)(EventType*);
+		typedef void (T::* MemberFunction)(EventType*);
 
 		MemberFunctionHandler(T* instance, MemberFunction memberFunction)
 			: instance(instance), memberFunction(memberFunction) {
 			ID = getID<T, EventType>(instance);
 		};
 
-		bool call(Event* e) { return (instance->*memberFunction)(static_cast<EventType*>(e)); }
+		void call(Event* e) { return (instance->*memberFunction)(static_cast<EventType*>(e)); }
 
 	private:
 		T* instance;

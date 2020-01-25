@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "LayerStack.h"
 #include "Poly/Events/EventBus.h"
+#include "Renderer.h"
 
 namespace Poly {
 
@@ -17,11 +18,11 @@ namespace Poly {
 		void pushLayer(Layer* layer);
 		void pushOverlay(Layer* layer);
 	private:
-		bool m_running = true;
-		Window* m_window;
-		LayerStack m_layerStack;
+		bool running = true;
+		LayerStack layerStack;
+		Renderer* renderer;
 
-		bool EventTester(TestEvent* e);
+		void onCloseWindowEvent(CloseWindowEvent* e);
 	};
 
 	Application* CreateApplication();

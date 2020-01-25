@@ -20,6 +20,15 @@
 	of the class, hence the requirement for the "this" param.
 **/
 
+/* cName = Class name, func = function */
+#define POLY_EVENT_SUB(cName, func) EventBus::get().subscribe(this, &cName::func);
+
+/* cName = Class name, func = function */
+#define POLY_EVENT_UNSUB(cName, func) EventBus::get().unsubscribe(this, &cName::func);
+
+/* ev = constructed event to be sent */
+#define POLY_EVENT_PUB(ev) EventBus::get().publish(&ev);
+
 namespace Poly {
 
 	typedef std::vector<HandlerFunctionBase*> HandlerList;
@@ -28,7 +37,7 @@ namespace Poly {
 	{
 	public:
 		EventBus() = default;
-		~EventBus() = default;
+		~EventBus();
 
 		// Publish an event
 		template<class EventType>
@@ -36,17 +45,25 @@ namespace Poly {
 
 		// Subscribe to an event
 		template<class T, class EventType>
-		void subscribe(T* instance, bool (T::*func)(EventType*));
+		void subscribe(T* instance, void (T::*func)(EventType*));
 
 		// Unsubscribe to an event
 		template<class T, class EventType>
-		void unsubscribe(T* instance, bool (T::* func)(EventType*));
+		void unsubscribe(T* instance, void (T::* func)(EventType*));
+
+		// Unsubscribe all events
+		void unsubscribeAll();
 
 		static EventBus& get();
 
 	private:
 		std::unordered_map<std::type_index, HandlerList*> subscribers;
 	};
+
+	inline EventBus::~EventBus()
+	{
+		unsubscribeAll();
+	}
 
 	template<class EventType>
 	inline void EventBus::publish(EventType* e)
@@ -58,13 +75,12 @@ namespace Poly {
 
 		for (auto it : *subs)
 		{
-			if ((*it).exec(e))
-				break;
+			(*it).exec(e);
 		}
 	}
 
 	template<class T, class EventType>
-	inline void EventBus::subscribe(T* instance, bool(T::* func)(EventType*))
+	inline void EventBus::subscribe(T* instance, void(T::* func)(EventType*))
 	{
 		// Save the instance, member function pointer and the event type
 
@@ -82,7 +98,7 @@ namespace Poly {
 
 
 	template<class T, class EventType>
-	inline void EventBus::unsubscribe(T* instance, bool (T::* func)(EventType*))
+	inline void EventBus::unsubscribe(T* instance, void (T::* func)(EventType*))
 	{
 		HandlerList* subs = subscribers[typeid(EventType)];
 
@@ -90,11 +106,31 @@ namespace Poly {
 			return;
 
 		unsigned ID = getID<T, EventType>(instance);
-		for (auto it : subs)
+		for (auto it = subs->begin(); it != subs->end(); it++)
 		{
 			if ((*it)->ID == ID)
+			{
 				subs->erase(it);
+				break;
+			}
 		}
+	}
+
+	inline void EventBus::unsubscribeAll()
+	{
+		for (auto it = subscribers.begin(); it != subscribers.end(); it++)
+		{
+			HandlerList* subs = (*it).second;
+			if (subs)
+			{
+				for (size_t i = 0; i < subs->size(); i++)
+				{
+					delete (*subs)[i];
+				}
+				delete subs;
+			}
+		}
+		subscribers.clear();
 	}
 
 	inline EventBus& EventBus::get()
