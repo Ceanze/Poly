@@ -8,9 +8,11 @@ namespace Poly
 
 	Application::Application()
 	{
-		this->window = new Window(800, 300, "Poly");
-
 		Poly::Logger::init();
+
+		this->renderer = Renderer::create(Renderer::BACKEND::VULKAN);
+		this->renderer->initialize();
+
 
 		POLY_CORE_INFO("Application created!");
 
@@ -20,6 +22,7 @@ namespace Poly
 	Application::~Application()
 	{
 		POLY_EVENT_UNSUB(Application, onCloseWindowEvent);
+		this->renderer->shutdown();
 	}
 
 	void Application::run()

@@ -41,6 +41,9 @@
       <Filter>Poly\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\polypch.h" />
+    <ClInclude Include="src\Poly\Core\Renderer.h" />
+    <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">
@@ -56,5 +59,8 @@
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
+    <ClCompile Include="src\Poly\Core\Renderer.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
   </ItemGroup>
 </Project>
