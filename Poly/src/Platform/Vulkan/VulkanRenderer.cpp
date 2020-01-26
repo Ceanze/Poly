@@ -8,7 +8,7 @@ namespace Poly
 	{
 		this->window = new Window(width, height, "Poly");
 
-		this->instance = new PVKInstance(width, height);
+		this->instance = new PVKInstance(this->window, width, height);
 	}
 
 	void VulkanRenderer::setWinTitle(const char* title)
