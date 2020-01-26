@@ -1,25 +1,76 @@
 #include "polypch.h"
 #include "PVKInstance.h"
+#include "Poly/Core/Window.h"
 
 namespace Poly
 {
 
-	PVKInstance::PVKInstance(unsigned width, unsigned height)
+	PVKInstance::PVKInstance(Window* window, unsigned width, unsigned height) :
+		window(window)
 	{
 		createInstance();
+		setupDebugMessenger();
+
+		// Create surface
+		if (glfwCreateWindowSurface(this->instance, this->window->getNativeWindow(), nullptr, &this->surface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create window surface!");
+		}
+
 		pickPhysicalDevice();
 		createLogicalDevice();
 	}
 
 	PVKInstance::~PVKInstance()
 	{
-		vkDestroyDevice(this->device, nullptr);
+		if (this->enableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
 
+		vkDestroyDevice(this->device, nullptr);
+		vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
 		vkDestroyInstance(this->instance, nullptr);
 	}
 
 	void PVKInstance::init()
 	{
+	}
+
+	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData)
+	{
+		POLY_CORE_INFO("Validation layer: {}", pCallbackData->pMessage);
+
+		return VK_FALSE;
+	}
+
+	VkResult PVKInstance::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+	{
+		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+		if (func != nullptr) {
+			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+		}
+		else {
+			return VK_ERROR_EXTENSION_NOT_PRESENT;
+		}
+	}
+
+	void PVKInstance::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+	{
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+		if (func != nullptr) {
+			func(instance, debugMessenger, pAllocator);
+		}
+	}
+
+	void PVKInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+	{
+		createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		createInfo.pfnUserCallback = debugCallback;
 	}
 
 	void PVKInstance::createInstance()
@@ -43,29 +94,37 @@ namespace Poly
 		createInfo.pApplicationInfo = &appInfo;
 
 		// Add the validation layers if they are enabled
-		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<unsigned>(this->validationLayers.size());
-			createInfo.ppEnabledLayerNames = this->validationLayers.data();
-		}
-		else {
+		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+		if (this->enableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<unsigned>(validationLayers.size());
+			createInfo.ppEnabledLayerNames = validationLayers.data();
+			populateDebugMessengerCreateInfo(debugCreateInfo);
+			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+		} else {
 			createInfo.enabledLayerCount = 0;
+			createInfo.pNext = nullptr;
 		}
 
 		// Add GLFW as an extension to the instance
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-		createInfo.enabledExtensionCount = glfwExtensionCount;
-		createInfo.ppEnabledExtensionNames = glfwExtensions;
-
-		// Validation layers
-		createInfo.enabledLayerCount = 0;
+		auto extensions = getRequiredExtensions();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		createInfo.ppEnabledExtensionNames = extensions.data();
 
 		// Create instance and check if it succeded
 		if (vkCreateInstance(&createInfo, nullptr, &this->instance) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create instance!");
+		}
+	}
+
+	void PVKInstance::setupDebugMessenger()
+	{
+		if (!this->enableValidationLayers) return;
+
+		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
+		populateDebugMessengerCreateInfo(createInfo);
+
+		if (CreateDebugUtilsMessengerEXT(this->instance, &createInfo, nullptr, &this->debugMessenger) != VK_SUCCESS) {
+			throw std::runtime_error("failed to set up debug messenger!");
 		}
 	}
 
@@ -169,6 +228,12 @@ namespace Poly
 				indices.graphicsFamily = i;
 			}
 
+			VkBool32 presentSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, this->surface, &presentSupport);
+			if (presentSupport) {
+				indices.presentFamily = i;
+			}
+
 			if (indices.isComplete()) {
 				break;
 			}
@@ -184,12 +249,18 @@ namespace Poly
 		// Create info for queues on the device
 		QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice);
 
-		VkDeviceQueueCreateInfo queueCreateInfo = {};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-		queueCreateInfo.queueCount = 1;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
 		float queuePriority = 1.0f;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		for (unsigned queueFamily : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo = {};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		// Enable or disable features for the device
 		// Currently no features are to be enabled
@@ -198,7 +269,8 @@ namespace Poly
 		// Create info for the logical device
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = &queueCreateInfo;
+		createInfo.queueCreateInfoCount = static_cast<unsigned>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.queueCreateInfoCount = 1;
 		createInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -218,6 +290,23 @@ namespace Poly
 		if (vkCreateDevice(this->physicalDevice, &createInfo, nullptr, &this->device) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create logical device!");
 		}
+
+		vkGetDeviceQueue(this->device, indices.graphicsFamily.value(), 0, &this->graphicsQueue);
+		vkGetDeviceQueue(this->device, indices.presentFamily.value(), 0, &this->presentQueue);
+	}
+
+	std::vector<const char*> PVKInstance::getRequiredExtensions()
+	{
+		unsigned glfwExtensionCount = 0;
+		const char** glfwExtensions;
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		if (this->enableValidationLayers) {
+			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+
+		return extensions;
 	}
 
 }
