@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <optional>
 
+#include "PVKSwapChain.h"
+
 namespace Poly
 {
 	class Window;
@@ -21,18 +23,12 @@ namespace Poly
 		void init();
 
 	private:
-		// Struct to keep track of the different queue families
-		struct QueueFamilyIndices {
-			std::optional<unsigned> graphicsFamily;
-			std::optional<unsigned> presentFamily;
-
-			bool isComplete() {
-				return graphicsFamily.has_value() && presentFamily.has_value();
-			}
-		};
-
 		const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
+		};
+
+		const std::vector<const char*> deviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -56,11 +52,13 @@ namespace Poly
 		void createInstance();
 		void setupDebugMessenger();
 		bool checkValidationLayerSupport();
+		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 		void pickPhysicalDevice();
 		void setOptimalDevice(const std::vector<VkPhysicalDevice>& devices);
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		void createLogicalDevice();
 		std::vector<const char*> getRequiredExtensions();
+		void createSwapChain();
 
 		VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
@@ -70,7 +68,11 @@ namespace Poly
 		VkQueue presentQueue;
 		VkSurfaceKHR surface;
 
+		PVKSwapChain* swapChain;
+
 		Window* window;
+
+		unsigned height, width;
 
 		#ifdef POLY_DEBUG
 				const bool enableValidationLayers = true;

@@ -2,11 +2,15 @@
 #include "PVKInstance.h"
 #include "Poly/Core/Window.h"
 
+#include <cstdint>
+
 namespace Poly
 {
 
 	PVKInstance::PVKInstance(Window* window, unsigned width, unsigned height) :
-		window(window)
+		window(window),
+		width(width),
+		height(height)
 	{
 		createInstance();
 		setupDebugMessenger();
@@ -18,10 +22,13 @@ namespace Poly
 
 		pickPhysicalDevice();
 		createLogicalDevice();
+		createSwapChain();
 	}
 
 	PVKInstance::~PVKInstance()
 	{
+		delete this->swapChain;
+
 		if (this->enableValidationLayers)
 			DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
 
@@ -40,7 +47,7 @@ namespace Poly
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		POLY_CORE_INFO("Validation layer: {}", pCallbackData->pMessage);
+		POLY_CORE_TRACE("Validation layer: {}", pCallbackData->pMessage);
 
 		return VK_FALSE;
 	}
@@ -156,6 +163,25 @@ namespace Poly
 		return true;
 	}
 
+	bool PVKInstance::checkDeviceExtensionSupport(VkPhysicalDevice device)
+	{
+		// Get all the extensions for the device
+		unsigned extensionCount;
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+		// Only get the unique extensions in our requested list
+		std::set<std::string> requiredExtensions(this->deviceExtensions.begin(), this->deviceExtensions.end());
+
+		// Check if the extensions we requested is supported by the device
+		for (const auto& extension : availableExtensions) {
+			requiredExtensions.erase(extension.extensionName);
+		}
+
+		return requiredExtensions.empty();
+	}
+
 	void PVKInstance::pickPhysicalDevice()
 	{
 		// Get number of physical devices
@@ -203,15 +229,25 @@ namespace Poly
 			// Maximum possible size of textures affects graphics quality
 			score += deviceProperties.limits.maxImageDimension2D;
 
+			// Make sure the device has support for the requested extensions
+			bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+			// Check if the now supported swapchain is capable of doing the requested things
+			bool swapChainAdequate = false;
+			if (extensionsSupported) {
+				SwapChainSupportDetails swapChainSupport = this->swapChain->querySwapChainSupport(this->surface, device);
+				swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+			}
+
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(device).isComplete()) {
+			if (score > bestScore && findQueueFamilies(device).isComplete() && swapChainAdequate) {
 				bestScore = score;
 				this->physicalDevice = device;
 			}
 		}
 	}
 
-	PVKInstance::QueueFamilyIndices PVKInstance::findQueueFamilies(VkPhysicalDevice device)
+	QueueFamilyIndices PVKInstance::findQueueFamilies(VkPhysicalDevice device)
 	{
 		QueueFamilyIndices indices;
 
@@ -273,11 +309,12 @@ namespace Poly
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.queueCreateInfoCount = 1;
 		createInfo.pEnabledFeatures = &deviceFeatures;
+		createInfo.enabledExtensionCount = static_cast<unsigned>(deviceExtensions.size());
+		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 		// Used for older implementations of vulkan
-		createInfo.enabledExtensionCount = 0;
 		if (this->enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(this->validationLayers.size());
+			createInfo.enabledLayerCount = static_cast<unsigned>(this->validationLayers.size());
 			createInfo.ppEnabledLayerNames = this->validationLayers.data();
 		}
 		else {
@@ -307,6 +344,21 @@ namespace Poly
 		}
 
 		return extensions;
+	}
+
+	void PVKInstance::createSwapChain()
+	{
+		PVKSwapChainCreateInfo info = {};
+		info.device = this->device;
+		info.physicalDevice = this->physicalDevice;
+		info.surface = this->surface;
+		info.height = this->height;
+		info.width = this->width;
+		info.indices = findQueueFamilies(this->physicalDevice);
+
+		// NO INDICIES!? WHERE TO ADD????
+
+		this->swapChain = new PVKSwapChain(info);
 	}
 
 }

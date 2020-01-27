@@ -105,6 +105,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="src\Poly.h" />
     <ClInclude Include="src\Poly\Core\Application.h" />
@@ -121,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Poly\Core\Application.cpp" />
     <ClCompile Include="src\Poly\Core\LayerStack.cpp" />

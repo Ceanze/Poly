@@ -44,6 +44,7 @@
     <ClInclude Include="src\Poly\Core\Renderer.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">
@@ -62,5 +63,6 @@
     <ClCompile Include="src\Poly\Core\Renderer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
   </ItemGroup>
 </Project>
