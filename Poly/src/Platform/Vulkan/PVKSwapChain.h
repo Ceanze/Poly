@@ -39,6 +39,7 @@ namespace Poly
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		void createImageViews();
 
 		// Vulkan
 		VkSwapchainKHR swapChain;
@@ -47,6 +48,8 @@ namespace Poly
 		std::vector<VkImage> images;
 		std::vector<VkImageView> imageViews;
 		VkSurfaceKHR surface;
+		VkDevice device;
+		VkPhysicalDevice physicalDevice;
 
 		// Custom
 		PVKInstance* instance;
