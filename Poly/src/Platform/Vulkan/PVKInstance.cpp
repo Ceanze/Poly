@@ -1,44 +1,37 @@
 #include "polypch.h"
 #include "PVKInstance.h"
-#include "Poly/Core/Window.h"
+#include "VulkanCommon.h"
 
 #include <cstdint>
 
 namespace Poly
 {
 
-	PVKInstance::PVKInstance(Window* window, unsigned width, unsigned height) :
-		window(window),
-		width(width),
-		height(height)
+	PVKInstance::PVKInstance()
 	{
-		createInstance();
-		setupDebugMessenger();
 
-		// Create surface
-		if (glfwCreateWindowSurface(this->instance, this->window->getNativeWindow(), nullptr, &this->surface) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create window surface!");
-		}
-
-		pickPhysicalDevice();
-		createLogicalDevice();
-		createSwapChain();
 	}
 
 	PVKInstance::~PVKInstance()
 	{
-		delete this->swapChain;
-
-		if (this->enableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
-
-		vkDestroyDevice(this->device, nullptr);
-		vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
-		vkDestroyInstance(this->instance, nullptr);
 	}
 
 	void PVKInstance::init()
 	{
+		createInstance();
+		setupDebugMessenger();
+
+		pickPhysicalDevice();
+		createLogicalDevice();
+	}
+
+	void PVKInstance::cleanup()
+	{
+		if (this->enableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
+
+		vkDestroyDevice(this->device, nullptr);
+		vkDestroyInstance(this->instance, nullptr);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::debugCallback(
@@ -232,52 +225,12 @@ namespace Poly
 			// Make sure the device has support for the requested extensions
 			bool extensionsSupported = checkDeviceExtensionSupport(device);
 
-			// Check if the now supported swapchain is capable of doing the requested things
-			bool swapChainAdequate = false;
-			if (extensionsSupported) {
-				SwapChainSupportDetails swapChainSupport = this->swapChain->querySwapChainSupport(this->surface, device);
-				swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-			}
-
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(device).isComplete() && swapChainAdequate) {
+			if (score > bestScore && findQueueFamilies(device).isComplete()) {
 				bestScore = score;
 				this->physicalDevice = device;
 			}
 		}
-	}
-
-	QueueFamilyIndices PVKInstance::findQueueFamilies(VkPhysicalDevice device)
-	{
-		QueueFamilyIndices indices;
-
-		// Get queue families from the device
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-		// Find graphics queue and save its index from the queue
-		unsigned i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				indices.graphicsFamily = i;
-			}
-
-			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, this->surface, &presentSupport);
-			if (presentSupport) {
-				indices.presentFamily = i;
-			}
-
-			if (indices.isComplete()) {
-				break;
-			}
-
-			i++;
-		}
-
-		return indices;
 	}
 
 	void PVKInstance::createLogicalDevice()
@@ -344,21 +297,6 @@ namespace Poly
 		}
 
 		return extensions;
-	}
-
-	void PVKInstance::createSwapChain()
-	{
-		PVKSwapChainCreateInfo info = {};
-		info.device = this->device;
-		info.physicalDevice = this->physicalDevice;
-		info.surface = this->surface;
-		info.height = this->height;
-		info.width = this->width;
-		info.indices = findQueueFamilies(this->physicalDevice);
-
-		// NO INDICIES!? WHERE TO ADD????
-
-		this->swapChain = new PVKSwapChain(info);
 	}
 
 }

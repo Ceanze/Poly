@@ -1,10 +1,12 @@
 #pragma once
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include "Poly/Core/Renderer.h"
 #include "Poly/Core/Window.h"
 #include "PVKInstance.h"
+#include "PVKSwapChain.h"
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 
 namespace Poly
 {
@@ -22,7 +24,8 @@ namespace Poly
 		virtual void clearBuffer(unsigned int);
 
 	private:
-		PVKInstance* instance;
+		PVKInstance instance;
+		PVKSwapChain swapChain;
 
 		Window* window;
 	};

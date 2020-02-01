@@ -45,6 +45,7 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h" />
+    <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">

@@ -8,7 +8,8 @@ namespace Poly
 	{
 		this->window = new Window(width, height, "Poly");
 
-		this->instance = new PVKInstance(this->window, width, height);
+		this->instance.init();
+		this->swapChain.init(&this->instance, this->window);
 	}
 
 	void VulkanRenderer::setWinTitle(const char* title)
@@ -17,7 +18,8 @@ namespace Poly
 
 	void VulkanRenderer::shutdown()
 	{
-		delete this->instance;
+		this->swapChain.cleanup();
+		this->instance.cleanup();
 	}
 
 	void VulkanRenderer::setClearColor(float r, float g, float b, float a)

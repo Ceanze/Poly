@@ -4,23 +4,24 @@
 #include <GLFW/glfw3.h>
 #include <optional>
 
-#include "PVKSwapChain.h"
-
 namespace Poly
 {
-	class Window;
-
-	/**
+	/*
 		PVKInstance contains the vulkan instance, physical device, and logical device
 		that are created for that instance.
-	**/
+	*/
 	class PVKInstance
 	{
 	public:
-		PVKInstance(Window* window, unsigned width, unsigned height);
+		PVKInstance();
 		~PVKInstance();
 
 		void init();
+		void cleanup();
+
+		VkDevice getDevice() { return this->device; };
+		VkPhysicalDevice getPhysicalDevice() { return this->physicalDevice; };
+		VkInstance getInstance() { return this->instance; };
 
 	private:
 		const std::vector<const char*> validationLayers = {
@@ -55,10 +56,8 @@ namespace Poly
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 		void pickPhysicalDevice();
 		void setOptimalDevice(const std::vector<VkPhysicalDevice>& devices);
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		void createLogicalDevice();
 		std::vector<const char*> getRequiredExtensions();
-		void createSwapChain();
 
 		VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
@@ -66,13 +65,6 @@ namespace Poly
 		VkDevice device;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
-		VkSurfaceKHR surface;
-
-		PVKSwapChain* swapChain;
-
-		Window* window;
-
-		unsigned height, width;
 
 		#ifdef POLY_DEBUG
 				const bool enableValidationLayers = true;
