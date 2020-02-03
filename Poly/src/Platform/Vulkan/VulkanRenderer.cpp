@@ -10,6 +10,7 @@ namespace Poly
 
 		this->instance.init();
 		this->swapChain.init(&this->instance, this->window);
+		this->pipeline.init(&this->instance, &this->swapChain);
 	}
 
 	void VulkanRenderer::setWinTitle(const char* title)
@@ -18,6 +19,7 @@ namespace Poly
 
 	void VulkanRenderer::shutdown()
 	{
+		this->pipeline.cleanup();
 		this->swapChain.cleanup();
 		this->instance.cleanup();
 	}

@@ -6,6 +6,7 @@
 #include "Poly/Core/Window.h"
 #include "PVKInstance.h"
 #include "PVKSwapChain.h"
+#include "PVKPipeline.h"
 
 
 namespace Poly
@@ -26,6 +27,7 @@ namespace Poly
 	private:
 		PVKInstance instance;
 		PVKSwapChain swapChain;
+		PVKPipeline pipeline;
 
 		Window* window;
 	};
