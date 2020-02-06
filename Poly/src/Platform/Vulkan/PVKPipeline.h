@@ -27,17 +27,18 @@ namespace Poly
 	private:
 		void createShaderModule(ShaderType shader, const std::vector<char>& code);
 		void createPipeline();
+		void createFramebuffers();
 
 		VkDevice device;
-		VkExtent2D extent;
-		VkFormat imageFormat;
 		VkPipeline pipeline;
 		VkPipelineLayout pipelineLayout;
 		std::vector<VkPipelineShaderStageCreateInfo> shadersStages;
 		std::vector<VkVertexInputBindingDescription> vertexBinding;
 		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+		std::vector<VkFramebuffer> swapChainFramebuffers;
 
 		PVKRenderPass renderPass;
+		PVKSwapChain* swapChain;
 	};
 
 }

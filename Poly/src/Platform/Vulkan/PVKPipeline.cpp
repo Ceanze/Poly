@@ -8,7 +8,7 @@ namespace Poly
 {
 
 	PVKPipeline::PVKPipeline() :
-		device(VK_NULL_HANDLE), extent({0, 0}), imageFormat(VK_FORMAT_UNDEFINED),
+		device(VK_NULL_HANDLE), swapChain(nullptr),
 		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE)
 	{
 	}
@@ -20,8 +20,7 @@ namespace Poly
 	void PVKPipeline::init(PVKInstance* instance, PVKSwapChain* swapChain)
 	{
 		this->device = instance->getDevice();
-		this->extent = swapChain->getExtent();
-		this->imageFormat = swapChain->getFormat();
+		this->swapChain = swapChain;
 
 		//addShader(ShaderType::Vertex, "\\shaders\\vert.spv");
 		//addShader(ShaderType::Fragment, "\\shaders\\frag.spv");
@@ -29,10 +28,15 @@ namespace Poly
 		addShader(ShaderType::Fragment, "C:\\dev\\Poly\\Sandbox\\shaders\\frag.spv");
 
 		createPipeline();
+		createFramebuffers();
 	}
 
 	void PVKPipeline::cleanup()
 	{
+		for (auto framebuffer : swapChainFramebuffers) {
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
+
 		vkDestroyPipeline(this->device, this->pipeline, nullptr);
 		vkDestroyPipelineLayout(this->device, this->pipelineLayout, nullptr);
 		this->renderPass.cleanup();
@@ -83,9 +87,7 @@ namespace Poly
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(this->device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create shader module!");
-		}
+		PVK_CHECK(vkCreateShaderModule(this->device, &createInfo, nullptr, &shaderModule), "Failed to create shader module!");
 
 		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
 		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -99,7 +101,9 @@ namespace Poly
 	void PVKPipeline::createPipeline()
 	{
 		// TODO: Abstract certain aspects of the pipeline creation (blending, wireframe, ...)
-		this->renderPass.init(this->device, this->imageFormat);
+		this->renderPass.init(this->device, this->swapChain->getFormat());
+
+		VkExtent2D extent = this->swapChain->getExtent();
 
 		// Vertexbuffer attribute info
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
@@ -119,14 +123,14 @@ namespace Poly
 		VkViewport viewport = {};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = (float)this->extent.width;
-		viewport.height = (float)this->extent.height;
+		viewport.width = (float)extent.width;
+		viewport.height = (float)extent.height;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
 		VkRect2D scissor = {};
 		scissor.offset = { 0, 0 };
-		scissor.extent = this->extent;
+		scissor.extent = extent;
 
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -204,9 +208,7 @@ namespace Poly
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 		// Create pipeline layout, the description of all the fixed-function stages
-		if (vkCreatePipelineLayout(this->device, &pipelineLayoutInfo, nullptr, &this->pipelineLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
+		PVK_CHECK(vkCreatePipelineLayout(this->device, &pipelineLayoutInfo, nullptr, &this->pipelineLayout), "Failed to create pipeline layout!");
 
 		// Pipeline creation info
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
@@ -231,8 +233,30 @@ namespace Poly
 
 		// Create the pipeline (function can create multiple pipelines at the same time)
 		// The nullptr is a reference to a VkPipelineCache which can speed up creation performance if used
-		if (vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create graphics pipeline!");
+		PVK_CHECK(vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline), "Failed to create graphics pipeline!");
+	}
+
+	void PVKPipeline::createFramebuffers()
+	{
+		this->swapChainFramebuffers.resize(this->swapChain->getImageViews().size());
+		VkExtent2D extent = this->swapChain->getExtent();
+
+		// Create a framebuffer for each swapchain image view
+		for (size_t i = 0; i < this->swapChain->getImageViews().size(); i++) {
+			VkImageView attachments[] = {
+				this->swapChain->getImageViews()[i]
+			};
+
+			VkFramebufferCreateInfo framebufferInfo = {};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = this->renderPass.getRenderPass();
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.width = extent.width;
+			framebufferInfo.height = extent.height;
+			framebufferInfo.layers = 1;
+
+			PVK_CHECK(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]), "Failed to create framebuffer!");
 		}
 	}
 

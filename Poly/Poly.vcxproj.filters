@@ -48,6 +48,8 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKRenderPass.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
+    <ClInclude Include="src\Poly\Core\PolyUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">
@@ -69,5 +71,6 @@
     <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp" />
   </ItemGroup>
 </Project>
