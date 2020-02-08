@@ -20,10 +20,7 @@ namespace Poly
 		this->device = instance->getDevice();
 		this->physicalDevice = instance->getPhysicalDevice();
 
-
-		if (glfwCreateWindowSurface(instance->getInstance(), window->getNativeWindow(), nullptr, &this->surface) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create window surface!");
-		}
+		PVK_CHECK(glfwCreateWindowSurface(instance->getInstance(), window->getNativeWindow(), nullptr, &this->surface), "Failed to create window surface!");
 
 		createSwapChain();
 		createImageViews();
@@ -89,9 +86,7 @@ namespace Poly
 		this->format = surfaceFormat.format;
 
 		// Create the swap chain
-		if (vkCreateSwapchainKHR(this->device, &createInfo, nullptr, &this->swapChain) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create swap chain!");
-		}
+		PVK_CHECK(vkCreateSwapchainKHR(this->device, &createInfo, nullptr, &this->swapChain), "Failed to create swap chain!");
 
 		// VkImages created automatically by the swapchain, just need to retrive them
 		vkGetSwapchainImagesKHR(this->device, this->swapChain, &imageCount, nullptr);
@@ -164,9 +159,7 @@ namespace Poly
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(this->device, &createInfo, nullptr, &this->imageViews[i]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create image views!");
-			}
+			PVK_CHECK(vkCreateImageView(this->device, &createInfo, nullptr, &this->imageViews[i]), "Failed to create image views!");
 		}
 	}
 

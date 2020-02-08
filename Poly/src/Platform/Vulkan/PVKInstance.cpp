@@ -75,9 +75,7 @@ namespace Poly
 
 	void PVKInstance::createInstance()
 	{
-		if (this->enableValidationLayers && !checkValidationLayerSupport()) {
-			throw std::runtime_error("validation layers requested, but not available!");
-		}
+		PVK_CHECK(this->enableValidationLayers && !checkValidationLayerSupport(), "Validation layers requested, but not available!");
 
 		// App info (Optional but can improve performance)
 		VkApplicationInfo appInfo = {};
@@ -111,9 +109,7 @@ namespace Poly
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
 		// Create instance and check if it succeded
-		if (vkCreateInstance(&createInfo, nullptr, &this->instance) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create instance!");
-		}
+		PVK_CHECK(vkCreateInstance(&createInfo, nullptr, &this->instance), "Failed to create instance!");
 	}
 
 	void PVKInstance::setupDebugMessenger()
@@ -123,9 +119,7 @@ namespace Poly
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		populateDebugMessengerCreateInfo(createInfo);
 
-		if (CreateDebugUtilsMessengerEXT(this->instance, &createInfo, nullptr, &this->debugMessenger) != VK_SUCCESS) {
-			throw std::runtime_error("failed to set up debug messenger!");
-		}
+		PVK_CHECK(CreateDebugUtilsMessengerEXT(this->instance, &createInfo, nullptr, &this->debugMessenger), "Failed to set up debug messenger!");
 	}
 
 	bool PVKInstance::checkValidationLayerSupport()
@@ -277,9 +271,7 @@ namespace Poly
 		// If extensions are to be added (which they will be) then it is here it will be
 
 		// Create the logical device, bound to the physical device
-		if (vkCreateDevice(this->physicalDevice, &createInfo, nullptr, &this->device) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create logical device!");
-		}
+		PVK_CHECK(vkCreateDevice(this->physicalDevice, &createInfo, nullptr, &this->device), "Failed to create logical device!");
 
 		vkGetDeviceQueue(this->device, indices.graphicsFamily.value(), 0, &this->graphicsQueue);
 		vkGetDeviceQueue(this->device, indices.presentFamily.value(), 0, &this->presentQueue);

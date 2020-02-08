@@ -31,10 +31,6 @@ namespace Poly
 		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 		poolInfo.flags = 0; // Optional
 
-		//if (vkCreateCommandPool(this->instance->getDevice(), &poolInfo, nullptr, &this->commandPool) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to create command pool!");
-		//}
-
 		PVK_CHECK(vkCreateCommandPool(this->instance->getDevice(), &poolInfo, nullptr, &this->commandPool), "Failed to create command pool!");
 	}
 

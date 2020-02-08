@@ -47,9 +47,7 @@ namespace Poly
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
 
-		if (vkCreateRenderPass(this->device, &renderPassInfo, nullptr, &this->renderPass) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create render pass!");
-		}
+		PVK_CHECK(vkCreateRenderPass(this->device, &renderPassInfo, nullptr, &this->renderPass), "Failed to create render pass!");
 	}
 
 	void PVKRenderPass::cleanup()
