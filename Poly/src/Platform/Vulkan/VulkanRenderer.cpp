@@ -10,7 +10,12 @@ namespace Poly
 
 		this->instance.init();
 		this->swapChain.init(&this->instance, this->window);
-		this->pipeline.init(&this->instance, &this->swapChain);
+		this->shader.init(&this->instance);
+		this->shader.addStage(PVKShader::Type::VERTEX, "vert.spv");
+		this->shader.addStage(PVKShader::Type::FRAGMENT, "frag.spv");
+		// Renderpass
+		this->pipeline.init(&this->instance, &this->swapChain, &this->shader);
+		// Framebuffer
 	}
 
 	void VulkanRenderer::setWinTitle(const char* title)
@@ -19,6 +24,7 @@ namespace Poly
 
 	void VulkanRenderer::shutdown()
 	{
+		this->shader.cleanup();
 		this->pipeline.cleanup();
 		this->swapChain.cleanup();
 		this->instance.cleanup();

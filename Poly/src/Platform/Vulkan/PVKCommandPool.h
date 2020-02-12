@@ -13,6 +13,7 @@ namespace Poly
 		~PVKCommandPool();
 
 		void init(PVKInstance* instance);
+		void cleanup();
 
 		VkCommandPool getCommandPool() const { return this->commandPool; }
 

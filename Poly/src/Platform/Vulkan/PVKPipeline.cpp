@@ -3,6 +3,10 @@
 #include "PVKInstance.h"
 #include "PVKSwapChain.h"
 #include "VulkanCommon.h"
+#include "PVKShader.h"
+
+// TODO: Make the pipeline support both compute and graphcis pipelines
+// TODO: Make it possible to edit different aspects of the pipeline (rasterizer, multisample, etc.) before init
 
 namespace Poly
 {
@@ -17,15 +21,12 @@ namespace Poly
 	{
 	}
 
-	void PVKPipeline::init(PVKInstance* instance, PVKSwapChain* swapChain)
+	void PVKPipeline::init(PVKInstance* instance, PVKSwapChain* swapChain, PVKShader* shader)
 	{
 		this->device = instance->getDevice();
 		this->swapChain = swapChain;
 
-		//addShader(ShaderType::Vertex, "\\shaders\\vert.spv");
-		//addShader(ShaderType::Fragment, "\\shaders\\frag.spv");
-		addShader(ShaderType::Vertex, "C:\\dev\\Poly\\Sandbox\\shaders\\vert.spv");
-		addShader(ShaderType::Fragment, "C:\\dev\\Poly\\Sandbox\\shaders\\frag.spv");
+		this->shader = shader;
 
 		createPipeline();
 		createFramebuffers();
@@ -40,16 +41,6 @@ namespace Poly
 		vkDestroyPipeline(this->device, this->pipeline, nullptr);
 		vkDestroyPipelineLayout(this->device, this->pipelineLayout, nullptr);
 		this->renderPass.cleanup();
-		
-		for (auto shaderStage : this->shadersStages)
-			vkDestroyShaderModule(this->device, shaderStage.module, nullptr);
-	}
-
-	void PVKPipeline::addShader(ShaderType shader, const std::string& path)
-	{
-		std::vector<char> shaderCode = readFile(path);
-
-		createShaderModule(shader, shaderCode);
 	}
 
 	void PVKPipeline::addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format)
@@ -68,39 +59,8 @@ namespace Poly
 		this->vertexAttributes.push_back(attribDesc);
 	}
 
-	void PVKPipeline::createShaderModule(ShaderType shader, const std::vector<char>& code)
-	{
-		// TODO: Refactor shaders to its own class?
-
-		VkShaderStageFlagBits shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-		switch (shader) {
-		case ShaderType::Vertex:
-			break;
-		case ShaderType::Fragment:
-			shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-			break;
-		}
-
-		VkShaderModuleCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-		VkShaderModule shaderModule;
-		PVK_CHECK(vkCreateShaderModule(this->device, &createInfo, nullptr, &shaderModule), "Failed to create shader module!");
-
-		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
-		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStageInfo.stage = shaderStage;
-		shaderStageInfo.module = shaderModule;
-		shaderStageInfo.pName = "main"; // Main should always be considered default
-
-		this->shadersStages.push_back(shaderStageInfo);
-	}
-
 	void PVKPipeline::createPipeline()
 	{
-		// TODO: Abstract certain aspects of the pipeline creation (blending, wireframe, ...)
 		this->renderPass.init(this->device, this->swapChain->getFormat());
 
 		VkExtent2D extent = this->swapChain->getExtent();
@@ -213,8 +173,9 @@ namespace Poly
 		// Pipeline creation info
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.stageCount = static_cast<uint32_t>(this->shadersStages.size());
-		pipelineInfo.pStages = this->shadersStages.data();
+		std::vector<VkPipelineShaderStageCreateInfo> infos = this->shader->getShaderCreateInfos();
+		pipelineInfo.stageCount = infos.size();
+		pipelineInfo.pStages = infos.data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
 		pipelineInfo.pViewportState = &viewportState;
@@ -238,6 +199,7 @@ namespace Poly
 
 	void PVKPipeline::createFramebuffers()
 	{
+		// TODO: Abstract to a class for future additions of more framebuffers?
 		this->swapChainFramebuffers.resize(this->swapChain->getImageViews().size());
 		VkExtent2D extent = this->swapChain->getExtent();
 
@@ -256,7 +218,7 @@ namespace Poly
 			framebufferInfo.height = extent.height;
 			framebufferInfo.layers = 1;
 
-			PVK_CHECK(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]), "Failed to create framebuffer!");
+			PVK_CHECK(vkCreateFramebuffer(this->device, &framebufferInfo, nullptr, &this->swapChainFramebuffers[i]), "Failed to create framebuffer!");
 		}
 	}
 

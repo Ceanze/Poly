@@ -7,6 +7,7 @@
 #include "PVKInstance.h"
 #include "PVKSwapChain.h"
 #include "PVKPipeline.h"
+#include "PVKShader.h"
 
 
 namespace Poly
@@ -28,6 +29,7 @@ namespace Poly
 		PVKInstance instance;
 		PVKSwapChain swapChain;
 		PVKPipeline pipeline;
+		PVKShader shader;
 
 		Window* window;
 	};

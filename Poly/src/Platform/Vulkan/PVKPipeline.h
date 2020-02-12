@@ -9,6 +9,7 @@ namespace Poly
 {
 	class PVKInstance;
 	class PVKSwapChain;
+	class PVKShader;
 
 	class PVKPipeline
 	{
@@ -18,7 +19,7 @@ namespace Poly
 		PVKPipeline();
 		~PVKPipeline();
 
-		void init(PVKInstance* instance, PVKSwapChain* swapChain);
+		void init(PVKInstance* instance, PVKSwapChain* swapChain, PVKShader* shader);
 		void cleanup();
 
 		void addShader(ShaderType shader, const std::string& path);
@@ -32,7 +33,7 @@ namespace Poly
 		VkDevice device;
 		VkPipeline pipeline;
 		VkPipelineLayout pipelineLayout;
-		std::vector<VkPipelineShaderStageCreateInfo> shadersStages;
+		PVKShader* shader;
 		std::vector<VkVertexInputBindingDescription> vertexBinding;
 		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
 		std::vector<VkFramebuffer> swapChainFramebuffers;

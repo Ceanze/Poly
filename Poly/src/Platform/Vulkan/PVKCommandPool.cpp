@@ -22,8 +22,15 @@ namespace Poly
 		createCommandPool();
 	}
 
+	void PVKCommandPool::cleanup()
+	{
+		vkDestroyCommandPool(this->instance->getDevice(), this->commandPool, nullptr);
+	}
+
 	void PVKCommandPool::createCommandPool()
 	{
+		// Note: If more queues are created, need a single pool for each queue.
+
 		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(this->instance->getPhysicalDevice());
 
 		VkCommandPoolCreateInfo poolInfo = {};
