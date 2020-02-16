@@ -4,6 +4,7 @@
 #include "PVKSwapChain.h"
 #include "VulkanCommon.h"
 #include "PVKShader.h"
+#include "PVKRenderPass.h"
 
 // TODO: Make the pipeline support both compute and graphcis pipelines
 // TODO: Make it possible to edit different aspects of the pipeline (rasterizer, multisample, etc.) before init
@@ -13,7 +14,8 @@ namespace Poly
 
 	PVKPipeline::PVKPipeline() :
 		device(VK_NULL_HANDLE), swapChain(nullptr),
-		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE)
+		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE),
+		renderPass(nullptr), shader(nullptr)
 	{
 	}
 
@@ -21,26 +23,21 @@ namespace Poly
 	{
 	}
 
-	void PVKPipeline::init(PVKInstance* instance, PVKSwapChain* swapChain, PVKShader* shader)
+	void PVKPipeline::init(PVKInstance* instance, PVKSwapChain* swapChain, PVKShader* shader, PVKRenderPass* renderPass)
 	{
 		this->device = instance->getDevice();
 		this->swapChain = swapChain;
+		this->renderPass = renderPass;
 
 		this->shader = shader;
 
 		createPipeline();
-		createFramebuffers();
 	}
 
 	void PVKPipeline::cleanup()
 	{
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-
 		vkDestroyPipeline(this->device, this->pipeline, nullptr);
 		vkDestroyPipelineLayout(this->device, this->pipelineLayout, nullptr);
-		this->renderPass.cleanup();
 	}
 
 	void PVKPipeline::addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format)
@@ -61,8 +58,6 @@ namespace Poly
 
 	void PVKPipeline::createPipeline()
 	{
-		this->renderPass.init(this->device, this->swapChain->getFormat());
-
 		VkExtent2D extent = this->swapChain->getExtent();
 
 		// Vertexbuffer attribute info
@@ -185,7 +180,7 @@ namespace Poly
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = nullptr; // Optional
 		pipelineInfo.layout = this->pipelineLayout;
-		pipelineInfo.renderPass = this->renderPass.getRenderPass();
+		pipelineInfo.renderPass = this->renderPass->getRenderPass();
 		pipelineInfo.subpass = 0;
 		// When creating new pipelines, change basePipelineHandle OR basePipelineIndex, two different apporaches!
 		// These will only work when "VK_PIPELINE_CREATE_DERIVATIVE_BIT" is set in 'flags' of VkGraphicsPiplineCreateInfo
@@ -195,31 +190,6 @@ namespace Poly
 		// Create the pipeline (function can create multiple pipelines at the same time)
 		// The nullptr is a reference to a VkPipelineCache which can speed up creation performance if used
 		PVK_CHECK(vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline), "Failed to create graphics pipeline!");
-	}
-
-	void PVKPipeline::createFramebuffers()
-	{
-		// TODO: Abstract to a class for future additions of more framebuffers?
-		this->swapChainFramebuffers.resize(this->swapChain->getImageViews().size());
-		VkExtent2D extent = this->swapChain->getExtent();
-
-		// Create a framebuffer for each swapchain image view
-		for (size_t i = 0; i < this->swapChain->getImageViews().size(); i++) {
-			VkImageView attachments[] = {
-				this->swapChain->getImageViews()[i]
-			};
-
-			VkFramebufferCreateInfo framebufferInfo = {};
-			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = this->renderPass.getRenderPass();
-			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = attachments;
-			framebufferInfo.width = extent.width;
-			framebufferInfo.height = extent.height;
-			framebufferInfo.layers = 1;
-
-			PVK_CHECK(vkCreateFramebuffer(this->device, &framebufferInfo, nullptr, &this->swapChainFramebuffers[i]), "Failed to create framebuffer!");
-		}
 	}
 
 }

@@ -8,6 +8,8 @@
 #include "PVKSwapChain.h"
 #include "PVKPipeline.h"
 #include "PVKShader.h"
+#include "PVKRenderPass.h"
+#include "PVKFramebuffer.h"
 
 
 namespace Poly
@@ -17,7 +19,7 @@ namespace Poly
 	{
 	public:
 		VulkanRenderer() = default;
-		virtual void initialize(unsigned width = 800, unsigned height = 600);
+		virtual void initialize(unsigned width = 1280, unsigned height = 720);
 		virtual void setWinTitle(const char* title);
 		//virtual void present() = 0;
 		virtual void shutdown();
@@ -30,6 +32,8 @@ namespace Poly
 		PVKSwapChain swapChain;
 		PVKPipeline pipeline;
 		PVKShader shader;
+		PVKRenderPass renderPass;
+		std::vector<PVKFramebuffer> framebuffers;
 
 		Window* window;
 	};
