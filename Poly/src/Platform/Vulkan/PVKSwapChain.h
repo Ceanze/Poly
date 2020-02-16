@@ -49,7 +49,6 @@ namespace Poly
 		VkExtent2D extent;
 		std::vector<VkImage> images;
 		std::vector<VkImageView> imageViews;
-		VkSurfaceKHR surface;
 		VkDevice device;
 		VkPhysicalDevice physicalDevice;
 

@@ -3,9 +3,12 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <optional>
+#include "PVKQueue.h"
 
 namespace Poly
 {
+	class Window;
+
 	/*
 		PVKInstance contains the vulkan instance, physical device, and logical device
 		that are created for that instance.
@@ -16,12 +19,15 @@ namespace Poly
 		PVKInstance();
 		~PVKInstance();
 
-		void init();
+		void init(Window* window);
 		void cleanup();
 
-		VkDevice getDevice() { return this->device; };
-		VkPhysicalDevice getPhysicalDevice() { return this->physicalDevice; };
-		VkInstance getInstance() { return this->instance; };
+		VkDevice getDevice() const { return this->device; }
+		VkPhysicalDevice getPhysicalDevice() const { return this->physicalDevice; }
+		VkInstance getInstance() const { return this->instance; }
+		PVKQueue& getGraphicsQueue() { return this->graphicsQueue; }
+		PVKQueue& getPresentQueue() { return this->presentQueue; }
+		VkSurfaceKHR getSurface() const { return this->surface; }
 
 	private:
 		const std::vector<const char*> validationLayers = {
@@ -63,8 +69,9 @@ namespace Poly
 		VkDebugUtilsMessengerEXT debugMessenger;
 		VkPhysicalDevice physicalDevice;
 		VkDevice device;
-		VkQueue graphicsQueue;
-		VkQueue presentQueue;
+		PVKQueue graphicsQueue;
+		PVKQueue presentQueue;
+		VkSurfaceKHR surface;
 
 		#ifdef POLY_DEBUG
 				const bool enableValidationLayers = true;

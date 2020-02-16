@@ -1,6 +1,7 @@
 #include "polypch.h"
 #include "PVKInstance.h"
 #include "VulkanCommon.h"
+#include "Poly/Core/Window.h"
 
 #include <cstdint>
 
@@ -16,10 +17,12 @@ namespace Poly
 	{
 	}
 
-	void PVKInstance::init()
+	void PVKInstance::init(Window* window)
 	{
 		createInstance();
 		setupDebugMessenger();
+
+		PVK_CHECK(glfwCreateWindowSurface(this->instance, window->getNativeWindow(), nullptr, &this->surface), "Failed to create window surface!");
 
 		pickPhysicalDevice();
 		createLogicalDevice();
@@ -27,6 +30,8 @@ namespace Poly
 
 	void PVKInstance::cleanup()
 	{
+		vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
+
 		if (this->enableValidationLayers)
 			DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
 
@@ -220,7 +225,7 @@ namespace Poly
 			bool extensionsSupported = checkDeviceExtensionSupport(device);
 
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(device).isComplete()) {
+			if (score > bestScore && findQueueFamilies(device, this->surface).isComplete()) {
 				bestScore = score;
 				this->physicalDevice = device;
 			}
@@ -230,7 +235,7 @@ namespace Poly
 	void PVKInstance::createLogicalDevice()
 	{
 		// Create info for queues on the device
-		QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice);
+		QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice, this->surface);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -273,8 +278,11 @@ namespace Poly
 		// Create the logical device, bound to the physical device
 		PVK_CHECK(vkCreateDevice(this->physicalDevice, &createInfo, nullptr, &this->device), "Failed to create logical device!");
 
-		vkGetDeviceQueue(this->device, indices.graphicsFamily.value(), 0, &this->graphicsQueue);
-		vkGetDeviceQueue(this->device, indices.presentFamily.value(), 0, &this->presentQueue);
+		this->graphicsQueue.queueIndex = indices.graphicsFamily.value();
+		this->presentQueue.queueIndex = indices.presentFamily.value();
+
+		vkGetDeviceQueue(this->device, indices.graphicsFamily.value(), 0, &this->graphicsQueue.queue);
+		vkGetDeviceQueue(this->device, indices.presentFamily.value(), 0, &this->presentQueue.queue);
 	}
 
 	std::vector<const char*> PVKInstance::getRequiredExtensions()

@@ -5,7 +5,8 @@ namespace Poly
 {
 
 	PVKSwapChain::PVKSwapChain() :
-		swapChain(VK_NULL_HANDLE)
+		swapChain(VK_NULL_HANDLE), device(VK_NULL_HANDLE), extent({0, 0}), format(VK_FORMAT_UNDEFINED),
+		instance(nullptr), physicalDevice(VK_NULL_HANDLE), window(nullptr)
 	{
 	}
 
@@ -20,8 +21,6 @@ namespace Poly
 		this->device = instance->getDevice();
 		this->physicalDevice = instance->getPhysicalDevice();
 
-		PVK_CHECK(glfwCreateWindowSurface(instance->getInstance(), window->getNativeWindow(), nullptr, &this->surface), "Failed to create window surface!");
-
 		createSwapChain();
 		createImageViews();
 	}
@@ -33,14 +32,12 @@ namespace Poly
 		}
 
 		vkDestroySwapchainKHR(this->device, this->swapChain, nullptr);
-
-		vkDestroySurfaceKHR(this->instance->getInstance(), this->surface, nullptr);
 	}
 
 	void PVKSwapChain::createSwapChain()
 	{
 		// Use the predefined functions to choose and query everything
-		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(this->surface, this->physicalDevice);
+		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(this->instance->getSurface(), this->physicalDevice);
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
 		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
@@ -54,7 +51,7 @@ namespace Poly
 		// Info for swap chain constructions
 		VkSwapchainCreateInfoKHR createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = this->surface;
+		createInfo.surface = this->instance->getSurface();
 		createInfo.minImageCount = imageCount;
 		createInfo.imageFormat = surfaceFormat.format;
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -68,7 +65,7 @@ namespace Poly
 		createInfo.oldSwapchain = VK_NULL_HANDLE; // If swap chain is recreated during runtime, having the previous swap chain can help
 
 		// If we have several queues (rare) then specify on how to use them
-		QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice);
+		QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice, this->instance->getSurface());
 		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 		if (indices.graphicsFamily != indices.presentFamily) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -171,7 +168,7 @@ namespace Poly
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
 		// Check if the current physical device supports presentation for the surface
-		QueueFamilyIndices families = findQueueFamilies(this->physicalDevice);
+		QueueFamilyIndices families = findQueueFamilies(this->physicalDevice, this->instance->getSurface());
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, families.presentFamily.value(), surface, &presentSupport);
 
