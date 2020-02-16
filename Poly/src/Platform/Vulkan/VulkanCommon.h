@@ -19,7 +19,7 @@ namespace Poly {
 
 	// Current implementation assumes that the graphics queue and presentation queue is the same.
 	// If this is to change then the SurfaceKHR is needed in this function
-	static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
+	static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 	{
 		QueueFamilyIndices indices;
 
@@ -34,14 +34,13 @@ namespace Poly {
 		for (const auto& queueFamily : queueFamilies) {
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 				indices.graphicsFamily = i;
-				indices.presentFamily = i;
 			}
 
-			//VkBool32 presentSupport = false;
-			//vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-			//if (presentSupport) {
-			//	indices.presentFamily = i;
-			//}
+			VkBool32 presentSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+			if (presentSupport) {
+				indices.presentFamily = i;
+			}
 
 			if (indices.isComplete()) {
 				break;
@@ -51,6 +50,21 @@ namespace Poly {
 		}
 
 		return indices;
+	}
+
+	static uint32_t findQueueIndex(VkQueueFlagBits queueType, VkPhysicalDevice device)
+	{
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+		uint32_t i = 0;
+		for (const auto& queueFamily : queueFamilies) {
+			if (queueFamily.queueFlags & queueType)
+				return i;
+		}
+
 	}
 
 	// Reads the given file in a binary format

@@ -10,6 +10,7 @@
 #include "PVKShader.h"
 #include "PVKRenderPass.h"
 #include "PVKFramebuffer.h"
+#include "PVKCommandPool.h"
 
 
 namespace Poly
@@ -34,6 +35,7 @@ namespace Poly
 		PVKShader shader;
 		PVKRenderPass renderPass;
 		std::vector<PVKFramebuffer> framebuffers;
+		PVKCommandPool commandPool;
 
 		Window* window;
 	};
