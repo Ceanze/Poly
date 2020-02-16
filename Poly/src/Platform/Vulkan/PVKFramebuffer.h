@@ -17,6 +17,8 @@ namespace Poly
 		void init(PVKInstance* instance, PVKSwapChain* swapChain, PVKRenderPass* renderPass, VkImageView attachment);
 		void cleanup();
 
+		VkFramebuffer getFramebuffer() const { return this->framebuffer; }
+
 	private:
 		VkFramebuffer framebuffer;
 

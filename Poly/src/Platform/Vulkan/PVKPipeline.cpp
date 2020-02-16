@@ -15,7 +15,7 @@ namespace Poly
 	PVKPipeline::PVKPipeline() :
 		device(VK_NULL_HANDLE), swapChain(nullptr),
 		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE),
-		renderPass(nullptr), shader(nullptr)
+		renderPass(nullptr), shader(nullptr), pipelineType(VK_PIPELINE_BIND_POINT_GRAPHICS)
 	{
 	}
 
@@ -190,6 +190,8 @@ namespace Poly
 		// Create the pipeline (function can create multiple pipelines at the same time)
 		// The nullptr is a reference to a VkPipelineCache which can speed up creation performance if used
 		PVK_CHECK(vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline), "Failed to create graphics pipeline!");
+
+		this->pipelineType = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	}
 
 }

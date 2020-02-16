@@ -12,8 +12,6 @@ namespace Poly
 	class PVKPipeline
 	{
 	public:
-		enum class ShaderType {Vertex = 0, Geometry, Tesselation, Fragment, Compute};
-
 		PVKPipeline();
 		~PVKPipeline();
 
@@ -21,10 +19,14 @@ namespace Poly
 		void cleanup();
 
 		void addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format);
+		VkPipelineBindPoint getType() const { return this->pipelineType; }
+		VkPipeline getPipeline() const { return this->pipeline; }
+		VkPipelineLayout getPipelineLayout() const { return this->pipelineLayout; }
 
 	private:
 		void createPipeline();
 
+		VkPipelineBindPoint pipelineType;
 		VkDevice device;
 		VkPipeline pipeline;
 		VkPipelineLayout pipelineLayout;
