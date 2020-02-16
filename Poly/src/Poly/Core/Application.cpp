@@ -6,7 +6,7 @@
 namespace Poly
 {
 
-	Application::Application()
+	Application::Application() : renderer(nullptr)
 	{
 		Poly::Logger::init();
 

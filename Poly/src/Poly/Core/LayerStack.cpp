@@ -5,7 +5,7 @@ namespace Poly {
 
 	LayerStack::~LayerStack()
 	{
-		for (auto layer : m_layers)
+		for (auto& layer : m_layers)
 		{
 			layer->onDetach();
 			delete layer;
