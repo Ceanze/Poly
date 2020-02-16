@@ -23,6 +23,7 @@ namespace Poly
 	{
 		POLY_EVENT_UNSUB(Application, onCloseWindowEvent);
 		this->renderer->shutdown();
+		delete this->renderer;
 	}
 
 	void Application::run()
