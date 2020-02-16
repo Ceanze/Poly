@@ -1,5 +1,7 @@
 #include "polypch.h"
 #include "PVKRenderPass.h"
+#include "PVKInstance.h"
+#include "PVKSwapChain.h"
 
 namespace Poly
 {
@@ -13,10 +15,10 @@ namespace Poly
 	{
 	}
 
-	void PVKRenderPass::init(VkDevice device, VkFormat imageFormat)
+	void PVKRenderPass::init(PVKInstance* instance, PVKSwapChain* swapChain)
 	{
-		this->device = device;
-		this->imageFormat = imageFormat;
+		this->device = instance->getDevice();
+		this->imageFormat = swapChain->getFormat();
 
 		// Color attachment
 		VkAttachmentDescription colorAttachment = {};

@@ -29,11 +29,13 @@ namespace Poly
 		void createSwapChain();
 		SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 
-		VkSwapchainKHR getSwapChain() const;
-		std::vector<VkImage>& getImages();
-		std::vector<VkImageView>& getImageViews();
-		VkFormat getFormat() const;
-		VkExtent2D getExtent() const;
+		VkSwapchainKHR getSwapChain() const { return this->swapChain; }
+		std::vector<VkImage>& getImages() { return this->images; }
+		std::vector<VkImageView>& getImageViews() { return this->imageViews; }
+		VkFormat getFormat() const { return this->format; }
+		VkExtent2D getExtent() const { return this->extent; }
+		size_t getNumImages() const { return this->imageViews.size(); }
+
 
 	private:
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);

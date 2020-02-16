@@ -51,6 +51,7 @@
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
     <ClInclude Include="src\Poly\Core\PolyUtils.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKShader.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Poly\Core\Application.cpp">
@@ -74,5 +75,6 @@
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKShader.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp" />
   </ItemGroup>
 </Project>

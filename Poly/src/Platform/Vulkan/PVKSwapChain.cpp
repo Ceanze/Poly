@@ -194,30 +194,4 @@ namespace Poly
 		return details;
 	}
 
-	VkSwapchainKHR PVKSwapChain::getSwapChain() const
-	{
-		// TODO: Add check to see if SwapChain exists.
-		return this->swapChain;
-	}
-
-	std::vector<VkImage>& PVKSwapChain::getImages()
-	{
-		return this->images;
-	}
-
-	std::vector<VkImageView>& PVKSwapChain::getImageViews()
-	{
-		return this->imageViews;
-	}
-
-	VkFormat PVKSwapChain::getFormat() const
-	{
-		return this->format;
-	}
-
-	VkExtent2D PVKSwapChain::getExtent() const
-	{
-		return this->extent;
-	}
-
 }

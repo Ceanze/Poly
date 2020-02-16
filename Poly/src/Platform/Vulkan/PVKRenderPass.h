@@ -2,8 +2,13 @@
 
 #include <vulkan/vulkan.h>
 
+// TODO: Add support for several subpasses and color attachments
+
 namespace Poly
 {
+
+	class PVKInstance;
+	class PVKSwapChain;
 
 	class PVKRenderPass
 	{
@@ -11,7 +16,7 @@ namespace Poly
 		PVKRenderPass();
 		~PVKRenderPass();
 
-		void init(VkDevice device, VkFormat imageFormat);
+		void init(PVKInstance* instance, PVKSwapChain* swapChain);
 		void cleanup();
 
 		VkRenderPass getRenderPass() { return this->renderPass; };

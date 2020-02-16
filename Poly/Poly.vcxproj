@@ -104,6 +104,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h" />
@@ -128,6 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
