@@ -35,7 +35,6 @@ namespace Poly
 		this->shader.cleanup();
 		this->swapChain.cleanup();
 		this->instance.cleanup();
-
 		delete this->window;
 	}
 

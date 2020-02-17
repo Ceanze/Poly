@@ -20,6 +20,7 @@ namespace Poly
 	{
 	public:
 		VulkanRenderer() = default;
+		virtual ~VulkanRenderer() = default;
 		virtual void initialize(unsigned width = 1280, unsigned height = 720);
 		virtual void setWinTitle(const char* title);
 		//virtual void present() = 0;

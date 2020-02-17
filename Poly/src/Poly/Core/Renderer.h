@@ -11,6 +11,7 @@ namespace Poly
 		static Renderer* create(BACKEND backend);
 
 		Renderer() = default;
+		virtual ~Renderer() = default;
 		virtual void initialize(unsigned int width = 800, unsigned int height = 600) = 0;
 		virtual void setWinTitle(const char* title) = 0;
 		//virtual void present() = 0;

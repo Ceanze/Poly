@@ -100,18 +100,24 @@ namespace Poly {
 	template<class T, class EventType>
 	inline void EventBus::unsubscribe(T* instance, void (T::* func)(EventType*))
 	{
-		HandlerList* subs = subscribers[typeid(EventType)];
-
-		if (!subs)
+		if (this->subscribers.empty())
 			return;
-
-		unsigned ID = getID<T, EventType>(instance);
-		for (auto it = subs->begin(); it != subs->end(); it++)
+		if (this->subscribers.find(typeid(EventType)) != this->subscribers.end())
 		{
-			if ((*it)->ID == ID)
+			HandlerList* handlers = this->subscribers[typeid(EventType)];
+
+			unsigned id = getID<T, EventType>(instance);
+			std::vector<HandlerFunctionBase*>::iterator it;
+			for (it = handlers->begin(); it != handlers->end(); ++it)
 			{
-				subs->erase(it);
-				break;
+				if ((*it) == nullptr)
+					continue;
+				if ((*it)->ID == id)
+				{
+					delete* it;
+					(*it) = nullptr;
+					break;
+				}
 			}
 		}
 	}
