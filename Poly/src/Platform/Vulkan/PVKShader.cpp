@@ -29,7 +29,7 @@ namespace Poly
 	void PVKShader::addStage(Type type, const std::string& shaderName)
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
-		const std::string shaderPath = "C:\\dev\\Poly\\Sandbox\\shaders\\";
+		const std::string shaderPath = ".\\shaders\\";
 		
 		std::vector<char> code = readFile(shaderPath + shaderName);
 

@@ -105,8 +105,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Platform\Vulkan\PVKCommandBuffer.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKQueue.h" />
