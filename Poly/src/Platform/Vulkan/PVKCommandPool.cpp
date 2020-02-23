@@ -98,7 +98,7 @@ namespace Poly
 
 		PVK_CHECK(vkAllocateCommandBuffers(this->instance->getDevice(), &allocInfo, vkBuffers.data()), "Failed to allocate command buffers!")
 
-		std::vector<PVKCommandBuffer*> b;
+		std::vector<PVKCommandBuffer*> b(count);
 		for (size_t i = 0; i < count; i++) {
 			b[i] = new PVKCommandBuffer;
 			b[i]->init(this->instance, this->pool);
