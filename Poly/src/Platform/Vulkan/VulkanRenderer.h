@@ -11,6 +11,7 @@
 #include "PVKRenderPass.h"
 #include "PVKFramebuffer.h"
 #include "PVKCommandPool.h"
+#include "PVKCommandBuffer.h"
 
 
 namespace Poly
@@ -23,6 +24,7 @@ namespace Poly
 		virtual ~VulkanRenderer() = default;
 		virtual void initialize(unsigned width = 1280, unsigned height = 720);
 		virtual void setWinTitle(const char* title);
+		virtual void render();
 		//virtual void present() = 0;
 		virtual void shutdown();
 
@@ -30,6 +32,9 @@ namespace Poly
 		virtual void clearBuffer(unsigned int);
 
 	private:
+		void createCommandBuffers();
+		void createSyncObjects();
+
 		PVKInstance instance;
 		PVKSwapChain swapChain;
 		PVKPipeline pipeline;
@@ -37,6 +42,16 @@ namespace Poly
 		PVKRenderPass renderPass;
 		std::vector<PVKFramebuffer> framebuffers;
 		PVKCommandPool commandPool;
+		std::vector<PVKCommandBuffer*> commandBuffers;
+
+		// Sync -- TODO: Relocate sync objects?
+		std::vector<VkSemaphore> imageAvailableSemaphores;
+		std::vector<VkSemaphore> renderFinishedSemaphores;
+		std::vector<VkFence> inFlightFences;
+		std::vector<VkFence> imagesInFlight;
+		size_t currentFrame = 0;
+
+		const int MAX_FRAMES_IN_FLIGHT = 2;
 
 		Window* window;
 	};

@@ -35,6 +35,8 @@ namespace Poly
 
 			for (auto layer : this->layerStack)
 				layer->onUpdate();
+
+			this->renderer->render();
 		}
 	}
 

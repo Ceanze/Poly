@@ -48,6 +48,8 @@ namespace Poly
 		renderPassInfo.pAttachments = &colorAttachment;
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = this->subpassDependencies.size();
+		renderPassInfo.pDependencies = this->subpassDependencies.data();
 
 		PVK_CHECK(vkCreateRenderPass(this->device, &renderPassInfo, nullptr, &this->renderPass), "Failed to create render pass!");
 	}
@@ -55,6 +57,11 @@ namespace Poly
 	void PVKRenderPass::cleanup()
 	{
 		vkDestroyRenderPass(this->device, this->renderPass, nullptr);
+	}
+
+	void PVKRenderPass::addSubpassDependency(VkSubpassDependency dep)
+	{
+		this->subpassDependencies.push_back(dep);
 	}
 
 }
