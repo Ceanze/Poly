@@ -191,4 +191,11 @@ namespace Poly
 		return details;
 	}
 
+	uint32_t PVKSwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence)
+	{
+		uint32_t imageIndex;
+		PVK_CHECK(vkAcquireNextImageKHR(this->instance->getDevice(), this->swapChain, UINT64_MAX, semaphore, fence, &imageIndex), "Failed to acquire image!");
+		return imageIndex;
+	}
+
 }
