@@ -10,9 +10,9 @@ namespace Poly
 
 		this->instance.init(this->window);
 		this->swapChain.init(&this->instance, this->window);
-		this->shader.init(&this->instance);
 		this->shader.addStage(PVKShader::Type::VERTEX, "vert.spv");
 		this->shader.addStage(PVKShader::Type::FRAGMENT, "frag.spv");
+		this->shader.init(&this->instance);
 
 		VkSubpassDependency dependency = {};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;

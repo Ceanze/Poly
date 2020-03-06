@@ -18,7 +18,7 @@ namespace Poly
 		void init(PVKInstance* instance);
 		void cleanup();
 
-		void addStage(Type type, const std::string& shaderName);
+		void addStage(Type type, std::string shaderName);
 		VkPipelineShaderStageCreateInfo getShaderCreateInfo(Type type) const;
 		std::vector<VkPipelineShaderStageCreateInfo> getShaderCreateInfos();
 
@@ -26,6 +26,7 @@ namespace Poly
 		void createShaderModule(Type type, const std::vector<char>& code);
 
 		std::unordered_map<Type, VkPipelineShaderStageCreateInfo> shaderStages;
+		std::unordered_map<Type, std::string> shaderPaths;
 		PVKInstance* instance;
 	};
 

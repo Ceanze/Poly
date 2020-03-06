@@ -18,6 +18,12 @@ namespace Poly
 	void PVKShader::init(PVKInstance* instance)
 	{
 		this->instance = instance;
+
+		for (auto& shader : this->shaderPaths) {
+			std::vector<char> code = readFile(shader.second);
+			createShaderModule(shader.first, code);
+		}
+		this->shaderPaths.clear();
 	}
 
 	void PVKShader::cleanup()
@@ -26,14 +32,11 @@ namespace Poly
 			vkDestroyShaderModule(this->instance->getDevice(), shaderStage.second.module, nullptr);
 	}
 
-	void PVKShader::addStage(Type type, const std::string& shaderName)
+	void PVKShader::addStage(Type type, std::string shaderName)
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
 		const std::string shaderPath = ".\\shaders\\";
-		
-		std::vector<char> code = readFile(shaderPath + shaderName);
-
-		createShaderModule(type, code);
+		this->shaderPaths[type] = shaderPath + shaderName;
 	}
 
 	VkPipelineShaderStageCreateInfo PVKShader::getShaderCreateInfo(Type type) const
