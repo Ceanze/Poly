@@ -3,17 +3,17 @@
 #include "GLFW/glfw3.h"
 #include "Poly/Events/EventBus.h"
 #include "Window.h"
+#include "RendererAPI.h"
 
 namespace Poly
 {
 
-	Application::Application() : renderer(nullptr)
+	Application::Application()
 	{
 		Poly::Logger::init();
 
-		this->renderer = Renderer::create(Renderer::BACKEND::VULKAN);
-		this->renderer->initialize();
-
+		RendererAPI::create(RendererAPI::BACKEND::VULKAN);
+		//RendererAPI::initialize();
 
 		POLY_CORE_INFO("Application created!");
 
@@ -23,8 +23,7 @@ namespace Poly
 	Application::~Application()
 	{
 		POLY_EVENT_UNSUB(Application, onCloseWindowEvent);
-		this->renderer->shutdown();
-		delete this->renderer;
+		RendererAPI::shutdown();
 	}
 
 	void Application::run()
@@ -36,7 +35,7 @@ namespace Poly
 			for (auto layer : this->layerStack)
 				layer->onUpdate();
 
-			this->renderer->render();
+			RendererAPI::render();
 		}
 	}
 

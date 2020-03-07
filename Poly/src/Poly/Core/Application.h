@@ -3,7 +3,6 @@
 #include "Window.h"
 #include "LayerStack.h"
 #include "Poly/Events/EventBus.h"
-#include "Renderer.h"
 
 namespace Poly {
 
@@ -20,7 +19,6 @@ namespace Poly {
 	private:
 		bool running = true;
 		LayerStack layerStack;
-		Renderer* renderer;
 
 		void onCloseWindowEvent(CloseWindowEvent* e);
 	};
