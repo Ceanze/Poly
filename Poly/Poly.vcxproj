@@ -104,10 +104,13 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\Vulkan\PVKBuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKCommandBuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKDescriptor.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKMemory.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKQueue.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKRenderPass.h" />
@@ -123,6 +126,7 @@
     <ClInclude Include="src\Poly\Core\Logger.h" />
     <ClInclude Include="src\Poly\Core\PolyUtils.h" />
     <ClInclude Include="src\Poly\Core\Renderer.h" />
+    <ClInclude Include="src\Poly\Core\RendererAPI.h" />
     <ClInclude Include="src\Poly\Core\Window.h" />
     <ClInclude Include="src\Poly\Events\Event.h" />
     <ClInclude Include="src\Poly\Events\EventBus.h" />
@@ -130,10 +134,13 @@
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKCommandBuffer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKDescriptor.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKMemory.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKShader.cpp" />
@@ -143,6 +150,7 @@
     <ClCompile Include="src\Poly\Core\LayerStack.cpp" />
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
     <ClCompile Include="src\Poly\Core\Renderer.cpp" />
+    <ClCompile Include="src\Poly\Core\RendererAPI.cpp" />
     <ClCompile Include="src\Poly\Core\Window.cpp" />
     <ClCompile Include="src\polypch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

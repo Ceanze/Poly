@@ -73,6 +73,9 @@
     <ClInclude Include="src\Poly\Core\Renderer.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Core\RendererAPI.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Poly\Core\Window.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
@@ -86,6 +89,9 @@
       <Filter>Poly\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\polypch.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKDescriptor.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKBuffer.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKMemory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKCommandBuffer.cpp">
@@ -127,9 +133,15 @@
     <ClCompile Include="src\Poly\Core\Renderer.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Poly\Core\RendererAPI.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Poly\Core\Window.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKDescriptor.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKMemory.cpp" />
   </ItemGroup>
 </Project>

@@ -1,12 +1,15 @@
 Abstraktera:
-    - SSBO
-    - UBO
-    - VertexBuffer
-    - IndexBuffer
+	- SSBO
+	- UBO
+	- VertexBuffer
+	- IndexBuffer
 Detta betyder att man göra generalla klasser i Core som har en statisk create funktion
 samt de funktioner som _alla_ implementationer behöver (dock prioritera Vulkan med 100%).
 Create funktionen retunerar den klassen som passar det valda API:t som kollas i create funktionen
 i den abstrakta klassen. På detta sätt: https://github.com/TheCherno/Hazel/blob/master/Hazel/src/Hazel/Renderer/RendererAPI.cpp
+
+När en Buffer eller Texture skapas i application så ska man kunna ange hur ofta den datan kommer att uppdateras genom
+en enum som är STATIC eller DYNAMIC. Detta avgör om den ska använda staging buffer (transfer queue) eller inte.
 
 
 Osäkert:
@@ -14,3 +17,13 @@ VulkanRenderer ska ärvas av en Renderer klass som har de basic funktionerna så
 - Begin
 - End
 - Submit?
+
+
+Plan för Application pipeline (statisk pipeline):
+	- Skapa app
+	- Skapa renderer: Renderer gör sin preinit (instance, swapchain, renderpass, commandpool, sync)
+	- I app: Skapa renderer specifika saker: Shader, shader bindings, buffrar (vertexbuffer)
+	- Initiera renderer: (pipeline med shaders och descriptors, buffrar med minne, framebuffers)
+
+
+Skapa en fil som håller i vanliga enum (Ex: piplinestage [vertex, compute..], descriptortype [ubo, ssbo..]) osv.
