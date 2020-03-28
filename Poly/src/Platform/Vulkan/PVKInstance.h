@@ -12,21 +12,24 @@ namespace Poly
 		PVKInstance contains the vulkan instance, physical device, and logical device
 		that are created for that instance.
 	*/
+
 	class PVKInstance
 	{
 	public:
 		PVKInstance();
 		~PVKInstance();
 
+		static PVKInstance& get();
+
 		void init(Window* window);
 		void cleanup();
 
-		VkDevice getDevice() const { return this->device; }
-		VkPhysicalDevice getPhysicalDevice() const { return this->physicalDevice; }
-		VkInstance getInstance() const { return this->instance; }
-		PVKQueue& getGraphicsQueue() { return this->graphicsQueue; }
-		PVKQueue& getPresentQueue() { return this->presentQueue; }
-		VkSurfaceKHR getSurface() const { return this->surface; }
+		static VkDevice getDevice() { return device; }
+		static VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
+		static VkInstance getInstance() { return instance; }
+		static PVKQueue& getGraphicsQueue() { return graphicsQueue; }
+		static PVKQueue& getPresentQueue() { return presentQueue; }
+		static VkSurfaceKHR getSurface() { return surface; }
 
 	private:
 		const std::vector<const char*> validationLayers = {
@@ -64,13 +67,13 @@ namespace Poly
 		void createLogicalDevice();
 		std::vector<const char*> getRequiredExtensions();
 
-		VkInstance instance;
+		static VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
-		VkPhysicalDevice physicalDevice;
-		VkDevice device;
-		PVKQueue graphicsQueue;
-		PVKQueue presentQueue;
-		VkSurfaceKHR surface;
+		static VkPhysicalDevice physicalDevice;
+		static VkDevice device;
+		static PVKQueue graphicsQueue;
+		static PVKQueue presentQueue;
+		static VkSurfaceKHR surface;
 
 		#ifdef POLY_DEBUG
 				const bool enableValidationLayers = true;

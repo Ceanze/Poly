@@ -5,12 +5,18 @@
 
 #include <cstdint>
 
+
 namespace Poly
 {
+	VkInstance PVKInstance::instance = VK_NULL_HANDLE;
+	VkDevice PVKInstance::device = VK_NULL_HANDLE;
+	VkPhysicalDevice PVKInstance::physicalDevice = VK_NULL_HANDLE;
+	VkSurfaceKHR PVKInstance::surface = VK_NULL_HANDLE;
+	PVKQueue PVKInstance::graphicsQueue = {};
+	PVKQueue PVKInstance::presentQueue = {};
 
 	PVKInstance::PVKInstance()
-		: debugMessenger(VK_NULL_HANDLE), device(VK_NULL_HANDLE), graphicsQueue(), presentQueue(),
-		instance(VK_NULL_HANDLE), physicalDevice(VK_NULL_HANDLE), surface(VK_NULL_HANDLE)
+		: debugMessenger(VK_NULL_HANDLE)
 	{
 
 	}
@@ -19,12 +25,18 @@ namespace Poly
 	{
 	}
 
+	PVKInstance& PVKInstance::get()
+	{
+		static PVKInstance i;
+		return i;
+	}
+
 	void PVKInstance::init(Window* window)
 	{
 		createInstance();
 		setupDebugMessenger();
 
-		PVK_CHECK(glfwCreateWindowSurface(this->instance, window->getNativeWindow(), nullptr, &this->surface), "Failed to create window surface!");
+		PVK_CHECK(glfwCreateWindowSurface(instance, window->getNativeWindow(), nullptr, &surface), "Failed to create window surface!");
 
 		pickPhysicalDevice();
 		createLogicalDevice();
@@ -32,13 +44,13 @@ namespace Poly
 
 	void PVKInstance::cleanup()
 	{
-		vkDestroySurfaceKHR(this->instance, this->surface, nullptr);
+		vkDestroySurfaceKHR(instance, surface, nullptr);
 
 		if (this->enableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
+			DestroyDebugUtilsMessengerEXT(instance, this->debugMessenger, nullptr);
 
-		vkDestroyDevice(this->device, nullptr);
-		vkDestroyInstance(this->instance, nullptr);
+		vkDestroyDevice(device, nullptr);
+		vkDestroyInstance(instance, nullptr);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::debugCallback(
@@ -116,7 +128,7 @@ namespace Poly
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
 		// Create instance and check if it succeded
-		PVK_CHECK(vkCreateInstance(&createInfo, nullptr, &this->instance), "Failed to create instance!");
+		PVK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create instance!");
 	}
 
 	void PVKInstance::setupDebugMessenger()
@@ -126,7 +138,7 @@ namespace Poly
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		populateDebugMessengerCreateInfo(createInfo);
 
-		PVK_CHECK(CreateDebugUtilsMessengerEXT(this->instance, &createInfo, nullptr, &this->debugMessenger), "Failed to set up debug messenger!");
+		PVK_CHECK(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &this->debugMessenger), "Failed to set up debug messenger!");
 	}
 
 	bool PVKInstance::checkValidationLayerSupport()
@@ -157,13 +169,13 @@ namespace Poly
 		return true;
 	}
 
-	bool PVKInstance::checkDeviceExtensionSupport(VkPhysicalDevice device)
+	bool PVKInstance::checkDeviceExtensionSupport(VkPhysicalDevice checkDevice)
 	{
 		// Get all the extensions for the device
 		unsigned extensionCount;
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+		vkEnumerateDeviceExtensionProperties(checkDevice, nullptr, &extensionCount, nullptr);
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+		vkEnumerateDeviceExtensionProperties(checkDevice, nullptr, &extensionCount, availableExtensions.data());
 
 		// Only get the unique extensions in our requested list
 		std::set<std::string> requiredExtensions(this->deviceExtensions.begin(), this->deviceExtensions.end());
@@ -180,7 +192,7 @@ namespace Poly
 	{
 		// Get number of physical devices
 		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(this->instance, &deviceCount, nullptr);
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
 		// If no were found, exit
 		if (deviceCount == 0) {
@@ -189,7 +201,7 @@ namespace Poly
 		
 		// Get the physical devices
 		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(this->instance, &deviceCount, devices.data());
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 		// Set optimal device
 		setOptimalDevice(devices);
@@ -203,14 +215,14 @@ namespace Poly
 	void PVKInstance::setOptimalDevice(const std::vector<VkPhysicalDevice>& devices)
 	{
 		unsigned bestScore = 0;
-		for (auto device : devices)
+		for (auto d : devices)
 		{
 			unsigned score = 0;
 			// Query the device
 			VkPhysicalDeviceProperties deviceProperties;
 			VkPhysicalDeviceFeatures deviceFeatures;
-			vkGetPhysicalDeviceProperties(device, &deviceProperties);
-			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+			vkGetPhysicalDeviceProperties(d, &deviceProperties);
+			vkGetPhysicalDeviceFeatures(d, &deviceFeatures);
 
 			// Favor dGPUs
 			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
@@ -224,12 +236,12 @@ namespace Poly
 			score += deviceProperties.limits.maxImageDimension2D;
 
 			// Make sure the device has support for the requested extensions
-			bool extensionsSupported = checkDeviceExtensionSupport(device);
+			bool extensionsSupported = checkDeviceExtensionSupport(d);
 
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(device, this->surface).isComplete()) {
+			if (score > bestScore && findQueueFamilies(d, surface).isComplete()) {
 				bestScore = score;
-				this->physicalDevice = device;
+				this->physicalDevice = d;
 			}
 		}
 	}
@@ -237,7 +249,7 @@ namespace Poly
 	void PVKInstance::createLogicalDevice()
 	{
 		// Create info for queues on the device
-		QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice, this->surface);
+		QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -278,13 +290,13 @@ namespace Poly
 		// If extensions are to be added (which they will be) then it is here it will be
 
 		// Create the logical device, bound to the physical device
-		PVK_CHECK(vkCreateDevice(this->physicalDevice, &createInfo, nullptr, &this->device), "Failed to create logical device!");
+		PVK_CHECK(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device), "Failed to create logical device!");
 
-		this->graphicsQueue.queueIndex = indices.graphicsFamily.value();
-		this->presentQueue.queueIndex = indices.presentFamily.value();
+		graphicsQueue.queueIndex = indices.graphicsFamily.value();
+		presentQueue.queueIndex = indices.presentFamily.value();
 
-		vkGetDeviceQueue(this->device, indices.graphicsFamily.value(), 0, &this->graphicsQueue.queue);
-		vkGetDeviceQueue(this->device, indices.presentFamily.value(), 0, &this->presentQueue.queue);
+		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
+		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue.queue);
 	}
 
 	std::vector<const char*> PVKInstance::getRequiredExtensions()
