@@ -4,15 +4,19 @@
 namespace Poly
 {
 
+	// Init should always be called last
+
 	void VulkanRenderer::initialize(unsigned width, unsigned height)
 	{
 		this->window = new Window(width, height, "Poly");
 
 		this->instance.init(this->window);
-		this->swapChain.init(&this->instance, this->window);
+		this->swapChain.init(this->window);
+
+		// Everything under this line should be made in Sandbox
 		this->shader.addStage(PVKShader::Type::VERTEX, "vert.spv");
 		this->shader.addStage(PVKShader::Type::FRAGMENT, "frag.spv");
-		this->shader.init(&this->instance);
+		this->shader.init();
 
 		VkSubpassDependency dependency = {};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -22,14 +26,16 @@ namespace Poly
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		this->renderPass.addSubpassDependency(dependency);
-		this->renderPass.init(&this->instance, &this->swapChain);
+		this->renderPass.init(this->swapChain);
 
-		this->pipeline.init(&this->instance, &this->swapChain, &this->shader, &this->renderPass);
-		this->commandPool.init(&this->instance, VK_QUEUE_GRAPHICS_BIT);
+		this->pipeline.init(this->swapChain, this->shader, this->renderPass);
+
+		// Until this line
+		this->commandPool.init(VK_QUEUE_GRAPHICS_BIT);
 		
 		this->framebuffers.resize(this->swapChain.getNumImages());
 		for (size_t i = 0; i < this->swapChain.getNumImages(); i++)
-			this->framebuffers[i].init(&this->instance, &this->swapChain, &this->renderPass, this->swapChain.getImageViews()[i]);
+			this->framebuffers[i].init(this->swapChain, this->renderPass, this->swapChain.getImageViews()[i]);
 
 		this->createCommandBuffers();
 		this->createSyncObjects();
