@@ -2,7 +2,6 @@
 
 #include "VulkanCommon.h"
 
-#include "PVKInstance.h"
 #include "Poly/Core/Window.h"
 
 namespace Poly
@@ -23,7 +22,7 @@ namespace Poly
 		PVKSwapChain();
 		~PVKSwapChain();
 
-		void init(PVKInstance* instance, Window* window);
+		void init(Window* window);
 		void cleanup();
 
 		void createSwapChain();
@@ -50,11 +49,8 @@ namespace Poly
 		VkExtent2D extent;
 		std::vector<VkImage> images;
 		std::vector<VkImageView> imageViews;
-		VkDevice device;
-		VkPhysicalDevice physicalDevice;
 
 		// Custom
-		PVKInstance* instance;
 		Window* window;
 	};
 }

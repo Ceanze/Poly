@@ -5,8 +5,6 @@
 
 namespace Poly
 {
-	class PVKInstance;
-
 	class PVKShader
 	{
 	public:
@@ -15,7 +13,7 @@ namespace Poly
 		PVKShader();
 		~PVKShader();
 
-		void init(PVKInstance* instance);
+		void init();
 		void cleanup();
 
 		void addStage(Type type, std::string shaderName);
@@ -27,7 +25,6 @@ namespace Poly
 
 		std::unordered_map<Type, VkPipelineShaderStageCreateInfo> shaderStages;
 		std::unordered_map<Type, std::string> shaderPaths;
-		PVKInstance* instance;
 	};
 
 }

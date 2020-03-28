@@ -6,8 +6,7 @@
 namespace Poly
 {
 
-	PVKShader::PVKShader() : 
-		instance(nullptr)
+	PVKShader::PVKShader()
 	{
 	}
 
@@ -15,10 +14,8 @@ namespace Poly
 	{
 	}
 
-	void PVKShader::init(PVKInstance* instance)
+	void PVKShader::init()
 	{
-		this->instance = instance;
-
 		for (auto& shader : this->shaderPaths) {
 			std::vector<char> code = readFile(shader.second);
 			createShaderModule(shader.first, code);
@@ -29,7 +26,7 @@ namespace Poly
 	void PVKShader::cleanup()
 	{
 		for (auto shaderStage : this->shaderStages)
-			vkDestroyShaderModule(this->instance->getDevice(), shaderStage.second.module, nullptr);
+			vkDestroyShaderModule(PVKInstance::getDevice(), shaderStage.second.module, nullptr);
 	}
 
 	void PVKShader::addStage(Type type, std::string shaderName)
@@ -80,7 +77,7 @@ namespace Poly
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 		VkShaderModule shaderModule;
-		PVK_CHECK(vkCreateShaderModule(this->instance->getDevice(), &createInfo, nullptr, &shaderModule), "Failed to create shader module!");
+		PVK_CHECK(vkCreateShaderModule(PVKInstance::getDevice(), &createInfo, nullptr, &shaderModule), "Failed to create shader module!");
 
 		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
 		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

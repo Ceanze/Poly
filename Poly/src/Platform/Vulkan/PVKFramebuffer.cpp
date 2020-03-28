@@ -7,7 +7,7 @@
 namespace Poly
 {
 
-	PVKFramebuffer::PVKFramebuffer() : framebuffer(VK_NULL_HANDLE), instance(nullptr)
+	PVKFramebuffer::PVKFramebuffer() : framebuffer(VK_NULL_HANDLE)
 	{
 	}
 
@@ -15,26 +15,25 @@ namespace Poly
 	{
 	}
 
-	void PVKFramebuffer::init(PVKInstance* instance, PVKSwapChain* swapChain, PVKRenderPass* renderPass, VkImageView attachment)
+	void PVKFramebuffer::init(PVKSwapChain& swapChain, PVKRenderPass& renderPass, VkImageView attachment)
 	{
-		VkExtent2D extent = swapChain->getExtent();
-		this->instance = instance;
+		VkExtent2D extent = swapChain.getExtent();
 
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = renderPass->getRenderPass();
+		framebufferInfo.renderPass = renderPass.getRenderPass();
 		framebufferInfo.attachmentCount = 1;
 		framebufferInfo.pAttachments = &attachment;
 		framebufferInfo.width = extent.width;
 		framebufferInfo.height = extent.height;
 		framebufferInfo.layers = 1;
 
-		PVK_CHECK(vkCreateFramebuffer(this->instance->getDevice(), &framebufferInfo, nullptr, &this->framebuffer), "Failed to create framebuffer!");
+		PVK_CHECK(vkCreateFramebuffer(PVKInstance::getDevice(), &framebufferInfo, nullptr, &this->framebuffer), "Failed to create framebuffer!");
 	}
 
 	void PVKFramebuffer::cleanup()
 	{
-		vkDestroyFramebuffer(this->instance->getDevice(), this->framebuffer, nullptr);
+		vkDestroyFramebuffer(PVKInstance::getDevice(), this->framebuffer, nullptr);
 	}
 
 }

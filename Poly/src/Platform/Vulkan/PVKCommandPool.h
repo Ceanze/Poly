@@ -5,7 +5,6 @@
 
 namespace Poly
 {
-	class PVKInstance;
 	class PVKCommandBuffer;
 
 	class PVKCommandPool
@@ -14,7 +13,7 @@ namespace Poly
 		PVKCommandPool();
 		~PVKCommandPool();
 
-		void init(PVKInstance* instance, VkQueueFlagBits queueType);
+		void init(VkQueueFlagBits queueType);
 		void cleanup();
 
 		VkCommandPool getCommandPool() const { return this->pool; }
@@ -33,7 +32,6 @@ namespace Poly
 		VkCommandPool pool;
 		VkQueueFlagBits queue;
 
-		PVKInstance* instance;
 		std::vector<PVKCommandBuffer*> buffers;
 	};
 }

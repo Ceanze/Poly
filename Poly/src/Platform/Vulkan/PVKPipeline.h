@@ -4,7 +4,6 @@
 
 namespace Poly
 {
-	class PVKInstance;
 	class PVKSwapChain;
 	class PVKShader;
 	class PVKRenderPass;
@@ -15,7 +14,7 @@ namespace Poly
 		PVKPipeline();
 		~PVKPipeline();
 
-		void init(PVKInstance* instance, PVKSwapChain* swapChain, PVKShader* shader, PVKRenderPass* renderPass);
+		void init(PVKSwapChain& swapChain, PVKShader& shader, PVKRenderPass& renderPass);
 		void cleanup();
 
 		void addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format);
@@ -27,7 +26,6 @@ namespace Poly
 		void createPipeline();
 
 		VkPipelineBindPoint pipelineType;
-		VkDevice device;
 		VkPipeline pipeline;
 		VkPipelineLayout pipelineLayout;
 		PVKShader* shader;

@@ -13,7 +13,6 @@ namespace Poly
 	class PVKRenderPass;
 	class PVKPipeline;
 	class PVKFramebuffer;
-	class PVKInstance;
 
 	class PVKCommandBuffer
 	{
@@ -21,7 +20,7 @@ namespace Poly
 		PVKCommandBuffer();
 		~PVKCommandBuffer();
 
-		void init(PVKInstance* instance, VkCommandPool pool);
+		void init(VkCommandPool pool);
 		void cleanup();
 
 		VkCommandBuffer getCommandBuffer() const { return this->buffer; }
@@ -41,8 +40,6 @@ namespace Poly
 	private:
 		VkCommandBuffer buffer;
 		VkCommandPool pool;
-
-		PVKInstance* instance;
 	};
 
 }

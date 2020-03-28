@@ -10,7 +10,7 @@ namespace Poly
 {
 
 	PVKCommandBuffer::PVKCommandBuffer() : 
-		buffer(VK_NULL_HANDLE), pool(VK_NULL_HANDLE), instance(nullptr)
+		buffer(VK_NULL_HANDLE), pool(VK_NULL_HANDLE)
 	{
 	}
 
@@ -18,10 +18,9 @@ namespace Poly
 	{
 	}
 
-	void PVKCommandBuffer::init(PVKInstance* instance, VkCommandPool pool)
+	void PVKCommandBuffer::init(VkCommandPool pool)
 	{
 		this->pool = pool;
-		this->instance = instance;
 	}
 
 	void PVKCommandBuffer::cleanup()
@@ -38,7 +37,7 @@ namespace Poly
 		allocInfo.commandBufferCount = 1;
 		allocInfo.pNext = nullptr;
 
-		PVK_CHECK(vkAllocateCommandBuffers(this->instance->getDevice(), &allocInfo, &this->buffer), "Failed to allocate command buffer!");
+		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::getDevice(), &allocInfo, &this->buffer), "Failed to allocate command buffer!");
 	}
 
 	void PVKCommandBuffer::begin(VkCommandBufferUsageFlags flags)

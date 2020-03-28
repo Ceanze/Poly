@@ -13,7 +13,7 @@ namespace Poly
 {
 
 	PVKPipeline::PVKPipeline() :
-		device(VK_NULL_HANDLE), swapChain(nullptr),
+		swapChain(nullptr),
 		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE),
 		renderPass(nullptr), shader(nullptr), pipelineType(VK_PIPELINE_BIND_POINT_GRAPHICS)
 	{
@@ -23,21 +23,20 @@ namespace Poly
 	{
 	}
 
-	void PVKPipeline::init(PVKInstance* instance, PVKSwapChain* swapChain, PVKShader* shader, PVKRenderPass* renderPass)
+	void PVKPipeline::init(PVKSwapChain& swapChain, PVKShader& shader, PVKRenderPass& renderPass)
 	{
-		this->device = instance->getDevice();
-		this->swapChain = swapChain;
-		this->renderPass = renderPass;
+		this->swapChain = &swapChain;
+		this->renderPass = &renderPass;
 
-		this->shader = shader;
+		this->shader = &shader;
 
 		createPipeline();
 	}
 
 	void PVKPipeline::cleanup()
 	{
-		vkDestroyPipeline(this->device, this->pipeline, nullptr);
-		vkDestroyPipelineLayout(this->device, this->pipelineLayout, nullptr);
+		vkDestroyPipeline(PVKInstance::getDevice(), this->pipeline, nullptr);
+		vkDestroyPipelineLayout(PVKInstance::getDevice(), this->pipelineLayout, nullptr);
 	}
 
 	void PVKPipeline::addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format)
@@ -163,7 +162,7 @@ namespace Poly
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 		// Create pipeline layout, the description of all the fixed-function stages
-		PVK_CHECK(vkCreatePipelineLayout(this->device, &pipelineLayoutInfo, nullptr, &this->pipelineLayout), "Failed to create pipeline layout!");
+		PVK_CHECK(vkCreatePipelineLayout(PVKInstance::getDevice(), &pipelineLayoutInfo, nullptr, &this->pipelineLayout), "Failed to create pipeline layout!");
 
 		// Pipeline creation info
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
@@ -189,7 +188,7 @@ namespace Poly
 
 		// Create the pipeline (function can create multiple pipelines at the same time)
 		// The nullptr is a reference to a VkPipelineCache which can speed up creation performance if used
-		PVK_CHECK(vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline), "Failed to create graphics pipeline!");
+		PVK_CHECK(vkCreateGraphicsPipelines(PVKInstance::getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline), "Failed to create graphics pipeline!");
 
 		this->pipelineType = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	}

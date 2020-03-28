@@ -8,7 +8,7 @@ namespace Poly
 {
 
 	PVKCommandPool::PVKCommandPool() :
-		pool(VK_NULL_HANDLE), instance(nullptr), queue(VK_QUEUE_GRAPHICS_BIT)
+		pool(VK_NULL_HANDLE), queue(VK_QUEUE_GRAPHICS_BIT)
 	{
 	}
 
@@ -16,16 +16,14 @@ namespace Poly
 	{
 	}
 
-	void PVKCommandPool::init(PVKInstance* instance, VkQueueFlagBits queueType)
-	{
-		this->instance = instance;
-		
+	void PVKCommandPool::init(VkQueueFlagBits queueType)
+	{		
 		createCommandPool();
 	}
 
 	void PVKCommandPool::cleanup()
 	{
-		vkDestroyCommandPool(this->instance->getDevice(), this->pool, nullptr);
+		vkDestroyCommandPool(PVKInstance::getDevice(), this->pool, nullptr);
 
 		// Command buffers are automatically freed when command pool is destroyed, just cleans memory
 		for (auto buffer : this->buffers) {
@@ -39,7 +37,7 @@ namespace Poly
 	{
 		switch (this->queue) {
 		case VK_QUEUE_GRAPHICS_BIT:
-			return this->instance->getGraphicsQueue().queue;
+			return PVKInstance::getGraphicsQueue().queue;
 		default:
 			POLY_ERROR("Could not find queue flag with bits {}!", this->queue);
 		}
@@ -73,14 +71,14 @@ namespace Poly
 		vkQueueSubmit(getQueue(), 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(getQueue());
 
-		vkFreeCommandBuffers(this->instance->getDevice(), this->pool, 1, &commandBuffer);
+		vkFreeCommandBuffers(PVKInstance::getDevice(), this->pool, 1, &commandBuffer);
 		removeCommandBuffer(buffer);
 	}
 
 	PVKCommandBuffer* PVKCommandPool::createCommandBuffer()
 	{
 		PVKCommandBuffer* b = new PVKCommandBuffer();
-		b->init(this->instance, this->pool);
+		b->init(this->pool);
 		b->createCommandBuffer();
 		buffers.push_back(b);
 		return b;
@@ -96,12 +94,12 @@ namespace Poly
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = count;
 
-		PVK_CHECK(vkAllocateCommandBuffers(this->instance->getDevice(), &allocInfo, vkBuffers.data()), "Failed to allocate command buffers!")
+		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::getDevice(), &allocInfo, vkBuffers.data()), "Failed to allocate command buffers!")
 
 		std::vector<PVKCommandBuffer*> b(count);
 		for (size_t i = 0; i < count; i++) {
 			b[i] = new PVKCommandBuffer;
-			b[i]->init(this->instance, this->pool);
+			b[i]->init(this->pool);
 			b[i]->setCommandBuffer(vkBuffers[i]);
 			this->buffers.push_back(b[i]);
 		}
@@ -119,14 +117,14 @@ namespace Poly
 	{
 		// Note: A command pool only supports one queue type at a time, for more queues more command pools are needed
 
-		uint32_t queueIndex = findQueueIndex(this->queue, this->instance->getPhysicalDevice());
+		uint32_t queueIndex = findQueueIndex(this->queue, PVKInstance::getPhysicalDevice());
 
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.queueFamilyIndex = queueIndex;
 		poolInfo.flags = 0; // Optional
 
-		PVK_CHECK(vkCreateCommandPool(this->instance->getDevice(), &poolInfo, nullptr, &this->pool), "Failed to create command pool!");
+		PVK_CHECK(vkCreateCommandPool(PVKInstance::getDevice(), &poolInfo, nullptr, &this->pool), "Failed to create command pool!");
 	}
 
 }

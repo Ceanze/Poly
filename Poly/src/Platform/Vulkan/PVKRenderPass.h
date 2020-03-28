@@ -8,7 +8,6 @@
 namespace Poly
 {
 
-	class PVKInstance;
 	class PVKSwapChain;
 
 	class PVKRenderPass
@@ -17,7 +16,7 @@ namespace Poly
 		PVKRenderPass();
 		~PVKRenderPass();
 
-		void init(PVKInstance* instance, PVKSwapChain* swapChain);
+		void init(PVKSwapChain& swapChain);
 		void cleanup();
 
 		void addSubpassDependency(VkSubpassDependency dep);
@@ -25,7 +24,6 @@ namespace Poly
 		VkRenderPass getRenderPass() { return this->renderPass; };
 
 	private:
-		VkDevice device;
 		VkFormat imageFormat;
 		VkRenderPass renderPass;
 
