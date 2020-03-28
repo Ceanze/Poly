@@ -13,7 +13,6 @@ namespace Poly
 		Poly::Logger::init();
 
 		RendererAPI::create(RendererAPI::BACKEND::VULKAN);
-		//RendererAPI::initialize();
 
 		POLY_CORE_INFO("Application created!");
 
