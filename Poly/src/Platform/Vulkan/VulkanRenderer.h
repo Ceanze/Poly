@@ -35,7 +35,6 @@ namespace Poly
 		void createCommandBuffers();
 		void createSyncObjects();
 
-		PVKInstance instance;
 		PVKSwapChain swapChain;
 		PVKPipeline pipeline;
 		PVKShader shader;

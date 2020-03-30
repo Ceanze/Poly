@@ -10,12 +10,12 @@ namespace Poly
 	{
 		this->window = new Window(width, height, "Poly");
 
-		this->instance.init(this->window);
+		PVKInstance::get().init(this->window);
 		this->swapChain.init(this->window);
 
 		// Everything under this line should be made in Sandbox
-		this->shader.addStage(PVKShader::Type::VERTEX, "vert.spv");
-		this->shader.addStage(PVKShader::Type::FRAGMENT, "frag.spv");
+		this->shader.addStage(ShaderType::VERTEX_BIT, "vert.spv");
+		this->shader.addStage(ShaderType::FRAGMENT_BIT, "frag.spv");
 		this->shader.init();
 
 		VkSubpassDependency dependency = {};
@@ -31,7 +31,7 @@ namespace Poly
 		this->pipeline.init(this->swapChain, this->shader, this->renderPass);
 
 		// Until this line
-		this->commandPool.init(VK_QUEUE_GRAPHICS_BIT);
+		this->commandPool.init(QueueType::COMPUTE_BIT);
 		
 		this->framebuffers.resize(this->swapChain.getNumImages());
 		for (size_t i = 0; i < this->swapChain.getNumImages(); i++)
@@ -47,12 +47,12 @@ namespace Poly
 
 	void VulkanRenderer::render()
 	{
-		vkWaitForFences(this->instance.getDevice(), 1, &this->inFlightFences[this->currentFrame], VK_TRUE, UINT64_MAX);
+		vkWaitForFences(PVKInstance::getDevice(), 1, &this->inFlightFences[this->currentFrame], VK_TRUE, UINT64_MAX);
 
 		uint32_t imageIndex = this->swapChain.acquireNextImage(this->imageAvailableSemaphores[this->currentFrame], VK_NULL_HANDLE);
 
 		if (this->imagesInFlight[imageIndex] != VK_NULL_HANDLE)
-			vkWaitForFences(this->instance.getDevice(), 1, &this->imagesInFlight[imageIndex], VK_TRUE, UINT16_MAX);
+			vkWaitForFences(PVKInstance::getDevice(), 1, &this->imagesInFlight[imageIndex], VK_TRUE, UINT16_MAX);
 		this->imagesInFlight[imageIndex] = inFlightFences[this->currentFrame];
 
 		VkSubmitInfo submitInfo = {};
@@ -70,9 +70,9 @@ namespace Poly
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		PVK_CHECK(vkResetFences(this->instance.getDevice(), 1, &this->inFlightFences[this->currentFrame]), "Failed to reset fences!");
+		PVK_CHECK(vkResetFences(PVKInstance::getDevice(), 1, &this->inFlightFences[this->currentFrame]), "Failed to reset fences!");
 
-		PVK_CHECK(vkQueueSubmit(this->instance.getGraphicsQueue().queue, 1, &submitInfo, this->inFlightFences[this->currentFrame]), "Failed to submit draw command buffer!");
+		PVK_CHECK(vkQueueSubmit(PVKInstance::getQueue(QueueType::GRAPHICS_BIT).queue, 1, &submitInfo, this->inFlightFences[this->currentFrame]), "Failed to submit draw command buffer!");
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -83,19 +83,19 @@ namespace Poly
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &imageIndex;
 		presentInfo.pResults = nullptr; // Optional
-		PVK_CHECK(vkQueuePresentKHR(this->instance.getPresentQueue().queue, &presentInfo), "Failed to present image!");
+		PVK_CHECK(vkQueuePresentKHR(PVKInstance::getPresentQueue().queue, &presentInfo), "Failed to present image!");
 
 		this->currentFrame = (this->currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void VulkanRenderer::shutdown()
 	{
-		PVK_CHECK(vkDeviceWaitIdle(this->instance.getDevice()), "Failed to wait for device!");
+		PVK_CHECK(vkDeviceWaitIdle(PVKInstance::getDevice()), "Failed to wait for device!");
 
 		for (size_t i = 0; i < this->renderFinishedSemaphores.size(); i++) {
-			vkDestroySemaphore(this->instance.getDevice(), this->renderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(this->instance.getDevice(), this->imageAvailableSemaphores[i], nullptr);
-			vkDestroyFence(this->instance.getDevice(), this->inFlightFences[i], nullptr);
+			vkDestroySemaphore(PVKInstance::getDevice(), this->renderFinishedSemaphores[i], nullptr);
+			vkDestroySemaphore(PVKInstance::getDevice(), this->imageAvailableSemaphores[i], nullptr);
+			vkDestroyFence(PVKInstance::getDevice(), this->inFlightFences[i], nullptr);
 		}
 
 		this->commandPool.cleanup();
@@ -104,7 +104,7 @@ namespace Poly
 		this->renderPass.cleanup();
 		this->shader.cleanup();
 		this->swapChain.cleanup();
-		this->instance.cleanup();
+		PVKInstance::get().cleanup();
 		delete this->window;
 	}
 
@@ -150,9 +150,9 @@ namespace Poly
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			PVK_CHECK(vkCreateSemaphore(this->instance.getDevice(), &semaphoreInfo, nullptr, &this->imageAvailableSemaphores[i]), "Failed to create semaphores!");
-			PVK_CHECK(vkCreateSemaphore(this->instance.getDevice(), &semaphoreInfo, nullptr, &this->renderFinishedSemaphores[i]), "Failed to create semaphores!");
-			PVK_CHECK(vkCreateFence(this->instance.getDevice(), &fenceInfo, nullptr, &inFlightFences[i]), "Failed to create fences!");
+			PVK_CHECK(vkCreateSemaphore(PVKInstance::getDevice(), &semaphoreInfo, nullptr, &this->imageAvailableSemaphores[i]), "Failed to create semaphores!");
+			PVK_CHECK(vkCreateSemaphore(PVKInstance::getDevice(), &semaphoreInfo, nullptr, &this->renderFinishedSemaphores[i]), "Failed to create semaphores!");
+			PVK_CHECK(vkCreateFence(PVKInstance::getDevice(), &fenceInfo, nullptr, &inFlightFences[i]), "Failed to create fences!");
 		}
 	}
 
