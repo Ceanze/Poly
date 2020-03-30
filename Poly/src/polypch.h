@@ -1,5 +1,7 @@
 #pragma once
 
+#define NOMINMAX
+
 // Standard libraries
 #include <windows.h>
 #include <string>
