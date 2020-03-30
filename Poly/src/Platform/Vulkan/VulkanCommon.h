@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PVKTypes.h"
+
 #include <optional>
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -17,8 +19,6 @@ namespace Poly {
 		}
 	};
 
-	// Current implementation assumes that the graphics queue and presentation queue is the same.
-	// If this is to change then the SurfaceKHR is needed in this function
 	static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 	{
 		QueueFamilyIndices indices;
@@ -52,19 +52,28 @@ namespace Poly {
 		return indices;
 	}
 
-	static uint32_t findQueueIndex(VkQueueFlagBits queueType, VkPhysicalDevice device)
+	// Find the desired queues index in the list of families. Returns a pair containing the queueIndex and queueCount
+	static std::pair<uint32_t, uint32_t> findQueueIndex(VkQueueFlagBits queueFamily, VkPhysicalDevice device)
 	{
+		// Get the queue families.
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-		uint32_t i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			if (queueFamily.queueFlags & queueType)
-				return i;
-		}
+		for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilies.size()); i++) {
 
+			VkQueueFlags desiredQueue = queueFamilies[i].queueFlags & queueFamily;
+			VkQueueFlags graphicsCheck = queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+
+			if (((queueFamily & VK_QUEUE_GRAPHICS_BIT) == 1) && (queueFamilies[i].queueFlags & queueFamily))
+				return { i, queueFamilies[i].queueCount };
+			// If not requesting graphics queue, should return a queue without graphics support (to avoid non-unique queue)
+			else if ((desiredQueue) && (graphicsCheck == 0))
+				return { i, queueFamilies[i].queueCount };
+		}
+		POLY_ASSERT(false, "Failed to find queue index for queue family {}!", queueFamily);
+		return {0, 0};
 	}
 
 	// Reads the given file in a binary format
