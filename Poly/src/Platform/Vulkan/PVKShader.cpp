@@ -29,14 +29,14 @@ namespace Poly
 			vkDestroyShaderModule(PVKInstance::getDevice(), shaderStage.second.module, nullptr);
 	}
 
-	void PVKShader::addStage(Type type, std::string shaderName)
+	void PVKShader::addStage(ShaderType type, std::string shaderName)
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
 		const std::string shaderPath = ".\\shaders\\";
 		this->shaderPaths[type] = shaderPath + shaderName;
 	}
 
-	VkPipelineShaderStageCreateInfo PVKShader::getShaderCreateInfo(Type type) const
+	VkPipelineShaderStageCreateInfo PVKShader::getShaderCreateInfo(ShaderType type) const
 	{
 		auto& it = this->shaderStages.find(type);
 
@@ -56,20 +56,20 @@ namespace Poly
 		return infos;
 	}
 
-	void PVKShader::createShaderModule(Type type, const std::vector<char>& code)
+	void PVKShader::createShaderModule(ShaderType type, const std::vector<char>& code)
 	{
-		VkShaderStageFlagBits shaderStage;
-		switch (type) {
-		case Type::VERTEX:
-			shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-			break;
-		case Type::FRAGMENT:
-			shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-			break;
-		case Type::COMPUTE:
-			shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
-			break;
-		}
+		//VkShaderStageFlagBits shaderStage;
+		//switch (type) {
+		//case Type::VERTEX:
+		//	shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
+		//	break;
+		//case Type::FRAGMENT:
+		//	shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		//	break;
+		//case Type::COMPUTE:
+		//	shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
+		//	break;
+		//}
 
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -81,7 +81,7 @@ namespace Poly
 
 		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
 		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStageInfo.stage = shaderStage;
+		shaderStageInfo.stage = (VkShaderStageFlagBits)type;
 		shaderStageInfo.module = shaderModule;
 		shaderStageInfo.pName = "main"; // Main should always be considered default
 

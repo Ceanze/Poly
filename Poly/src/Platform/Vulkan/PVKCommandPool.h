@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PVKTypes.h"
+
 #include <vulkan/vulkan.h>
 #include <vector>
 
@@ -13,11 +15,11 @@ namespace Poly
 		PVKCommandPool();
 		~PVKCommandPool();
 
-		void init(VkQueueFlagBits queueType);
+		void init(QueueType queueType);
 		void cleanup();
 
 		VkCommandPool getCommandPool() const { return this->pool; }
-		VkQueue getQueue();
+		QueueType getQueueType() const;
 
 		PVKCommandBuffer* beginSingleTimeCommand();
 		void endSingleTimeCommand(PVKCommandBuffer* buffer);
@@ -30,7 +32,7 @@ namespace Poly
 		void createCommandPool();
 
 		VkCommandPool pool;
-		VkQueueFlagBits queue;
+		QueueType queue;
 
 		std::vector<PVKCommandBuffer*> buffers;
 	};

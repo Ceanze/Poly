@@ -1,5 +1,6 @@
 #pragma once
 #include "polypch.h"
+#include "PVKTypes.h"
 
 #include <vulkan/vulkan.h>
 
@@ -8,7 +9,7 @@ namespace Poly
 	class PVKShader
 	{
 	public:
-		enum class Type { VERTEX, FRAGMENT, COMPUTE };
+		//enum class Type { VERTEX, FRAGMENT, COMPUTE };
 
 		PVKShader();
 		~PVKShader();
@@ -16,15 +17,15 @@ namespace Poly
 		void init();
 		void cleanup();
 
-		void addStage(Type type, std::string shaderName);
-		VkPipelineShaderStageCreateInfo getShaderCreateInfo(Type type) const;
+		void addStage(ShaderType type, std::string shaderName);
+		VkPipelineShaderStageCreateInfo getShaderCreateInfo(ShaderType type) const;
 		std::vector<VkPipelineShaderStageCreateInfo> getShaderCreateInfos();
 
 	private:
-		void createShaderModule(Type type, const std::vector<char>& code);
+		void createShaderModule(ShaderType type, const std::vector<char>& code);
 
-		std::unordered_map<Type, VkPipelineShaderStageCreateInfo> shaderStages;
-		std::unordered_map<Type, std::string> shaderPaths;
+		std::unordered_map<ShaderType, VkPipelineShaderStageCreateInfo> shaderStages;
+		std::unordered_map<ShaderType, std::string> shaderPaths;
 	};
 
 }
