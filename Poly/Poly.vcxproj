@@ -116,6 +116,7 @@
     <ClInclude Include="src\Platform\Vulkan\PVKRenderPass.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKShader.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKTypes.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="src\Poly.h" />

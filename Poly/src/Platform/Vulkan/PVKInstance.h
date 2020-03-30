@@ -2,7 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include "PVKQueue.h"
+#include "PVKTypes.h"
 
 namespace Poly
 {
@@ -24,11 +24,16 @@ namespace Poly
 		void init(Window* window);
 		void cleanup();
 
+		// Sets how many queues should be created for that queue type. Must be called before init.
+		// Default queue count per queue is 1. If the requested queue count is higher than the available, the
+		// most available will be set.
+		static void setQueueCount(QueueType queue, uint32_t count);
+
 		static VkDevice getDevice() { return device; }
 		static VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
 		static VkInstance getInstance() { return instance; }
-		static PVKQueue& getGraphicsQueue() { return graphicsQueue; }
 		static PVKQueue& getPresentQueue() { return presentQueue; }
+		static PVKQueue& getQueue(QueueType queueType, uint32_t index = 0);
 		static VkSurfaceKHR getSurface() { return surface; }
 
 	private:
@@ -66,14 +71,19 @@ namespace Poly
 		void setOptimalDevice(const std::vector<VkPhysicalDevice>& devices);
 		void createLogicalDevice();
 		std::vector<const char*> getRequiredExtensions();
+		void getAllQueues();
 
 		static VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
 		static VkPhysicalDevice physicalDevice;
 		static VkDevice device;
-		static PVKQueue graphicsQueue;
+		//static PVKQueue graphicsQueue;
+		static std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> queues;
 		static PVKQueue presentQueue;
 		static VkSurfaceKHR surface;
+		static uint32_t graphicsQueueCount;
+		static uint32_t computeQueueCount;
+		static uint32_t transferQueueCount;
 
 		#ifdef POLY_DEBUG
 				const bool enableValidationLayers = true;

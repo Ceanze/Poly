@@ -12,8 +12,12 @@ namespace Poly
 	VkDevice PVKInstance::device = VK_NULL_HANDLE;
 	VkPhysicalDevice PVKInstance::physicalDevice = VK_NULL_HANDLE;
 	VkSurfaceKHR PVKInstance::surface = VK_NULL_HANDLE;
-	PVKQueue PVKInstance::graphicsQueue = {};
+	//PVKQueue PVKInstance::graphicsQueue = {};
+	std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> PVKInstance::queues;
 	PVKQueue PVKInstance::presentQueue = {};
+	uint32_t PVKInstance::graphicsQueueCount = 1;
+	uint32_t PVKInstance::computeQueueCount = 1;
+	uint32_t PVKInstance::transferQueueCount = 1;
 
 	PVKInstance::PVKInstance()
 		: debugMessenger(VK_NULL_HANDLE)
@@ -51,6 +55,35 @@ namespace Poly
 
 		vkDestroyDevice(device, nullptr);
 		vkDestroyInstance(instance, nullptr);
+	}
+
+	void PVKInstance::setQueueCount(QueueType queue, uint32_t count)
+	{
+		switch (queue) {
+		case QueueType::GRAPHICS_BIT:
+			graphicsQueueCount = count;
+			break;
+		case QueueType::COMPUTE_BIT:
+			computeQueueCount = count;
+			break;
+		case QueueType::TRANSFER_BIT:
+			transferQueueCount = count;
+			break;
+		}
+	}
+
+	PVKQueue& PVKInstance::getQueue(QueueType queueType, uint32_t index)
+	{
+		// Check if valid queue and index, return if successful
+		auto it = queues.find(queueType);
+		if (it != queues.end()) {
+			auto& vec = queues[queueType];
+			if (index < vec.size())
+				return queues[queueType][index];
+		}
+
+		// Return default graphics queue if the requested is not supported
+		return queues[QueueType::GRAPHICS_BIT][0];
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::debugCallback(
@@ -250,16 +283,30 @@ namespace Poly
 	{
 		// Create info for queues on the device
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
+		std::pair<uint32_t, uint32_t> graphicsQueueIndex = findQueueIndex(VK_QUEUE_GRAPHICS_BIT, physicalDevice);
+		std::pair<uint32_t, uint32_t> computeQueueIndex = findQueueIndex(VK_QUEUE_COMPUTE_BIT, physicalDevice);
+		std::pair<uint32_t, uint32_t> transferQueueIndex = findQueueIndex(VK_QUEUE_TRANSFER_BIT, physicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value(), computeQueueIndex.first, transferQueueIndex.first };
+
+		// Update queue count to match what the program can create
+		graphicsQueueCount	= std::min(graphicsQueueCount, graphicsQueueIndex.second);
+		computeQueueCount	= std::min(computeQueueCount, graphicsQueueIndex.second);
+		transferQueueCount	= std::min(transferQueueCount, graphicsQueueIndex.second);
+
+		std::unordered_map<uint32_t, uint32_t> queueCounts;
+		queueCounts[indices.presentFamily.value()]	= 1;
+		queueCounts[indices.graphicsFamily.value()] = graphicsQueueCount;
+		queueCounts[computeQueueIndex.first]		= computeQueueCount;
+		queueCounts[transferQueueIndex.first]		= transferQueueCount;
 
 		float queuePriority = 1.0f;
 		for (unsigned queueFamily : uniqueQueueFamilies) {
 			VkDeviceQueueCreateInfo queueCreateInfo = {};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.queueCount = queueCounts[queueFamily];
 			queueCreateInfo.pQueuePriorities = &queuePriority;
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
@@ -273,7 +320,6 @@ namespace Poly
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.queueCreateInfoCount = static_cast<unsigned>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
-		createInfo.queueCreateInfoCount = 1;
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = static_cast<unsigned>(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
@@ -292,10 +338,11 @@ namespace Poly
 		// Create the logical device, bound to the physical device
 		PVK_CHECK(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device), "Failed to create logical device!");
 
-		graphicsQueue.queueIndex = indices.graphicsFamily.value();
+		//graphicsQueue.queueIndex = indices.graphicsFamily.value();
 		presentQueue.queueIndex = indices.presentFamily.value();
 
-		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
+		//vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
+		getAllQueues(); // This function does not check for present support, hence seperate functions
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue.queue);
 	}
 
@@ -311,6 +358,40 @@ namespace Poly
 		}
 
 		return extensions;
+	}
+
+	void PVKInstance::getAllQueues()
+	{
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+
+		for (uint32_t fIndex = 0; fIndex < queueFamilyCount; fIndex++) {
+			// Graphics queue
+			if (VK_QUEUE_GRAPHICS_BIT & queueFamilies[fIndex].queueFlags) {
+				queues[QueueType::GRAPHICS_BIT].resize(graphicsQueueCount);
+				for (uint32_t qIndex = 0; qIndex < graphicsQueueCount; qIndex++) {
+					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::GRAPHICS_BIT][qIndex].queue);
+				}
+			}
+
+			// Compute queue
+			if (VK_QUEUE_COMPUTE_BIT & queueFamilies[fIndex].queueFlags) {
+				queues[QueueType::COMPUTE_BIT].resize(computeQueueCount);
+				for (uint32_t qIndex = 0; qIndex < computeQueueCount; qIndex++) {
+					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::COMPUTE_BIT][qIndex].queue);
+				}
+			}
+
+			// Transfer queue
+			if (VK_QUEUE_TRANSFER_BIT & queueFamilies[fIndex].queueFlags) {
+				queues[QueueType::TRANSFER_BIT].resize(transferQueueCount);
+				for (uint32_t qIndex = 0; qIndex < transferQueueCount; qIndex++) {
+					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::TRANSFER_BIT][qIndex].queue);
+				}
+			}
+		}
 	}
 
 }
