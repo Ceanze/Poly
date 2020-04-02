@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Logger.h"
-#include <stdexcept>
 
 // PVK prefix is used for vulkan specific macros
 // POLY prefix is used for general macros

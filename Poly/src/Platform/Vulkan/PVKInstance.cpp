@@ -60,13 +60,13 @@ namespace Poly
 	void PVKInstance::setQueueCount(QueueType queue, uint32_t count)
 	{
 		switch (queue) {
-		case QueueType::GRAPHICS_BIT:
+		case QueueType::GRAPHICS:
 			graphicsQueueCount = count;
 			break;
-		case QueueType::COMPUTE_BIT:
+		case QueueType::COMPUTE:
 			computeQueueCount = count;
 			break;
-		case QueueType::TRANSFER_BIT:
+		case QueueType::TRANSFER:
 			transferQueueCount = count;
 			break;
 		}
@@ -83,7 +83,7 @@ namespace Poly
 		}
 
 		// Return default graphics queue if the requested is not supported
-		return queues[QueueType::GRAPHICS_BIT][0];
+		return queues[QueueType::GRAPHICS][0];
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::debugCallback(
@@ -370,25 +370,25 @@ namespace Poly
 		for (uint32_t fIndex = 0; fIndex < queueFamilyCount; fIndex++) {
 			// Graphics queue
 			if (VK_QUEUE_GRAPHICS_BIT & queueFamilies[fIndex].queueFlags) {
-				queues[QueueType::GRAPHICS_BIT].resize(graphicsQueueCount);
+				queues[QueueType::GRAPHICS].resize(graphicsQueueCount);
 				for (uint32_t qIndex = 0; qIndex < graphicsQueueCount; qIndex++) {
-					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::GRAPHICS_BIT][qIndex].queue);
+					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::GRAPHICS][qIndex].queue);
 				}
 			}
 
 			// Compute queue
 			if (VK_QUEUE_COMPUTE_BIT & queueFamilies[fIndex].queueFlags) {
-				queues[QueueType::COMPUTE_BIT].resize(computeQueueCount);
+				queues[QueueType::COMPUTE].resize(computeQueueCount);
 				for (uint32_t qIndex = 0; qIndex < computeQueueCount; qIndex++) {
-					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::COMPUTE_BIT][qIndex].queue);
+					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::COMPUTE][qIndex].queue);
 				}
 			}
 
 			// Transfer queue
 			if (VK_QUEUE_TRANSFER_BIT & queueFamilies[fIndex].queueFlags) {
-				queues[QueueType::TRANSFER_BIT].resize(transferQueueCount);
+				queues[QueueType::TRANSFER].resize(transferQueueCount);
 				for (uint32_t qIndex = 0; qIndex < transferQueueCount; qIndex++) {
-					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::TRANSFER_BIT][qIndex].queue);
+					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::TRANSFER][qIndex].queue);
 				}
 			}
 		}

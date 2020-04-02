@@ -12,6 +12,9 @@
 #include "PVKFramebuffer.h"
 #include "PVKCommandPool.h"
 #include "PVKCommandBuffer.h"
+#include "PVKDescriptor.h"
+#include "PVKBuffer.h"
+#include "PVKMemory.h"
 
 
 namespace Poly
@@ -34,6 +37,8 @@ namespace Poly
 	private:
 		void createCommandBuffers();
 		void createSyncObjects();
+		void setupDescriptorSet();
+		void setupTestData();
 
 		PVKSwapChain swapChain;
 		PVKPipeline pipeline;
@@ -42,6 +47,11 @@ namespace Poly
 		std::vector<PVKFramebuffer> framebuffers;
 		PVKCommandPool commandPool;
 		std::vector<PVKCommandBuffer*> commandBuffers;
+		PVKDescriptor descriptor;
+
+		// Temp buffers and memories
+		PVKBuffer testBuffer;
+		PVKMemory testMemory;
 
 		// Sync -- TODO: Relocate sync objects?
 		std::vector<VkSemaphore> imageAvailableSemaphores;

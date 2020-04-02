@@ -14,8 +14,8 @@ namespace Poly
 		this->swapChain.init(this->window);
 
 		// Everything under this line should be made in Sandbox
-		this->shader.addStage(ShaderType::VERTEX_BIT, "vert.spv");
-		this->shader.addStage(ShaderType::FRAGMENT_BIT, "frag.spv");
+		this->shader.addStage(ShaderType::VERTEX, "vert.spv");
+		this->shader.addStage(ShaderType::FRAGMENT, "frag.spv");
 		this->shader.init();
 
 		VkSubpassDependency dependency = {};
@@ -28,15 +28,18 @@ namespace Poly
 		this->renderPass.addSubpassDependency(dependency);
 		this->renderPass.init(this->swapChain);
 
+		setupDescriptorSet();
+		this->pipeline.setDescriptor(this->descriptor);
 		this->pipeline.init(this->swapChain, this->shader, this->renderPass);
 
 		// Until this line
-		this->commandPool.init(QueueType::COMPUTE_BIT);
+		this->commandPool.init(QueueType::COMPUTE);
 		
 		this->framebuffers.resize(this->swapChain.getNumImages());
 		for (size_t i = 0; i < this->swapChain.getNumImages(); i++)
 			this->framebuffers[i].init(this->swapChain, this->renderPass, this->swapChain.getImageViews()[i]);
 
+		this->setupTestData();
 		this->createCommandBuffers();
 		this->createSyncObjects();
 	}
@@ -72,7 +75,7 @@ namespace Poly
 
 		PVK_CHECK(vkResetFences(PVKInstance::getDevice(), 1, &this->inFlightFences[this->currentFrame]), "Failed to reset fences!");
 
-		PVK_CHECK(vkQueueSubmit(PVKInstance::getQueue(QueueType::GRAPHICS_BIT).queue, 1, &submitInfo, this->inFlightFences[this->currentFrame]), "Failed to submit draw command buffer!");
+		PVK_CHECK(vkQueueSubmit(PVKInstance::getQueue(QueueType::GRAPHICS).queue, 1, &submitInfo, this->inFlightFences[this->currentFrame]), "Failed to submit draw command buffer!");
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -101,6 +104,9 @@ namespace Poly
 		this->commandPool.cleanup();
 		PVK_VEC_CLEANUP(this->framebuffers);
 		this->pipeline.cleanup();
+		this->descriptor.cleanup();
+		this->testBuffer.cleanup();
+		this->testMemory.cleanup();
 		this->renderPass.cleanup();
 		this->shader.cleanup();
 		this->swapChain.cleanup();
@@ -127,8 +133,9 @@ namespace Poly
 			beginInfo.pInheritanceInfo = nullptr; // Optional
 
 			this->commandBuffers[i]->begin(0);
-			this->commandBuffers[i]->cmdBeginRenderPass(&this->renderPass, &this->framebuffers[i], this->swapChain.getExtent(), { 0.0f, 0.0f, 0.0f, 1.0f });
-			this->commandBuffers[i]->cmdBindPipeline(&this->pipeline);
+			this->commandBuffers[i]->cmdBeginRenderPass(this->renderPass, this->framebuffers[i], this->swapChain.getExtent(), { 0.0f, 0.0f, 0.0f, 1.0f });
+			this->commandBuffers[i]->cmdBindPipeline(this->pipeline);
+			this->commandBuffers[i]->cmdBindDescriptor(this->pipeline, this->descriptor, i);
 			this->commandBuffers[i]->cmdDraw(3, 1, 0, 0);
 			this->commandBuffers[i]->cmdEndRenderPass();
 			this->commandBuffers[i]->end();
@@ -154,6 +161,24 @@ namespace Poly
 			PVK_CHECK(vkCreateSemaphore(PVKInstance::getDevice(), &semaphoreInfo, nullptr, &this->renderFinishedSemaphores[i]), "Failed to create semaphores!");
 			PVK_CHECK(vkCreateFence(PVKInstance::getDevice(), &fenceInfo, nullptr, &inFlightFences[i]), "Failed to create fences!");
 		}
+	}
+
+	void VulkanRenderer::setupDescriptorSet()
+	{
+		this->descriptor.addBinding(0, 0, BufferType::UNIFORM, ShaderStage::FRAGMENT);
+		this->descriptor.finalizeSet(0);
+		this->descriptor.init(3);
+	}
+
+	void VulkanRenderer::setupTestData()
+	{
+		this->testBuffer.init(sizeof(float) * 3, BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex });
+		this->testMemory.bindBuffer(this->testBuffer);
+		this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
+		this->descriptor.updateBufferBinding(0, 0, this->testBuffer);
+
+		float vec[3] = { 0.f, 1.f, 1.f };
+		this->testMemory.directTransfer(this->testBuffer, vec, sizeof(float) * 3, 0);
 	}
 
 }
