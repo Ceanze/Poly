@@ -13,6 +13,7 @@ namespace Poly
 	class PVKRenderPass;
 	class PVKPipeline;
 	class PVKFramebuffer;
+	class PVKDescriptor;
 
 	class PVKCommandBuffer
 	{
@@ -29,9 +30,9 @@ namespace Poly
 
 		// Commands for recording
 		void begin(VkCommandBufferUsageFlags flags);
-		void cmdBeginRenderPass(PVKRenderPass* renderPass, PVKFramebuffer* framebuffer, VkExtent2D extent, VkClearValue clearColor);
-		void cmdBindPipeline(PVKPipeline* pipeline);
-		//void cmdBindDescriptorSets(Pipeline* pipeline, uint32_t firstSet, const std::vector<VkDescriptorSet>& sets, const std::vector<uint32_t>& offsets);
+		void cmdBeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor);
+		void cmdBindPipeline(PVKPipeline& pipeline);
+		void cmdBindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex);
 		void cmdDraw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 		void cmdDrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance);
 		void cmdEndRenderPass();

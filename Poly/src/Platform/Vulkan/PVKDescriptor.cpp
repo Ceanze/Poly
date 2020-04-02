@@ -2,6 +2,7 @@
 #include "PVKDescriptor.h"
 
 #include "PVKInstance.h"
+#include "PVKBuffer.h"
 
 namespace Poly
 {
@@ -29,14 +30,14 @@ namespace Poly
 			vkDestroyDescriptorSetLayout(PVKInstance::getDevice(), layout.second, nullptr);
 	}
 
-	void PVKDescriptor::addBinding(uint32_t set, uint32_t binding, Type bufferType, VkShaderStageFlags stageFlags)
+	void PVKDescriptor::addBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags)
 	{
 		VkDescriptorSetLayoutBinding layout = {};
 		layout.binding = binding;
 		layout.descriptorCount = 1;
 		layout.descriptorType = (VkDescriptorType)bufferType;
 		layout.pImmutableSamplers = nullptr; // Might be added in future for samplers/textures
-		layout.stageFlags = stageFlags;
+		layout.stageFlags = (VkShaderStageFlagBits)stageFlags;
 		
 		this->setLayoutBindings[set][binding] = layout;
 	}
@@ -62,16 +63,12 @@ namespace Poly
 		PVK_CHECK(vkCreateDescriptorSetLayout(PVKInstance::getDevice(), &info, nullptr, &setLayouts[set]), "Failed to create descriptor set {}!", set);
 	}
 
-	void PVKDescriptor::updateBufferBinding(uint32_t set, uint32_t binding, VkBuffer buffer)
+	void PVKDescriptor::updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer)
 	{
-		POLY_CORE_ERROR("Cannot use overload until VkBuffer is changed to PVKBuffer in order to get size!");
-		return;
-
-		// Will not work without PVKBuffer!
-		//updateBufferBinding(set, binding, buffer, 0, SIZE FROM PVKBUFFER);
+		updateBufferBinding(set, binding, buffer, 0, buffer.getSize());
 	}
 
-	void PVKDescriptor::updateBufferBinding(uint32_t set, uint32_t binding, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+	void PVKDescriptor::updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		// To optimise the vkUpdateDescriptorSets should only be called once instead for each binding
 
@@ -79,7 +76,7 @@ namespace Poly
 		uint32_t numCopies = this->descriptorSets[set].size();
 		for (uint32_t i = 0; i < numCopies; i++) {
 			VkDescriptorBufferInfo bufferInfo = {};
-			bufferInfo.buffer = buffer;
+			bufferInfo.buffer = buffer.getNative();
 			bufferInfo.offset = offset;
 			bufferInfo.range = range;
 
@@ -100,10 +97,10 @@ namespace Poly
 		vkUpdateDescriptorSets(PVKInstance::getDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
 	}
 
-	void PVKDescriptor::updateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+	void PVKDescriptor::updateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = buffer;
+		bufferInfo.buffer = buffer.getNative();
 		bufferInfo.offset = offset;
 		bufferInfo.range = range;
 
@@ -131,12 +128,21 @@ namespace Poly
 
 	VkDescriptorSet PVKDescriptor::getSet(uint32_t setIndex)
 	{
-		return VkDescriptorSet();
+		return this->descriptorSets[setIndex][0];
 	}
 
 	VkDescriptorSet PVKDescriptor::getSet(uint32_t setIndex, uint32_t copyIndex)
 	{
-		return VkDescriptorSet();
+		return this->descriptorSets[setIndex][copyIndex];
+	}
+
+	std::vector<VkDescriptorSet> PVKDescriptor::getSets(uint32_t copyIndex)
+	{
+		std::vector<VkDescriptorSet> sets;
+		for (auto& set : this->descriptorSets) {
+			sets.push_back(set.second[copyIndex]);
+		}
+		return sets;
 	}
 
 	void PVKDescriptor::createPool(uint32_t copies)
@@ -175,14 +181,15 @@ namespace Poly
 		// Creates the descriptor sets with their bindings, does not know about any data, which is added with an update
 
 		for (auto& set : this->setLayouts) {
+			std::vector<VkDescriptorSetLayout> layouts(copies, set.second);
 			VkDescriptorSetAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			allocInfo.descriptorPool = this->pool;
 			allocInfo.descriptorSetCount = copies;
-			allocInfo.pSetLayouts = &set.second;
+			allocInfo.pSetLayouts = layouts.data();
 
 			this->descriptorSets[set.first].resize(copies);
-			PVK_CHECK(vkAllocateDescriptorSets(PVKInstance::getDevice(), nullptr, this->descriptorSets[set.first].data()), "Failed to allocate descriptor sets for set {}!", set.first);
+			PVK_CHECK(vkAllocateDescriptorSets(PVKInstance::getDevice(), &allocInfo, this->descriptorSets[set.first].data()), "Failed to allocate descriptor sets for set {}!", set.first);
 		}
 	}
 

@@ -5,6 +5,7 @@
 #include "PVKPipeline.h"
 #include "PVKRenderPass.h"
 #include "PVKFramebuffer.h"
+#include "PVKDescriptor.h"
 
 namespace Poly
 {
@@ -50,12 +51,12 @@ namespace Poly
 		PVK_CHECK(vkBeginCommandBuffer(this->buffer, &beginInfo), "Failed to begin recording command buffer!");
 	}
 
-	void PVKCommandBuffer::cmdBeginRenderPass(PVKRenderPass* renderPass, PVKFramebuffer* framebuffer, VkExtent2D extent, VkClearValue clearColor)
+	void PVKCommandBuffer::cmdBeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor)
 	{
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass->getRenderPass();
-		renderPassInfo.framebuffer = framebuffer->getFramebuffer();
+		renderPassInfo.renderPass = renderPass.getRenderPass();
+		renderPassInfo.framebuffer = framebuffer.getFramebuffer();
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = extent;
 		renderPassInfo.clearValueCount = 1;
@@ -65,9 +66,15 @@ namespace Poly
 		vkCmdBeginRenderPass(this->buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void PVKCommandBuffer::cmdBindPipeline(PVKPipeline* pipeline)
+	void PVKCommandBuffer::cmdBindPipeline(PVKPipeline& pipeline)
 	{
-		vkCmdBindPipeline(this->buffer, pipeline->getType(), pipeline->getPipeline());
+		vkCmdBindPipeline(this->buffer, pipeline.getType(), pipeline.getPipeline());
+	}
+
+	void PVKCommandBuffer::cmdBindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex)
+	{
+		auto& sets = descriptor.getSets(setCopyIndex);
+		vkCmdBindDescriptorSets(this->buffer, pipeline.getType(), pipeline.getPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
 	}
 
 	void PVKCommandBuffer::cmdDraw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)

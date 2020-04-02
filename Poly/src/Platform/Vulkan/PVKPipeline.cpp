@@ -5,6 +5,7 @@
 #include "VulkanCommon.h"
 #include "PVKShader.h"
 #include "PVKRenderPass.h"
+#include "PVKDescriptor.h"
 
 // TODO: Make the pipeline support both compute and graphcis pipelines
 // TODO: Make it possible to edit different aspects of the pipeline (rasterizer, multisample, etc.) before init
@@ -53,6 +54,11 @@ namespace Poly
 		attribDesc.format = format;
 		attribDesc.offset = 0;
 		this->vertexAttributes.push_back(attribDesc);
+	}
+
+	void PVKPipeline::setDescriptor(PVKDescriptor& descriptor)
+	{
+		this->descriptor = &descriptor;
 	}
 
 	void PVKPipeline::createPipeline()
@@ -154,10 +160,11 @@ namespace Poly
 		dynamicState.pDynamicStates = dynamicStates;
 
 		// Pipeline layout, specifies uniforms and push layouts to the shaders
+		auto& setLayouts = this->descriptor->getSetLayouts();
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+		pipelineLayoutInfo.setLayoutCount = setLayouts.size(); // Optional
+		pipelineLayoutInfo.pSetLayouts = setLayouts.data(); // Optional
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
