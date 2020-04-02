@@ -15,7 +15,7 @@ namespace Poly
 	{
 	}
 
-	void PVKMemory::init(VkMemoryPropertyFlags memProp)
+	void PVKMemory::init(MemoryPropery memProp)
 	{
 		POLY_ASSERT(this->currentOffset != 0, "No buffers/images bound before allocation of memory!");
 
@@ -25,7 +25,7 @@ namespace Poly
 		//for (auto texture : this->textureOffsets)
 		//	typeFilter |= texture.first->getMemReq().memoryTypeBits;
 
-		uint32_t memoryTypeIndex = findMemoryType(PVKInstance::getPhysicalDevice(), typeFilter, memProp);
+		uint32_t memoryTypeIndex = findMemoryType(PVKInstance::getPhysicalDevice(), typeFilter, (VkMemoryPropertyFlags)memProp);
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -35,7 +35,7 @@ namespace Poly
 		PVK_CHECK(vkAllocateMemory(PVKInstance::getDevice(), &allocInfo, nullptr, &this->memory), "Failed to allocate memory!");
 
 		for (auto buffer : this->bufferOffsets)
-			PVK_CHECK(vkBindBufferMemory(PVKInstance::getDevice(), buffer.first->getBuffer(), this->memory, buffer.second), "Failed to bind buffer memory!");
+			PVK_CHECK(vkBindBufferMemory(PVKInstance::getDevice(), buffer.first->getNative(), this->memory, buffer.second), "Failed to bind buffer memory!");
 
 		//for (auto texture : this->textureOffsets)
 		//	PVK_CHECK(vkBindImageMemory(Instance::get().getDevice(), texture.first->getVkImage(), this->memory, texture.second), "Failed to bind image memory!");

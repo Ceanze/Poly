@@ -13,14 +13,14 @@ namespace Poly
 	{
 	}
 
-	void PVKBuffer::init(VkDeviceSize size, VkBufferUsageFlags usage, const std::vector<uint32_t>& queueFamilyIndices)
+	void PVKBuffer::init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices)
 	{
 		this->size = size;
 
 		VkBufferCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		createInfo.size = size;
-		createInfo.usage = usage;
+		createInfo.usage = (VkBufferUsageFlags)usage;
 
 		if (queueFamilyIndices.size() > 1)
 			createInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -38,7 +38,7 @@ namespace Poly
 		vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
 	}
 
-	VkBuffer PVKBuffer::getBuffer() const
+	VkBuffer PVKBuffer::getNative() const
 	{
 		return this->buffer;
 	}

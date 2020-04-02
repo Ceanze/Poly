@@ -1,6 +1,7 @@
 #pragma once
 
 #include "polypch.h"
+#include "PVKTypes.h"
 
 #include <vulkan/vulkan.h>
 
@@ -12,10 +13,10 @@ namespace Poly
 		PVKBuffer();
 		~PVKBuffer();
 
-		void init(VkDeviceSize size, VkBufferUsageFlags usage, const std::vector<uint32_t>& queueFamilyIndices);
+		void init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices);
 		void cleanup();
 
-		VkBuffer getBuffer() const;
+		VkBuffer getNative() const;
 		VkMemoryRequirements getMemReq() const;
 		VkDeviceSize getSize() const;
 

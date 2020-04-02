@@ -1,6 +1,7 @@
 #pragma once
 
 #include "polypch.h"
+#include "PVKTypes.h"
 
 #include <vulkan/vulkan.h>
 
@@ -14,7 +15,7 @@ namespace Poly
 		PVKMemory();
 		~PVKMemory();
 
-		void init(VkMemoryPropertyFlags memProp);
+		void init(MemoryPropery memProp);
 		void cleanup();
 
 		void bindBuffer(PVKBuffer& buffer);

@@ -8,7 +8,7 @@ namespace Poly
 {
 
 	PVKCommandPool::PVKCommandPool() :
-		pool(VK_NULL_HANDLE), queue(QueueType::GRAPHICS_BIT)
+		pool(VK_NULL_HANDLE), queue(QueueType::GRAPHICS)
 	{
 	}
 
