@@ -1,100 +1,14 @@
 #pragma once
 
 #include "PVKQueue.h"
+#include "Poly/Core/PolyUtils.h"
 #include <type_traits>
 
 /*
 	All the types used by the Poly Vulkan implementation is defined in this file.
 */
 
-template<typename Enum>
-struct EnableBitMaskOperators
-{
-    static const bool enable = false;
-};
 
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator |(Enum lhs, Enum rhs)
-{
-    using underlying = typename std::underlying_type<Enum>::type;
-    return static_cast<Enum> (
-        static_cast<underlying>(lhs) |
-        static_cast<underlying>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator &(Enum lhs, Enum rhs)
-{
-    return static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs)&
-        static_cast<std::underlying_type<Enum>::type>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator ^(Enum lhs, Enum rhs)
-{
-    return static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs) ^
-        static_cast<std::underlying_type<Enum>::type>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator ~(Enum rhs)
-{
-    return static_cast<Enum> (
-        ~static_cast<std::underlying_type<Enum>::type>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator |=(Enum& lhs, Enum rhs)
-{
-    lhs = static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs) |
-        static_cast<std::underlying_type<Enum>::type>(rhs)
-        );
-
-    return lhs;
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator &=(Enum& lhs, Enum rhs)
-{
-    lhs = static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs)&
-        static_cast<std::underlying_type<Enum>::type>(rhs)
-        );
-
-    return lhs;
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator ^=(Enum& lhs, Enum rhs)
-{
-    lhs = static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs)
-        static_cast<std::underlying_type<Enum>::type>(rhs)
-        );
-
-    return lhs;
-}
-
-#define ENABLE_BITMASK_OPERATORS(type)\
-template<>\
-struct EnableBitMaskOperators<type>\
-{\
-static const bool enable = true;\
-};
 
 namespace Poly
 {

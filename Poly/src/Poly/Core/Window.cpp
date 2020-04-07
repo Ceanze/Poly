@@ -1,6 +1,7 @@
 #include "polypch.h"
 #include "Window.h"
 #include "Poly/Events/EventBus.h"
+#include "Poly/Core/Input.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -30,6 +31,8 @@ namespace Poly {
 
 		// Set callbacks
 		glfwSetWindowCloseCallback(this->window, closeWindowCallback);
+		glfwSetKeyCallback(this->window, keyCallback);
+		//glfwSetCursorPosCallback(this->window, mouseMoveCallback);
 	}
 
 	Window::~Window()
@@ -56,6 +59,18 @@ namespace Poly {
 	void Window::closeWindowCallback(GLFWwindow* w)
 	{
 		POLY_EVENT_PUB(CloseWindowEvent());
+	}
+
+	void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+	{
+		if (action == GLFW_PRESS)
+			Input::setKeyPressed(key);
+		else if (action == GLFW_RELEASE)
+			Input::setKeyReleased(key);
+	}
+
+	void Window::mouseMoveCallback(GLFWwindow* window, double x, double y)
+	{
 	}
 
 }

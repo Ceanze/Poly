@@ -27,5 +27,7 @@ namespace Poly {
 
 		// Callbacks
 		static void closeWindowCallback(GLFWwindow* w);
+		static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+		static void mouseMoveCallback(GLFWwindow* window, double x, double y);
 	};
 }
