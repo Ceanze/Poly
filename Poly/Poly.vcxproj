@@ -121,7 +121,9 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="src\Poly.h" />
     <ClInclude Include="src\Poly\Core\Application.h" />
+    <ClInclude Include="src\Poly\Core\Camera.h" />
     <ClInclude Include="src\Poly\Core\EntryPoint.h" />
+    <ClInclude Include="src\Poly\Core\Input.h" />
     <ClInclude Include="src\Poly\Core\Layer.h" />
     <ClInclude Include="src\Poly\Core\LayerStack.h" />
     <ClInclude Include="src\Poly\Core\Logger.h" />
@@ -148,6 +150,7 @@
     <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Poly\Core\Application.cpp" />
+    <ClCompile Include="src\Poly\Core\Input.cpp" />
     <ClCompile Include="src\Poly\Core\LayerStack.cpp" />
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
     <ClCompile Include="src\Poly\Core\Renderer.cpp" />
