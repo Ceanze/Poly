@@ -54,6 +54,9 @@
     <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKTypes.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
@@ -98,7 +101,6 @@
       <Filter>Poly\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\polypch.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">

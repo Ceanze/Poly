@@ -177,8 +177,8 @@ namespace Poly
 		this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
 		this->descriptor.updateBufferBinding(0, 0, this->testBuffer);
 
-		float vec[3] = { 0.f, 1.f, 1.f };
-		this->testMemory.directTransfer(this->testBuffer, vec, sizeof(float) * 3, 0);
+		glm::vec3 vec = glm::vec3(0.f, 1.f, 1.f);
+		this->testMemory.directTransfer(this->testBuffer, &vec, sizeof(float) * 3, 0);
 	}
 
 }

@@ -2,11 +2,22 @@
 
 #define NOMINMAX
 
+#pragma warning(disable : 26812) // Disable unscoped enum warning
+
 // Standard libraries
 #include <windows.h>
 #include <string>
 #include <set>
 #include <algorithm>
+
+// Libs
+#pragma warning(push)
+#pragma warning(disable : 26495) // Disable uninitalized warning from GLM (it's a lot)
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/quaternion.hpp"
+#pragma warning(pop)
 
 // Custom files
 #include "Poly/Core/Logger.h"

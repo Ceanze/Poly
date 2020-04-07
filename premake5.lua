@@ -75,7 +75,8 @@ project "Poly"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/libs/spdlog/include",
-		"%{prj.name}/libs/glfw/include"
+		"%{prj.name}/libs/glfw/include",
+		"%{prj.name}/libs/glm"
 	}
 
 	libdirs
@@ -90,7 +91,6 @@ project "Poly"
 
 	filter "system:windows"
 		systemversion "latest"
-		-- links { "opengl32" }
 
 project "Sandbox"
 	location "Sandbox"
@@ -103,6 +103,7 @@ project "Sandbox"
 	includedirs
 	{
 		"Poly/libs/spdlog/include",
+		"Poly/libs/glm",
 		"Poly/src",
 		"Poly/libs"
 	}
