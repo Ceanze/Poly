@@ -4,6 +4,7 @@
 
 #include "Poly/Core/Renderer.h"
 #include "Poly/Core/Window.h"
+#include "Poly/Core/Camera.h"
 #include "PVKInstance.h"
 #include "PVKSwapChain.h"
 #include "PVKPipeline.h"
@@ -63,6 +64,7 @@ namespace Poly
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 
 		Window* window;
+		Camera* camera;
 	};
 
 }

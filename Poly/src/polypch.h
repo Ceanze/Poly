@@ -9,6 +9,7 @@
 #include <string>
 #include <set>
 #include <algorithm>
+#include <chrono>
 
 // Libs
 #pragma warning(push)
@@ -17,6 +18,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/quaternion.hpp"
+#include "glm/gtc/quaternion.hpp"
 #pragma warning(pop)
 
 // Custom files

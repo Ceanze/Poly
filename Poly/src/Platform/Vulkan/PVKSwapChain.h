@@ -34,7 +34,7 @@ namespace Poly
 		std::vector<VkImageView>& getImageViews() { return this->imageViews; }
 		VkFormat getFormat() const { return this->format; }
 		VkExtent2D getExtent() const { return this->extent; }
-		size_t getNumImages() const { return this->imageViews.size(); }
+		uint32_t getNumImages() const { return this->imageViews.size(); }
 
 
 	private:

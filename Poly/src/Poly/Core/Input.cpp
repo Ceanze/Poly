@@ -34,7 +34,8 @@ namespace Poly
 
 	void Input::setMouseDelta(double x, double y)
 	{
-		mouseDelta = { x, y };
+		mouseDelta.x = x;
+		mouseDelta.y = y;
 	}
 
 	bool Input::isKeyPressed(int key)
@@ -72,7 +73,9 @@ namespace Poly
 
 	glm::vec2 Input::getMouseDelta()
 	{
-		return mouseDelta;
+		glm::vec2 md(mouseDelta);
+		mouseDelta = { 0.f, 0.f };
+		return md;
 	}
 
 	void Input::reset()

@@ -150,6 +150,7 @@
     <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Poly\Core\Application.cpp" />
+    <ClCompile Include="src\Poly\Core\Camera.cpp" />
     <ClCompile Include="src\Poly\Core\Input.cpp" />
     <ClCompile Include="src\Poly\Core\LayerStack.cpp" />
     <ClCompile Include="src\Poly\Core\Logger.cpp" />

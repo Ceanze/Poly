@@ -9,6 +9,9 @@ namespace Poly
 	void VulkanRenderer::initialize(unsigned width, unsigned height)
 	{
 		this->window = new Window(width, height, "Poly");
+		this->camera = new Camera();
+		this->camera->setMouseSense(3.f);
+		this->camera->setAspect((float)this->window->getWidth() / this->window->getHeight());
 
 		PVKInstance::get().init(this->window);
 		this->swapChain.init(this->window);
@@ -50,6 +53,18 @@ namespace Poly
 
 	void VulkanRenderer::render()
 	{
+		// Move this
+		static auto currTime = std::chrono::high_resolution_clock::now();
+		static float dt = 0.f;
+		dt = std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - currTime).count();
+		currTime = std::chrono::high_resolution_clock::now();
+
+		this->camera->update(dt);
+
+		this->testMemory.directTransfer(this->testBuffer, &this->camera->getMatrix(), sizeof(glm::mat4), 0);
+		//this->testMemory.directTransfer(this->testBuffer, &glm::mat4(1.0f), sizeof(glm::mat4), 0);
+
+
 		vkWaitForFences(PVKInstance::getDevice(), 1, &this->inFlightFences[this->currentFrame], VK_TRUE, UINT64_MAX);
 
 		uint32_t imageIndex = this->swapChain.acquireNextImage(this->imageAvailableSemaphores[this->currentFrame], VK_NULL_HANDLE);
@@ -126,7 +141,7 @@ namespace Poly
 	{
 		this->commandBuffers = this->commandPool.createCommandBuffers(3);
 
-		for (size_t i = 0; i < this->commandBuffers.size(); i++) {
+		for (uint32_t i = 0; i < this->commandBuffers.size(); i++) {
 			VkCommandBufferBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			beginInfo.flags = 0; // Optional
@@ -165,20 +180,20 @@ namespace Poly
 
 	void VulkanRenderer::setupDescriptorSet()
 	{
-		this->descriptor.addBinding(0, 0, BufferType::UNIFORM, ShaderStage::FRAGMENT);
+		this->descriptor.addBinding(0, 0, BufferType::UNIFORM, ShaderStage::VERTEX);
 		this->descriptor.finalizeSet(0);
-		this->descriptor.init(3);
+		this->descriptor.init(this->swapChain.getNumImages());
 	}
 
 	void VulkanRenderer::setupTestData()
 	{
-		this->testBuffer.init(sizeof(float) * 3, BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex });
+		this->testBuffer.init(sizeof(glm::mat4), BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex });
 		this->testMemory.bindBuffer(this->testBuffer);
 		this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
 		this->descriptor.updateBufferBinding(0, 0, this->testBuffer);
 
-		glm::vec3 vec = glm::vec3(0.f, 1.f, 1.f);
-		this->testMemory.directTransfer(this->testBuffer, &vec, sizeof(float) * 3, 0);
+		//glm::vec3 vec = glm::vec3(0.f, 1.f, 1.f);
+		//this->testMemory.directTransfer(this->testBuffer, &vec, sizeof(float) * 3, 0);
 	}
 
 }

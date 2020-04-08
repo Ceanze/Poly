@@ -8,6 +8,8 @@
 
 namespace Poly {
 
+	bool Window::open = false;
+
 	Window::Window(int width, int height, const std::string& title)
 		: width(width), height(height), title(title)
 	{
@@ -28,11 +30,12 @@ namespace Poly {
 		}
 
 		glfwMakeContextCurrent(this->window);
+		open = true;
 
 		// Set callbacks
 		glfwSetWindowCloseCallback(this->window, closeWindowCallback);
 		glfwSetKeyCallback(this->window, keyCallback);
-		//glfwSetCursorPosCallback(this->window, mouseMoveCallback);
+		glfwSetCursorPosCallback(this->window, mouseMoveCallback);
 	}
 
 	Window::~Window()
@@ -56,6 +59,11 @@ namespace Poly {
 		return this->window;
 	}
 
+	bool Window::isOpen()
+	{
+		return false;
+	}
+
 	void Window::closeWindowCallback(GLFWwindow* w)
 	{
 		POLY_EVENT_PUB(CloseWindowEvent());
@@ -63,6 +71,9 @@ namespace Poly {
 
 	void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
+		if (key == GLFW_KEY_ESCAPE)
+			open = false;
+
 		if (action == GLFW_PRESS)
 			Input::setKeyPressed(key);
 		else if (action == GLFW_RELEASE)
@@ -71,6 +82,19 @@ namespace Poly {
 
 	void Window::mouseMoveCallback(GLFWwindow* window, double x, double y)
 	{
+		// Only record mouse movement when toggled
+		if (Input::isKeyToggled(GLFW_KEY_C)) {
+			int width, height;
+			glfwGetWindowSize(window, &width, &height);
+			glfwSetCursorPos(window, (double)width * 0.5, (double)height * 0.5);
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			// Send cursor offset from centre of window
+			Input::setMouseDelta(x - (double)width * 0.5, y - (double)height * 0.5);
+		}
+		else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			Input::setMouseDelta(0.0, 0.0);
+		}
 	}
 
 }

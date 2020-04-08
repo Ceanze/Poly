@@ -161,5 +161,6 @@
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
     <ClCompile Include="src\Poly\Core\Input.cpp" />
+    <ClCompile Include="src\Poly\Core\Camera.cpp" />
   </ItemGroup>
 </Project>

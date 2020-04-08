@@ -18,12 +18,15 @@ namespace Poly {
 		unsigned getHeight() const;
 
 		GLFWwindow* getNativeWindow() const;
+		
+		static bool isOpen();
 
 	private:
 		unsigned height = 720;
 		unsigned width = 1280;
 		std::string title;
 		GLFWwindow* window = nullptr;
+		static bool open;
 
 		// Callbacks
 		static void closeWindowCallback(GLFWwindow* w);

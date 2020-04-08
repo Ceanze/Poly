@@ -16,7 +16,7 @@ namespace Poly
 	PVKPipeline::PVKPipeline() :
 		swapChain(nullptr),
 		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE),
-		renderPass(nullptr), shader(nullptr), pipelineType(VK_PIPELINE_BIND_POINT_GRAPHICS)
+		renderPass(nullptr), shader(nullptr), pipelineType(VK_PIPELINE_BIND_POINT_GRAPHICS), descriptor(nullptr)
 	{
 	}
 
@@ -106,8 +106,8 @@ namespace Poly
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizer.cullMode = VK_CULL_MODE_NONE; // VK_CULL_MODE_BACK_BIT;
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 		rasterizer.depthBiasClamp = 0.0f; // Optional
