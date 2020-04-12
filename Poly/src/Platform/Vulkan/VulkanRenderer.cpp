@@ -117,6 +117,8 @@ namespace Poly
 		PVKInstance::get().cleanup();
 
 		delete this->window;
+		for (uint32_t i = 0; i < this->subRenderers.size(); i++)
+			delete this->subRenderers[i];
 	}
 
 	void VulkanRenderer::createRenderer(Renderer subRenderer)
