@@ -7,7 +7,7 @@
 namespace Poly
 {
 
-	Camera::Camera() : zNear(0.1f), zFar(100.f), fov(45.f), mouseSense(2.f), yaw(0), pitch(0), view(0), movementSpeed(2.f), sprintSpeed(4.f), aspect(1)
+	Camera::Camera() : zNear(0.01f), zFar(100.f), fov(45.f), mouseSense(2.f), yaw(0), pitch(0), view(0), movementSpeed(2.f), sprintSpeed(4.f), aspect(1)
 	{
 		this->proj = glm::perspective(this->fov, this->aspect, this->zNear, this->zFar);
 		this->proj[1][1] *= -1;
@@ -57,9 +57,6 @@ namespace Poly
 
 	void Camera::updateView()
 	{
-		if (Input::isKeyPressed(GLFW_KEY_F))
-			POLY_CORE_ERROR("BREAKPOINT");
-
 		glm::quat qYaw = glm::angleAxis(-this->yaw, this->globalUp);
 		glm::quat qPitch = glm::angleAxis(this->pitch, this->right);
 		glm::quat rotation = qPitch * qYaw;
