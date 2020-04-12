@@ -12,12 +12,6 @@ När en Buffer eller Texture skapas i application så ska man kunna ange hur oft
 en enum som är STATIC eller DYNAMIC. Detta avgör om den ska använda staging buffer (transfer queue) eller inte.
 
 
-Osäkert:
-VulkanRenderer ska ärvas av en Renderer klass som har de basic funktionerna så som:
-- Begin
-- End
-- Submit?
-
 
 Plan för Application pipeline (statisk pipeline):
 	- Skapa app
@@ -26,4 +20,39 @@ Plan för Application pipeline (statisk pipeline):
 	- Initiera renderer: (pipeline med shaders och descriptors, buffrar med minne, framebuffers)
 
 
-Skapa en fil som håller i vanliga enum (Ex: piplinestage [vertex, compute..], descriptortype [ubo, ssbo..]) osv.
+[FRÅGA JONATHAN!!!]
+Dela in renderer i flera sub-renderer där en huvudrenderer tar hand om dessa samt så är det den som tar hand om
+all synkronisering samt begin och end frame funktionerna
+Mainrenderer:
+	- Begin frame (Hämta ledig bild och synkronisera den)
+	- Kör alla renderer barn (mesh-, shadow-, modelrenderes osv.)
+	- End frame (submit alla commands gemensamt och gör en present)
+
+
+KLASSER:
+	[API för alla renderer]
+	- RendererAPI:
+		- init(): Skapar API renderer (VulkanRenderer)
+		- createRenderer(): Skapar specifika renderers, ex. mesh-, shadow- eller modelrenderer
+		- [createBuffer() och liknande: Skapar API specifika objekt och retunerar en pekare till dessa]
+		- beginScene(): Kallar på platforms renderer beginFrame som hämtar nästa bild för ritning samt synkroniserar
+		- draw(obj): Kallar på platform renderer draw 
+		- endScene(): Kallar på platfrom renderers endScene som gör presentationen av bilden
+
+	[Hanterar alla vulkan specifika renderare]
+	- VulkanRenderer:
+		- init(): Skapar nödvändiga objekt (synk, swapchain, instance, osv...)
+		- createRenderer(): Skapar specifika renderers, ex. mesh-, shadow- eller modelrenderer
+		- [createBuffer() och liknande: Skapar API specifika objekt och retunerar en pekare till dessa]
+		- beginScene(): Hämtar nästa bild och synkroniserar
+		- draw(obj): Ser till så att rätt renderer används (är det en model så kommer meshRenderer att kallas, osv.)
+		- endScene(): Gör submit på det som ska ritas och gör en presentImage
+
+	[Interface för renderer system]
+	- Renderer:
+		- init(): Om något behövs för initieras /shrug
+		- beginScene():
+		- record(): eller liknande
+		- endScene():
+
+		: beginScene och endScene kan komma att ändras, osäkert om de behövs

@@ -33,14 +33,31 @@ public:
 
 		// Poly::Model model = Poly::Model::create(modelPath);
 
+		Poly::RendererAPI::create(Poly::RendererAPI::BACKEND::VULKAN);
+		this->camera = new Poly::Camera();
+		this->camera->setAspect(1280.f / 720.f);
+		this->camera->setMouseSense(3.f);
+		
+		Poly::RendererAPI::setActiveCamera(this->camera);
 
-		Poly::RendererAPI::initialize();
+		Poly::RendererAPI::init(1280, 720);
 	};
 
-	void onUpdate() override
+	void onUpdate(float dt) override
 	{
 		//POLY_INFO("Testlayer update!");
+		this->camera->update(dt);
+		Poly::RendererAPI::beginScene();
+		Poly::RendererAPI::endScene();
 	};
+
+	void onDetach() override
+	{
+		delete this->camera;
+	}
+
+private:
+	Poly::Camera* camera = nullptr;
 };
 
 class Sandbox : public Poly::Application
@@ -53,7 +70,7 @@ public:
 
 	~Sandbox()
 	{
-
+		Poly::RendererAPI::shutdown();
 	}
 };
 

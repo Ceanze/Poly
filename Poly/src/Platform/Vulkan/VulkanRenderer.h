@@ -1,70 +1,37 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 
-#include "Poly/Core/Renderer.h"
-#include "Poly/Core/Window.h"
-#include "Poly/Core/Camera.h"
-#include "PVKInstance.h"
-#include "PVKSwapChain.h"
-#include "PVKPipeline.h"
-#include "PVKShader.h"
-#include "PVKRenderPass.h"
-#include "PVKFramebuffer.h"
-#include "PVKCommandPool.h"
-#include "PVKCommandBuffer.h"
-#include "PVKDescriptor.h"
-#include "PVKBuffer.h"
-#include "PVKMemory.h"
-
+#include "Platform/Common/IPlatformRenderer.h"
+#include "Platform/Vulkan/Renderers/TestRenderer.h"
 
 namespace Poly
 {
 
-	class VulkanRenderer : public Renderer
+	class VulkanRenderer : public IPlatformRenderer
 	{
 	public:
 		VulkanRenderer() = default;
 		virtual ~VulkanRenderer() = default;
-		virtual void initialize(unsigned width = 1280, unsigned height = 720);
-		virtual void setWinTitle(const char* title);
-		virtual void render();
-		//virtual void present() = 0;
-		virtual void shutdown();
 
-		virtual void setClearColor(float r, float g, float b, float a);
-		virtual void clearBuffer(unsigned int);
+		virtual void init(uint32_t width, uint32_t height) override;
+		virtual void beginScene() override;
+		virtual void setActiveCamera(Camera* camera) override { this->camera = camera; }
+		virtual void draw(Model * model) override; // More draws will be created in the future as overloads
+		virtual void endScene() override;
+		virtual void shutdown() override;
+
+		virtual void createRenderer(/*Renderer::MESH*/) override {};
+		virtual VertexBuffer* createVertexBuffer() override { return nullptr; };
+		virtual IndexBuffer* createIndexBuffer() override { return nullptr; };
+		virtual UniformBuffer* createUniformBuffer() override { return nullptr; };
+		virtual StorageBuffer* createStorageBuffer() override { return nullptr; };
+		virtual Texture* createTexture() override { return nullptr; };
 
 	private:
-		void createCommandBuffers();
-		void createSyncObjects();
-		void setupDescriptorSet();
-		void setupTestData();
-
-		PVKSwapChain swapChain;
-		PVKPipeline pipeline;
-		PVKShader shader;
-		PVKRenderPass renderPass;
-		std::vector<PVKFramebuffer> framebuffers;
-		PVKCommandPool commandPool;
-		std::vector<PVKCommandBuffer*> commandBuffers;
-		PVKDescriptor descriptor;
-
-		// Temp buffers and memories
-		PVKBuffer testBuffer;
-		PVKMemory testMemory;
-
-		// Sync -- TODO: Relocate sync objects?
-		std::vector<VkSemaphore> imageAvailableSemaphores;
-		std::vector<VkSemaphore> renderFinishedSemaphores;
-		std::vector<VkFence> inFlightFences;
-		std::vector<VkFence> imagesInFlight;
-		size_t currentFrame = 0;
-
-		const int MAX_FRAMES_IN_FLIGHT = 2;
-
-		Window* window;
 		Camera* camera;
+		Window* window;
+
+		// Renderers
+		TestRenderer testRenderer;
 	};
 
 }

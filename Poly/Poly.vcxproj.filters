@@ -82,9 +82,6 @@
     <ClInclude Include="src\Poly\Core\PolyUtils.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Core\Renderer.h">
-      <Filter>Poly\Core</Filter>
-    </ClInclude>
     <ClInclude Include="src\Poly\Core\RendererAPI.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
@@ -103,6 +100,9 @@
     <ClInclude Include="src\polypch.h" />
     <ClInclude Include="src\Poly\Core\Camera.h" />
     <ClInclude Include="src\Poly\Core\Input.h" />
+    <ClInclude Include="src\Platform\Common\IRenderer.h" />
+    <ClInclude Include="src\Platform\Common\IPlatformRenderer.h" />
+    <ClInclude Include="src\Platform\Vulkan\Renderers\TestRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">
@@ -150,9 +150,6 @@
     <ClCompile Include="src\Poly\Core\Logger.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Poly\Core\Renderer.cpp">
-      <Filter>Poly\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\Poly\Core\RendererAPI.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
@@ -162,5 +159,6 @@
     <ClCompile Include="src\polypch.cpp" />
     <ClCompile Include="src\Poly\Core\Input.cpp" />
     <ClCompile Include="src\Poly\Core\Camera.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp" />
   </ItemGroup>
 </Project>

@@ -104,6 +104,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\Common\IPlatformRenderer.h" />
+    <ClInclude Include="src\Platform\Common\IRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKBuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKCommandBuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
@@ -117,6 +119,7 @@
     <ClInclude Include="src\Platform\Vulkan\PVKShader.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKTypes.h" />
+    <ClInclude Include="src\Platform\Vulkan\Renderers\TestRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h" />
     <ClInclude Include="src\Poly.h" />
@@ -128,7 +131,6 @@
     <ClInclude Include="src\Poly\Core\LayerStack.h" />
     <ClInclude Include="src\Poly\Core\Logger.h" />
     <ClInclude Include="src\Poly\Core\PolyUtils.h" />
-    <ClInclude Include="src\Poly\Core\Renderer.h" />
     <ClInclude Include="src\Poly\Core\RendererAPI.h" />
     <ClInclude Include="src\Poly\Core\Window.h" />
     <ClInclude Include="src\Poly\Events\Event.h" />
@@ -148,13 +150,13 @@
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKShader.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Poly\Core\Application.cpp" />
     <ClCompile Include="src\Poly\Core\Camera.cpp" />
     <ClCompile Include="src\Poly\Core\Input.cpp" />
     <ClCompile Include="src\Poly\Core\LayerStack.cpp" />
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
-    <ClCompile Include="src\Poly\Core\Renderer.cpp" />
     <ClCompile Include="src\Poly\Core\RendererAPI.cpp" />
     <ClCompile Include="src\Poly\Core\Window.cpp" />
     <ClCompile Include="src\polypch.cpp">

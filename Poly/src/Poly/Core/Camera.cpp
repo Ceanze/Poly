@@ -15,6 +15,8 @@ namespace Poly
 		this->up = { 0.f, 1.f, 0.f };
 		this->forward = { 0.f, 0.f, 1.f };
 		this->right = { 1.f, 0.f, 0.f };
+
+		updateView();
 	}
 
 	Camera::~Camera()
