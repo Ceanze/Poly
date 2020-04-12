@@ -40,7 +40,7 @@ namespace Poly
 		createInstance();
 		setupDebugMessenger();
 
-		PVK_CHECK(glfwCreateWindowSurface(instance, window->getNativeWindow(), nullptr, &surface), "Failed to create window surface!");
+		PVK_CHECK(glfwCreateWindowSurface(instance, window->getNative(), nullptr, &surface), "Failed to create window surface!");
 
 		pickPhysicalDevice();
 		createLogicalDevice();

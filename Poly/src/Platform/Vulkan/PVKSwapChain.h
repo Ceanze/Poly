@@ -29,7 +29,7 @@ namespace Poly
 		SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 
 		uint32_t acquireNextImage(VkSemaphore semaphore, VkFence fence);
-		VkSwapchainKHR getSwapChain() const { return this->swapChain; }
+		VkSwapchainKHR getNative() const { return this->swapChain; }
 		std::vector<VkImage>& getImages() { return this->images; }
 		std::vector<VkImageView>& getImageViews() { return this->imageViews; }
 		VkFormat getFormat() const { return this->format; }

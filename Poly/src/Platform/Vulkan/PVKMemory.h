@@ -22,7 +22,7 @@ namespace Poly
 		//void bindTexture(Texture* texture);
 		void directTransfer(PVKBuffer& buffer, const void* data, uint64_t size, uint64_t bufferOffset);
 
-		VkDeviceMemory getMemory();
+		VkDeviceMemory getNative() { return this->memory; }
 
 	private:
 		VkDeviceMemory memory;

@@ -54,7 +54,7 @@ namespace Poly {
 		return this->height;
 	}
 
-	GLFWwindow* Window::getNativeWindow() const
+	GLFWwindow* Window::getNative() const
 	{
 		return this->window;
 	}

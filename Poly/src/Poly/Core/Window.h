@@ -17,7 +17,7 @@ namespace Poly {
 		unsigned getWidth() const;
 		unsigned getHeight() const;
 
-		GLFWwindow* getNativeWindow() const;
+		GLFWwindow* getNative() const;
 		
 		static bool isOpen();
 

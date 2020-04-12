@@ -21,7 +21,7 @@ namespace Poly
 
 		void addSubpassDependency(VkSubpassDependency dep);
 
-		VkRenderPass getRenderPass() { return this->renderPass; };
+		VkRenderPass getNative() { return this->renderPass; };
 
 	private:
 		VkFormat imageFormat;

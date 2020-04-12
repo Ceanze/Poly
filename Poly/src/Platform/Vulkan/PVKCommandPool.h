@@ -18,7 +18,7 @@ namespace Poly
 		void init(QueueType queueType);
 		void cleanup();
 
-		VkCommandPool getCommandPool() const { return this->pool; }
+		VkCommandPool getNative() const { return this->pool; }
 		QueueType getQueueType() const;
 
 		PVKCommandBuffer* beginSingleTimeCommand();

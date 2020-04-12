@@ -30,9 +30,9 @@ namespace Poly
 
 		// Checks minimization
 		int width = 0, height = 0;
-		glfwGetFramebufferSize(this->window->getNativeWindow(), &width, &height);
+		glfwGetFramebufferSize(this->window->getNative(), &width, &height);
 		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(this->window->getNativeWindow(), &width, &height);
+			glfwGetFramebufferSize(this->window->getNative(), &width, &height);
 			glfwWaitEvents();
 		}
 
@@ -70,7 +70,7 @@ namespace Poly
 		submitInfo.commandBufferCount = this->graphicsBuffers.size();
 		std::vector<VkCommandBuffer> buffers;
 		for (uint32_t i = 0; i < this->graphicsBuffers.size(); i++)
-			buffers.push_back(this->graphicsBuffers[i]->getCommandBuffer());
+			buffers.push_back(this->graphicsBuffers[i]->getNative());
 		submitInfo.pCommandBuffers = buffers.data();
 		VkSemaphore signalSemaphores[] = { this->renderFinishedSemaphores[this->currentFrame] };
 		submitInfo.signalSemaphoreCount = 1;
@@ -84,7 +84,7 @@ namespace Poly
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
-		VkSwapchainKHR swapChains[] = { this->swapChain.getSwapChain() };
+		VkSwapchainKHR swapChains[] = { this->swapChain.getNative() };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &this->imageIndex;

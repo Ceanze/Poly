@@ -186,7 +186,7 @@ namespace Poly
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = nullptr; // Optional
 		pipelineInfo.layout = this->pipelineLayout;
-		pipelineInfo.renderPass = this->renderPass->getRenderPass();
+		pipelineInfo.renderPass = this->renderPass->getNative();
 		pipelineInfo.subpass = 0;
 		// When creating new pipelines, change basePipelineHandle OR basePipelineIndex, two different apporaches!
 		// These will only work when "VK_PIPELINE_CREATE_DERIVATIVE_BIT" is set in 'flags' of VkGraphicsPiplineCreateInfo

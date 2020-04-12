@@ -21,7 +21,7 @@ namespace Poly
 		void addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format);
 		void setDescriptor(PVKDescriptor& descriptor);
 		VkPipelineBindPoint getType() const { return this->pipelineType; }
-		VkPipeline getPipeline() const { return this->pipeline; }
+		VkPipeline getNative() const { return this->pipeline; }
 		VkPipelineLayout getPipelineLayout() const { return this->pipelineLayout; }
 
 	private:

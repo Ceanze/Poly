@@ -58,7 +58,7 @@ namespace Poly
 	{
 		buffer->end();
 
-		VkCommandBuffer commandBuffer = buffer->getCommandBuffer();
+		VkCommandBuffer commandBuffer = buffer->getNative();
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;

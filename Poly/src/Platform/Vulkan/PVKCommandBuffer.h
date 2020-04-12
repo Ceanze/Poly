@@ -24,7 +24,7 @@ namespace Poly
 		void init(VkCommandPool pool);
 		void cleanup();
 
-		VkCommandBuffer getCommandBuffer() const { return this->buffer; }
+		VkCommandBuffer getNative() const { return this->buffer; }
 		void setCommandBuffer(VkCommandBuffer buffer) { this->buffer = buffer; }
 		void createCommandBuffer();
 

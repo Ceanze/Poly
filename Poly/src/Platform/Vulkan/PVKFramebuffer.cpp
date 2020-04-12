@@ -21,7 +21,7 @@ namespace Poly
 
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = renderPass.getRenderPass();
+		framebufferInfo.renderPass = renderPass.getNative();
 		framebufferInfo.attachmentCount = 1;
 		framebufferInfo.pAttachments = &attachment;
 		framebufferInfo.width = extent.width;

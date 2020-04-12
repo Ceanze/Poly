@@ -55,8 +55,8 @@ namespace Poly
 	{
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass.getRenderPass();
-		renderPassInfo.framebuffer = framebuffer.getFramebuffer();
+		renderPassInfo.renderPass = renderPass.getNative();
+		renderPassInfo.framebuffer = framebuffer.getNative();
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = extent;
 		renderPassInfo.clearValueCount = 1;
@@ -68,7 +68,7 @@ namespace Poly
 
 	void PVKCommandBuffer::cmdBindPipeline(PVKPipeline& pipeline)
 	{
-		vkCmdBindPipeline(this->buffer, pipeline.getType(), pipeline.getPipeline());
+		vkCmdBindPipeline(this->buffer, pipeline.getType(), pipeline.getNative());
 	}
 
 	void PVKCommandBuffer::cmdBindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex)

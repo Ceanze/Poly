@@ -62,9 +62,4 @@ namespace Poly
 		vkUnmapMemory(PVKInstance::getDevice(), this->memory);
 	}
 
-	VkDeviceMemory PVKMemory::getMemory()
-	{
-		return this->memory;
-	}
-
 }
