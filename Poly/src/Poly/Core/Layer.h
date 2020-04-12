@@ -10,7 +10,7 @@ namespace Poly {
 
 		virtual void onAttach() {};
 		virtual void onDetach() {};
-		virtual void onUpdate() {};
+		virtual void onUpdate(float dt) {};
 	};
 
 }

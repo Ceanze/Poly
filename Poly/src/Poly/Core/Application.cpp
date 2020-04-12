@@ -12,29 +12,28 @@ namespace Poly
 	{
 		Poly::Logger::init();
 
-		RendererAPI::create(RendererAPI::BACKEND::VULKAN);
-
-		POLY_CORE_INFO("Application created!");
-
 		POLY_EVENT_SUB(Application, onCloseWindowEvent);
 	}
 
 	Application::~Application()
 	{
 		POLY_EVENT_UNSUB(Application, onCloseWindowEvent);
-		RendererAPI::shutdown();
 	}
 
 	void Application::run()
 	{
+		static auto currTime = std::chrono::high_resolution_clock::now();
+		static float dt = 0.f;
+
 		while (this->running)
 		{
+			dt = std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - currTime).count();
+			currTime = std::chrono::high_resolution_clock::now();
+
 			glfwPollEvents();
 
 			for (auto layer : this->layerStack)
-				layer->onUpdate();
-
-			RendererAPI::render();
+				layer->onUpdate(dt);
 		}
 	}
 
