@@ -5,13 +5,14 @@
 
 namespace Poly
 {
+	enum class BackendAPI { GL45, VULKAN, DX11, DX12 };
 
 	class RendererAPI
 	{
 	public:
-		enum class BACKEND { GL45, VULKAN, DX11, DX12 };
 
-		static void create(BACKEND backend);
+		static void create(BackendAPI backend);
+		static void createRenderer(Renderer subRenderer);
 		static void setActiveCamera(Camera* camera);
 		static void init(uint32_t width, uint32_t height);
 		static void beginScene();

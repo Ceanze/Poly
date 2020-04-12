@@ -4,6 +4,7 @@
 
 namespace Poly
 {
+	enum class Renderer { TEST, MESH };
 
 	class VertexBuffer;
 	class IndexBuffer;
@@ -26,7 +27,7 @@ namespace Poly
 		virtual void endScene() = 0;
 		virtual void shutdown() = 0;
 
-		virtual void createRenderer(/*Renderer::MESH*/) = 0;
+		virtual void createRenderer(Renderer subRenderer) = 0;
 		virtual VertexBuffer* createVertexBuffer() = 0;
 		virtual IndexBuffer* createIndexBuffer() = 0;
 		virtual UniformBuffer* createUniformBuffer() = 0;

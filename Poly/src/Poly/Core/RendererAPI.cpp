@@ -6,16 +6,21 @@ namespace Poly
 {
 	IPlatformRenderer* RendererAPI::renderer = nullptr;
 
-	void RendererAPI::create(BACKEND backend)
+	void RendererAPI::create(BackendAPI backend)
 	{
 		switch (backend)
 		{
-		case BACKEND::VULKAN:
-			renderer =  new VulkanRenderer();
+		case BackendAPI::VULKAN:
+			renderer = new VulkanRenderer();
 			break;
 		default:
 			POLY_CORE_FATAL("Only Vulkan renderer is currently supported!");
 		}
+	}
+
+	void RendererAPI::createRenderer(Renderer subRenderer)
+	{
+		renderer->createRenderer(subRenderer);
 	}
 
 	void RendererAPI::setActiveCamera(Camera* camera)

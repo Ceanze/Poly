@@ -33,7 +33,8 @@ public:
 
 		// Poly::Model model = Poly::Model::create(modelPath);
 
-		Poly::RendererAPI::create(Poly::RendererAPI::BACKEND::VULKAN);
+		Poly::RendererAPI::create(Poly::BackendAPI::VULKAN);
+		Poly::RendererAPI::createRenderer(Poly::Renderer::TEST);
 		this->camera = new Poly::Camera();
 		this->camera->setAspect(1280.f / 720.f);
 		this->camera->setMouseSense(3.f);

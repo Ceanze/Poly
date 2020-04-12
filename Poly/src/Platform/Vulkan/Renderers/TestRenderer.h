@@ -17,14 +17,16 @@
 namespace Poly
 {
 
-	class TestRenderer : IRenderer
+	class VulkanRenderer;
+
+	class TestRenderer : public IRenderer
 	{
 	public:
 		TestRenderer() = default;
 		virtual ~TestRenderer() = default;
 		virtual void setWindow(Window* window) override { this->window = window; }
-		virtual void init() override;
-		virtual void beginScene() override;
+		virtual void init(IPlatformRenderer* renderer) override;
+		virtual void beginScene(uint32_t imageIndex) override;
 		virtual void setActiveCamera(Camera* camera) override { this->camera = camera; }
 		virtual void record() override;
 		virtual void endScene() override;
@@ -32,11 +34,13 @@ namespace Poly
 
 	private:
 		void createCommandBuffers();
-		void createSyncObjects();
 		void setupDescriptorSet();
 		void setupTestData();
 
-		PVKSwapChain swapChain;
+		VulkanRenderer* mainRenderer = nullptr;
+		PVKSwapChain* swapChain = nullptr;
+		uint32_t imageIndex = 0;
+
 		PVKPipeline pipeline;
 		PVKShader shader;
 		PVKRenderPass renderPass;
@@ -50,13 +54,13 @@ namespace Poly
 		PVKMemory testMemory;
 
 		// Sync -- TODO: Move to platform renderer
-		std::vector<VkSemaphore> imageAvailableSemaphores;
-		std::vector<VkSemaphore> renderFinishedSemaphores;
-		std::vector<VkFence> inFlightFences;
-		std::vector<VkFence> imagesInFlight;
-		size_t currentFrame = 0;
+		//std::vector<VkSemaphore> imageAvailableSemaphores;
+		//std::vector<VkSemaphore> renderFinishedSemaphores;
+		//std::vector<VkFence> inFlightFences;
+		//std::vector<VkFence> imagesInFlight;
+		//size_t currentFrame = 0;
 
-		const int MAX_FRAMES_IN_FLIGHT = 2;
+		//const int MAX_FRAMES_IN_FLIGHT = 2;
 
 		Window* window = nullptr;
 		Camera* camera = nullptr;
