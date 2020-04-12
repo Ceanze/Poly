@@ -18,7 +18,9 @@ namespace Poly
 			RELEASED = 1,
 			PRESSED = 2,
 			REPEAT = 4,
-			TOGGLED = 8
+			TOGGLED = 8/*,
+			FIRST_PRESSED = 16,
+			FIRST_RELEASED = 32,*/
 		};
 	public:
 		static void setKeyPressed(int key);

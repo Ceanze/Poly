@@ -55,10 +55,16 @@ namespace Poly
 
 	void Camera::updateView()
 	{
+		if (Input::isKeyPressed(GLFW_KEY_F))
+			POLY_CORE_ERROR("BREAKPOINT");
+
 		glm::quat qYaw = glm::angleAxis(-this->yaw, this->globalUp);
 		glm::quat qPitch = glm::angleAxis(this->pitch, this->right);
 		glm::quat rotation = qPitch * qYaw;
-		this->forward = glm::normalize(glm::rotate(rotation, this->forward));
+		glm::vec3 newForward = glm::normalize(glm::rotate(rotation, this->forward));
+		if (abs(newForward.y) > 0.999999)
+			newForward = this->forward;
+		this->forward = newForward; //glm::normalize(glm::rotate(rotation, this->forward));
 		this->right = glm::normalize(glm::cross(this->globalUp, this->forward));
 		this->up = glm::cross(this->forward, -this->right);
 		this->yaw = this->pitch = 0.f;
