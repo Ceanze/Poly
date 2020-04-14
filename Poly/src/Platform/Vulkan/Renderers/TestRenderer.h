@@ -27,7 +27,6 @@ namespace Poly
 		virtual void setWindow(Window* window) override { this->window = window; }
 		virtual void init(IPlatformRenderer* renderer) override;
 		virtual void beginScene(uint32_t imageIndex) override;
-		virtual void setActiveCamera(Camera* camera) override { this->camera = camera; }
 		virtual void record() override;
 		virtual void endScene() override;
 		virtual void shutdown() override;
@@ -49,21 +48,10 @@ namespace Poly
 		std::vector<PVKCommandBuffer*> commandBuffers;
 		PVKDescriptor descriptor;
 
-		// Temp buffers and memories
 		PVKBuffer testBuffer;
 		PVKMemory testMemory;
 
-		// Sync -- TODO: Move to platform renderer
-		//std::vector<VkSemaphore> imageAvailableSemaphores;
-		//std::vector<VkSemaphore> renderFinishedSemaphores;
-		//std::vector<VkFence> inFlightFences;
-		//std::vector<VkFence> imagesInFlight;
-		//size_t currentFrame = 0;
-
-		//const int MAX_FRAMES_IN_FLIGHT = 2;
-
 		Window* window = nullptr;
-		Camera* camera = nullptr;
 	};
 
 }

@@ -17,7 +17,6 @@ namespace Poly
 
 		virtual void init(uint32_t width, uint32_t height) override;
 		virtual void beginScene() override;
-		virtual void setActiveCamera(Camera* camera) override { this->camera = camera; }
 		virtual void draw(Model * model) override; // More draws will be created in the future as overloads
 		virtual void endScene() override;
 		virtual void shutdown() override;
@@ -37,7 +36,6 @@ namespace Poly
 	private:
 		void createSyncObjects();
 
-		Camera* camera = nullptr;
 		Window* window = nullptr;
 
 		// General vulkan

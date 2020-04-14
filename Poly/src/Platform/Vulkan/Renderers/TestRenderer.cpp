@@ -12,7 +12,6 @@ namespace Poly
 		this->mainRenderer = static_cast<VulkanRenderer*>(renderer);
 		this->swapChain = this->mainRenderer->getSwapChain();
 
-		// Everything under this line should be made in Sandbox
 		this->shader.addStage(ShaderType::VERTEX, "vert.spv");
 		this->shader.addStage(ShaderType::FRAGMENT, "frag.spv");
 		this->shader.init();
@@ -78,8 +77,8 @@ namespace Poly
 		for (uint32_t i = 0; i < this->commandBuffers.size(); i++) {
 			VkCommandBufferBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			beginInfo.flags = 0; // Optional
-			beginInfo.pInheritanceInfo = nullptr; // Optional
+			beginInfo.flags = 0;
+			beginInfo.pInheritanceInfo = nullptr;
 
 			this->commandBuffers[i]->begin(0);
 			this->commandBuffers[i]->cmdBeginRenderPass(this->renderPass, this->framebuffers[i], this->swapChain->getExtent(), { 0.0f, 0.0f, 0.0f, 1.0f });
