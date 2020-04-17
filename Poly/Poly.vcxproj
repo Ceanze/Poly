@@ -111,6 +111,8 @@
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKDescriptor.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKImage.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKImageView.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKMemory.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h" />
@@ -118,6 +120,7 @@
     <ClInclude Include="src\Platform\Vulkan\PVKRenderPass.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKShader.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKTexture.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKTypes.h" />
     <ClInclude Include="src\Platform\Vulkan\Renderers\TestRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
@@ -144,12 +147,15 @@
     <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKDescriptor.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKMemory.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKShader.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKTexture.cpp" />
     <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Poly\Core\Application.cpp" />

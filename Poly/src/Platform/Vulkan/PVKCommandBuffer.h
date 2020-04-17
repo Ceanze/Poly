@@ -14,6 +14,8 @@ namespace Poly
 	class PVKPipeline;
 	class PVKFramebuffer;
 	class PVKDescriptor;
+	class PVKBuffer;
+	class PVKImage;
 
 	class PVKCommandBuffer
 	{
@@ -33,6 +35,8 @@ namespace Poly
 		void cmdBeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor);
 		void cmdBindPipeline(PVKPipeline& pipeline);
 		void cmdBindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex);
+		void cmdCopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions);
+		void cmdCopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions);
 		void cmdDraw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 		void cmdDrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance);
 		void cmdEndRenderPass();

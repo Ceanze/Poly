@@ -6,6 +6,8 @@
 #include "PVKRenderPass.h"
 #include "PVKFramebuffer.h"
 #include "PVKDescriptor.h"
+#include "PVKBuffer.h"
+#include "PVKImage.h"
 
 namespace Poly
 {
@@ -75,6 +77,16 @@ namespace Poly
 	{
 		auto& sets = descriptor.getSets(setCopyIndex);
 		vkCmdBindDescriptorSets(this->buffer, pipeline.getType(), pipeline.getPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
+	}
+
+	void PVKCommandBuffer::cmdCopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions)
+	{
+		vkCmdCopyBufferToImage(this->buffer, buffer.getNative(), image, layout, regions.size(), regions.data());
+	}
+
+	void PVKCommandBuffer::cmdCopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions)
+	{
+		vkCmdCopyBufferToImage(this->buffer, buffer.getNative(), image.getNative(), image.getLayout(), regions.size(), regions.data());
 	}
 
 	void PVKCommandBuffer::cmdDraw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)

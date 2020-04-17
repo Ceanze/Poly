@@ -103,6 +103,9 @@
     <ClInclude Include="src\Platform\Common\IRenderer.h" />
     <ClInclude Include="src\Platform\Common\IPlatformRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\Renderers\TestRenderer.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKTexture.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKImage.h" />
+    <ClInclude Include="src\Platform\Vulkan\PVKImageView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">
@@ -160,5 +163,8 @@
     <ClCompile Include="src\Poly\Core\Input.cpp" />
     <ClCompile Include="src\Poly\Core\Camera.cpp" />
     <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKTexture.cpp" />
   </ItemGroup>
 </Project>
