@@ -5,9 +5,11 @@
 namespace Poly
 {
 	IPlatformRenderer* RendererAPI::renderer = nullptr;
+	BackendAPI RendererAPI::api = BackendAPI::NONE;
 
 	void RendererAPI::create(BackendAPI backend)
 	{
+		api = backend;
 		switch (backend)
 		{
 		case BackendAPI::VULKAN:
@@ -57,6 +59,11 @@ namespace Poly
 	{
 		renderer->shutdown();
 		delete renderer;
+	}
+
+	BackendAPI RendererAPI::getAPI()
+	{
+		return api;
 	}
 
 }

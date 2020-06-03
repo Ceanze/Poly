@@ -5,7 +5,7 @@
 
 namespace Poly
 {
-	enum class BackendAPI { GL45, VULKAN, DX11, DX12 };
+	enum class BackendAPI { GL45, VULKAN, DX11, DX12, NONE };
 
 	class RendererAPI
 	{
@@ -22,10 +22,13 @@ namespace Poly
 		static void setClearColor(float r, float g, float b, float a);
 		static void shutdown();
 
+		static BackendAPI getAPI();
+
 		// Create functions here
 
 	private:
 		static IPlatformRenderer* renderer;
+		static BackendAPI api;
 	};
 
 }
