@@ -12,12 +12,12 @@ namespace Poly
 	{
 	}
 
-	void PVKImage::init(uint32_t width, uint32_t height, VkFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueFamilyIndex)
+	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueFamilyIndex)
 	{
 		init(width, height, format, usage, flags, arrayLayers, { queueFamilyIndex });
 	}
 
-	void PVKImage::init(uint32_t width, uint32_t height, VkFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueFamilyIndices)
+	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueFamilyIndices)
 	{
 		this->width = width;
 		this->height = height;
@@ -30,7 +30,7 @@ namespace Poly
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = arrayLayers;
-		imageInfo.format = format;
+		imageInfo.format = (VkFormat)format;
 		//If you want to be able to directly access texels in the memory of the image, then you must use VK_IMAGE_TILING_LINEAR
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -78,7 +78,7 @@ namespace Poly
 		pool->endSingleTimeCommand(cBuffer);
 	}
 
-	void PVKImage::transitionLayout(VkFormat format, ImageLayout oldLayout, ImageLayout newLayout, PVKCommandPool* pool, uint32_t layerCount)
+	void PVKImage::transitionLayout(ColorFormat format, ImageLayout oldLayout, ImageLayout newLayout, PVKCommandPool* pool, uint32_t layerCount)
 	{
 		this->layout = (VkImageLayout)newLayout;
 
@@ -97,7 +97,7 @@ namespace Poly
 			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 			// Check if format has a stencil component
-			if (format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT) {
+			if ((VkFormat)format == VK_FORMAT_D32_SFLOAT_S8_UINT || (VkFormat)format == VK_FORMAT_D24_UNORM_S8_UINT) {
 				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			}
 		}

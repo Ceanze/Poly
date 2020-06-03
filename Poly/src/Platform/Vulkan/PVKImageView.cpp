@@ -8,14 +8,14 @@ namespace Poly
 	PVKImageView::PVKImageView() : imageView(VK_NULL_HANDLE)
 	{
 	}
-	void PVKImageView::init(VkImage image, VkImageViewType type, VkFormat format, VkImageAspectFlags aspectMask, uint32_t layerCount)
+	void PVKImageView::init(VkImage image, VkImageViewType type, ColorFormat format, VkImageAspectFlags aspectMask, uint32_t layerCount)
 	{
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = image;
 
 		createInfo.viewType = type;
-		createInfo.format = format;
+		createInfo.format = (VkFormat)format;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
