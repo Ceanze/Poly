@@ -106,6 +106,8 @@
     <ClInclude Include="src\Platform\Vulkan\PVKTexture.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKImage.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKImageView.h" />
+    <ClInclude Include="src\Poly\Renderer\Texture.h" />
+    <ClInclude Include="src\Poly\Core\Core.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">
@@ -166,5 +168,6 @@
     <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKTexture.cpp" />
+    <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
   </ItemGroup>
 </Project>

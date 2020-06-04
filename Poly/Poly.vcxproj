@@ -128,6 +128,7 @@
     <ClInclude Include="src\Poly.h" />
     <ClInclude Include="src\Poly\Core\Application.h" />
     <ClInclude Include="src\Poly\Core\Camera.h" />
+    <ClInclude Include="src\Poly\Core\Core.h" />
     <ClInclude Include="src\Poly\Core\EntryPoint.h" />
     <ClInclude Include="src\Poly\Core\Input.h" />
     <ClInclude Include="src\Poly\Core\Layer.h" />
@@ -140,6 +141,7 @@
     <ClInclude Include="src\Poly\Events\EventBus.h" />
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
     <ClInclude Include="src\polypch.h" />
+    <ClInclude Include="src\Poly\Renderer\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp" />
@@ -168,6 +170,7 @@
     <ClCompile Include="src\polypch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libs\glfw\GLFW.vcxproj">

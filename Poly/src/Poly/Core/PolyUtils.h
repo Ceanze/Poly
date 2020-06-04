@@ -12,6 +12,9 @@
 // Cleanup of vectors of PVK types
 #define PVK_VEC_CLEANUP(V) for (auto& e : V) { e.cleanup(); }
 
+// Safe cleanup of PVK types
+#define PVK_CLEANUP(handle, func) if (handle != VK_NULL_HANDLE) { func; }
+
 #define POLY_ASSERT(exp, ...) { if(!(exp)) {POLY_CORE_ERROR(__VA_ARGS__); } assert(exp); }
 
 // Binary operators for enum classes, enable using ENABLE_BINARY_OPERATIONS(EnumnType);
