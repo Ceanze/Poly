@@ -8,13 +8,13 @@ namespace Poly
 	PVKImageView::PVKImageView() : imageView(VK_NULL_HANDLE)
 	{
 	}
-	void PVKImageView::init(VkImage image, VkImageViewType type, ColorFormat format, VkImageAspectFlags aspectMask, uint32_t layerCount)
+	void PVKImageView::init(VkImage image, ImageViewType type, ColorFormat format, ImageAspect aspectMask, uint32_t layerCount)
 	{
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = image;
 
-		createInfo.viewType = type;
+		createInfo.viewType = (VkImageViewType)type;
 		createInfo.format = (VkFormat)format;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -22,7 +22,7 @@ namespace Poly
 		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-		createInfo.subresourceRange.aspectMask = aspectMask;
+		createInfo.subresourceRange.aspectMask = (VkImageAspectFlags)aspectMask;
 		createInfo.subresourceRange.baseMipLevel = 0;
 		createInfo.subresourceRange.levelCount = 1;
 		createInfo.subresourceRange.baseArrayLayer = 0;
@@ -33,7 +33,7 @@ namespace Poly
 
 	void PVKImageView::cleanup()
 	{
-		vkDestroyImageView(PVKInstance::getDevice(), this->imageView, nullptr);
+		PVK_CLEANUP(this->imageView, vkDestroyImageView(PVKInstance::getDevice(), this->imageView, nullptr));
 	}
 
 }

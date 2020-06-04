@@ -52,7 +52,7 @@ namespace Poly
 
 	void PVKImage::cleanup()
 	{
-		vkDestroyImage(PVKInstance::getDevice(), this->image, nullptr);
+		PVK_CLEANUP(this->image, vkDestroyImage(PVKInstance::getDevice(), this->image, nullptr));
 	}
 
 	void PVKImage::copyBufferToImage(PVKBuffer& buffer, PVKCommandPool* pool)
