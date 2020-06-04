@@ -96,6 +96,7 @@ namespace Poly
 
     enum class ImageCreate
     {
+        NONE                                = 0x00000000,
         SPARSE_BINDING                      = 0x00000001,
         SPARSE_RESIDENCY                    = 0x00000002,
         SPARSE_ALIASED                      = 0x00000004,
@@ -439,5 +440,39 @@ namespace Poly
         RANGE_SIZE                                  = (ASTC_12x12_SRGB_BLOCK - UNDEFINED + 1),
         MAX_ENUM = 0x7FFFFFFF
     };
-    ENABLE_BITMASK_OPERATORS(ColorFormat);
+
+    enum class ImageViewType
+    {
+        DIM_1           = 0,
+        DIM_2           = 1,
+        DIM_3           = 2,
+        CUBE            = 3,
+        DIM_1_ARRAY     = 4,
+        DIM_2_ARRAY     = 5,
+        CUBE_ARRAY      = 6,
+        BEGIN_RANGE     = DIM_1,
+        END_RANGE       = CUBE_ARRAY,
+        RANGE_SIZE      = (CUBE_ARRAY - DIM_1 + 1),
+        MAX_ENUM        = 0x7FFFFFFF
+    };
+
+    enum class ImageAspect
+    {
+        COLOR_BIT               = 0x00000001,
+        DEPTH_BIT               = 0x00000002,
+        STENCIL_BIT             = 0x00000004,
+        METADATA_BIT            = 0x00000008,
+        PLANE_0_BIT             = 0x00000010,
+        PLANE_1_BIT             = 0x00000020,
+        PLANE_2_BIT             = 0x00000040,
+        MEMORY_PLANE_0_BIT_EXT  = 0x00000080,
+        MEMORY_PLANE_1_BIT_EXT  = 0x00000100,
+        MEMORY_PLANE_2_BIT_EXT  = 0x00000200,
+        MEMORY_PLANE_3_BIT_EXT  = 0x00000400,
+        PLANE_0_BIT_KHR         = PLANE_0_BIT,
+        PLANE_1_BIT_KHR         = PLANE_1_BIT,
+        PLANE_2_BIT_KHR         = PLANE_2_BIT,
+        MAX_ENUM                = 0x7FFFFFFF
+    };
+    ENABLE_BITMASK_OPERATORS(ImageAspect);
 }
