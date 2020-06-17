@@ -81,12 +81,14 @@ project "Poly"
 
 	libdirs
 	{
-		"C:/VulkanSDK/1.1.130.0/Lib"
+		"C:/VulkanSDK/1.1.130.0/Lib",
+		"C:/VulkanSDK/1.2.141.2/Lib"
 	}
 
 	sysincludedirs
 	{
-		"C:/VulkanSDK/1.1.130.0/Include"
+		"C:/VulkanSDK/1.1.130.0/Include",
+		"C:/VulkanSDK/1.2.141.2/Include"
 	}
 
 	filter "system:windows"

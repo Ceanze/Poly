@@ -45,14 +45,14 @@
     <IntDir>..\bin-int\Debug-windows-x86_64\Poly\</IntDir>
     <TargetName>Poly</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>C:\VulkanSDK\1.1.130.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VulkanSDK\1.1.130.0\Include;C:\VulkanSDK\1.2.141.2\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\bin\Release-windows-x86_64\Poly\</OutDir>
     <IntDir>..\bin-int\Release-windows-x86_64\Poly\</IntDir>
     <TargetName>Poly</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>C:\VulkanSDK\1.1.130.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VulkanSDK\1.1.130.0\Include;C:\VulkanSDK\1.2.141.2\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -74,7 +74,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.1.130.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.1.130.0\Lib;C:\VulkanSDK\1.2.141.2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -100,7 +100,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.1.130.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.1.130.0\Lib;C:\VulkanSDK\1.2.141.2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -140,8 +140,8 @@
     <ClInclude Include="src\Poly\Events\Event.h" />
     <ClInclude Include="src\Poly\Events\EventBus.h" />
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
-    <ClInclude Include="src\polypch.h" />
     <ClInclude Include="src\Poly\Renderer\Texture.h" />
+    <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp" />
@@ -167,10 +167,10 @@
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
     <ClCompile Include="src\Poly\Core\RendererAPI.cpp" />
     <ClCompile Include="src\Poly\Core\Window.cpp" />
+    <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
     <ClCompile Include="src\polypch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libs\glfw\GLFW.vcxproj">

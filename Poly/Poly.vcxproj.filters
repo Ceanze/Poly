@@ -4,8 +4,14 @@
     <Filter Include="Platform">
       <UniqueIdentifier>{2AC788B4-1694-E3BF-3FAD-D1672BD9184E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Platform\Common">
+      <UniqueIdentifier>{22E12001-8E6C-8EC5-977D-11BA0388EAC5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Platform\Vulkan">
       <UniqueIdentifier>{6AE1DE2D-D66C-4CF2-DF7D-CFE64B88A8F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform\Vulkan\Renderers">
+      <UniqueIdentifier>{C3E60297-2FA9-3621-7859-C5ADE45A0FFF}</UniqueIdentifier>
     </Filter>
     <Filter Include="Poly">
       <UniqueIdentifier>{69D48A7C-550B-8C0D-FEF7-7110EA0D080F}</UniqueIdentifier>
@@ -16,8 +22,17 @@
     <Filter Include="Poly\Events">
       <UniqueIdentifier>{2D500AF4-9905-83E9-22FA-7CC08EAE79ED}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Poly\Renderer">
+      <UniqueIdentifier>{2F1EDA16-9BDE-554D-6419-9FCAD0989A29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\Common\IPlatformRenderer.h">
+      <Filter>Platform\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Common\IRenderer.h">
+      <Filter>Platform\Common</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKBuffer.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
@@ -31,6 +46,12 @@
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKImage.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKImageView.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h">
@@ -54,8 +75,14 @@
     <ClInclude Include="src\Platform\Vulkan\PVKSwapChain.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKTexture.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKTypes.h">
       <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\Renderers\TestRenderer.h">
+      <Filter>Platform\Vulkan\Renderers</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h">
       <Filter>Platform\Vulkan</Filter>
@@ -67,7 +94,16 @@
     <ClInclude Include="src\Poly\Core\Application.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Core\Camera.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Core\Core.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Poly\Core\EntryPoint.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Core\Input.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Core\Layer.h">
@@ -97,17 +133,10 @@
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h">
       <Filter>Poly\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Renderer\Texture.h">
+      <Filter>Poly\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\polypch.h" />
-    <ClInclude Include="src\Poly\Core\Camera.h" />
-    <ClInclude Include="src\Poly\Core\Input.h" />
-    <ClInclude Include="src\Platform\Common\IRenderer.h" />
-    <ClInclude Include="src\Platform\Common\IPlatformRenderer.h" />
-    <ClInclude Include="src\Platform\Vulkan\Renderers\TestRenderer.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKTexture.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKImage.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKImageView.h" />
-    <ClInclude Include="src\Poly\Renderer\Texture.h" />
-    <ClInclude Include="src\Poly\Core\Core.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">
@@ -123,6 +152,12 @@
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp">
@@ -143,10 +178,22 @@
     <ClCompile Include="src\Platform\Vulkan\PVKSwapChain.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKTexture.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp">
+      <Filter>Platform\Vulkan\Renderers</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\Application.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Core\Camera.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Core\Input.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\LayerStack.cpp">
@@ -161,13 +208,9 @@
     <ClCompile Include="src\Poly\Core\Window.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Poly\Renderer\Texture.cpp">
+      <Filter>Poly\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
-    <ClCompile Include="src\Poly\Core\Input.cpp" />
-    <ClCompile Include="src\Poly\Core\Camera.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKTexture.cpp" />
-    <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
   </ItemGroup>
 </Project>
