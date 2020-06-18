@@ -69,6 +69,9 @@
     <ClInclude Include="src\Platform\Vulkan\PVKRenderPass.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKSampler.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKShader.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
@@ -132,6 +135,9 @@
     </ClInclude>
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h">
       <Filter>Poly\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Renderer\Sampler.h">
+      <Filter>Poly\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Renderer\Texture.h">
       <Filter>Poly\Renderer</Filter>
@@ -212,5 +218,7 @@
       <Filter>Poly\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
+    <ClCompile Include="src\Poly\Renderer\Sampler.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\PVKSampler.cpp" />
   </ItemGroup>
 </Project>
