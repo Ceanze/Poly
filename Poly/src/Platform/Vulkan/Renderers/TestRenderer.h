@@ -13,6 +13,8 @@
 #include "Platform/Vulkan/PVKDescriptor.h"
 #include "Platform/Vulkan/PVKBuffer.h"
 #include "Platform/Vulkan/PVKMemory.h"
+#include "Platform/Vulkan/PVKSampler.h"
+#include "Platform/Vulkan/PVKTexture.h"
 
 namespace Poly
 {
@@ -50,6 +52,9 @@ namespace Poly
 
 		PVKBuffer testBuffer;
 		PVKMemory testMemory;
+		PVKMemory testTextureMemory;
+		PVKTexture testTexture;
+		PVKSampler* testSampler;
 
 		Window* window = nullptr;
 	};

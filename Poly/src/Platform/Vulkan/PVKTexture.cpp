@@ -11,7 +11,8 @@ namespace Poly
 
 	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices)
 	{
-		init(width, height, format, usage, flags, arrayLayers, { queueIndices });
+		std::vector<uint32_t> vec = { queueIndices };
+		init(width, height, format, usage, flags, arrayLayers, vec);
 	}
 
 	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices)

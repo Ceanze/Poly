@@ -60,12 +60,15 @@ namespace Poly
 	{
 		PVK_CHECK(vkDeviceWaitIdle(PVKInstance::getDevice()), "Failed to wait for device!");
 
+		delete this->testSampler;
 		this->commandPool.cleanup();
 		PVK_VEC_CLEANUP(this->framebuffers);
 		this->pipeline.cleanup();
 		this->descriptor.cleanup();
 		this->testBuffer.cleanup();
 		this->testMemory.cleanup();
+		this->testTexture.cleanup();
+		this->testTextureMemory.cleanup();
 		this->renderPass.cleanup();
 		this->shader.cleanup();
 	}
@@ -93,16 +96,25 @@ namespace Poly
 	void TestRenderer::setupDescriptorSet()
 	{
 		this->descriptor.addBinding(0, 0, BufferType::UNIFORM, ShaderStage::VERTEX);
+		this->descriptor.addBinding(0, 1, BufferType::COMBINED_IMAGE_SAMPLER, ShaderStage::FRAGMENT);
 		this->descriptor.finalizeSet(0);
 		this->descriptor.init(this->swapChain->getNumImages());
 	}
 
 	void TestRenderer::setupTestData()
 	{
+		this->testSampler = new PVKSampler();
+		this->testTexture.init(1, 1, ColorFormat::R8G8B8A8_SRGB, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex);
+		this->testTextureMemory.bindTexture(this->testTexture);
+		this->testTextureMemory.init(MemoryPropery::DEVICE_LOCAL);
+		this->testTexture.initView(ImageViewType::DIM_2, ImageAspect::COLOR_BIT);
+
 		this->testBuffer.init(sizeof(glm::mat4), BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex });
 		this->testMemory.bindBuffer(this->testBuffer);
 		this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
+
 		this->descriptor.updateBufferBinding(0, 0, this->testBuffer);
+		this->descriptor.updateTextureBinding(0, 1, ImageLayout::SHADER_READ_ONLY_OPTIMAL, this->testTexture, *this->testSampler);
 	}
 
 }

@@ -3,6 +3,7 @@
 #include "PVKInstance.h"
 #include "PVKBuffer.h"
 #include "VulkanCommon.h"
+#include "PVKTexture.h"
 
 namespace Poly
 {
@@ -22,8 +23,8 @@ namespace Poly
 		uint32_t typeFilter = 0;
 		for (auto buffer : this->bufferOffsets)
 			typeFilter |= buffer.first->getMemReq().memoryTypeBits;
-		//for (auto texture : this->textureOffsets)
-		//	typeFilter |= texture.first->getMemReq().memoryTypeBits;
+		for (auto texture : this->textureOffsets)
+			typeFilter |= texture.first->getMemoryRequirements().memoryTypeBits;
 
 		uint32_t memoryTypeIndex = findMemoryType(PVKInstance::getPhysicalDevice(), typeFilter, (VkMemoryPropertyFlags)memProp);
 
@@ -37,8 +38,8 @@ namespace Poly
 		for (auto buffer : this->bufferOffsets)
 			PVK_CHECK(vkBindBufferMemory(PVKInstance::getDevice(), buffer.first->getNative(), this->memory, buffer.second), "Failed to bind buffer memory!");
 
-		//for (auto texture : this->textureOffsets)
-		//	PVK_CHECK(vkBindImageMemory(Instance::get().getDevice(), texture.first->getVkImage(), this->memory, texture.second), "Failed to bind image memory!");
+		for (auto texture : this->textureOffsets)
+			PVK_CHECK(vkBindImageMemory(PVKInstance::getDevice(), texture.first->getImage().getNative(), this->memory, texture.second), "Failed to bind image memory!");
 	}
 
 	void PVKMemory::cleanup()
@@ -50,6 +51,12 @@ namespace Poly
 	{
 		this->bufferOffsets[&buffer] = this->currentOffset;
 		this->currentOffset += static_cast<uint64_t>(buffer.getMemReq().size);
+	}
+
+	void PVKMemory::bindTexture(PVKTexture& texture)
+	{
+		this->textureOffsets[&texture] = this->currentOffset;
+		this->currentOffset += static_cast<uint64_t>(texture.getMemoryRequirements().size);
 	}
 
 	void PVKMemory::directTransfer(PVKBuffer& buffer, const void* data, uint64_t size, uint64_t bufferOffset)

@@ -3,6 +3,8 @@
 
 #include "PVKInstance.h"
 #include "PVKBuffer.h"
+#include "PVKSampler.h"
+#include "PVKTexture.h"
 
 namespace Poly
 {
@@ -116,6 +118,35 @@ namespace Poly
 		descriptorWrite.pTexelBufferView = nullptr;
 
 		vkUpdateDescriptorSets(PVKInstance::getDevice(), 1, &descriptorWrite, 0, nullptr);
+	}
+
+	void PVKDescriptor::updateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler)
+	{
+		std::vector<VkWriteDescriptorSet> writeSets;
+		uint32_t numCopies = this->descriptorSets[set].size();
+		for (uint32_t i = 0; i < numCopies; i++) {
+			VkDescriptorImageInfo imageInfo = {};
+			imageInfo.imageLayout = (VkImageLayout)layout;
+			imageInfo.imageView = texture.getImageView().getNative();
+			imageInfo.sampler = sampler.getNative();
+
+
+			VkWriteDescriptorSet descriptorWrite = {};
+			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrite.dstSet = this->descriptorSets[set][i];
+			descriptorWrite.dstBinding = binding;
+			descriptorWrite.dstArrayElement = 0;
+			descriptorWrite.descriptorType = this->setLayoutBindings[set][binding].descriptorType;
+			descriptorWrite.descriptorCount = 1;
+			descriptorWrite.pBufferInfo = nullptr;
+			descriptorWrite.pImageInfo = &imageInfo;
+			descriptorWrite.pTexelBufferView = nullptr;
+
+			writeSets.push_back(descriptorWrite);
+
+		}
+		// Crash here is probably because shader isnt updated
+		vkUpdateDescriptorSets(PVKInstance::getDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
 	}
 
 	std::vector<VkDescriptorSetLayout> PVKDescriptor::getSetLayouts()

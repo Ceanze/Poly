@@ -9,6 +9,8 @@ namespace Poly
 {
 
 	class PVKBuffer;
+	class PVKTexture;
+	class PVKSampler;
 
 	class PVKDescriptor
 	{
@@ -23,12 +25,16 @@ namespace Poly
 		void addBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags);
 		// Finish a set for creation
 		void finalizeSet(uint32_t set);
+
 		// Update the binding with the buffer for the whole range and no offset
 		void updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer);
 		// Update the binding in the set for all copies
 		void updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range);
 		// Update the binding in the set for a specific copyIndex
 		void updateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range);
+		// Update the image binding
+		void updateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler);
+
 		// Get set layouts
 		std::vector<VkDescriptorSetLayout> getSetLayouts();
 		// Get set without any copies

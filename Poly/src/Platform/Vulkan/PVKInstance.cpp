@@ -272,7 +272,7 @@ namespace Poly
 			bool extensionsSupported = checkDeviceExtensionSupport(d);
 
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(d, surface).isComplete()) {
+			if (score > bestScore && findQueueFamilies(d, surface).isComplete() && deviceFeatures.samplerAnisotropy) {
 				bestScore = score;
 				this->physicalDevice = d;
 			}
@@ -312,8 +312,9 @@ namespace Poly
 		}
 
 		// Enable or disable features for the device
-		// Currently no features are to be enabled
+		// TODO: Move this to an easier place for editing
 		VkPhysicalDeviceFeatures deviceFeatures = {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 		// Create info for the logical device
 		VkDeviceCreateInfo createInfo = {};
