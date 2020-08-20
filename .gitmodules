@@ -4,3 +4,6 @@
 [submodule "Poly/libs/glfw"]
 	path = Poly/libs/glfw
 	url = https://github.com/Ceanze/glfw
+[submodule "Poly/libs/VMA"]
+	path = Poly/libs/VMA
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
