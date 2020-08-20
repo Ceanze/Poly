@@ -18,6 +18,7 @@ namespace Poly
 	uint32_t PVKInstance::graphicsQueueCount = 1;
 	uint32_t PVKInstance::computeQueueCount = 1;
 	uint32_t PVKInstance::transferQueueCount = 1;
+	VmaAllocator PVKInstance::vmaAllocator = VK_NULL_HANDLE;
 
 	PVKInstance::PVKInstance()
 		: debugMessenger(VK_NULL_HANDLE)
@@ -44,6 +45,8 @@ namespace Poly
 
 		pickPhysicalDevice();
 		createLogicalDevice();
+
+		createVmaAllocator();
 	}
 
 	void PVKInstance::cleanup()
@@ -52,6 +55,8 @@ namespace Poly
 
 		if (this->enableValidationLayers)
 			DestroyDebugUtilsMessengerEXT(instance, this->debugMessenger, nullptr);
+
+		vmaDestroyAllocator(vmaAllocator);
 
 		vkDestroyDevice(device, nullptr);
 		vkDestroyInstance(instance, nullptr);
@@ -345,6 +350,41 @@ namespace Poly
 		//vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
 		getAllQueues(); // This function does not check for present support, hence seperate functions
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue.queue);
+	}
+
+	void PVKInstance::createVmaAllocator()
+	{
+		// Create info
+		VmaAllocatorCreateInfo createInfo = {};
+		createInfo.physicalDevice = physicalDevice;
+		createInfo.device = device;
+		createInfo.instance = instance;
+		createInfo.vulkanApiVersion = VK_API_VERSION_1_1;
+		
+		// All three are enabled by default in vulkan 1.1
+		if (VK_KHR_dedicated_allocation)
+		{
+			createInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+		}
+		if (VK_KHR_bind_memory2)
+		{
+			createInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT;
+		}
+		if (VK_AMD_device_coherent_memory)
+		{
+			createInfo.flags |= VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT;
+		}
+
+		// Uncomment to enable recording to CSV file.
+		/*
+		static VmaRecordSettings recordSettings = {};
+		recordSettings.pFilePath = "VulkanSample.csv";
+		outInfo.pRecordSettings = &recordSettings;
+		*/
+
+		// Creation
+		//VmaAllocator vmaAllocator;
+		vmaCreateAllocator(&createInfo, &vmaAllocator);
 	}
 
 	std::vector<const char*> PVKInstance::getRequiredExtensions()

@@ -143,6 +143,7 @@
       <Filter>Poly\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\polypch.h" />
+    <ClInclude Include="src\Platform\Vulkan\VmaInclude.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">
@@ -176,6 +177,9 @@
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKSampler.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKShader.cpp">
@@ -214,11 +218,13 @@
     <ClCompile Include="src\Poly\Core\Window.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Poly\Renderer\Sampler.cpp">
+      <Filter>Poly\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Poly\Renderer\Texture.cpp">
       <Filter>Poly\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
-    <ClCompile Include="src\Poly\Renderer\Sampler.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKSampler.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\VmaInclude.cpp" />
   </ItemGroup>
 </Project>

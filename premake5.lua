@@ -76,7 +76,8 @@ project "Poly"
 		"%{prj.name}/src",
 		"%{prj.name}/libs/spdlog/include",
 		"%{prj.name}/libs/glfw/include",
-		"%{prj.name}/libs/glm"
+		"%{prj.name}/libs/glm",
+		"%{prj.name}/libs/VMA/src"
 	}
 
 	libdirs

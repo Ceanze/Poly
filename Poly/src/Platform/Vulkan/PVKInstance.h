@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include "PVKTypes.h"
 
+#include "VmaInclude.h"
+
 namespace Poly
 {
 	class Window;
@@ -35,6 +37,7 @@ namespace Poly
 		static PVKQueue& getPresentQueue() { return presentQueue; }
 		static PVKQueue& getQueue(QueueType queueType, uint32_t index = 0);
 		static VkSurfaceKHR getSurface() { return surface; }
+		static VmaAllocator getVmaAllocator() { return vmaAllocator; }
 
 	private:
 		const std::vector<const char*> validationLayers = {
@@ -70,6 +73,7 @@ namespace Poly
 		void pickPhysicalDevice();
 		void setOptimalDevice(const std::vector<VkPhysicalDevice>& devices);
 		void createLogicalDevice();
+		void createVmaAllocator();
 		std::vector<const char*> getRequiredExtensions();
 		void getAllQueues();
 
@@ -84,6 +88,8 @@ namespace Poly
 		static uint32_t graphicsQueueCount;
 		static uint32_t computeQueueCount;
 		static uint32_t transferQueueCount;
+
+		static VmaAllocator vmaAllocator;
 
 		#ifdef POLY_DEBUG
 				const bool enableValidationLayers = true;
