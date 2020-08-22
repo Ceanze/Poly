@@ -6,7 +6,7 @@
 #include "PVKImage.h"
 #include "PVKImageView.h"
 
-#include <vulkan/vulkan.h>
+#include "VmaInclude.h"
 
 namespace Poly
 {
@@ -17,8 +17,8 @@ namespace Poly
 		PVKTexture();
 		~PVKTexture() = default;
 
-		void init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices);
-		void init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices);
+		void init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage);
+		void init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage);
 		void initView(ImageViewType type, ImageAspect aspect);
 		void cleanup();
 

@@ -1,5 +1,11 @@
 #pragma once
 
+/*
+	Include this file when using VMA.
+	When this file is included vulkan is not needed to be included, as that is included in vk_mem_alloc.h
+*/
+
+
 //#define VMA_STATIC_VULKAN_FUNCTIONS 0
 //#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 

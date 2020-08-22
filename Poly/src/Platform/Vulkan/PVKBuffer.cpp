@@ -5,7 +5,7 @@
 namespace Poly
 {
 
-	PVKBuffer::PVKBuffer() : buffer(VK_NULL_HANDLE), size(0)
+	PVKBuffer::PVKBuffer() : buffer(VK_NULL_HANDLE), size(0), vmaAllocation(VK_NULL_HANDLE)
 	{
 	}
 
@@ -13,7 +13,7 @@ namespace Poly
 	{
 	}
 
-	void PVKBuffer::init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices)
+	void PVKBuffer::init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
 	{
 		this->size = size;
 
@@ -30,12 +30,26 @@ namespace Poly
 		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.size());
 		createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
 
-		PVK_CHECK(vkCreateBuffer(PVKInstance::getDevice(), &createInfo, nullptr, &this->buffer), "Failed to create buffer!");
+		//PVK_CHECK(vkCreateBuffer(PVKInstance::getDevice(), &createInfo, nullptr, &this->buffer), "Failed to create buffer!");
+
+		VmaAllocationCreateInfo allocInfo = {};
+		allocInfo.usage = memoryUsage;
+
+		PVK_CHECK(vmaCreateBuffer(PVKInstance::getAllocator(), &createInfo, &allocInfo, &this->buffer, &this->vmaAllocation, nullptr), "Failed to create buffer using VMA");
 	}
 
 	void PVKBuffer::cleanup()
 	{
-		vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
+		//vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
+		vmaDestroyBuffer(PVKInstance::getAllocator(), this->buffer, this->vmaAllocation);
+	}
+
+	void PVKBuffer::transferData(const void* data, const size_t size)
+	{
+		void* ptr;
+		vmaMapMemory(PVKInstance::getAllocator(), this->vmaAllocation, &ptr);
+		memcpy(ptr, data, size);
+		vmaUnmapMemory(PVKInstance::getAllocator(), this->vmaAllocation);
 	}
 
 	VkBuffer PVKBuffer::getNative() const

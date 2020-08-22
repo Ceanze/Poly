@@ -16,6 +16,7 @@
 #include "Platform/Vulkan/PVKSampler.h"
 #include "Platform/Vulkan/PVKTexture.h"
 
+
 namespace Poly
 {
 
@@ -51,8 +52,8 @@ namespace Poly
 		PVKDescriptor descriptor;
 
 		PVKBuffer testBuffer;
-		PVKMemory testMemory;
-		PVKMemory testTextureMemory;
+		//PVKMemory testMemory;
+		//PVKMemory testTextureMemory;
 		PVKTexture testTexture;
 		PVKSampler* testSampler;
 

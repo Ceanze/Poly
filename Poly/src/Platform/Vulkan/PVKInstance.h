@@ -37,7 +37,7 @@ namespace Poly
 		static PVKQueue& getPresentQueue() { return presentQueue; }
 		static PVKQueue& getQueue(QueueType queueType, uint32_t index = 0);
 		static VkSurfaceKHR getSurface() { return surface; }
-		static VmaAllocator getVmaAllocator() { return vmaAllocator; }
+		static VmaAllocator getAllocator() { return vmaAllocator; }
 
 	private:
 		const std::vector<const char*> validationLayers = {
@@ -81,7 +81,6 @@ namespace Poly
 		VkDebugUtilsMessengerEXT debugMessenger;
 		static VkPhysicalDevice physicalDevice;
 		static VkDevice device;
-		//static PVKQueue graphicsQueue;
 		static std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> queues;
 		static PVKQueue presentQueue;
 		static VkSurfaceKHR surface;

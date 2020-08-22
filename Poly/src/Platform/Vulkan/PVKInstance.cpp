@@ -12,7 +12,6 @@ namespace Poly
 	VkDevice PVKInstance::device = VK_NULL_HANDLE;
 	VkPhysicalDevice PVKInstance::physicalDevice = VK_NULL_HANDLE;
 	VkSurfaceKHR PVKInstance::surface = VK_NULL_HANDLE;
-	//PVKQueue PVKInstance::graphicsQueue = {};
 	std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> PVKInstance::queues;
 	PVKQueue PVKInstance::presentQueue = {};
 	uint32_t PVKInstance::graphicsQueueCount = 1;

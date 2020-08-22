@@ -9,18 +9,18 @@ namespace Poly
 	{
 	}
 
-	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices)
+	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage)
 	{
 		std::vector<uint32_t> vec = { queueIndices };
-		init(width, height, format, usage, flags, arrayLayers, vec);
+		init(width, height, format, usage, flags, arrayLayers, vec, memoryUsage);
 	}
 
-	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices)
+	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage)
 	{
 		this->width = width;
 		this->height = height;
 		this->format = format;
-		this->image.init(width, height, format, usage, flags, arrayLayers, queueIndices);
+		this->image.init(width, height, format, usage, flags, arrayLayers, queueIndices, memoryUsage);
 	}
 
 	void PVKTexture::initView(ImageViewType type, ImageAspect aspect)
@@ -47,7 +47,7 @@ namespace Poly
 	{
 		// TODO: Make it possible to change usage and format
 		// Current implementation assumes a R8G8B8A8_UNORM format with a sampled usage
-		this->image.init(width, height, ColorFormat::R8G8B8A8_UNORM, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex);
+		this->image.init(width, height, ColorFormat::R8G8B8A8_UNORM, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
 		this->imageView.init(this->image.getNative(), ImageViewType::DIM_2, ColorFormat::R8G8B8A8_UNORM, ImageAspect::COLOR_BIT);
 	}
 

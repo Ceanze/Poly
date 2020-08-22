@@ -12,12 +12,12 @@ namespace Poly
 	{
 	}
 
-	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueFamilyIndex)
+	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueFamilyIndex, VmaMemoryUsage memoryUsage)
 	{
-		init(width, height, format, usage, flags, arrayLayers, { queueFamilyIndex });
+		init(width, height, format, usage, flags, arrayLayers, { queueFamilyIndex }, memoryUsage);
 	}
 
-	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueFamilyIndices)
+	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
 	{
 		this->width = width;
 		this->height = height;
@@ -47,12 +47,17 @@ namespace Poly
 		imageInfo.flags = (VkImageCreateFlags)flags;
 
 
-		PVK_CHECK(vkCreateImage(PVKInstance::getDevice(), &imageInfo, nullptr, &this->image), "Failed to create image!");
+		//PVK_CHECK(vkCreateImage(PVKInstance::getDevice(), &imageInfo, nullptr, &this->image), "Failed to create image!");
+
+		VmaAllocationCreateInfo allocInfo = {};
+		allocInfo.usage = memoryUsage; // Change this
+		PVK_CHECK(vmaCreateImage(PVKInstance::getAllocator(), &imageInfo, &allocInfo, &this->image, &this->allocation, nullptr), "Failed to create image using VMA!");
 	}
 
 	void PVKImage::cleanup()
 	{
-		PVK_CLEANUP(this->image, vkDestroyImage(PVKInstance::getDevice(), this->image, nullptr));
+		//PVK_CLEANUP(this->image, vkDestroyImage(PVKInstance::getDevice(), this->image, nullptr));
+		PVK_CLEANUP(this->image, vmaDestroyImage(PVKInstance::getAllocator(), this->image, this->allocation));
 	}
 
 	void PVKImage::copyBufferToImage(PVKBuffer& buffer, PVKCommandPool* pool)

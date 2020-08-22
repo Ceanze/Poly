@@ -3,7 +3,7 @@
 #include "polypch.h"
 #include "PVKTypes.h"
 
-#include <vulkan/vulkan.h>
+#include "VmaInclude.h"
 
 namespace Poly
 {
@@ -13,8 +13,10 @@ namespace Poly
 		PVKBuffer();
 		~PVKBuffer();
 
-		void init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices);
+		void init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage);
 		void cleanup();
+
+		void transferData(const void* data, const size_t size);
 
 		VkBuffer getNative() const;
 		VkMemoryRequirements getMemReq() const;
@@ -23,5 +25,6 @@ namespace Poly
 	private:
 		VkBuffer buffer;
 		VkDeviceSize size;
+		VmaAllocation vmaAllocation;
 	};
 }

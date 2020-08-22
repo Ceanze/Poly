@@ -53,7 +53,8 @@ namespace Poly
 	void TestRenderer::endScene()
 	{
 		this->mainRenderer->addCommandBuffer(QueueType::GRAPHICS, this->commandBuffers[this->imageIndex]);
-		this->testMemory.directTransfer(this->testBuffer, &this->camera->getMatrix(), sizeof(glm::mat4), 0);
+		//this->testMemory.directTransfer(this->testBuffer, &this->camera->getMatrix(), sizeof(glm::mat4), 0);
+		this->testBuffer.transferData(&this->camera->getMatrix(), sizeof(glm::mat4));
 	}
 
 	void TestRenderer::shutdown()
@@ -66,9 +67,9 @@ namespace Poly
 		this->pipeline.cleanup();
 		this->descriptor.cleanup();
 		this->testBuffer.cleanup();
-		this->testMemory.cleanup();
+		//this->testMemory.cleanup();
 		this->testTexture.cleanup();
-		this->testTextureMemory.cleanup();
+		//this->testTextureMemory.cleanup();
 		this->renderPass.cleanup();
 		this->shader.cleanup();
 	}
@@ -104,14 +105,14 @@ namespace Poly
 	void TestRenderer::setupTestData()
 	{
 		this->testSampler = new PVKSampler();
-		this->testTexture.init(1, 1, ColorFormat::R8G8B8A8_SRGB, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex);
-		this->testTextureMemory.bindTexture(this->testTexture);
-		this->testTextureMemory.init(MemoryPropery::DEVICE_LOCAL);
+		this->testTexture.init(1, 1, ColorFormat::R8G8B8A8_SRGB, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
+		//this->testTextureMemory.bindTexture(this->testTexture);
+		//this->testTextureMemory.init(MemoryPropery::DEVICE_LOCAL);
 		this->testTexture.initView(ImageViewType::DIM_2, ImageAspect::COLOR_BIT);
 
-		this->testBuffer.init(sizeof(glm::mat4), BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex });
-		this->testMemory.bindBuffer(this->testBuffer);
-		this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
+		this->testBuffer.init(sizeof(glm::mat4), BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		//this->testMemory.bindBuffer(this->testBuffer);
+		//this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
 
 		this->descriptor.updateBufferBinding(0, 0, this->testBuffer);
 		this->descriptor.updateTextureBinding(0, 1, ImageLayout::SHADER_READ_ONLY_OPTIMAL, this->testTexture, *this->testSampler);
