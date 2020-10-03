@@ -1,3 +1,19 @@
+function get_vk_sdk_path()
+	-- These are SDK Path Environment Variables that are set on windows when Vulkan installs
+	local sdkPathVars = {"VK_SDK_PATH", "VULKAN_SDK"}
+	for _, sdkPathVar in ipairs(sdkPathVars) do
+		sdkPath = os.getenv(sdkPathVar)
+		if sdkPath ~= nil then
+			return sdkPath
+		end
+	end
+
+	print(string.format("No environment variables for path to Vulkan SDK are set: %s", array_to_string(sdkPathVars)))
+	return ""
+end
+
+vkPath = get_vk_sdk_path()
+
 workspace "Poly"
 	architecture "x64"
 	startproject "Sandbox"
@@ -83,14 +99,12 @@ project "Poly"
 
 	libdirs
 	{
-		"C:/VulkanSDK/1.1.130.0/Lib",
-		"C:/VulkanSDK/1.2.141.2/Lib"
+		vkPath .. "/Lib"
 	}
 
 	sysincludedirs
 	{
-		"C:/VulkanSDK/1.1.130.0/Include",
-		"C:/VulkanSDK/1.2.141.2/Include"
+		vkPath .. "/Include",
 	}
 
 	filter "system:windows"
@@ -99,7 +113,7 @@ project "Poly"
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
-	cppdialect "C++17"
+	cppdialect "c++latest"
 
 	setDirs()
 	srcFiles()
