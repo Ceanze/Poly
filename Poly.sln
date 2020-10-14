@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "Poly\libs\glfw\GLFW
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Poly", "Poly\Poly.vcxproj", "{69D48A7C-550B-8C0D-FEF7-7110EA0D080F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang", "Poly\libs\glslang\glslang.vcxproj", "{0D19B900-79F8-379C-8210-C372EE6E9EFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -25,6 +27,10 @@ Global
 		{69D48A7C-550B-8C0D-FEF7-7110EA0D080F}.Debug|x64.Build.0 = Debug|x64
 		{69D48A7C-550B-8C0D-FEF7-7110EA0D080F}.Release|x64.ActiveCfg = Release|x64
 		{69D48A7C-550B-8C0D-FEF7-7110EA0D080F}.Release|x64.Build.0 = Release|x64
+		{0D19B900-79F8-379C-8210-C372EE6E9EFD}.Debug|x64.ActiveCfg = Debug|x64
+		{0D19B900-79F8-379C-8210-C372EE6E9EFD}.Debug|x64.Build.0 = Debug|x64
+		{0D19B900-79F8-379C-8210-C372EE6E9EFD}.Release|x64.ActiveCfg = Release|x64
+		{0D19B900-79F8-379C-8210-C372EE6E9EFD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
