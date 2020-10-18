@@ -25,6 +25,9 @@
     <Filter Include="Poly\Renderer">
       <UniqueIdentifier>{2F1EDA16-9BDE-554D-6419-9FCAD0989A29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Poly\Resources">
+      <UniqueIdentifier>{1351CB8D-FF1E-BF93-E8B2-2FBAD41F9BF8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Platform\Common\IPlatformRenderer.h">
@@ -145,6 +148,9 @@
     <ClInclude Include="src\Poly\Renderer\Texture.h">
       <Filter>Poly\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Resources\ShaderCompiler.h">
+      <Filter>Poly\Resources</Filter>
+    </ClInclude>
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +234,9 @@
     </ClCompile>
     <ClCompile Include="src\Poly\Renderer\Texture.cpp">
       <Filter>Poly\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp">
+      <Filter>Poly\Resources</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
   </ItemGroup>

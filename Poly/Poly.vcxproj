@@ -60,7 +60,7 @@
       <PrecompiledHeaderFile>polypch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>POLY_PLATFORM_WINDOWS;POLY_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;libs\glslang;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -83,7 +83,7 @@
       <PrecompiledHeaderFile>polypch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>POLY_PLATFORM_WINDOWS;POLY_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;libs\glslang;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -144,6 +144,7 @@
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
     <ClInclude Include="src\Poly\Renderer\Sampler.h" />
     <ClInclude Include="src\Poly\Renderer\Texture.h" />
+    <ClInclude Include="src\Poly\Resources\ShaderCompiler.h" />
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +175,7 @@
     <ClCompile Include="src\Poly\Core\Window.cpp" />
     <ClCompile Include="src\Poly\Renderer\Sampler.cpp" />
     <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp" />
     <ClCompile Include="src\polypch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -182,8 +184,11 @@
     <ProjectReference Include="libs\glfw\GLFW.vcxproj">
       <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
     </ProjectReference>
-    <ProjectReference Include="libs\glslang\glslang.vcxproj">
+    <ProjectReference Include="libs\glslang\glslang\glslang.vcxproj">
       <Project>{0D19B900-79F8-379C-8210-C372EE6E9EFD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\glslang\SPIRV\SPIRV.vcxproj">
+      <Project>{B9110A0E-2526-32BF-EEA7-D51E5A7B2EF0}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

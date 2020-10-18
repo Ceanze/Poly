@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 /*
 	This file is in TESTING PHASE
 */
@@ -13,6 +14,6 @@ namespace Poly
 		~ShaderCompiler() = default;
 
 	private:
-
+		std::string m_ShaderFolder = ""; 
 	};
 }

@@ -32,7 +32,7 @@ namespace Poly
 	void PVKShader::addStage(ShaderType type, std::string shaderName)
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
-		const std::string shaderPath = ".\\shaders\\";
+		const std::string shaderPath = ".\\..\\assets\\shaders\\";
 		this->shaderPaths[type] = shaderPath + shaderName;
 	}
 
