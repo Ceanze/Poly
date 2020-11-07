@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "Poly/Renderer/Sampler.h"
+#include "Poly/Rendering/Sampler.h"
 
 namespace Poly
 {

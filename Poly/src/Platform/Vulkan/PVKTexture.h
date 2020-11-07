@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Poly/Renderer/Texture.h"
+#include "Poly/Rendering/Texture.h"
 #include "PVKTypes.h"
 #include "polypch.h"
 #include "PVKImage.h"

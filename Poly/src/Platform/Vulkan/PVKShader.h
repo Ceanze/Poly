@@ -17,15 +17,15 @@ namespace Poly
 		void init();
 		void cleanup();
 
-		void addStage(ShaderType type, std::string shaderName);
-		VkPipelineShaderStageCreateInfo getShaderCreateInfo(ShaderType type) const;
+		void addStage(ShaderStage shaderStage, std::string shaderName);
+		VkPipelineShaderStageCreateInfo getShaderCreateInfo(ShaderStage shaderStage) const;
 		std::vector<VkPipelineShaderStageCreateInfo> getShaderCreateInfos();
 
 	private:
-		void createShaderModule(ShaderType type, const std::vector<char>& code);
+		void createShaderModule(ShaderStage shaderStage, const std::vector<char>& code);
 
-		std::unordered_map<ShaderType, VkPipelineShaderStageCreateInfo> shaderStages;
-		std::unordered_map<ShaderType, std::string> shaderPaths;
+		std::unordered_map<ShaderStage, VkPipelineShaderStageCreateInfo> shaderStages;
+		std::unordered_map<ShaderStage, std::string> shaderPaths;
 	};
 
 }
