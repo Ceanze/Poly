@@ -13,13 +13,13 @@ namespace Poly
 	class ShaderCompiler
 	{
 	public:
-		ShaderCompiler();
-		~ShaderCompiler() = default;
+		ShaderCompiler() = default;
+		~ShaderCompiler();
+
+		// Compiles the spirv - should probably return a shader or similar later
+		static const std::vector<char> CompileGLSL(const std::string& filename, const std::string& folder, ShaderStage shaderStage);
 
 	private:
-		std::string GetFileFolder(const std::string& path);
-
-	private:
-		std::string m_ShaderFolder = ""; 
+		static bool s_glslInit;
 	};
 }

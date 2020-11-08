@@ -3,6 +3,9 @@
 #include "PVKInstance.h"
 #include "VulkanCommon.h"
 
+// TODO: Remove, only for testing online spirv compiler
+#include "Poly/Resources/ShaderCompiler.h"
+
 namespace Poly
 {
 
@@ -17,8 +20,9 @@ namespace Poly
 	void PVKShader::init()
 	{
 		for (auto& shader : this->shaderPaths) {
-			std::vector<char> code = readFile(shader.second);
-			createShaderModule(shader.first, code);
+			// std::vector<char> code = readFile("./../assets/shaders/" + shader.second);
+			std::vector<char> code = ShaderCompiler::CompileGLSL(shader.second, "./../assets/shaders/", shader.first);
+			createShaderModule(shader.first, code);	
 		}
 		this->shaderPaths.clear();
 	}
@@ -33,7 +37,7 @@ namespace Poly
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
 		const std::string shaderPath = ".\\..\\assets\\shaders\\";
-		this->shaderPaths[shaderStage] = shaderPath + shaderName;
+		this->shaderPaths[shaderStage] = shaderName;
 	}
 
 	VkPipelineShaderStageCreateInfo PVKShader::getShaderCreateInfo(ShaderStage shaderStage) const
