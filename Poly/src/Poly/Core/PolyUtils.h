@@ -17,6 +17,10 @@
 
 #define POLY_ASSERT(exp, ...) { if(!(exp)) {POLY_CORE_ERROR(__VA_ARGS__); } assert(exp); }
 
+// Bit helpers
+#define BIT(bit)	(1 << bit)
+#define FLAG(bit)	BIT(bit)
+
 // Binary operators for enum classes, enable using ENABLE_BINARY_OPERATIONS(EnumnType);
 template<typename Enum>
 struct EnableBitMaskOperators

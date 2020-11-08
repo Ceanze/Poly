@@ -12,8 +12,8 @@ namespace Poly
 		this->mainRenderer = static_cast<VulkanRenderer*>(renderer);
 		this->swapChain = this->mainRenderer->getSwapChain();
 
-		this->shader.addStage(ShaderType::VERTEX, "vert.spv");
-		this->shader.addStage(ShaderType::FRAGMENT, "frag.spv");
+		this->shader.addStage(ShaderStage::VERTEX, "vert.glsl");
+		this->shader.addStage(ShaderStage::FRAGMENT, "frag.glsl");
 		this->shader.init();
 
 		VkSubpassDependency dependency = {};

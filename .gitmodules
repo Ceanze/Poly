@@ -7,3 +7,6 @@
 [submodule "Poly/libs/VMA"]
 	path = Poly/libs/VMA
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+[submodule "Poly/libs/glslang"]
+	path = Poly/libs/glslang
+	url = https://github.com/KhronosGroup/glslang.git

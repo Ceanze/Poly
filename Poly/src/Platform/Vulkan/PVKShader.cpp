@@ -3,6 +3,9 @@
 #include "PVKInstance.h"
 #include "VulkanCommon.h"
 
+// TODO: Remove, only for testing online spirv compiler
+#include "Poly/Resources/ShaderCompiler.h"
+
 namespace Poly
 {
 
@@ -17,8 +20,9 @@ namespace Poly
 	void PVKShader::init()
 	{
 		for (auto& shader : this->shaderPaths) {
-			std::vector<char> code = readFile(shader.second);
-			createShaderModule(shader.first, code);
+			// std::vector<char> code = readFile("./../assets/shaders/" + shader.second);
+			std::vector<char> code = ShaderCompiler::CompileGLSL(shader.second, "./../assets/shaders/", shader.first);
+			createShaderModule(shader.first, code);	
 		}
 		this->shaderPaths.clear();
 	}
@@ -29,19 +33,19 @@ namespace Poly
 			vkDestroyShaderModule(PVKInstance::getDevice(), shaderStage.second.module, nullptr);
 	}
 
-	void PVKShader::addStage(ShaderType type, std::string shaderName)
+	void PVKShader::addStage(ShaderStage shaderStage, std::string shaderName)
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
-		const std::string shaderPath = ".\\shaders\\";
-		this->shaderPaths[type] = shaderPath + shaderName;
+		const std::string shaderPath = ".\\..\\assets\\shaders\\";
+		this->shaderPaths[shaderStage] = shaderName;
 	}
 
-	VkPipelineShaderStageCreateInfo PVKShader::getShaderCreateInfo(ShaderType type) const
+	VkPipelineShaderStageCreateInfo PVKShader::getShaderCreateInfo(ShaderStage shaderStage) const
 	{
-		auto& it = this->shaderStages.find(type);
+		auto& it = this->shaderStages.find(shaderStage);
 
 		if (it == this->shaderStages.end())
-			POLY_ERROR("Could not find the desired shader type!");
+			POLY_ERROR("Could not find the desired shader stage!");
 
 		return it->second;
 	}
@@ -56,21 +60,8 @@ namespace Poly
 		return infos;
 	}
 
-	void PVKShader::createShaderModule(ShaderType type, const std::vector<char>& code)
+	void PVKShader::createShaderModule(ShaderStage shaderStage, const std::vector<char>& code)
 	{
-		//VkShaderStageFlagBits shaderStage;
-		//switch (type) {
-		//case Type::VERTEX:
-		//	shaderStage = VK_SHADER_STAGE_VERTEX_BIT;
-		//	break;
-		//case Type::FRAGMENT:
-		//	shaderStage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		//	break;
-		//case Type::COMPUTE:
-		//	shaderStage = VK_SHADER_STAGE_COMPUTE_BIT;
-		//	break;
-		//}
-
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = code.size();
@@ -81,11 +72,11 @@ namespace Poly
 
 		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
 		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStageInfo.stage = (VkShaderStageFlagBits)type;
+		shaderStageInfo.stage = ConvertShaderStageVK(shaderStage);
 		shaderStageInfo.module = shaderModule;
 		shaderStageInfo.pName = "main"; // Main should always be considered default
 
-		this->shaderStages[type] = shaderStageInfo;
+		this->shaderStages[shaderStage] = shaderStageInfo;
 	}
 
 }

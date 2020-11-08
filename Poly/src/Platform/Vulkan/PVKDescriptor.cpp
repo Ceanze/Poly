@@ -39,7 +39,7 @@ namespace Poly
 		layout.descriptorCount = 1;
 		layout.descriptorType = (VkDescriptorType)bufferType;
 		layout.pImmutableSamplers = nullptr; // Might be added in future for samplers/textures
-		layout.stageFlags = (VkShaderStageFlagBits)stageFlags;
+		layout.stageFlags = ConvertShaderStageVK(stageFlags);
 		
 		this->setLayoutBindings[set][binding] = layout;
 	}

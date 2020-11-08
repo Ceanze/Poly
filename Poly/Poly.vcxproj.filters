@@ -22,8 +22,17 @@
     <Filter Include="Poly\Events">
       <UniqueIdentifier>{2D500AF4-9905-83E9-22FA-7CC08EAE79ED}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Poly\Renderer">
-      <UniqueIdentifier>{2F1EDA16-9BDE-554D-6419-9FCAD0989A29}</UniqueIdentifier>
+    <Filter Include="Poly\Rendering">
+      <UniqueIdentifier>{F6F41DF2-E2C2-11F8-CB56-821EB7C3ED5C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Poly\Rendering\Core">
+      <UniqueIdentifier>{0EA34438-7A04-2246-0372-68F86FD25805}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Poly\Rendering\Core\API">
+      <UniqueIdentifier>{F75EF640-6396-3ED8-6CA0-A2FBD85665D1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Poly\Resources">
+      <UniqueIdentifier>{1351CB8D-FF1E-BF93-E8B2-2FBAD41F9BF8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -139,11 +148,20 @@
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h">
       <Filter>Poly\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Renderer\Sampler.h">
-      <Filter>Poly\Renderer</Filter>
+    <ClInclude Include="src\Poly\Rendering\Core\API\GraphicsTypes.h">
+      <Filter>Poly\Rendering\Core\API</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Renderer\Texture.h">
-      <Filter>Poly\Renderer</Filter>
+    <ClInclude Include="src\Poly\Rendering\Sampler.h">
+      <Filter>Poly\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Rendering\Texture.h">
+      <Filter>Poly\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Resources\GLSLang.h">
+      <Filter>Poly\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Resources\ShaderCompiler.h">
+      <Filter>Poly\Resources</Filter>
     </ClInclude>
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
@@ -223,11 +241,14 @@
     <ClCompile Include="src\Poly\Core\Window.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Poly\Renderer\Sampler.cpp">
-      <Filter>Poly\Renderer</Filter>
+    <ClCompile Include="src\Poly\Rendering\Sampler.cpp">
+      <Filter>Poly\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\Poly\Renderer\Texture.cpp">
-      <Filter>Poly\Renderer</Filter>
+    <ClCompile Include="src\Poly\Rendering\Texture.cpp">
+      <Filter>Poly\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp">
+      <Filter>Poly\Resources</Filter>
     </ClCompile>
     <ClCompile Include="src\polypch.cpp" />
   </ItemGroup>

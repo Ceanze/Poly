@@ -10,6 +10,7 @@
 #include <set>
 #include <algorithm>
 #include <chrono>
+#include <vector>
 
 // Libs
 #pragma warning(push)

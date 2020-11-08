@@ -45,14 +45,14 @@
     <IntDir>..\bin-int\Debug-windows-x86_64\Poly\</IntDir>
     <TargetName>Poly</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>C:\VulkanSDK\1.1.130.0\Include;C:\VulkanSDK\1.2.141.2\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VulkanSDK\1.2.148.1\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\bin\Release-windows-x86_64\Poly\</OutDir>
     <IntDir>..\bin-int\Release-windows-x86_64\Poly\</IntDir>
     <TargetName>Poly</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>C:\VulkanSDK\1.1.130.0\Include;C:\VulkanSDK\1.2.141.2\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VulkanSDK\1.2.148.1\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -60,13 +60,13 @@
       <PrecompiledHeaderFile>polypch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>POLY_PLATFORM_WINDOWS;POLY_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;libs\glslang;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -74,7 +74,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.1.130.0\Lib;C:\VulkanSDK\1.2.141.2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.2.148.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -83,7 +83,7 @@
       <PrecompiledHeaderFile>polypch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>POLY_PLATFORM_WINDOWS;POLY_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;libs\spdlog\include;libs\glfw\include;libs\glm;libs\VMA\src;libs\stb_image;libs\glslang;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -91,7 +91,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -100,7 +100,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.1.130.0\Lib;C:\VulkanSDK\1.2.141.2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.2.148.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -142,8 +142,11 @@
     <ClInclude Include="src\Poly\Events\Event.h" />
     <ClInclude Include="src\Poly\Events\EventBus.h" />
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
-    <ClInclude Include="src\Poly\Renderer\Sampler.h" />
-    <ClInclude Include="src\Poly\Renderer\Texture.h" />
+    <ClInclude Include="src\Poly\Rendering\Core\API\GraphicsTypes.h" />
+    <ClInclude Include="src\Poly\Rendering\Sampler.h" />
+    <ClInclude Include="src\Poly\Rendering\Texture.h" />
+    <ClInclude Include="src\Poly\Resources\GLSLang.h" />
+    <ClInclude Include="src\Poly\Resources\ShaderCompiler.h" />
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,8 +175,9 @@
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
     <ClCompile Include="src\Poly\Core\RendererAPI.cpp" />
     <ClCompile Include="src\Poly\Core\Window.cpp" />
-    <ClCompile Include="src\Poly\Renderer\Sampler.cpp" />
-    <ClCompile Include="src\Poly\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Poly\Rendering\Sampler.cpp" />
+    <ClCompile Include="src\Poly\Rendering\Texture.cpp" />
+    <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp" />
     <ClCompile Include="src\polypch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -181,6 +185,12 @@
   <ItemGroup>
     <ProjectReference Include="libs\glfw\GLFW.vcxproj">
       <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\glslang\glslang\glslang.vcxproj">
+      <Project>{0D19B900-79F8-379C-8210-C372EE6E9EFD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\glslang\SPIRV\SPIRV.vcxproj">
+      <Project>{B9110A0E-2526-32BF-EEA7-D51E5A7B2EF0}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
