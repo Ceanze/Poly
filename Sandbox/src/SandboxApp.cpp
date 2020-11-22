@@ -1,17 +1,17 @@
 #include "Poly.h"
 
 /*
-Steg för skapning av ett enkelt PVK program:
-	- Application kallar på Renderer::preInit() som skapar Window, Instance, SwapChain, syncobjects
-	- Layer konstruktorn skapar det som behövs, så som descriptor, shader, renderpass, pipeline
-	- När det som behövs har skapats kallas Poly::Renderer::init() för att skapa det sista som framebuffers
-		(OCH CommandPool med CommandBuffers tills en annan mer dynamisk lösning hittas)
+Steg fï¿½r skapning av ett enkelt PVK program:
+	- Application kallar pï¿½ Renderer::preInit() som skapar Window, Instance, SwapChain, syncobjects
+	- Layer konstruktorn skapar det som behï¿½vs, sï¿½ som descriptor, shader, renderpass, pipeline
+	- Nï¿½r det som behï¿½vs har skapats kallas Poly::Renderer::init() fï¿½r att skapa det sista som framebuffers
+		(OCH CommandPool med CommandBuffers tills en annan mer dynamisk lï¿½sning hittas)
 
-Varje sak som användaren behöver skapa ska ha Interface klasser för att kunna kalla på create. Det create gör är:
+Varje sak som anvï¿½ndaren behï¿½ver skapa ska ha Interface klasser fï¿½r att kunna kalla pï¿½ create. Det create gï¿½r ï¿½r:
 	- Skapa ett objekt av den typen som kallas (createShader ex)
-	- Gör en init/preInit på objektet så att den har det som behövs (instance ex)
-	- Informera den valda renderern (vulkan renderer) om att den finns så att den kan ha koll på den (shader_ptr)
-	- Retunera shared_ptr av det ärvda objektet.
+	- Gï¿½r en init/preInit pï¿½ objektet sï¿½ att den har det som behï¿½vs (instance ex)
+	- Informera den valda renderern (vulkan renderer) om att den finns sï¿½ att den kan ha koll pï¿½ den (shader_ptr)
+	- Retunera shared_ptr av det ï¿½rvda objektet.
 */
 
 class TestLayer : public Poly::Layer
@@ -66,7 +66,7 @@ class Sandbox : public Poly::Application
 public:
 	Sandbox()
 	{
-		pushLayer(new TestLayer());
+		PushLayer(new TestLayer());
 	}
 
 	~Sandbox()

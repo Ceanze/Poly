@@ -115,6 +115,9 @@
     <ClInclude Include="src\Poly\Core\Core.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Core\Engine.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Poly\Core\EntryPoint.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
@@ -134,6 +137,9 @@
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Core\RendererAPI.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Core\Timestamp.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Core\Window.h">
@@ -158,6 +164,9 @@
       <Filter>Poly\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Resources\GLSLang.h">
+      <Filter>Poly\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Resources\ResourceLoader.h">
       <Filter>Poly\Resources</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Resources\ShaderCompiler.h">
@@ -226,6 +235,9 @@
     <ClCompile Include="src\Poly\Core\Camera.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Poly\Core\Engine.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Poly\Core\Input.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
@@ -246,6 +258,9 @@
     </ClCompile>
     <ClCompile Include="src\Poly\Rendering\Texture.cpp">
       <Filter>Poly\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Resources\ResourceLoader.cpp">
+      <Filter>Poly\Resources</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp">
       <Filter>Poly\Resources</Filter>

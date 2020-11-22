@@ -131,6 +131,7 @@
     <ClInclude Include="src\Poly\Core\Application.h" />
     <ClInclude Include="src\Poly\Core\Camera.h" />
     <ClInclude Include="src\Poly\Core\Core.h" />
+    <ClInclude Include="src\Poly\Core\Engine.h" />
     <ClInclude Include="src\Poly\Core\EntryPoint.h" />
     <ClInclude Include="src\Poly\Core\Input.h" />
     <ClInclude Include="src\Poly\Core\Layer.h" />
@@ -138,6 +139,7 @@
     <ClInclude Include="src\Poly\Core\Logger.h" />
     <ClInclude Include="src\Poly\Core\PolyUtils.h" />
     <ClInclude Include="src\Poly\Core\RendererAPI.h" />
+    <ClInclude Include="src\Poly\Core\Timestamp.h" />
     <ClInclude Include="src\Poly\Core\Window.h" />
     <ClInclude Include="src\Poly\Events\Event.h" />
     <ClInclude Include="src\Poly\Events\EventBus.h" />
@@ -146,6 +148,7 @@
     <ClInclude Include="src\Poly\Rendering\Sampler.h" />
     <ClInclude Include="src\Poly\Rendering\Texture.h" />
     <ClInclude Include="src\Poly\Resources\GLSLang.h" />
+    <ClInclude Include="src\Poly\Resources\ResourceLoader.h" />
     <ClInclude Include="src\Poly\Resources\ShaderCompiler.h" />
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
@@ -170,6 +173,7 @@
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp" />
     <ClCompile Include="src\Poly\Core\Application.cpp" />
     <ClCompile Include="src\Poly\Core\Camera.cpp" />
+    <ClCompile Include="src\Poly\Core\Engine.cpp" />
     <ClCompile Include="src\Poly\Core\Input.cpp" />
     <ClCompile Include="src\Poly\Core\LayerStack.cpp" />
     <ClCompile Include="src\Poly\Core\Logger.cpp" />
@@ -177,6 +181,7 @@
     <ClCompile Include="src\Poly\Core\Window.cpp" />
     <ClCompile Include="src\Poly\Rendering\Sampler.cpp" />
     <ClCompile Include="src\Poly\Rendering\Texture.cpp" />
+    <ClCompile Include="src\Poly\Resources\ResourceLoader.cpp" />
     <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp" />
     <ClCompile Include="src\polypch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

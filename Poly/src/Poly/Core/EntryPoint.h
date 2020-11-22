@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
+#include "Engine.h"
+
 extern Poly::Application* Poly::CreateApplication();
 
 int main()
@@ -12,7 +14,7 @@ int main()
 
 	Poly::Application* app = Poly::CreateApplication();
 
-	app->run();
+	app->Run();
 
 	delete app;
 

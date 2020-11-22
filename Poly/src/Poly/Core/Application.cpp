@@ -12,15 +12,15 @@ namespace Poly
 	{
 		Poly::Logger::init();
 
-		POLY_EVENT_SUB(Application, onCloseWindowEvent);
+		POLY_EVENT_SUB(Application, OnCloseWindowEvent);
 	}
 
 	Application::~Application()
 	{
-		POLY_EVENT_UNSUB(Application, onCloseWindowEvent);
+		POLY_EVENT_UNSUB(Application, OnCloseWindowEvent);
 	}
 
-	void Application::run()
+	void Application::Run()
 	{
 		static auto currTime = std::chrono::high_resolution_clock::now();
 		static float dt = 0.f;
@@ -37,19 +37,19 @@ namespace Poly
 		}
 	}
 
-	void Application::pushLayer(Layer* layer)
+	void Application::PushLayer(Layer* layer)
 	{
 		this->layerStack.pushLayer(layer);
 		layer->onAttach();
 	}
 
-	void Application::pushOverlay(Layer* layer)
+	void Application::PushOverlay(Layer* layer)
 	{
 		this->layerStack.pushOverlay(layer);
 		layer->onAttach();
 	}
 
-	void Application::onCloseWindowEvent(CloseWindowEvent* e)
+	void Application::OnCloseWindowEvent(CloseWindowEvent* e)
 	{
 		this->running = false;
 	}

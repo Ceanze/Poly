@@ -12,15 +12,15 @@ namespace Poly {
 		Application();
 		virtual ~Application();
 
-		void run();
+		void Run();
 
-		void pushLayer(Layer* layer);
-		void pushOverlay(Layer* layer);
+		void PushLayer(Layer* layer);
+		void PushOverlay(Layer* layer);
 	private:
 		bool running = true;
 		LayerStack layerStack;
 
-		void onCloseWindowEvent(CloseWindowEvent* e);
+		void OnCloseWindowEvent(CloseWindowEvent* e);
 	};
 
 	Application* CreateApplication();
