@@ -4,7 +4,8 @@
 #include "VulkanCommon.h"
 
 // TODO: Remove, only for testing online spirv compiler
-#include "Poly/Resources/ShaderCompiler.h"
+// #include "Poly/Resources/ShaderCompiler.h"
+#include "Poly/Resources/ResourceLoader.h"
 
 namespace Poly
 {
@@ -21,7 +22,8 @@ namespace Poly
 	{
 		for (auto& shader : this->shaderPaths) {
 			// std::vector<char> code = readFile("./../assets/shaders/" + shader.second);
-			std::vector<char> code = ShaderCompiler::CompileGLSL(shader.second, "./../assets/shaders/", shader.first);
+			// std::vector<char> code = ShaderCompiler::CompileGLSL(shader.second, "./../assets/shaders/", shader.first);
+			std::vector<char> code = ResourceLoader::LoadShader("./../assets/shaders/" + shader.second, shader.first);
 			createShaderModule(shader.first, code);	
 		}
 		this->shaderPaths.clear();

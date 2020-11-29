@@ -30,7 +30,7 @@ namespace Poly
 		std::string filename = path.substr(slashPos + 1);
 
 		// Load and transfer content to string
-		std::ifstream file(folder + filename);
+		std::ifstream file(path);
 
 		POLY_ASSERT(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
 

@@ -5,6 +5,8 @@
 #include "Timestamp.h"
 #include "Timer.h"
 
+#include "Poly/Resources/ResourceLoader.h"
+
 #include <GLFW/glfw3.h>
 
 #define FIXED_UPDATE_FREQ 60.0
@@ -13,6 +15,7 @@ namespace Poly
 {
 	void Engine::Init()
 	{
+		ResourceLoader::Init();
 	}
 
 	void Engine::Run(Application* pApp)
@@ -43,6 +46,6 @@ namespace Poly
 
 	void Engine::Release()
 	{
-
+		ResourceLoader::Release();
 	}
 }
