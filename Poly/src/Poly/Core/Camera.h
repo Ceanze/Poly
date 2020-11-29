@@ -1,6 +1,7 @@
 #pragma once
 
 #include "polypch.h"
+#include "Timestamp.h"
 
 namespace Poly
 {
@@ -12,7 +13,7 @@ namespace Poly
 		Camera();
 		~Camera();
 
-		void update(float dt);
+		void update(Timestamp dt);
 
 		void setNearPlane(float nearPlane) { this->zNear = nearPlane; updateProjection(); }
 		void setFarPlane(float farPlane) { this->zFar = farPlane; updateProjection(); }

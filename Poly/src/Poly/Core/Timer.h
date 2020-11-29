@@ -27,10 +27,10 @@ namespace Poly
 
 		Timestamp GetDeltaTime() const;
 		Timestamp GetTotalTime() const;
-		
+
 	private:
 		Timestamp	m_TotalTime;
 		Timestamp	m_DeltaTime;
 		uint64_t	m_PrevTime;
-	}
+	};
 }

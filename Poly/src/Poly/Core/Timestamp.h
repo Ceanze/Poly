@@ -48,6 +48,24 @@ namespace Poly
 		inline uint64_t NanoSeconds() const
 		{ return m_NanoSeconds; }
 
+		inline static Timestamp FromSeconds(double seconds)
+		{
+			constexpr double SECONDS = 1000.0 * 1000.0 * 1000.0;
+			return Timestamp(uint64_t(seconds * SECONDS));
+		}
+
+		inline static Timestamp FromMilliSeconds(double milliSeconds)
+		{
+			constexpr double MILLI_SECONDS = 1000.0 * 1000.0;
+			return Timestamp(uint64_t(milliSeconds * MILLI_SECONDS));
+		}
+
+		inline static Timestamp FromMicroSeconds(double microSeconds)
+		{
+			constexpr double MICRO_SECONDS = 1000.0;
+			return Timestamp(uint64_t(microSeconds * MICRO_SECONDS));
+		}
+
 		inline Timestamp& operator=(const Timestamp& other)
 		{
 			m_NanoSeconds = other.m_NanoSeconds;

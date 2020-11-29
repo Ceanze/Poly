@@ -12,11 +12,15 @@ int main()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
+	Poly::Engine::Init();
+
 	Poly::Application* app = Poly::CreateApplication();
 
-	app->Run();
+	Poly::Engine::Run(app);
 
 	delete app;
+
+	Poly::Engine::Release();
 
 	return 0;
 }

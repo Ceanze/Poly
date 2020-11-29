@@ -1,9 +1,10 @@
 #include "polypch.h"
 #include "Application.h"
-#include "GLFW/glfw3.h"
 #include "Poly/Events/EventBus.h"
 #include "Window.h"
 #include "RendererAPI.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Poly
 {
@@ -20,37 +21,36 @@ namespace Poly
 		POLY_EVENT_UNSUB(Application, OnCloseWindowEvent);
 	}
 
-	void Application::Run()
+	void Application::Update(Timestamp dt)
 	{
-		static auto currTime = std::chrono::high_resolution_clock::now();
-		static float dt = 0.f;
+		for (auto layer : m_LayerStack)
+			layer->OnUpdate(dt);
+	}
 
-		while (this->running)
-		{
-			dt = std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - currTime).count();
-			currTime = std::chrono::high_resolution_clock::now();
+	void Application::FixedUpdate(Timestamp dt)
+	{
 
-			glfwPollEvents();
-
-			for (auto layer : this->layerStack)
-				layer->onUpdate(dt);
-		}
 	}
 
 	void Application::PushLayer(Layer* layer)
 	{
-		this->layerStack.pushLayer(layer);
-		layer->onAttach();
+		m_LayerStack.pushLayer(layer);
+		layer->OnAttach();
 	}
 
 	void Application::PushOverlay(Layer* layer)
 	{
-		this->layerStack.pushOverlay(layer);
-		layer->onAttach();
+		m_LayerStack.pushOverlay(layer);
+		layer->OnAttach();
+	}
+
+	bool Application::IsRunning()
+	{
+		return m_Running;
 	}
 
 	void Application::OnCloseWindowEvent(CloseWindowEvent* e)
 	{
-		this->running = false;
+		m_Running = false;
 	}
 }

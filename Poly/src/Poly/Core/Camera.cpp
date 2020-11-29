@@ -23,29 +23,31 @@ namespace Poly
 	{
 	}
 
-	void Camera::update(float dt)
+	void Camera::update(Timestamp dt)
 	{
 		glm::vec2 mouseDelta = Input::getMouseDelta();
 
-		this->yaw += mouseDelta.x * dt * this->mouseSense;
-		this->pitch += mouseDelta.y * dt * this->mouseSense;
+		float dtSeconds = float(dt.Seconds());
+
+		this->yaw += mouseDelta.x * dtSeconds * this->mouseSense;
+		this->pitch += mouseDelta.y * dtSeconds * this->mouseSense;
 
 		float extraSpeed = 0.0f;
 		if (Input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
 			extraSpeed = this->sprintSpeed;
 
 		if (Input::isKeyPressed(GLFW_KEY_W))
-			this->pos += this->forward * dt * (this->movementSpeed + extraSpeed);
+			this->pos += this->forward * dtSeconds * (this->movementSpeed + extraSpeed);
 		if (Input::isKeyPressed(GLFW_KEY_S))
-			this->pos -= this->forward * dt * (this->movementSpeed + extraSpeed);
+			this->pos -= this->forward * dtSeconds * (this->movementSpeed + extraSpeed);
 		if (Input::isKeyPressed(GLFW_KEY_A))
-			this->pos += this->right * dt * (this->movementSpeed + extraSpeed);
+			this->pos += this->right * dtSeconds * (this->movementSpeed + extraSpeed);
 		if (Input::isKeyPressed(GLFW_KEY_D))
-			this->pos -= this->right * dt * (this->movementSpeed + extraSpeed);
+			this->pos -= this->right * dtSeconds * (this->movementSpeed + extraSpeed);
 		if (Input::isKeyPressed(GLFW_KEY_SPACE))
-			this->pos += this->globalUp * dt * (this->movementSpeed + extraSpeed);
+			this->pos += this->globalUp * dtSeconds * (this->movementSpeed + extraSpeed);
 		if (Input::isKeyPressed(GLFW_KEY_LEFT_CONTROL))
-			this->pos -= this->globalUp * dt * (this->movementSpeed + extraSpeed);
+			this->pos -= this->globalUp * dtSeconds * (this->movementSpeed + extraSpeed);
 
 		updateView();
 	}

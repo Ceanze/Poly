@@ -139,6 +139,9 @@
     <ClInclude Include="src\Poly\Core\RendererAPI.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Poly\Core\Timer.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Poly\Core\Timestamp.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
@@ -248,6 +251,9 @@
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\RendererAPI.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Core\Timer.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\Window.cpp">

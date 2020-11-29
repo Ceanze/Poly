@@ -44,7 +44,7 @@ public:
 		Poly::RendererAPI::init(1280, 720);
 	};
 
-	void onUpdate(float dt) override
+	void OnUpdate(Poly::Timestamp dt) override
 	{
 		//POLY_INFO("Testlayer update!");
 		this->camera->update(dt);
@@ -52,7 +52,7 @@ public:
 		Poly::RendererAPI::endScene();
 	};
 
-	void onDetach() override
+	void OnDetach() override
 	{
 		delete this->camera;
 	}

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Timestamp.h"
+
 namespace Poly {
 
 	class Layer
@@ -8,9 +10,9 @@ namespace Poly {
 		Layer() = default;
 		virtual ~Layer() = default;
 
-		virtual void onAttach() {};
-		virtual void onDetach() {};
-		virtual void onUpdate(float dt) {};
+		virtual void OnAttach() {};
+		virtual void OnDetach() {};
+		virtual void OnUpdate(Timestamp dt) {};
 	};
 
 }

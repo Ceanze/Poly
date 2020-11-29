@@ -20,11 +20,9 @@
 	of the class, hence the requirement for the "this" param.
 **/
 
-/* cName = Class name, func = function */
-#define POLY_EVENT_SUB(cName, func) EventBus::get().subscribe(this, &cName::func);
+#define POLY_EVENT_SUB(className, funcName) EventBus::get().subscribe(this, &className::funcName);
 
-/* cName = Class name, func = function */
-#define POLY_EVENT_UNSUB(cName, func) EventBus::get().unsubscribe(this, &cName::func);
+#define POLY_EVENT_UNSUB(className, funcName) EventBus::get().unsubscribe(this, &className::funcName);
 
 /* ev = constructed event to be sent */
 #define POLY_EVENT_PUB(ev) EventBus::get().publish(&ev);
