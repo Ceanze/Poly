@@ -96,7 +96,26 @@ namespace Poly
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		POLY_CORE_TRACE("Validation layer: {}", pCallbackData->pMessage);
+		switch (messageSeverity)
+		{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+		{
+			POLY_CORE_TRACE("{}", pCallbackData->pMessage);
+			break;
+		}
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		{
+			POLY_CORE_WARN("{}", pCallbackData->pMessage);
+			break;
+		}
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		{
+			POLY_CORE_ERROR("{}", pCallbackData->pMessage);
+			break;
+		}
+		// default:
+		// 	POLY_CORE_TRACE("{}", pCallbackData->pMessage);
+		}
 
 		return VK_FALSE;
 	}
