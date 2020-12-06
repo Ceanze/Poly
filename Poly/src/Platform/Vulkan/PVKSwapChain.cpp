@@ -5,8 +5,7 @@
 namespace Poly
 {
 
-	PVKSwapChain::PVKSwapChain() :
-		swapChain(VK_NULL_HANDLE), extent({0, 0}), format(VK_FORMAT_UNDEFINED), window(nullptr)
+	PVKSwapChain::PVKSwapChain()
 	{
 	}
 
@@ -14,30 +13,30 @@ namespace Poly
 	{
 	}
 
-	void PVKSwapChain::init(Window* window)
+	void PVKSwapChain::Init(Window* pWindow)
 	{
-		this->window = window;
+		m_pWindow = pWindow;
 
-		createSwapChain();
-		createImageViews();
+		CreateSwapChain();
+		CreateImageViews();
 	}
 
-	void PVKSwapChain::cleanup()
+	void PVKSwapChain::Cleanup()
 	{
-		for (auto imageView : this->imageViews) {
-			vkDestroyImageView(PVKInstance::getDevice(), imageView, nullptr);
+		for (auto imageView : m_ImageViews) {
+			vkDestroyImageView(PVKInstance::GetDevice(), imageView, nullptr);
 		}
 
-		vkDestroySwapchainKHR(PVKInstance::getDevice(), this->swapChain, nullptr);
+		vkDestroySwapchainKHR(PVKInstance::GetDevice(), m_SwapChain, nullptr);
 	}
 
-	void PVKSwapChain::createSwapChain()
+	void PVKSwapChain::CreateSwapChain()
 	{
 		// Use the predefined functions to choose and query everything
-		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(PVKInstance::getSurface(), PVKInstance::getPhysicalDevice());
-		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(PVKInstance::GetSurface(), PVKInstance::GetPhysicalDevice());
+		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+		VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
 
 		// One more image than the minimum to avoid unneccesary waiting (if possible)
 		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
@@ -48,7 +47,7 @@ namespace Poly
 		// Info for swap chain constructions
 		VkSwapchainCreateInfoKHR createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = PVKInstance::getSurface();
+		createInfo.surface = PVKInstance::GetSurface();
 		createInfo.minImageCount = imageCount;
 		createInfo.imageFormat = surfaceFormat.format;
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -62,7 +61,7 @@ namespace Poly
 		createInfo.oldSwapchain = VK_NULL_HANDLE; // If swap chain is recreated during runtime, having the previous swap chain can help
 
 		// If we have several queues (rare) then specify on how to use them
-		QueueFamilyIndices indices = findQueueFamilies(PVKInstance::getPhysicalDevice(), PVKInstance::getSurface());
+		QueueFamilyIndices indices = findQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
 		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 		if (indices.graphicsFamily != indices.presentFamily) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -76,25 +75,25 @@ namespace Poly
 		}
 
 		// Save extent and format for future use
-		this->extent = extent;
-		this->format = surfaceFormat.format;
+		m_Extent = extent;
+		m_Format = surfaceFormat.format;
 
 		// Create the swap chain
-		PVK_CHECK(vkCreateSwapchainKHR(PVKInstance::getDevice(), &createInfo, nullptr, &this->swapChain), "Failed to create swap chain!");
+		PVK_CHECK(vkCreateSwapchainKHR(PVKInstance::GetDevice(), &createInfo, nullptr, &m_SwapChain), "Failed to create swap chain!");
 
 		// VkImages created automatically by the swapchain, just need to retrive them
-		vkGetSwapchainImagesKHR(PVKInstance::getDevice(), this->swapChain, &imageCount, nullptr);
-		this->images.resize(imageCount);
-		vkGetSwapchainImagesKHR(PVKInstance::getDevice(), this->swapChain, &imageCount, this->images.data());
+		vkGetSwapchainImagesKHR(PVKInstance::GetDevice(), m_SwapChain, &imageCount, nullptr);
+		m_Images.resize(imageCount);
+		vkGetSwapchainImagesKHR(PVKInstance::GetDevice(), m_SwapChain, &imageCount, m_Images.data());
 	}
 
-	VkExtent2D PVKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+	VkExtent2D PVKSwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 	{
 		if (capabilities.currentExtent.width != UINT32_MAX) {
 			return capabilities.currentExtent;
 		}
 		else {
-			VkExtent2D actualExtent = { this->window->getWidth(), this->window->getHeight() };
+			VkExtent2D actualExtent = { m_pWindow->GetWidth(), m_pWindow->GetHeight() };
 
 			actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
 			actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
@@ -103,7 +102,7 @@ namespace Poly
 		}
 	}
 
-	VkPresentModeKHR PVKSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+	VkPresentModeKHR PVKSwapChain::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 	{
 		// Use mailbox if found, if not then settle on FIFO (which always exists)
 		for (const auto& availablePresentMode : availablePresentModes) {
@@ -115,7 +114,7 @@ namespace Poly
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	VkSurfaceFormatKHR PVKSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+	VkSurfaceFormatKHR PVKSwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 	{
 		// Try to use R8G8B8 and SRGB, if that fails, use the first one found
 		for (const auto& availableFormat : availableFormats) {
@@ -127,22 +126,22 @@ namespace Poly
 		return availableFormats[0];
 	}
 
-	void PVKSwapChain::createImageViews()
+	void PVKSwapChain::CreateImageViews()
 	{
 		// Get images from swapchain
 		uint32_t imageCount = 0;
-		vkGetSwapchainImagesKHR(PVKInstance::getDevice(), swapChain, &imageCount, nullptr);
-		this->images.resize(imageCount);
-		vkGetSwapchainImagesKHR(PVKInstance::getDevice(), swapChain, &imageCount, this->images.data());
+		vkGetSwapchainImagesKHR(PVKInstance::GetDevice(), m_SwapChain, &imageCount, nullptr);
+		m_Images.resize(imageCount);
+		vkGetSwapchainImagesKHR(PVKInstance::GetDevice(), m_SwapChain, &imageCount, m_Images.data());
 
 		// Create swapchain image views
-		this->imageViews.resize(imageCount);
+		m_ImageViews.resize(imageCount);
 		for (size_t i = 0; i < imageCount; i++) {
 			VkImageViewCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = this->images[i];
+			createInfo.image = m_Images[i];
 			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = this->format;
+			createInfo.format = m_Format;
 			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
 			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -153,11 +152,11 @@ namespace Poly
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
 
-			PVK_CHECK(vkCreateImageView(PVKInstance::getDevice(), &createInfo, nullptr, &this->imageViews[i]), "Failed to create image views!");
+			PVK_CHECK(vkCreateImageView(PVKInstance::GetDevice(), &createInfo, nullptr, &m_ImageViews[i]), "Failed to create image views!");
 		}
 	}
 
-	SwapChainSupportDetails PVKSwapChain::querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device)
+	SwapChainSupportDetails PVKSwapChain::QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device)
 	{
 		SwapChainSupportDetails details;
 
@@ -165,7 +164,7 @@ namespace Poly
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
 		// Check if the current physical device supports presentation for the surface
-		QueueFamilyIndices families = findQueueFamilies(PVKInstance::getPhysicalDevice(), PVKInstance::getSurface());
+		QueueFamilyIndices families = findQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, families.presentFamily.value(), surface, &presentSupport);
 
@@ -188,10 +187,10 @@ namespace Poly
 		return details;
 	}
 
-	uint32_t PVKSwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence)
+	uint32_t PVKSwapChain::AcquireNextImage(VkSemaphore semaphore, VkFence fence)
 	{
 		uint32_t imageIndex;
-		PVK_CHECK(vkAcquireNextImageKHR(PVKInstance::getDevice(), this->swapChain, UINT64_MAX, semaphore, fence, &imageIndex), "Failed to acquire image!");
+		PVK_CHECK(vkAcquireNextImageKHR(PVKInstance::GetDevice(), m_SwapChain, UINT64_MAX, semaphore, fence, &imageIndex), "Failed to acquire image!");
 		return imageIndex;
 	}
 

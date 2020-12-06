@@ -8,7 +8,7 @@ namespace Poly
 
 	Ref<Sampler> Sampler::create()
 	{
-		switch (RendererAPI::getAPI())
+		switch (RendererAPI::GetAPI())
 		{
 		case BackendAPI::NONE: POLY_ASSERT(false, "No renderer API is selected!")
 			//case BackendAPI::VULKAN: return createRef<PVKSampler>();
@@ -18,7 +18,7 @@ namespace Poly
 
 	Ref<Sampler> Sampler::create(Filter filter, AddressMode addressMode, Filter mipmap)
 	{
-		switch (RendererAPI::getAPI())
+		switch (RendererAPI::GetAPI())
 		{
 		case BackendAPI::NONE: POLY_ASSERT(false, "No renderer API is selected!")
 			//case BackendAPI::VULKAN: return createRef<PVKSampler>();

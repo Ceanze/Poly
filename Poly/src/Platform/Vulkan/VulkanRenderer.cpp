@@ -7,126 +7,126 @@
 namespace Poly
 {
 
-	void VulkanRenderer::init(uint32_t width, uint32_t height)
+	void VulkanRenderer::Init(uint32_t width, uint32_t height)
 	{
 		// Call init on the sub renderers and create window
-		this->window = new Window(width, height, "Vulkan renderer window");
-		PVKInstance::get().init(this->window);
-		this->swapChain.init(this->window);
+		m_pWindow = new Window(width, height, "Vulkan renderer window");
+		PVKInstance::Get().Init(m_pWindow);
+		m_SwapChain.Init(m_pWindow);
 
 		// Test renderer
-		for (auto& subRenderer : this->subRenderers) {
-			subRenderer->setWindow(this->window);
-			subRenderer->setActiveCamera(this->camera);
-			subRenderer->init(this);
+		for (auto& subRenderer : m_SubRenderers) {
+			subRenderer->SetWindow(m_pWindow);
+			subRenderer->SetActiveCamera(m_pCamera);
+			subRenderer->Init(this);
 		}
 
-		createSyncObjects();
+		CreateSyncObjects();
 	}
 
-	void VulkanRenderer::beginScene()
+	void VulkanRenderer::BeginScene()
 	{
-		vkWaitForFences(PVKInstance::getDevice(), 1, &this->inFlightFences[this->currentFrame], VK_TRUE, UINT64_MAX);
+		vkWaitForFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
 		// Checks minimization
 		int width = 0, height = 0;
-		glfwGetFramebufferSize(this->window->getNative(), &width, &height);
+		glfwGetFramebufferSize(m_pWindow->GetNative(), &width, &height);
 		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(this->window->getNative(), &width, &height);
+			glfwGetFramebufferSize(m_pWindow->GetNative(), &width, &height);
 			glfwWaitEvents();
 		}
 
-		this->imageIndex = this->swapChain.acquireNextImage(this->imageAvailableSemaphores[this->currentFrame], VK_NULL_HANDLE);
+		m_ImageIndex = m_SwapChain.AcquireNextImage(m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE);
 
-		if (this->imagesInFlight[this->imageIndex] != VK_NULL_HANDLE)
-			vkWaitForFences(PVKInstance::getDevice(), 1, &this->imagesInFlight[this->imageIndex], VK_TRUE, UINT16_MAX);
-		this->imagesInFlight[this->imageIndex] = inFlightFences[this->currentFrame];
+		if (m_ImagesInFlight[m_ImageIndex] != VK_NULL_HANDLE)
+			vkWaitForFences(PVKInstance::GetDevice(), 1, &m_ImagesInFlight[m_ImageIndex], VK_TRUE, UINT16_MAX);
+		m_ImagesInFlight[m_ImageIndex] = m_InFlightFences[m_CurrentFrame];
 
 		// Call all subrenderers beginScene
-		for (auto& subRenderer : this->subRenderers)
-			subRenderer->beginScene(this->imageIndex);
+		for (auto& subRenderer : m_SubRenderers)
+			subRenderer->BeginScene(m_ImageIndex);
 	}
 
-	void VulkanRenderer::draw(Model* model)
+	void VulkanRenderer::Draw(Model* model)
 	{
 		// Call the subRenderers record function
-		for (auto& subRenderer : this->subRenderers)
-			subRenderer->record();
+		for (auto& subRenderer : m_SubRenderers)
+			subRenderer->Record();
 	}
 
-	void VulkanRenderer::endScene()
+	void VulkanRenderer::EndScene()
 	{
-		for (auto& subRenderer : this->subRenderers)
-			subRenderer->endScene();
+		for (auto& subRenderer : m_SubRenderers)
+			subRenderer->EndScene();
 
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { this->imageAvailableSemaphores[this->currentFrame] };
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
-		submitInfo.commandBufferCount = this->graphicsBuffers.size();
+		submitInfo.commandBufferCount = m_GraphicsBuffers.size();
 		std::vector<VkCommandBuffer> buffers;
-		for (uint32_t i = 0; i < this->graphicsBuffers.size(); i++)
-			buffers.push_back(this->graphicsBuffers[i]->getNative());
+		for (uint32_t i = 0; i < m_GraphicsBuffers.size(); i++)
+			buffers.push_back(m_GraphicsBuffers[i]->GetNative());
 		submitInfo.pCommandBuffers = buffers.data();
-		VkSemaphore signalSemaphores[] = { this->renderFinishedSemaphores[this->currentFrame] };
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		PVK_CHECK(vkResetFences(PVKInstance::getDevice(), 1, &this->inFlightFences[this->currentFrame]), "Failed to reset fences!");
+		PVK_CHECK(vkResetFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame]), "Failed to reset fences!");
 
-		PVK_CHECK(vkQueueSubmit(PVKInstance::getQueue(QueueType::GRAPHICS).queue, 1, &submitInfo, this->inFlightFences[this->currentFrame]), "Failed to submit draw command buffer!");
+		PVK_CHECK(vkQueueSubmit(PVKInstance::GetQueue(QueueType::GRAPHICS).queue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]), "Failed to submit draw command buffer!");
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
-		VkSwapchainKHR swapChains[] = { this->swapChain.getNative() };
+		VkSwapchainKHR swapChains[] = { m_SwapChain.GetNative() };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &this->imageIndex;
+		presentInfo.pImageIndices = &m_ImageIndex;
 		presentInfo.pResults = nullptr; // Optional
-		PVK_CHECK(vkQueuePresentKHR(PVKInstance::getPresentQueue().queue, &presentInfo), "Failed to present image!");
+		PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
 
-		this->currentFrame = (this->currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 		// Clear buffers for next frame
-		this->graphicsBuffers.clear();
+		m_GraphicsBuffers.clear();
 	}
 
-	void VulkanRenderer::shutdown()
+	void VulkanRenderer::Shutdown()
 	{
-		vkDeviceWaitIdle(PVKInstance::getDevice());
+		vkDeviceWaitIdle(PVKInstance::GetDevice());
 
 		// Cleanup all the sub renderer and own sync objects
-		for (auto& subRenderer : this->subRenderers)
-			subRenderer->shutdown();
+		for (auto& subRenderer : m_SubRenderers)
+			subRenderer->Shutdown();
 
 		// Cleanup sync objects
-		for (size_t i = 0; i < this->renderFinishedSemaphores.size(); i++) {
-			vkDestroySemaphore(PVKInstance::getDevice(), this->renderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(PVKInstance::getDevice(), this->imageAvailableSemaphores[i], nullptr);
-			vkDestroyFence(PVKInstance::getDevice(), this->inFlightFences[i], nullptr);
+		for (size_t i = 0; i < m_RenderFinishedSemaphores.size(); i++) {
+			vkDestroySemaphore(PVKInstance::GetDevice(), m_RenderFinishedSemaphores[i], nullptr);
+			vkDestroySemaphore(PVKInstance::GetDevice(), m_ImageAvailableSemaphores[i], nullptr);
+			vkDestroyFence(PVKInstance::GetDevice(), m_InFlightFences[i], nullptr);
 		}
 
 		// Cleanup the rest
-		this->swapChain.cleanup();
-		PVKInstance::get().cleanup();
+		m_SwapChain.Cleanup();
+		PVKInstance::Get().Cleanup();
 
-		delete this->window;
-		for (uint32_t i = 0; i < this->subRenderers.size(); i++)
-			delete this->subRenderers[i];
+		delete m_pWindow;
+		for (uint32_t i = 0; i < m_SubRenderers.size(); i++)
+			delete m_SubRenderers[i];
 	}
 
-	void VulkanRenderer::createRenderer(Renderer subRenderer)
+	void VulkanRenderer::CreateRenderer(Renderer subRenderer)
 	{
 		switch (subRenderer)
 		{
 		case Poly::Renderer::TEST:
-			this->subRenderers.push_back(new TestRenderer);
+			m_SubRenderers.push_back(new TestRenderer);
 			break;
 		case Poly::Renderer::MESH:
 		default:
@@ -135,9 +135,9 @@ namespace Poly
 		}
 	}
 
-	void VulkanRenderer::addCommandBuffer(QueueType queueType, PVKCommandBuffer* buffer)
+	void VulkanRenderer::AddCommandBuffer(QueueType queueType, PVKCommandBuffer* pBuffer)
 	{
-		std::vector<PVKCommandBuffer*>& buffers = this->graphicsBuffers;
+		std::vector<PVKCommandBuffer*>& buffers = m_GraphicsBuffers;
 		switch (queueType)
 		{
 		case Poly::QueueType::GRAPHICS:
@@ -153,15 +153,15 @@ namespace Poly
 			break;
 		}
 
-		buffers.push_back(buffer);
+		buffers.push_back(pBuffer);
 	}
 
-	void VulkanRenderer::createSyncObjects()
+	void VulkanRenderer::CreateSyncObjects()
 	{
-		this->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		this->renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		this->inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-		this->imagesInFlight.resize(this->swapChain.getNumImages(), VK_NULL_HANDLE);
+		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ImagesInFlight.resize(m_SwapChain.GetNumImages(), VK_NULL_HANDLE);
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -171,9 +171,9 @@ namespace Poly
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			PVK_CHECK(vkCreateSemaphore(PVKInstance::getDevice(), &semaphoreInfo, nullptr, &this->imageAvailableSemaphores[i]), "Failed to create semaphores!");
-			PVK_CHECK(vkCreateSemaphore(PVKInstance::getDevice(), &semaphoreInfo, nullptr, &this->renderFinishedSemaphores[i]), "Failed to create semaphores!");
-			PVK_CHECK(vkCreateFence(PVKInstance::getDevice(), &fenceInfo, nullptr, &inFlightFences[i]), "Failed to create fences!");
+			PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]), "Failed to create semaphores!");
+			PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]), "Failed to create semaphores!");
+			PVK_CHECK(vkCreateFence(PVKInstance::GetDevice(), &fenceInfo, nullptr, &m_InFlightFences[i]), "Failed to create fences!");
 		}
 	}
 

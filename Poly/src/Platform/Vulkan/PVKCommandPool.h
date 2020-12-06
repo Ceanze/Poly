@@ -2,7 +2,6 @@
 
 #include "PVKTypes.h"
 
-#include <vulkan/vulkan.h>
 #include <vector>
 
 namespace Poly
@@ -15,25 +14,25 @@ namespace Poly
 		PVKCommandPool();
 		~PVKCommandPool();
 
-		void init(QueueType queueType);
-		void cleanup();
+		void Init(QueueType queueType);
+		void Cleanup();
 
-		VkCommandPool getNative() const { return this->pool; }
-		QueueType getQueueType() const;
+		VkCommandPool GetNative() const { return m_Pool; }
+		QueueType GetQueueType() const;
 
-		PVKCommandBuffer* beginSingleTimeCommand();
-		void endSingleTimeCommand(PVKCommandBuffer* buffer);
+		PVKCommandBuffer* BeginSingleTimeCommand();
+		void EndSingleTimeCommand(PVKCommandBuffer* pBuffer);
 
-		PVKCommandBuffer* createCommandBuffer();
-		std::vector<PVKCommandBuffer*> createCommandBuffers(uint32_t count);
-		void removeCommandBuffer(PVKCommandBuffer* buffer);
+		PVKCommandBuffer* CreateCommandBuffer();
+		std::vector<PVKCommandBuffer*> CreateCommandBuffers(uint32_t count);
+		void RemoveCommandBuffer(PVKCommandBuffer* pBuffer);
 
 	private:
 		void createCommandPool();
 
-		VkCommandPool pool;
-		QueueType queue;
+		VkCommandPool	m_Pool	= VK_NULL_HANDLE;
+		QueueType		m_Queue	= QueueType::GRAPHICS;
 
-		std::vector<PVKCommandBuffer*> buffers;
+		std::vector<PVKCommandBuffer*> m_Buffers;
 	};
 }

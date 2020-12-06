@@ -8,19 +8,19 @@
 
 namespace Poly
 {
-	PVKImage::PVKImage() : image(VK_NULL_HANDLE), width(0), height(0), layout(VK_IMAGE_LAYOUT_UNDEFINED)
+	PVKImage::PVKImage()
 	{
 	}
 
-	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueFamilyIndex, VmaMemoryUsage memoryUsage)
+	void PVKImage::Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueFamilyIndex, VmaMemoryUsage memoryUsage)
 	{
-		init(width, height, format, usage, flags, arrayLayers, { queueFamilyIndex }, memoryUsage);
+		Init(width, height, format, usage, flags, arrayLayers, { queueFamilyIndex }, memoryUsage);
 	}
 
-	void PVKImage::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
+	void PVKImage::Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
 	{
-		this->width = width;
-		this->height = height;
+		m_Width = width;
+		m_Height = height;
 
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -47,20 +47,20 @@ namespace Poly
 		imageInfo.flags = (VkImageCreateFlags)flags;
 
 
-		//PVK_CHECK(vkCreateImage(PVKInstance::getDevice(), &imageInfo, nullptr, &this->image), "Failed to create image!");
+		//PVK_CHECK(vkCreateImage(PVKInstance::getDevice(), &imageInfo, nullptr, &m_Image), "Failed to create image!");
 
 		VmaAllocationCreateInfo allocInfo = {};
 		allocInfo.usage = memoryUsage; // Change this
-		PVK_CHECK(vmaCreateImage(PVKInstance::getAllocator(), &imageInfo, &allocInfo, &this->image, &this->allocation, nullptr), "Failed to create image using VMA!");
+		PVK_CHECK(vmaCreateImage(PVKInstance::GetAllocator(), &imageInfo, &allocInfo, &m_Image, &m_Allocation, nullptr), "Failed to create image using VMA!");
 	}
 
-	void PVKImage::cleanup()
+	void PVKImage::Cleanup()
 	{
-		//PVK_CLEANUP(this->image, vkDestroyImage(PVKInstance::getDevice(), this->image, nullptr));
-		PVK_CLEANUP(this->image, vmaDestroyImage(PVKInstance::getAllocator(), this->image, this->allocation));
+		//PVK_CLEANUP(m_Image, vkDestroyImage(PVKInstance::getDevice(), m_Image, nullptr));
+		PVK_CLEANUP(m_Image, vmaDestroyImage(PVKInstance::GetAllocator(), m_Image, m_Allocation));
 	}
 
-	void PVKImage::copyBufferToImage(PVKBuffer& buffer, PVKCommandPool* pool)
+	void PVKImage::CopyBufferToImage(PVKBuffer& buffer, PVKCommandPool* pool)
 	{
 		VkBufferImageCopy region = {};
 		region.bufferOffset = 0;
@@ -71,23 +71,23 @@ namespace Poly
 		region.imageSubresource.baseArrayLayer = 0;
 		region.imageSubresource.layerCount = 1;
 		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = { this->width, this->height, 1 };
+		region.imageExtent = { m_Width, m_Height, 1 };
 		std::vector<VkBufferImageCopy> regions = { region };
-		copyBufferToImage(buffer, pool, regions);
+		CopyBufferToImage(buffer, pool, regions);
 	}
 
-	void PVKImage::copyBufferToImage(PVKBuffer& buffer, PVKCommandPool* pool, const std::vector<VkBufferImageCopy>& regions)
+	void PVKImage::CopyBufferToImage(PVKBuffer& buffer, PVKCommandPool* pool, const std::vector<VkBufferImageCopy>& regions)
 	{
-		PVKCommandBuffer* cBuffer = pool->beginSingleTimeCommand();
-		cBuffer->cmdCopyBufferToImage(buffer, *this, regions);
-		pool->endSingleTimeCommand(cBuffer);
+		PVKCommandBuffer* cBuffer = pool->BeginSingleTimeCommand();
+		cBuffer->CopyBufferToImage(buffer, *this, regions);
+		pool->EndSingleTimeCommand(cBuffer);
 	}
 
-	void PVKImage::transitionLayout(ColorFormat format, ImageLayout oldLayout, ImageLayout newLayout, PVKCommandPool* pool, uint32_t layerCount)
+	void PVKImage::TransitionLayout(ColorFormat format, ImageLayout oldLayout, ImageLayout newLayout, PVKCommandPool* pool, uint32_t layerCount)
 	{
-		this->layout = (VkImageLayout)newLayout;
+		m_Layout = (VkImageLayout)newLayout;
 
-		PVKCommandBuffer* buffer = pool->beginSingleTimeCommand();
+		PVKCommandBuffer* buffer = pool->BeginSingleTimeCommand();
 
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -96,7 +96,7 @@ namespace Poly
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-		barrier.image = this->image;
+		barrier.image = m_Image;
 
 		if (newLayout == ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
 			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -146,9 +146,9 @@ namespace Poly
 			POLY_ASSERT(false, "Unsupported layout transistion!");
 		}
 
-		vkCmdPipelineBarrier(buffer->getNative(), sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkCmdPipelineBarrier(buffer->GetNative(), sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-		pool->endSingleTimeCommand(buffer);
+		pool->EndSingleTimeCommand(buffer);
 	}
 
 }

@@ -8,20 +8,20 @@ namespace Poly
 
 	PVKSampler::PVKSampler()
 	{
-		createNativeSampler(Sampler::Filter::LINEAR, Sampler::AddressMode::REPEAT, Sampler::Filter::LINEAR);
+		CreateNativeSampler(Sampler::Filter::LINEAR, Sampler::AddressMode::REPEAT, Sampler::Filter::LINEAR);
 	}
 
 	PVKSampler::PVKSampler(Sampler::Filter filter, Sampler::AddressMode addressMode, Sampler::Filter mipmap)
 	{
-		createNativeSampler(filter, addressMode, mipmap);
+		CreateNativeSampler(filter, addressMode, mipmap);
 	}
 
 	PVKSampler::~PVKSampler()
 	{
-		PVK_CLEANUP(this->sampler, vkDestroySampler(PVKInstance::getDevice(), this->sampler, nullptr));
+		PVK_CLEANUP(m_Sampler, vkDestroySampler(PVKInstance::GetDevice(), m_Sampler, nullptr));
 	}
 
-	void PVKSampler::createNativeSampler(Sampler::Filter filter, Sampler::AddressMode addressMode, Sampler::Filter mipmap)
+	void PVKSampler::CreateNativeSampler(Sampler::Filter filter, Sampler::AddressMode addressMode, Sampler::Filter mipmap)
 	{
 		if (mipmap == Sampler::Filter::CUBIC_IMG) {
 			POLY_CORE_ERROR("Mipmap cannot be CUBIC_IMG for a sampler!");
@@ -50,7 +50,7 @@ namespace Poly
 		samplerInfo.compareEnable = VK_FALSE;
 		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 
-		PVK_CHECK(vkCreateSampler(PVKInstance::getDevice(), &samplerInfo, nullptr, &this->sampler), "Failed to create sampler!");
+		PVK_CHECK(vkCreateSampler(PVKInstance::GetDevice(), &samplerInfo, nullptr, &m_Sampler), "Failed to create sampler!");
 	}
 
 }

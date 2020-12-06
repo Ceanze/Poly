@@ -2,30 +2,26 @@
 #include "polypch.h"
 #include "PVKTypes.h"
 
-#include <vulkan/vulkan.h>
-
 namespace Poly
 {
 	class PVKShader
 	{
 	public:
-		//enum class Type { VERTEX, FRAGMENT, COMPUTE };
-
 		PVKShader();
 		~PVKShader();
 
-		void init();
-		void cleanup();
+		void Init();
+		void Cleanup();
 
-		void addStage(ShaderStage shaderStage, std::string shaderName);
-		VkPipelineShaderStageCreateInfo getShaderCreateInfo(ShaderStage shaderStage) const;
-		std::vector<VkPipelineShaderStageCreateInfo> getShaderCreateInfos();
+		void AddStage(ShaderStage shaderStage, std::string shaderName);
+		VkPipelineShaderStageCreateInfo GetShaderCreateInfo(ShaderStage shaderStage) const;
+		std::vector<VkPipelineShaderStageCreateInfo> GetShaderCreateInfos();
 
 	private:
-		void createShaderModule(ShaderStage shaderStage, const std::vector<char>& code);
+		void CreateShaderModule(ShaderStage shaderStage, const std::vector<char>& code);
 
-		std::unordered_map<ShaderStage, VkPipelineShaderStageCreateInfo> shaderStages;
-		std::unordered_map<ShaderStage, std::string> shaderPaths;
+		std::unordered_map<ShaderStage, VkPipelineShaderStageCreateInfo> m_ShaderStages;
+		std::unordered_map<ShaderStage, std::string> m_ShaderPaths;
 	};
 
 }

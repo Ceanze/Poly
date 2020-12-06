@@ -13,18 +13,22 @@ namespace Poly
 		PVKBuffer();
 		~PVKBuffer();
 
-		void init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage);
-		void cleanup();
+		void Init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage);
+		void Cleanup();
 
-		void transferData(const void* data, const size_t size);
+		void* Map();
+		void TransferData(const void* data, const size_t size);
+		void Unmap();
 
-		VkBuffer getNative() const;
-		VkMemoryRequirements getMemReq() const;
-		VkDeviceSize getSize() const;
+		VkBuffer GetNative() const;
+		VkMemoryRequirements GetMemReq() const;
+		VkDeviceSize GetSize() const;
 
 	private:
-		VkBuffer buffer;
-		VkDeviceSize size;
-		VmaAllocation vmaAllocation;
+		VkBuffer		m_Buffer			= VK_NULL_HANDLE;
+		VkDeviceSize	m_Size				= 0;
+		VmaAllocation	m_VmaAllocation		= VK_NULL_HANDLE;
+		bool			m_Mapped			= false;
+		void*			m_MappedPtr			= nullptr;
 	};
 }

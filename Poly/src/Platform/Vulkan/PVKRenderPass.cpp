@@ -6,7 +6,7 @@
 namespace Poly
 {
 
-	PVKRenderPass::PVKRenderPass() : imageFormat(VK_FORMAT_UNDEFINED), renderPass(VK_NULL_HANDLE)
+	PVKRenderPass::PVKRenderPass()
 	{
 	}
 
@@ -14,13 +14,13 @@ namespace Poly
 	{
 	}
 
-	void PVKRenderPass::init(PVKSwapChain& swapChain)
+	void PVKRenderPass::Init(PVKSwapChain& swapChain)
 	{
-		this->imageFormat = swapChain.getFormat();
+		m_ImageFormat = swapChain.GetFormat();
 
 		// Color attachment
 		VkAttachmentDescription colorAttachment = {};
-		colorAttachment.format = imageFormat;
+		colorAttachment.format = m_ImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -46,20 +46,20 @@ namespace Poly
 		renderPassInfo.pAttachments = &colorAttachment;
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
-		renderPassInfo.dependencyCount = this->subpassDependencies.size();
-		renderPassInfo.pDependencies = this->subpassDependencies.data();
+		renderPassInfo.dependencyCount = m_SubpassDependencies.size();
+		renderPassInfo.pDependencies = m_SubpassDependencies.data();
 
-		PVK_CHECK(vkCreateRenderPass(PVKInstance::getDevice(), &renderPassInfo, nullptr, &this->renderPass), "Failed to create render pass!");
+		PVK_CHECK(vkCreateRenderPass(PVKInstance::GetDevice(), &renderPassInfo, nullptr, &m_RenderPass), "Failed to create render pass!");
 	}
 
-	void PVKRenderPass::cleanup()
+	void PVKRenderPass::Cleanup()
 	{
-		vkDestroyRenderPass(PVKInstance::getDevice(), this->renderPass, nullptr);
+		vkDestroyRenderPass(PVKInstance::GetDevice(), m_RenderPass, nullptr);
 	}
 
-	void PVKRenderPass::addSubpassDependency(VkSubpassDependency dep)
+	void PVKRenderPass::AddSubpassDependency(VkSubpassDependency dep)
 	{
-		this->subpassDependencies.push_back(dep);
+		m_SubpassDependencies.push_back(dep);
 	}
 
 }

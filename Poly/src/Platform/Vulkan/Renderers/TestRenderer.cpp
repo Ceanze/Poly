@@ -7,14 +7,14 @@
 namespace Poly
 {
 
-	void TestRenderer::init(IPlatformRenderer* renderer)
+	void TestRenderer::Init(IPlatformRenderer* renderer)
 	{
-		this->mainRenderer = static_cast<VulkanRenderer*>(renderer);
-		this->swapChain = this->mainRenderer->getSwapChain();
+		m_pMainRenderer = static_cast<VulkanRenderer*>(renderer);
+		m_pSwapChain = m_pMainRenderer->GetSwapChain();
 
-		this->shader.addStage(ShaderStage::VERTEX, "vert.glsl");
-		this->shader.addStage(ShaderStage::FRAGMENT, "frag.glsl");
-		this->shader.init();
+		m_Shader.AddStage(ShaderStage::VERTEX, "vert.glsl");
+		m_Shader.AddStage(ShaderStage::FRAGMENT, "frag.glsl");
+		m_Shader.Init();
 
 		VkSubpassDependency dependency = {};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -23,99 +23,99 @@ namespace Poly
 		dependency.srcAccessMask = 0;
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		this->renderPass.addSubpassDependency(dependency);
-		this->renderPass.init(*this->swapChain);
+		m_RenderPass.AddSubpassDependency(dependency);
+		m_RenderPass.Init(*m_pSwapChain);
 
-		setupDescriptorSet();
-		this->pipeline.setDescriptor(this->descriptor);
-		this->pipeline.init(*this->swapChain, this->shader, this->renderPass);
+		SetupDescriptorSet();
+		m_Pipeline.SetDescriptor(m_Descriptor);
+		m_Pipeline.Init(*m_pSwapChain, m_Shader, m_RenderPass);
 
 		// Until this line
-		this->commandPool.init(QueueType::GRAPHICS);
+		m_CommandPool.Init(QueueType::GRAPHICS);
 
-		this->framebuffers.resize(this->swapChain->getNumImages());
-		for (size_t i = 0; i < this->swapChain->getNumImages(); i++)
-			this->framebuffers[i].init(*this->swapChain, this->renderPass, this->swapChain->getImageViews()[i]);
+		m_Framebuffers.resize(m_pSwapChain->GetNumImages());
+		for (size_t i = 0; i < m_pSwapChain->GetNumImages(); i++)
+			m_Framebuffers[i].Init(*m_pSwapChain, m_RenderPass, m_pSwapChain->GetImageViews()[i]);
 
-		this->setupTestData();
-		this->createCommandBuffers();
+		SetupTestData();
+		CreateCommandBuffers();
 	}
 
-	void TestRenderer::beginScene(uint32_t imageIndex)
+	void TestRenderer::BeginScene(uint32_t imageIndex)
 	{
-		this->imageIndex = imageIndex;
+		m_ImageIndex = imageIndex;
 	}
 
-	void TestRenderer::record()
+	void TestRenderer::Record()
 	{
 	}
 
-	void TestRenderer::endScene()
+	void TestRenderer::EndScene()
 	{
-		this->mainRenderer->addCommandBuffer(QueueType::GRAPHICS, this->commandBuffers[this->imageIndex]);
-		//this->testMemory.directTransfer(this->testBuffer, &this->camera->getMatrix(), sizeof(glm::mat4), 0);
-		this->testBuffer.transferData(&this->camera->getMatrix(), sizeof(glm::mat4));
+		m_pMainRenderer->AddCommandBuffer(QueueType::GRAPHICS, m_CommandBuffers[m_ImageIndex]);
+		//m_TestMemory.directTransfer(m_TestBuffer, &m_pCamera->GetMatrix(), sizeof(glm::mat4), 0);
+		m_TestBuffer.TransferData(&m_pCamera->GetMatrix(), sizeof(glm::mat4));
 	}
 
-	void TestRenderer::shutdown()
+	void TestRenderer::Shutdown()
 	{
-		PVK_CHECK(vkDeviceWaitIdle(PVKInstance::getDevice()), "Failed to wait for device!");
+		PVK_CHECK(vkDeviceWaitIdle(PVKInstance::GetDevice()), "Failed to wait for device!");
 
-		delete this->testSampler;
-		this->commandPool.cleanup();
-		PVK_VEC_CLEANUP(this->framebuffers);
-		this->pipeline.cleanup();
-		this->descriptor.cleanup();
-		this->testBuffer.cleanup();
-		//this->testMemory.cleanup();
-		this->testTexture.cleanup();
-		//this->testTextureMemory.cleanup();
-		this->renderPass.cleanup();
-		this->shader.cleanup();
+		delete m_pTestSampler;
+		m_CommandPool.Cleanup();
+		PVK_VEC_CLEANUP(m_Framebuffers);
+		m_Pipeline.Cleanup();
+		m_Descriptor.Cleanup();
+		m_TestBuffer.Cleanup();
+		//m_TestMemory.Cleanup();
+		m_TestTexture.Cleanup();
+		//m_TestTextureMemory.Cleanup();
+		m_RenderPass.Cleanup();
+		m_Shader.Cleanup();
 	}
 
-	void TestRenderer::createCommandBuffers()
+	void TestRenderer::CreateCommandBuffers()
 	{
-		this->commandBuffers = this->commandPool.createCommandBuffers(3);
+		m_CommandBuffers = m_CommandPool.CreateCommandBuffers(3);
 
-		for (uint32_t i = 0; i < this->commandBuffers.size(); i++) {
+		for (uint32_t i = 0; i < m_CommandBuffers.size(); i++) {
 			VkCommandBufferBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			beginInfo.flags = 0;
 			beginInfo.pInheritanceInfo = nullptr;
 
-			this->commandBuffers[i]->begin(0);
-			this->commandBuffers[i]->cmdBeginRenderPass(this->renderPass, this->framebuffers[i], this->swapChain->getExtent(), { 0.0f, 0.0f, 0.0f, 1.0f });
-			this->commandBuffers[i]->cmdBindPipeline(this->pipeline);
-			this->commandBuffers[i]->cmdBindDescriptor(this->pipeline, this->descriptor, i);
-			this->commandBuffers[i]->cmdDraw(3, 1, 0, 0);
-			this->commandBuffers[i]->cmdEndRenderPass();
-			this->commandBuffers[i]->end();
+			m_CommandBuffers[i]->Begin(0);
+			m_CommandBuffers[i]->BeginRenderPass(m_RenderPass, m_Framebuffers[i], m_pSwapChain->GetExtent(), { 0.0f, 0.0f, 0.0f, 1.0f });
+			m_CommandBuffers[i]->BindPipeline(m_Pipeline);
+			m_CommandBuffers[i]->BindDescriptor(m_Pipeline, m_Descriptor, i);
+			m_CommandBuffers[i]->Draw(3, 1, 0, 0);
+			m_CommandBuffers[i]->EndRenderPass();
+			m_CommandBuffers[i]->End();
 		}
 	}
 
-	void TestRenderer::setupDescriptorSet()
+	void TestRenderer::SetupDescriptorSet()
 	{
-		this->descriptor.addBinding(0, 0, BufferType::UNIFORM, ShaderStage::VERTEX);
-		this->descriptor.addBinding(0, 1, BufferType::COMBINED_IMAGE_SAMPLER, ShaderStage::FRAGMENT);
-		this->descriptor.finalizeSet(0);
-		this->descriptor.init(this->swapChain->getNumImages());
+		m_Descriptor.AddBinding(0, 0, BufferType::UNIFORM, ShaderStage::VERTEX);
+		m_Descriptor.AddBinding(0, 1, BufferType::COMBINED_IMAGE_SAMPLER, ShaderStage::FRAGMENT);
+		m_Descriptor.FinalizeSet(0);
+		m_Descriptor.Init(m_pSwapChain->GetNumImages());
 	}
 
-	void TestRenderer::setupTestData()
+	void TestRenderer::SetupTestData()
 	{
-		this->testSampler = new PVKSampler();
-		this->testTexture.init(1, 1, ColorFormat::R8G8B8A8_SRGB, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
-		//this->testTextureMemory.bindTexture(this->testTexture);
-		//this->testTextureMemory.init(MemoryPropery::DEVICE_LOCAL);
-		this->testTexture.initView(ImageViewType::DIM_2, ImageAspect::COLOR_BIT);
+		m_pTestSampler = new PVKSampler();
+		m_TestTexture.Init(1, 1, ColorFormat::R8G8B8A8_SRGB, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::GetQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
+		//m_TestTextureMemory.bindTexture(m_TestTexture);
+		//m_TestTextureMemory.Init(MemoryPropery::DEVICE_LOCAL);
+		m_TestTexture.InitView(ImageViewType::DIM_2, ImageAspect::COLOR_BIT);
 
-		this->testBuffer.init(sizeof(glm::mat4), BufferUsage::UNIFORM_BUFFER, { PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-		//this->testMemory.bindBuffer(this->testBuffer);
-		//this->testMemory.init(MemoryPropery::HOST_VISIBLE_COHERENT);
+		m_TestBuffer.Init(sizeof(glm::mat4), BufferUsage::UNIFORM_BUFFER, { PVKInstance::GetQueue(QueueType::GRAPHICS).queueIndex }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		//m_TestMemory.bindBuffer(m_TestBuffer);
+		//m_TestMemory.Init(MemoryPropery::HOST_VISIBLE_COHERENT);
 
-		this->descriptor.updateBufferBinding(0, 0, this->testBuffer);
-		this->descriptor.updateTextureBinding(0, 1, ImageLayout::SHADER_READ_ONLY_OPTIMAL, this->testTexture, *this->testSampler);
+		m_Descriptor.UpdateBufferBinding(0, 0, m_TestBuffer);
+		m_Descriptor.UpdateTextureBinding(0, 1, ImageLayout::SHADER_READ_ONLY_OPTIMAL, m_TestTexture, *m_pTestSampler);
 	}
 
 }

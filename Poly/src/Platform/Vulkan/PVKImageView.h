@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "PVKTypes.h"
 
 namespace Poly
@@ -12,13 +11,13 @@ namespace Poly
 		PVKImageView();
 		~PVKImageView() = default;
 
-		void init(VkImage image, ImageViewType type, ColorFormat format, ImageAspect aspectMask, uint32_t layerCount = 1);
-		void cleanup();
+		void Init(VkImage image, ImageViewType type, ColorFormat format, ImageAspect aspectMask, uint32_t layerCount = 1);
+		void Cleanup();
 
-		VkImageView getNative() const { return this->imageView; };
+		VkImageView GetNative() const { return m_ImageView; };
 
 	private:
-		VkImageView imageView;
+		VkImageView m_ImageView = VK_NULL_HANDLE;
 	};
 
 }

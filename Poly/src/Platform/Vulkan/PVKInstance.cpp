@@ -8,19 +8,19 @@
 
 namespace Poly
 {
-	VkInstance PVKInstance::instance = VK_NULL_HANDLE;
-	VkDevice PVKInstance::device = VK_NULL_HANDLE;
-	VkPhysicalDevice PVKInstance::physicalDevice = VK_NULL_HANDLE;
-	VkSurfaceKHR PVKInstance::surface = VK_NULL_HANDLE;
-	std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> PVKInstance::queues;
-	PVKQueue PVKInstance::presentQueue = {};
-	uint32_t PVKInstance::graphicsQueueCount = 1;
-	uint32_t PVKInstance::computeQueueCount = 1;
-	uint32_t PVKInstance::transferQueueCount = 1;
-	VmaAllocator PVKInstance::vmaAllocator = VK_NULL_HANDLE;
+	VkInstance			PVKInstance::s_Instance				= VK_NULL_HANDLE;
+	VkDevice			PVKInstance::s_Device				= VK_NULL_HANDLE;
+	VkPhysicalDevice	PVKInstance::s_PhysicalDevice		= VK_NULL_HANDLE;
+	VkSurfaceKHR		PVKInstance::s_Surface				= VK_NULL_HANDLE;
+	PVKQueue			PVKInstance::s_PresentQueue			= {};
+	uint32_t			PVKInstance::s_GraphicsQueueCount	= 1;
+	uint32_t 			PVKInstance::s_ComputeQueueCount	= 1;
+	uint32_t 			PVKInstance::s_TransferQueueCount	= 1;
+	std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> PVKInstance::s_Queues;
+	VmaAllocator PVKInstance::s_VmaAllocator = VK_NULL_HANDLE;
 
 	PVKInstance::PVKInstance()
-		: debugMessenger(VK_NULL_HANDLE)
+		: m_DebugMessenger(VK_NULL_HANDLE)
 	{
 
 	}
@@ -29,68 +29,68 @@ namespace Poly
 	{
 	}
 
-	PVKInstance& PVKInstance::get()
+	PVKInstance& PVKInstance::Get()
 	{
 		static PVKInstance i;
 		return i;
 	}
 
-	void PVKInstance::init(Window* window)
+	void PVKInstance::Init(Window* window)
 	{
-		createInstance();
-		setupDebugMessenger();
+		CreateInstance();
+		SetupDebugMessenger();
 
-		PVK_CHECK(glfwCreateWindowSurface(instance, window->getNative(), nullptr, &surface), "Failed to create window surface!");
+		PVK_CHECK(glfwCreateWindowSurface(s_Instance, window->GetNative(), nullptr, &s_Surface), "Failed to create window surface!");
 
-		pickPhysicalDevice();
-		createLogicalDevice();
+		PickPhysicalDevice();
+		CreateLogicalDevice();
 
-		createVmaAllocator();
+		CreateVmaAllocator();
 	}
 
-	void PVKInstance::cleanup()
+	void PVKInstance::Cleanup()
 	{
-		vkDestroySurfaceKHR(instance, surface, nullptr);
+		vkDestroySurfaceKHR(s_Instance, s_Surface, nullptr);
 
-		if (this->enableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(instance, this->debugMessenger, nullptr);
+		if (m_EnableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(s_Instance, m_DebugMessenger, nullptr);
 
-		vmaDestroyAllocator(vmaAllocator);
+		vmaDestroyAllocator(s_VmaAllocator);
 
-		vkDestroyDevice(device, nullptr);
-		vkDestroyInstance(instance, nullptr);
+		vkDestroyDevice(s_Device, nullptr);
+		vkDestroyInstance(s_Instance, nullptr);
 	}
 
-	void PVKInstance::setQueueCount(QueueType queue, uint32_t count)
+	void PVKInstance::SetQueueCount(QueueType queue, uint32_t count)
 	{
 		switch (queue) {
 		case QueueType::GRAPHICS:
-			graphicsQueueCount = count;
+			s_GraphicsQueueCount = count;
 			break;
 		case QueueType::COMPUTE:
-			computeQueueCount = count;
+			s_ComputeQueueCount = count;
 			break;
 		case QueueType::TRANSFER:
-			transferQueueCount = count;
+			s_TransferQueueCount = count;
 			break;
 		}
 	}
 
-	PVKQueue& PVKInstance::getQueue(QueueType queueType, uint32_t index)
+	PVKQueue& PVKInstance::GetQueue(QueueType queueType, uint32_t index)
 	{
 		// Check if valid queue and index, return if successful
-		auto it = queues.find(queueType);
-		if (it != queues.end()) {
-			auto& vec = queues[queueType];
+		auto it = s_Queues.find(queueType);
+		if (it != s_Queues.end()) {
+			auto& vec = s_Queues[queueType];
 			if (index < vec.size())
-				return queues[queueType][index];
+				return s_Queues[queueType][index];
 		}
 
 		// Return default graphics queue if the requested is not supported
-		return queues[QueueType::GRAPHICS][0];
+		return s_Queues[QueueType::GRAPHICS][0];
 	}
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::debugCallback(
+	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::DebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -139,18 +139,18 @@ namespace Poly
 		}
 	}
 
-	void PVKInstance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+	void PVKInstance::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 	{
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		createInfo.pfnUserCallback = debugCallback;
+		createInfo.pfnUserCallback = DebugCallback;
 	}
 
-	void PVKInstance::createInstance()
+	void PVKInstance::CreateInstance()
 	{
-		PVK_CHECK(this->enableValidationLayers && !checkValidationLayerSupport(), "Validation layers requested, but not available!");
+		PVK_CHECK(m_EnableValidationLayers && !CheckValidationLayerSupport(), "Validation layers requested, but not available!");
 
 		// App info (Optional but can improve performance)
 		VkApplicationInfo appInfo = {};
@@ -168,10 +168,10 @@ namespace Poly
 
 		// Add the validation layers if they are enabled
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-		if (this->enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<unsigned>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-			populateDebugMessengerCreateInfo(debugCreateInfo);
+		if (m_EnableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<unsigned>(m_ValidationLayers.size());
+			createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
+			PopulateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 		} else {
 			createInfo.enabledLayerCount = 0;
@@ -179,25 +179,25 @@ namespace Poly
 		}
 
 		// Add GLFW as an extension to the instance
-		auto extensions = getRequiredExtensions();
+		auto extensions = GetRequiredExtensions();
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
 		// Create instance and check if it succeded
-		PVK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create instance!");
+		PVK_CHECK(vkCreateInstance(&createInfo, nullptr, &s_Instance), "Failed to create instance!");
 	}
 
-	void PVKInstance::setupDebugMessenger()
+	void PVKInstance::SetupDebugMessenger()
 	{
-		if (!this->enableValidationLayers) return;
+		if (!m_EnableValidationLayers) return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
-		populateDebugMessengerCreateInfo(createInfo);
+		PopulateDebugMessengerCreateInfo(createInfo);
 
-		PVK_CHECK(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &this->debugMessenger), "Failed to set up debug messenger!");
+		PVK_CHECK(CreateDebugUtilsMessengerEXT(s_Instance, &createInfo, nullptr, &m_DebugMessenger), "Failed to set up debug messenger!");
 	}
 
-	bool PVKInstance::checkValidationLayerSupport()
+	bool PVKInstance::CheckValidationLayerSupport()
 	{
 		// Get available layers
 		unsigned layerCount;
@@ -207,7 +207,7 @@ namespace Poly
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
 		// Go through the selected validation layers and check if they are available
-		for (const char* layerName : validationLayers) {
+		for (const char* layerName : m_ValidationLayers) {
 			bool layerFound = false;
 
 			for (const auto& layerProperties : availableLayers) {
@@ -225,7 +225,7 @@ namespace Poly
 		return true;
 	}
 
-	bool PVKInstance::checkDeviceExtensionSupport(VkPhysicalDevice checkDevice)
+	bool PVKInstance::CheckDeviceExtensionSupport(VkPhysicalDevice checkDevice)
 	{
 		// Get all the extensions for the device
 		unsigned extensionCount;
@@ -234,7 +234,7 @@ namespace Poly
 		vkEnumerateDeviceExtensionProperties(checkDevice, nullptr, &extensionCount, availableExtensions.data());
 
 		// Only get the unique extensions in our requested list
-		std::set<std::string> requiredExtensions(this->deviceExtensions.begin(), this->deviceExtensions.end());
+		std::set<std::string> requiredExtensions(m_DeviceExtensions.begin(), m_DeviceExtensions.end());
 
 		// Check if the extensions we requested is supported by the device
 		for (const auto& extension : availableExtensions) {
@@ -244,11 +244,11 @@ namespace Poly
 		return requiredExtensions.empty();
 	}
 
-	void PVKInstance::pickPhysicalDevice()
+	void PVKInstance::PickPhysicalDevice()
 	{
 		// Get number of physical devices
 		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+		vkEnumeratePhysicalDevices(s_Instance, &deviceCount, nullptr);
 
 		// If no were found, exit
 		if (deviceCount == 0) {
@@ -257,18 +257,18 @@ namespace Poly
 		
 		// Get the physical devices
 		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+		vkEnumeratePhysicalDevices(s_Instance, &deviceCount, devices.data());
 
 		// Set optimal device
-		setOptimalDevice(devices);
+		SetOptimalDevice(devices);
 
 		// If no suitable device was found, exit
-		if (this->physicalDevice == VK_NULL_HANDLE) {
+		if (s_PhysicalDevice == VK_NULL_HANDLE) {
 			throw std::runtime_error("failed to find a suitable GPU!");
 		}
 	}
 
-	void PVKInstance::setOptimalDevice(const std::vector<VkPhysicalDevice>& devices)
+	void PVKInstance::SetOptimalDevice(const std::vector<VkPhysicalDevice>& devices)
 	{
 		unsigned bestScore = 0;
 		for (auto d : devices)
@@ -292,37 +292,37 @@ namespace Poly
 			score += deviceProperties.limits.maxImageDimension2D;
 
 			// Make sure the device has support for the requested extensions
-			bool extensionsSupported = checkDeviceExtensionSupport(d);
+			bool extensionsSupported = CheckDeviceExtensionSupport(d);
 
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(d, surface).isComplete() && deviceFeatures.samplerAnisotropy) {
+			if (score > bestScore && findQueueFamilies(d, s_Surface).isComplete() && deviceFeatures.samplerAnisotropy) {
 				bestScore = score;
-				this->physicalDevice = d;
+				s_PhysicalDevice = d;
 			}
 		}
 	}
 
-	void PVKInstance::createLogicalDevice()
+	void PVKInstance::CreateLogicalDevice()
 	{
 		// Create info for queues on the device
-		QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
-		std::pair<uint32_t, uint32_t> graphicsQueueIndex = findQueueIndex(VK_QUEUE_GRAPHICS_BIT, physicalDevice);
-		std::pair<uint32_t, uint32_t> computeQueueIndex = findQueueIndex(VK_QUEUE_COMPUTE_BIT, physicalDevice);
-		std::pair<uint32_t, uint32_t> transferQueueIndex = findQueueIndex(VK_QUEUE_TRANSFER_BIT, physicalDevice);
+		QueueFamilyIndices indices = findQueueFamilies(s_PhysicalDevice, s_Surface);
+		std::pair<uint32_t, uint32_t> graphicsQueueIndex = findQueueIndex(VK_QUEUE_GRAPHICS_BIT, s_PhysicalDevice);
+		std::pair<uint32_t, uint32_t> computeQueueIndex = findQueueIndex(VK_QUEUE_COMPUTE_BIT, s_PhysicalDevice);
+		std::pair<uint32_t, uint32_t> transferQueueIndex = findQueueIndex(VK_QUEUE_TRANSFER_BIT, s_PhysicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value(), computeQueueIndex.first, transferQueueIndex.first };
 
 		// Update queue count to match what the program can create
-		graphicsQueueCount	= std::min(graphicsQueueCount, graphicsQueueIndex.second);
-		computeQueueCount	= std::min(computeQueueCount, graphicsQueueIndex.second);
-		transferQueueCount	= std::min(transferQueueCount, graphicsQueueIndex.second);
+		s_GraphicsQueueCount	= std::min(s_GraphicsQueueCount, graphicsQueueIndex.second);
+		s_ComputeQueueCount	= std::min(s_ComputeQueueCount, graphicsQueueIndex.second);
+		s_TransferQueueCount	= std::min(s_TransferQueueCount, graphicsQueueIndex.second);
 
 		std::unordered_map<uint32_t, uint32_t> queueCounts;
 		queueCounts[indices.presentFamily.value()]	= 1;
-		queueCounts[indices.graphicsFamily.value()] = graphicsQueueCount;
-		queueCounts[computeQueueIndex.first]		= computeQueueCount;
-		queueCounts[transferQueueIndex.first]		= transferQueueCount;
+		queueCounts[indices.graphicsFamily.value()] = s_GraphicsQueueCount;
+		queueCounts[computeQueueIndex.first]		= s_ComputeQueueCount;
+		queueCounts[transferQueueIndex.first]		= s_TransferQueueCount;
 
 		float queuePriority = 1.0f;
 		for (unsigned queueFamily : uniqueQueueFamilies) {
@@ -345,13 +345,13 @@ namespace Poly
 		createInfo.queueCreateInfoCount = static_cast<unsigned>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
-		createInfo.enabledExtensionCount = static_cast<unsigned>(deviceExtensions.size());
-		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		createInfo.enabledExtensionCount = static_cast<unsigned>(m_DeviceExtensions.size());
+		createInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
 
 		// Used for older implementations of vulkan
-		if (this->enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<unsigned>(this->validationLayers.size());
-			createInfo.ppEnabledLayerNames = this->validationLayers.data();
+		if (m_EnableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<unsigned>(m_ValidationLayers.size());
+			createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
 		}
 		else {
 			createInfo.enabledLayerCount = 0;
@@ -360,23 +360,23 @@ namespace Poly
 		// If extensions are to be added (which they will be) then it is here it will be
 
 		// Create the logical device, bound to the physical device
-		PVK_CHECK(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device), "Failed to create logical device!");
+		PVK_CHECK(vkCreateDevice(s_PhysicalDevice, &createInfo, nullptr, &s_Device), "Failed to create logical device!");
 
 		//graphicsQueue.queueIndex = indices.graphicsFamily.value();
-		presentQueue.queueIndex = indices.presentFamily.value();
+		s_PresentQueue.queueIndex = indices.presentFamily.value();
 
 		//vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
-		getAllQueues(); // This function does not check for present support, hence seperate functions
-		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue.queue);
+		GetAllQueues(); // This function does not check for present support, hence seperate functions
+		vkGetDeviceQueue(s_Device, indices.presentFamily.value(), 0, &s_PresentQueue.queue);
 	}
 
-	void PVKInstance::createVmaAllocator()
+	void PVKInstance::CreateVmaAllocator()
 	{
 		// Create info
 		VmaAllocatorCreateInfo createInfo = {};
-		createInfo.physicalDevice = physicalDevice;
-		createInfo.device = device;
-		createInfo.instance = instance;
+		createInfo.physicalDevice = s_PhysicalDevice;
+		createInfo.device = s_Device;
+		createInfo.instance = s_Instance;
 		createInfo.vulkanApiVersion = VK_API_VERSION_1_1;
 		
 		// All three are enabled by default in vulkan 1.1
@@ -402,52 +402,52 @@ namespace Poly
 
 		// Creation
 		//VmaAllocator vmaAllocator;
-		vmaCreateAllocator(&createInfo, &vmaAllocator);
+		vmaCreateAllocator(&createInfo, &s_VmaAllocator);
 	}
 
-	std::vector<const char*> PVKInstance::getRequiredExtensions()
+	std::vector<const char*> PVKInstance::GetRequiredExtensions()
 	{
 		unsigned glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-		if (this->enableValidationLayers) {
+		if (m_EnableValidationLayers) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
 
 		return extensions;
 	}
 
-	void PVKInstance::getAllQueues()
+	void PVKInstance::GetAllQueues()
 	{
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(s_PhysicalDevice, &queueFamilyCount, nullptr);
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(s_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
 		for (uint32_t fIndex = 0; fIndex < queueFamilyCount; fIndex++) {
 			// Graphics queue
 			if (VK_QUEUE_GRAPHICS_BIT & queueFamilies[fIndex].queueFlags) {
-				queues[QueueType::GRAPHICS].resize(graphicsQueueCount);
-				for (uint32_t qIndex = 0; qIndex < graphicsQueueCount; qIndex++) {
-					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::GRAPHICS][qIndex].queue);
+				s_Queues[QueueType::GRAPHICS].resize(s_GraphicsQueueCount);
+				for (uint32_t qIndex = 0; qIndex < s_GraphicsQueueCount; qIndex++) {
+					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[QueueType::GRAPHICS][qIndex].queue);
 				}
 			}
 
 			// Compute queue
 			if (VK_QUEUE_COMPUTE_BIT & queueFamilies[fIndex].queueFlags) {
-				queues[QueueType::COMPUTE].resize(computeQueueCount);
-				for (uint32_t qIndex = 0; qIndex < computeQueueCount; qIndex++) {
-					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::COMPUTE][qIndex].queue);
+				s_Queues[QueueType::COMPUTE].resize(s_ComputeQueueCount);
+				for (uint32_t qIndex = 0; qIndex < s_ComputeQueueCount; qIndex++) {
+					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[QueueType::COMPUTE][qIndex].queue);
 				}
 			}
 
 			// Transfer queue
 			if (VK_QUEUE_TRANSFER_BIT & queueFamilies[fIndex].queueFlags) {
-				queues[QueueType::TRANSFER].resize(transferQueueCount);
-				for (uint32_t qIndex = 0; qIndex < transferQueueCount; qIndex++) {
-					vkGetDeviceQueue(device, fIndex, qIndex, &queues[QueueType::TRANSFER][qIndex].queue);
+				s_Queues[QueueType::TRANSFER].resize(s_TransferQueueCount);
+				for (uint32_t qIndex = 0; qIndex < s_TransferQueueCount; qIndex++) {
+					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[QueueType::TRANSFER][qIndex].queue);
 				}
 			}
 		}

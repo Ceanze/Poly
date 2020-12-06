@@ -14,23 +14,23 @@ namespace Poly {
 		Window(const Window&) = delete;
 		Window& operator=(const Window&) = delete;
 
-		unsigned getWidth() const;
-		unsigned getHeight() const;
+		unsigned GetWidth() const;
+		unsigned GetHeight() const;
 
-		GLFWwindow* getNative() const;
+		GLFWwindow* GetNative() const;
 		
-		static bool isOpen();
+		static bool IsOpen();
 
 	private:
-		unsigned height = 720;
-		unsigned width = 1280;
-		std::string title;
-		GLFWwindow* window = nullptr;
-		static bool open;
+		unsigned m_Height = 720;
+		unsigned m_Width = 1280;
+		std::string m_Title = "";
+		GLFWwindow* m_pWindow = nullptr;
+		static bool s_Open;
 
 		// Callbacks
-		static void closeWindowCallback(GLFWwindow* w);
-		static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-		static void mouseMoveCallback(GLFWwindow* window, double x, double y);
+		static void CloseWindowCallback(GLFWwindow* pWindow);
+		static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods);
+		static void MouseMoveCallback(GLFWwindow* pWindow, double x, double y);
 	};
 }

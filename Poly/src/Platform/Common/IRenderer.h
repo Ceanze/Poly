@@ -20,16 +20,16 @@ namespace Poly
 	public:
 		IRenderer() = default;
 		virtual ~IRenderer() = default;
-		virtual void setWindow(Window* window) = 0;
-		virtual void setActiveCamera(Camera* camera) { this->camera = camera; }
-		virtual void init(IPlatformRenderer* renderer) = 0;
-		virtual void beginScene(uint32_t imageIndex) = 0;
-		virtual void record() = 0;
-		virtual void endScene() = 0;
-		virtual void shutdown() = 0;
+		virtual void SetWindow(Window* window) = 0;
+		virtual void SetActiveCamera(Camera* camera) { m_pCamera = camera; }
+		virtual void Init(IPlatformRenderer* renderer) = 0;
+		virtual void BeginScene(uint32_t imageIndex) = 0;
+		virtual void Record() = 0;
+		virtual void EndScene() = 0;
+		virtual void Shutdown() = 0;
 
 	protected:
-		Camera* camera;
+		Camera* m_pCamera;
 	};
 
 }

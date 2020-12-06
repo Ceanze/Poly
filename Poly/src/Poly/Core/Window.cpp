@@ -8,10 +8,10 @@
 
 namespace Poly {
 
-	bool Window::open = false;
+	bool Window::s_Open = false;
 
 	Window::Window(int width, int height, const std::string& title)
-		: width(width), height(height), title(title)
+		: m_Width(width), m_Height(height), m_Title(title)
 	{
 		// Create window and init glfw
 		if (!glfwInit())
@@ -23,77 +23,77 @@ namespace Poly {
 		// Disable window resize until vulkan renderer can handle it
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		
-		this->window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-		if (!this->window) {
+		m_pWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		if (!m_pWindow) {
 			glfwTerminate();
 			POLY_CORE_FATAL("Could not create a GLFW window!");
 		}
 
-		glfwMakeContextCurrent(this->window);
-		open = true;
+		glfwMakeContextCurrent(m_pWindow);
+		s_Open = true;
 
 		// Set callbacks
-		glfwSetWindowCloseCallback(this->window, closeWindowCallback);
-		glfwSetKeyCallback(this->window, keyCallback);
-		glfwSetCursorPosCallback(this->window, mouseMoveCallback);
+		glfwSetWindowCloseCallback(m_pWindow, CloseWindowCallback);
+		glfwSetKeyCallback(m_pWindow, KeyCallback);
+		glfwSetCursorPosCallback(m_pWindow, MouseMoveCallback);
 	}
 
 	Window::~Window()
 	{
-		glfwDestroyWindow(this->window);
+		glfwDestroyWindow(m_pWindow);
 		glfwTerminate();
 	}
 
-	unsigned Window::getWidth() const
+	unsigned Window::GetWidth() const
 	{
-		return this->width;
+		return m_Width;
 	}
 
-	unsigned Window::getHeight() const
+	unsigned Window::GetHeight() const
 	{
-		return this->height;
+		return m_Height;
 	}
 
-	GLFWwindow* Window::getNative() const
+	GLFWwindow* Window::GetNative() const
 	{
-		return this->window;
+		return m_pWindow;
 	}
 
-	bool Window::isOpen()
+	bool Window::IsOpen()
 	{
 		return false;
 	}
 
-	void Window::closeWindowCallback(GLFWwindow* w)
+	void Window::CloseWindowCallback(GLFWwindow* pWindow)
 	{
 		POLY_EVENT_PUB(CloseWindowEvent());
 	}
 
-	void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+	void Window::KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods)
 	{
 		if (key == GLFW_KEY_ESCAPE)
-			open = false;
+			s_Open = false;
 
 		if (action == GLFW_PRESS)
-			Input::setKeyPressed(key);
+			Input::SetKeyPressed(key);
 		else if (action == GLFW_RELEASE)
-			Input::setKeyReleased(key);
+			Input::SetKeyReleased(key);
 	}
 
-	void Window::mouseMoveCallback(GLFWwindow* window, double x, double y)
+	void Window::MouseMoveCallback(GLFWwindow* pWindow, double x, double y)
 	{
 		// Only record mouse movement when toggled
-		if (Input::isKeyToggled(GLFW_KEY_C)) {
+		if (Input::IsKeyToggled(GLFW_KEY_C)) {
 			int width, height;
-			glfwGetWindowSize(window, &width, &height);
-			glfwSetCursorPos(window, (double)width * 0.5, (double)height * 0.5);
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			glfwGetWindowSize(pWindow, &width, &height);
+			glfwSetCursorPos(pWindow, (double)width * 0.5, (double)height * 0.5);
+			glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			// Send cursor offset from centre of window
-			Input::setMouseDelta(x - (double)width * 0.5, y - (double)height * 0.5);
+			Input::SetMouseDelta(x - (double)width * 0.5, y - (double)height * 0.5);
 		}
 		else {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			Input::setMouseDelta(0.0, 0.0);
+			glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			Input::SetMouseDelta(0.0, 0.0);
 		}
 	}
 

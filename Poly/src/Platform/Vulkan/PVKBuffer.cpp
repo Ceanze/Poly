@@ -5,7 +5,7 @@
 namespace Poly
 {
 
-	PVKBuffer::PVKBuffer() : buffer(VK_NULL_HANDLE), size(0), vmaAllocation(VK_NULL_HANDLE)
+	PVKBuffer::PVKBuffer()
 	{
 	}
 
@@ -13,9 +13,9 @@ namespace Poly
 	{
 	}
 
-	void PVKBuffer::init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
+	void PVKBuffer::Init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
 	{
-		this->size = size;
+		m_Size = size;
 
 		VkBufferCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -30,44 +30,57 @@ namespace Poly
 		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.size());
 		createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
 
-		//PVK_CHECK(vkCreateBuffer(PVKInstance::getDevice(), &createInfo, nullptr, &this->buffer), "Failed to create buffer!");
-
 		VmaAllocationCreateInfo allocInfo = {};
 		allocInfo.usage = memoryUsage;
 
-		PVK_CHECK(vmaCreateBuffer(PVKInstance::getAllocator(), &createInfo, &allocInfo, &this->buffer, &this->vmaAllocation, nullptr), "Failed to create buffer using VMA");
+		PVK_CHECK(vmaCreateBuffer(PVKInstance::GetAllocator(), &createInfo, &allocInfo, &m_Buffer, &m_VmaAllocation, nullptr), "Failed to create buffer using VMA");
 	}
 
-	void PVKBuffer::cleanup()
+	void PVKBuffer::Cleanup()
 	{
+		if (m_Mapped)
+			Unmap();
+
 		//vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
-		vmaDestroyBuffer(PVKInstance::getAllocator(), this->buffer, this->vmaAllocation);
+		vmaDestroyBuffer(PVKInstance::GetAllocator(), m_Buffer, m_VmaAllocation);
 	}
 
-	void PVKBuffer::transferData(const void* data, const size_t size)
+	void* PVKBuffer::Map()
 	{
-		void* ptr;
-		vmaMapMemory(PVKInstance::getAllocator(), this->vmaAllocation, &ptr);
+		vmaMapMemory(PVKInstance::GetAllocator(), m_VmaAllocation, &m_MappedPtr);
+		m_Mapped = true;
+		return m_MappedPtr;
+	}
+
+	void PVKBuffer::TransferData(const void* data, const size_t size)
+	{
+		void* ptr = Map();
 		memcpy(ptr, data, size);
-		vmaUnmapMemory(PVKInstance::getAllocator(), this->vmaAllocation);
+		Unmap();
 	}
 
-	VkBuffer PVKBuffer::getNative() const
+	void PVKBuffer::Unmap()
 	{
-		return this->buffer;
+		vmaUnmapMemory(PVKInstance::GetAllocator(), m_VmaAllocation);
+		m_Mapped = false;
 	}
 
-	VkMemoryRequirements PVKBuffer::getMemReq() const
+	VkBuffer PVKBuffer::GetNative() const
+	{
+		return m_Buffer;
+	}
+
+	VkMemoryRequirements PVKBuffer::GetMemReq() const
 	{
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(PVKInstance::getDevice(), this->buffer, &memRequirements);
+		vkGetBufferMemoryRequirements(PVKInstance::GetDevice(), m_Buffer, &memRequirements);
 
 		return memRequirements;
 	}
 
-	VkDeviceSize PVKBuffer::getSize() const
+	VkDeviceSize PVKBuffer::GetSize() const
 	{
-		return this->size;
+		return m_Size;
 	}
 
 }

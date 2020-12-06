@@ -13,33 +13,36 @@ namespace Poly
 		Camera();
 		~Camera();
 
-		void update(Timestamp dt);
+		void Update(Timestamp dt);
 
-		void setNearPlane(float nearPlane) { this->zNear = nearPlane; updateProjection(); }
-		void setFarPlane(float farPlane) { this->zFar = farPlane; updateProjection(); }
-		void setFov(float fov) { this->fov = fov; updateProjection(); }
-		void setAspect(float aspect) { this->aspect = aspect; updateProjection(); }
-		void setMouseSense(float sense) { this->mouseSense = sense; }
-		void setMovementSpeed(float speed) { this->movementSpeed = speed; }
-		void setSprintSpeed(float speed) { this->sprintSpeed = speed; }
+		void SetNearPlane(float nearPlane) { m_ZNear = nearPlane; UpdateProjection(); }
+		void SetFarPlane(float farPlane) { m_ZFar = farPlane; UpdateProjection(); }
+		void SetFov(float fov) { m_FOV = fov; UpdateProjection(); }
+		void SetAspect(float aspect) { m_Aspect = aspect; UpdateProjection(); }
+		void SetMouseSense(float sense) { m_MouseSense = sense; }
+		void SetMovementSpeed(float speed) { m_MovementSpeed = speed; }
+		void SetSprintSpeed(float speed) { m_SprintSpeed = speed; }
 
-		glm::mat4 getMatrix();
+		glm::mat4 GetMatrix();
 
 	private:
-		void updateView();
-		void updateProjection();
+		void UpdateView();
+		void UpdateProjection();
 
-		glm::mat4 view, proj;
+		glm::mat4 m_View, m_Proj;
 
-		glm::vec3 pos, up, right, forward;
-		const glm::vec3 globalUp = { 0.f, 1.f, 0.f };
-		float yaw, pitch;
+		glm::vec3 m_Pos, m_Up, m_Right, m_Forward;
+		const glm::vec3 m_GlobalUp = { 0.f, 1.f, 0.f };
+		float m_Yaw		= 0.f;
+		float m_Pitch	= 0.f;
 
-		float zNear, zFar;
-		float fov;
-		float mouseSense;
-		float aspect;
-		float sprintSpeed, movementSpeed;
+		float m_ZNear			= 0.01f;
+		float m_ZFar			= 100.f;
+		float m_FOV				= 45.f;
+		float m_MouseSense		= 2.f;
+		float m_Aspect			= 1;
+		float m_SprintSpeed		= 4.f;
+		float m_MovementSpeed	= 2.f;
 	};
 
 }

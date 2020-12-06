@@ -18,41 +18,41 @@ namespace Poly
 		PVKDescriptor();
 		~PVKDescriptor();
 
-		void init(uint32_t copies);
-		void cleanup();
+		void Init(uint32_t copies);
+		void Cleanup();
 
 		// Add binding to a set
-		void addBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags);
+		void AddBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags);
 		// Finish a set for creation
-		void finalizeSet(uint32_t set);
+		void FinalizeSet(uint32_t set);
 
 		// Update the binding with the buffer for the whole range and no offset
-		void updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer);
+		void UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer);
 		// Update the binding in the set for all copies
-		void updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range);
+		void UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range);
 		// Update the binding in the set for a specific copyIndex
-		void updateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range);
+		void UpdateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range);
 		// Update the image binding
-		void updateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler);
+		void UpdateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler);
 
 		// Get set layouts
-		std::vector<VkDescriptorSetLayout> getSetLayouts();
+		std::vector<VkDescriptorSetLayout> GetSetLayouts();
 		// Get set without any copies
-		VkDescriptorSet getSet(uint32_t setIndex);
+		VkDescriptorSet GetSet(uint32_t setIndex);
 		// Get set from a copied descriptor set
-		VkDescriptorSet getSet(uint32_t setIndex, uint32_t copyIndex);
+		VkDescriptorSet GetSet(uint32_t setIndex, uint32_t copyIndex);
 		// Get all sets for a copy
-		std::vector<VkDescriptorSet> getSets(uint32_t copyIndex);
+		std::vector<VkDescriptorSet> GetSets(uint32_t copyIndex);
 
 
 	private:
-		void createPool(uint32_t copies);
-		void createDescriptorSets(uint32_t copies);
+		void CreatePool(uint32_t copies);
+		void CreateDescriptorSets(uint32_t copies);
 
-		VkDescriptorPool pool;
-		std::unordered_map<uint32_t, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding>> setLayoutBindings;
-		std::unordered_map<uint32_t, VkDescriptorSetLayout> setLayouts;
-		std::unordered_map<uint32_t, std::vector<VkDescriptorSet>> descriptorSets;
+		VkDescriptorPool m_Pool = VK_NULL_HANDLE;
+		std::unordered_map<uint32_t, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding>> m_SetLayoutBindings;
+		std::unordered_map<uint32_t, VkDescriptorSetLayout> m_SetLayouts;
+		std::unordered_map<uint32_t, std::vector<VkDescriptorSet>> m_DescriptorSets;
 	};
 
 }

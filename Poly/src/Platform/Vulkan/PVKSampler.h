@@ -12,11 +12,11 @@ namespace Poly
 		PVKSampler(Sampler::Filter filter, Sampler::AddressMode addressMode, Sampler::Filter mipmap);
 		virtual ~PVKSampler();
 
-		VkSampler getNative() const { return this->sampler; }
+		VkSampler GetNative() const { return m_Sampler; }
 
 	private:
-		void createNativeSampler(Sampler::Filter filter, Sampler::AddressMode addressMode, Sampler::Filter mipmap);
+		void CreateNativeSampler(Sampler::Filter filter, Sampler::AddressMode addressMode, Sampler::Filter mipmap);
 
-		VkSampler sampler = VK_NULL_HANDLE;
+		VkSampler m_Sampler = VK_NULL_HANDLE;
 	};
 }

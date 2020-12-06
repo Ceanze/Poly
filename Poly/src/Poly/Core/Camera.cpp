@@ -7,76 +7,76 @@
 namespace Poly
 {
 
-	Camera::Camera() : zNear(0.01f), zFar(100.f), fov(45.f), mouseSense(2.f), yaw(0), pitch(0), view(0), movementSpeed(2.f), sprintSpeed(4.f), aspect(1)
+	Camera::Camera()
 	{
-		this->proj = glm::perspective(this->fov, this->aspect, this->zNear, this->zFar);
-		this->proj[1][1] *= -1;
-		this->pos = { 0.f, 0.f, -1.f };
-		this->up = { 0.f, 1.f, 0.f };
-		this->forward = { 0.f, 0.f, 1.f };
-		this->right = { 1.f, 0.f, 0.f };
+		m_Proj = glm::perspective(m_FOV, m_Aspect, m_ZNear, m_ZFar);
+		m_Proj[1][1] *= -1;
+		m_Pos = { 0.f, 0.f, -1.f };
+		m_Up = { 0.f, 1.f, 0.f };
+		m_Forward = { 0.f, 0.f, 1.f };
+		m_Right = { 1.f, 0.f, 0.f };
 
-		updateView();
+		UpdateView();
 	}
 
 	Camera::~Camera()
 	{
 	}
 
-	void Camera::update(Timestamp dt)
+	void Camera::Update(Timestamp dt)
 	{
-		glm::vec2 mouseDelta = Input::getMouseDelta();
+		glm::vec2 mouseDelta = Input::GetMouseDelta();
 
 		float dtSeconds = float(dt.Seconds());
 
-		this->yaw += mouseDelta.x * dtSeconds * this->mouseSense;
-		this->pitch += mouseDelta.y * dtSeconds * this->mouseSense;
+		m_Yaw += mouseDelta.x * dtSeconds * m_MouseSense;
+		m_Pitch += mouseDelta.y * dtSeconds * m_MouseSense;
 
 		float extraSpeed = 0.0f;
-		if (Input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-			extraSpeed = this->sprintSpeed;
+		if (Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+			extraSpeed = m_SprintSpeed;
 
-		if (Input::isKeyPressed(GLFW_KEY_W))
-			this->pos += this->forward * dtSeconds * (this->movementSpeed + extraSpeed);
-		if (Input::isKeyPressed(GLFW_KEY_S))
-			this->pos -= this->forward * dtSeconds * (this->movementSpeed + extraSpeed);
-		if (Input::isKeyPressed(GLFW_KEY_A))
-			this->pos += this->right * dtSeconds * (this->movementSpeed + extraSpeed);
-		if (Input::isKeyPressed(GLFW_KEY_D))
-			this->pos -= this->right * dtSeconds * (this->movementSpeed + extraSpeed);
-		if (Input::isKeyPressed(GLFW_KEY_SPACE))
-			this->pos += this->globalUp * dtSeconds * (this->movementSpeed + extraSpeed);
-		if (Input::isKeyPressed(GLFW_KEY_LEFT_CONTROL))
-			this->pos -= this->globalUp * dtSeconds * (this->movementSpeed + extraSpeed);
+		if (Input::IsKeyPressed(GLFW_KEY_W))
+			m_Pos += m_Forward * dtSeconds * (m_MovementSpeed + extraSpeed);
+		if (Input::IsKeyPressed(GLFW_KEY_S))
+			m_Pos -= m_Forward * dtSeconds * (m_MovementSpeed + extraSpeed);
+		if (Input::IsKeyPressed(GLFW_KEY_A))
+			m_Pos += m_Right * dtSeconds * (m_MovementSpeed + extraSpeed);
+		if (Input::IsKeyPressed(GLFW_KEY_D))
+			m_Pos -= m_Right * dtSeconds * (m_MovementSpeed + extraSpeed);
+		if (Input::IsKeyPressed(GLFW_KEY_SPACE))
+			m_Pos += m_GlobalUp * dtSeconds * (m_MovementSpeed + extraSpeed);
+		if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
+			m_Pos -= m_GlobalUp * dtSeconds * (m_MovementSpeed + extraSpeed);
 
-		updateView();
+		UpdateView();
 	}
 
-	glm::mat4 Camera::getMatrix()
+	glm::mat4 Camera::GetMatrix()
 	{
-		return this->proj * this->view;
+		return m_Proj * m_View;
 	}
 
-	void Camera::updateView()
+	void Camera::UpdateView()
 	{
-		glm::quat qYaw = glm::angleAxis(-this->yaw, this->globalUp);
-		glm::quat qPitch = glm::angleAxis(this->pitch, this->right);
+		glm::quat qYaw = glm::angleAxis(-m_Yaw, m_GlobalUp);
+		glm::quat qPitch = glm::angleAxis(m_Pitch, m_Right);
 		glm::quat rotation = qPitch * qYaw;
-		glm::vec3 newForward = glm::normalize(glm::rotate(rotation, this->forward));
+		glm::vec3 newForward = glm::normalize(glm::rotate(rotation, m_Forward));
 		if (abs(newForward.y) > 0.999999)
-			newForward = this->forward;
-		this->forward = newForward; //glm::normalize(glm::rotate(rotation, this->forward));
-		this->right = glm::normalize(glm::cross(this->globalUp, this->forward));
-		this->up = glm::cross(this->forward, -this->right);
-		this->yaw = this->pitch = 0.f;
+			newForward = m_Forward;
+		m_Forward = newForward; //glm::normalize(glm::rotate(rotation, m_Forward));
+		m_Right = glm::normalize(glm::cross(m_GlobalUp, m_Forward));
+		m_Up = glm::cross(m_Forward, -m_Right);
+		m_Yaw = m_Pitch = 0.f;
 
-		this->view = glm::lookAt(this->pos, this->pos + this->forward, this->globalUp);
+		m_View = glm::lookAt(m_Pos, m_Pos + m_Forward, m_GlobalUp);
 	}
 
-	void Camera::updateProjection()
+	void Camera::UpdateProjection()
 	{
-		this->proj = glm::perspective(this->fov, this->aspect, this->zNear, this->zFar);
-		this->proj[1][1] *= -1;
+		m_Proj = glm::perspective(m_FOV, m_Aspect, m_ZNear, m_ZFar);
+		m_Proj[1][1] *= -1;
 	}
 
 }

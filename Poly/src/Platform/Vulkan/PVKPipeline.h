@@ -15,28 +15,28 @@ namespace Poly
 		PVKPipeline();
 		~PVKPipeline();
 
-		void init(PVKSwapChain& swapChain, PVKShader& shader, PVKRenderPass& renderPass);
-		void cleanup();
+		void Init(PVKSwapChain& swapChain, PVKShader& shader, PVKRenderPass& renderPass);
+		void Cleanup();
 
-		void addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format);
-		void setDescriptor(PVKDescriptor& descriptor);
-		VkPipelineBindPoint getType() const { return this->pipelineType; }
-		VkPipeline getNative() const { return this->pipeline; }
-		VkPipelineLayout getPipelineLayout() const { return this->pipelineLayout; }
+		void AddVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format);
+		void SetDescriptor(PVKDescriptor& descriptor);
+		VkPipelineBindPoint GetType() const { return m_PipelineType; }
+		VkPipeline GetNative() const { return m_Pipeline; }
+		VkPipelineLayout GetPipelineLayout() const { return m_PipelineLayout; }
 
 	private:
-		void createPipeline();
+		void CreatePipeline();
 
-		VkPipelineBindPoint pipelineType;
-		VkPipeline pipeline;
-		VkPipelineLayout pipelineLayout;
-		PVKShader* shader;
-		PVKDescriptor* descriptor;
-		std::vector<VkVertexInputBindingDescription> vertexBinding;
-		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+		VkPipelineBindPoint	m_PipelineType		= VK_PIPELINE_BIND_POINT_GRAPHICS;
+		VkPipeline			m_Pipeline			= VK_NULL_HANDLE;
+		VkPipelineLayout	m_PipelineLayout	= VK_NULL_HANDLE;
+		PVKShader*			m_pShader			= nullptr;
+		PVKDescriptor*		m_pDescriptor		= nullptr;
+		std::vector<VkVertexInputBindingDescription> m_VertexBinding;
+		std::vector<VkVertexInputAttributeDescription> m_VertexAttributes;
 
-		PVKRenderPass* renderPass;
-		PVKSwapChain* swapChain;
+		PVKRenderPass*	m_pRenderPass	= nullptr;
+		PVKSwapChain*	m_pSwapChain	= nullptr;
 	};
 
 }

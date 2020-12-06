@@ -7,8 +7,7 @@
 namespace Poly
 {
 
-	PVKCommandPool::PVKCommandPool() :
-		pool(VK_NULL_HANDLE), queue(QueueType::GRAPHICS)
+	PVKCommandPool::PVKCommandPool()
 	{
 	}
 
@@ -16,111 +15,111 @@ namespace Poly
 	{
 	}
 
-	void PVKCommandPool::init(QueueType queueType)
+	void PVKCommandPool::Init(QueueType queueType)
 	{
-		this->queue = queueType;
+		m_Queue = queueType;
 		createCommandPool();
 	}
 
-	void PVKCommandPool::cleanup()
+	void PVKCommandPool::Cleanup()
 	{
-		vkDestroyCommandPool(PVKInstance::getDevice(), this->pool, nullptr);
+		vkDestroyCommandPool(PVKInstance::GetDevice(), m_Pool, nullptr);
 
 		// Command buffers are automatically freed when command pool is destroyed, just cleans memory
-		for (auto buffer : this->buffers) {
-			buffer->cleanup();
+		for (auto buffer : m_Buffers) {
+			buffer->Cleanup();
 			delete buffer;
 		}
-		this->buffers.clear();
+		m_Buffers.clear();
 	}
 
-	QueueType PVKCommandPool::getQueueType() const
+	QueueType PVKCommandPool::GetQueueType() const
 	{
-		return this->queue;
+		return m_Queue;
 	}
 
-	PVKCommandBuffer* PVKCommandPool::beginSingleTimeCommand()
+	PVKCommandBuffer* PVKCommandPool::BeginSingleTimeCommand()
 	{
 		VkCommandBufferAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = this->pool;
+		allocInfo.commandPool = m_Pool;
 		allocInfo.commandBufferCount = 1;
 
-		PVKCommandBuffer* buffer = createCommandBuffer();
+		PVKCommandBuffer* buffer = CreateCommandBuffer();
 
-		buffer->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+		buffer->Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
 		return buffer;
 	}
 
-	void PVKCommandPool::endSingleTimeCommand(PVKCommandBuffer* buffer)
+	void PVKCommandPool::EndSingleTimeCommand(PVKCommandBuffer* pBuffer)
 	{
-		buffer->end();
+		pBuffer->End();
 
-		VkCommandBuffer commandBuffer = buffer->getNative();
+		VkCommandBuffer commandBuffer = pBuffer->GetNative();
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
-		vkQueueSubmit(PVKInstance::getQueue(this->queue).queue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(PVKInstance::getQueue(this->queue).queue);
+		vkQueueSubmit(PVKInstance::GetQueue(m_Queue).queue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(PVKInstance::GetQueue(m_Queue).queue);
 
-		vkFreeCommandBuffers(PVKInstance::getDevice(), this->pool, 1, &commandBuffer);
-		removeCommandBuffer(buffer);
+		vkFreeCommandBuffers(PVKInstance::GetDevice(), m_Pool, 1, &commandBuffer);
+		RemoveCommandBuffer(pBuffer);
 	}
 
-	PVKCommandBuffer* PVKCommandPool::createCommandBuffer()
+	PVKCommandBuffer* PVKCommandPool::CreateCommandBuffer()
 	{
-		PVKCommandBuffer* b = new PVKCommandBuffer();
-		b->init(this->pool);
-		b->createCommandBuffer();
-		buffers.push_back(b);
-		return b;
+		PVKCommandBuffer* pBuffer = new PVKCommandBuffer();
+		pBuffer->Init(m_Pool);
+		pBuffer->CreateCommandBuffer();
+		m_Buffers.push_back(pBuffer);
+		return pBuffer;
 	}
 
-	std::vector<PVKCommandBuffer*> PVKCommandPool::createCommandBuffers(uint32_t count)
+	std::vector<PVKCommandBuffer*> PVKCommandPool::CreateCommandBuffers(uint32_t count)
 	{
 		std::vector<VkCommandBuffer> vkBuffers(count);
 
 		VkCommandBufferAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = this->pool;
+		allocInfo.commandPool = m_Pool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = count;
 
-		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::getDevice(), &allocInfo, vkBuffers.data()), "Failed to allocate command buffers!")
+		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::GetDevice(), &allocInfo, vkBuffers.data()), "Failed to allocate command buffers!")
 
 		std::vector<PVKCommandBuffer*> b(count);
 		for (size_t i = 0; i < count; i++) {
 			b[i] = new PVKCommandBuffer;
-			b[i]->init(this->pool);
-			b[i]->setCommandBuffer(vkBuffers[i]);
-			this->buffers.push_back(b[i]);
+			b[i]->Init(m_Pool);
+			b[i]->SetCommandBuffer(vkBuffers[i]);
+			m_Buffers.push_back(b[i]);
 		}
 
 		return b;
 	}
 
-	void PVKCommandPool::removeCommandBuffer(PVKCommandBuffer* buffer)
+	void PVKCommandPool::RemoveCommandBuffer(PVKCommandBuffer* pBuffer)
 	{
-		buffers.erase(std::remove(buffers.begin(), buffers.end(), buffer), buffers.end());
-		delete buffer;
+		m_Buffers.erase(std::remove(m_Buffers.begin(), m_Buffers.end(), pBuffer), m_Buffers.end());
+		delete pBuffer;
 	}
 
 	void PVKCommandPool::createCommandPool()
 	{
 		// Note: A command pool only supports one queue type at a time, for more queues more command pools are needed
 
-		uint32_t queueIndex = PVKInstance::getQueue(this->queue).queueIndex;
+		uint32_t queueIndex = PVKInstance::GetQueue(m_Queue).queueIndex;
 
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.queueFamilyIndex = queueIndex;
 		poolInfo.flags = 0; // Optional
 
-		PVK_CHECK(vkCreateCommandPool(PVKInstance::getDevice(), &poolInfo, nullptr, &this->pool), "Failed to create command pool!");
+		PVK_CHECK(vkCreateCommandPool(PVKInstance::GetDevice(), &poolInfo, nullptr, &m_Pool), "Failed to create command pool!");
 	}
 
 }

@@ -23,23 +23,23 @@ namespace Poly
 			FIRST_RELEASED = 32,*/
 		};
 	public:
-		static void setKeyPressed(int key);
-		static void setKeyReleased(int key);
-		static void setMouseDelta(double x, double y);
+		static void SetKeyPressed(int key);
+		static void SetKeyReleased(int key);
+		static void SetMouseDelta(double x, double y);
 
-		static bool isKeyPressed(int key);
-		static bool isKeyReleased(int key);
-		static bool isKeyToggled(int key);
-		static bool isKey(int key, KeyState keyState);
-		static KeyState getKeyState(int key);
-		static glm::vec2 getMouseDelta();
+		static bool IsKeyPressed(int key);
+		static bool IsKeyReleased(int key);
+		static bool IsKeyToggled(int key);
+		static bool IsKey(int key, KeyState keyState);
+		static KeyState GetKeyState(int key);
+		static glm::vec2 GetMouseDelta();
 
 		// Sets all keys to released, removes toggles and resets mouse delta
-		static void reset();
+		static void Reset();
 
 	private:
-		static glm::vec2 mouseDelta;
-		static std::unordered_map<int, KeyState> keys;
+		static glm::vec2 s_MouseDelta;
+		static std::unordered_map<int, KeyState> s_Keys;
 	};
 
 }

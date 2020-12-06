@@ -9,7 +9,7 @@
 namespace Poly
 {
 
-	PVKDescriptor::PVKDescriptor() : pool(VK_NULL_HANDLE)
+	PVKDescriptor::PVKDescriptor()
 	{
 	}
 
@@ -17,22 +17,22 @@ namespace Poly
 	{
 	}
 
-	void PVKDescriptor::init(uint32_t copies)
+	void PVKDescriptor::Init(uint32_t copies)
 	{
-		createPool(copies);
-		createDescriptorSets(copies);
+		CreatePool(copies);
+		CreateDescriptorSets(copies);
 	}
 
-	void PVKDescriptor::cleanup()
+	void PVKDescriptor::Cleanup()
 	{
-		if (pool != VK_NULL_HANDLE)
-			vkDestroyDescriptorPool(PVKInstance::getDevice(), this->pool, nullptr);
+		if (m_Pool != VK_NULL_HANDLE)
+			vkDestroyDescriptorPool(PVKInstance::GetDevice(), m_Pool, nullptr);
 
-		for (auto& layout : this->setLayouts)
-			vkDestroyDescriptorSetLayout(PVKInstance::getDevice(), layout.second, nullptr);
+		for (auto& layout : m_SetLayouts)
+			vkDestroyDescriptorSetLayout(PVKInstance::GetDevice(), layout.second, nullptr);
 	}
 
-	void PVKDescriptor::addBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags)
+	void PVKDescriptor::AddBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags)
 	{
 		VkDescriptorSetLayoutBinding layout = {};
 		layout.binding = binding;
@@ -41,53 +41,53 @@ namespace Poly
 		layout.pImmutableSamplers = nullptr; // Might be added in future for samplers/textures
 		layout.stageFlags = ConvertShaderStageVK(stageFlags);
 		
-		this->setLayoutBindings[set][binding] = layout;
+		m_SetLayoutBindings[set][binding] = layout;
 	}
 
-	void PVKDescriptor::finalizeSet(uint32_t set)
+	void PVKDescriptor::FinalizeSet(uint32_t set)
 	{
-		auto it = this->setLayoutBindings.find(set);
-		if (it == this->setLayoutBindings.end()) {
+		auto it = m_SetLayoutBindings.find(set);
+		if (it == m_SetLayoutBindings.end()) {
 			POLY_CORE_ERROR("Could not finalize set {} as it has no bindings added!", set);
 			return;
 		}
 
 		std::vector<VkDescriptorSetLayoutBinding> bindings;
-		for (auto& set : this->setLayoutBindings)
+		for (auto& set : m_SetLayoutBindings)
 			for (auto& layout : set.second)
 				bindings.push_back(layout.second);
 
 		VkDescriptorSetLayoutCreateInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		info.bindingCount = this->setLayoutBindings[set].size();
+		info.bindingCount = m_SetLayoutBindings[set].size();
 		info.pBindings = bindings.data();
 
-		PVK_CHECK(vkCreateDescriptorSetLayout(PVKInstance::getDevice(), &info, nullptr, &setLayouts[set]), "Failed to create descriptor set {}!", set);
+		PVK_CHECK(vkCreateDescriptorSetLayout(PVKInstance::GetDevice(), &info, nullptr, &m_SetLayouts[set]), "Failed to create descriptor set {}!", set);
 	}
 
-	void PVKDescriptor::updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer)
+	void PVKDescriptor::UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer)
 	{
-		updateBufferBinding(set, binding, buffer, 0, buffer.getSize());
+		UpdateBufferBinding(set, binding, buffer, 0, buffer.GetSize());
 	}
 
-	void PVKDescriptor::updateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
+	void PVKDescriptor::UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		// To optimise the vkUpdateDescriptorSets should only be called once instead for each binding
 
 		std::vector<VkWriteDescriptorSet> writeSets;
-		uint32_t numCopies = this->descriptorSets[set].size();
+		uint32_t numCopies = m_DescriptorSets[set].size();
 		for (uint32_t i = 0; i < numCopies; i++) {
 			VkDescriptorBufferInfo bufferInfo = {};
-			bufferInfo.buffer = buffer.getNative();
+			bufferInfo.buffer = buffer.GetNative();
 			bufferInfo.offset = offset;
 			bufferInfo.range = range;
 
 			VkWriteDescriptorSet descriptorWrite = {};
 			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = this->descriptorSets[set][i];
+			descriptorWrite.dstSet = m_DescriptorSets[set][i];
 			descriptorWrite.dstBinding = binding;
 			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = this->setLayoutBindings[set][binding].descriptorType;
+			descriptorWrite.descriptorType = m_SetLayoutBindings[set][binding].descriptorType;
 			descriptorWrite.descriptorCount = 1;
 			descriptorWrite.pBufferInfo = &bufferInfo;
 			descriptorWrite.pImageInfo = nullptr;
@@ -96,47 +96,47 @@ namespace Poly
 			writeSets.push_back(descriptorWrite);
 
 		}
-		vkUpdateDescriptorSets(PVKInstance::getDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
+		vkUpdateDescriptorSets(PVKInstance::GetDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
 	}
 
-	void PVKDescriptor::updateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
+	void PVKDescriptor::UpdateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = buffer.getNative();
+		bufferInfo.buffer = buffer.GetNative();
 		bufferInfo.offset = offset;
 		bufferInfo.range = range;
 
 		VkWriteDescriptorSet descriptorWrite = {};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = this->descriptorSets[set][copyIndex];
+		descriptorWrite.dstSet = m_DescriptorSets[set][copyIndex];
 		descriptorWrite.dstBinding = binding;
 		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = this->setLayoutBindings[set][binding].descriptorType;
+		descriptorWrite.descriptorType = m_SetLayoutBindings[set][binding].descriptorType;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pBufferInfo = &bufferInfo;
 		descriptorWrite.pImageInfo = nullptr;
 		descriptorWrite.pTexelBufferView = nullptr;
 
-		vkUpdateDescriptorSets(PVKInstance::getDevice(), 1, &descriptorWrite, 0, nullptr);
+		vkUpdateDescriptorSets(PVKInstance::GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	void PVKDescriptor::updateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler)
+	void PVKDescriptor::UpdateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler)
 	{
 		std::vector<VkWriteDescriptorSet> writeSets;
-		uint32_t numCopies = this->descriptorSets[set].size();
+		uint32_t numCopies = m_DescriptorSets[set].size();
 		for (uint32_t i = 0; i < numCopies; i++) {
 			VkDescriptorImageInfo imageInfo = {};
 			imageInfo.imageLayout = (VkImageLayout)layout;
-			imageInfo.imageView = texture.getImageView().getNative();
-			imageInfo.sampler = sampler.getNative();
+			imageInfo.imageView = texture.GetImageView().GetNative();
+			imageInfo.sampler = sampler.GetNative();
 
 
 			VkWriteDescriptorSet descriptorWrite = {};
 			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = this->descriptorSets[set][i];
+			descriptorWrite.dstSet = m_DescriptorSets[set][i];
 			descriptorWrite.dstBinding = binding;
 			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = this->setLayoutBindings[set][binding].descriptorType;
+			descriptorWrite.descriptorType = m_SetLayoutBindings[set][binding].descriptorType;
 			descriptorWrite.descriptorCount = 1;
 			descriptorWrite.pBufferInfo = nullptr;
 			descriptorWrite.pImageInfo = &imageInfo;
@@ -146,42 +146,42 @@ namespace Poly
 
 		}
 		// Crash here is probably because shader isnt updated
-		vkUpdateDescriptorSets(PVKInstance::getDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
+		vkUpdateDescriptorSets(PVKInstance::GetDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
 	}
 
-	std::vector<VkDescriptorSetLayout> PVKDescriptor::getSetLayouts()
+	std::vector<VkDescriptorSetLayout> PVKDescriptor::GetSetLayouts()
 	{
 		std::vector<VkDescriptorSetLayout> v;
-		for (auto& layout : this->setLayouts)
+		for (auto& layout : m_SetLayouts)
 			v.push_back(layout.second);
 		return v;
 	}
 
-	VkDescriptorSet PVKDescriptor::getSet(uint32_t setIndex)
+	VkDescriptorSet PVKDescriptor::GetSet(uint32_t setIndex)
 	{
-		return this->descriptorSets[setIndex][0];
+		return m_DescriptorSets[setIndex][0];
 	}
 
-	VkDescriptorSet PVKDescriptor::getSet(uint32_t setIndex, uint32_t copyIndex)
+	VkDescriptorSet PVKDescriptor::GetSet(uint32_t setIndex, uint32_t copyIndex)
 	{
-		return this->descriptorSets[setIndex][copyIndex];
+		return m_DescriptorSets[setIndex][copyIndex];
 	}
 
-	std::vector<VkDescriptorSet> PVKDescriptor::getSets(uint32_t copyIndex)
+	std::vector<VkDescriptorSet> PVKDescriptor::GetSets(uint32_t copyIndex)
 	{
 		std::vector<VkDescriptorSet> sets;
-		for (auto& set : this->descriptorSets) {
+		for (auto& set : m_DescriptorSets) {
 			sets.push_back(set.second[copyIndex]);
 		}
 		return sets;
 	}
 
-	void PVKDescriptor::createPool(uint32_t copies)
+	void PVKDescriptor::CreatePool(uint32_t copies)
 	{
 		// Get pool sizes
 		uint32_t setCount = 0;
 		std::unordered_map<VkDescriptorType, VkDescriptorPoolSize> pools;
-		for (auto& layoutBinding : this->setLayoutBindings) {
+		for (auto& layoutBinding : m_SetLayoutBindings) {
 			for (auto& bindings : layoutBinding.second) {
 				pools[bindings.second.descriptorType].descriptorCount += 1;
 			}
@@ -204,23 +204,23 @@ namespace Poly
 		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets = setCount * copies;
 
-		PVK_CHECK(vkCreateDescriptorPool(PVKInstance::getDevice(), &poolInfo, nullptr, &this->pool), "Failed to create descriptor pool with {} pools and {} max sets", poolInfo.poolSizeCount, poolInfo.maxSets);
+		PVK_CHECK(vkCreateDescriptorPool(PVKInstance::GetDevice(), &poolInfo, nullptr, &m_Pool), "Failed to create descriptor pool with {} pools and {} max sets", poolInfo.poolSizeCount, poolInfo.maxSets);
 	}
 
-	void PVKDescriptor::createDescriptorSets(uint32_t copies)
+	void PVKDescriptor::CreateDescriptorSets(uint32_t copies)
 	{
 		// Creates the descriptor sets with their bindings, does not know about any data, which is added with an update
 
-		for (auto& set : this->setLayouts) {
+		for (auto& set : m_SetLayouts) {
 			std::vector<VkDescriptorSetLayout> layouts(copies, set.second);
 			VkDescriptorSetAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			allocInfo.descriptorPool = this->pool;
+			allocInfo.descriptorPool = m_Pool;
 			allocInfo.descriptorSetCount = copies;
 			allocInfo.pSetLayouts = layouts.data();
 
-			this->descriptorSets[set.first].resize(copies);
-			PVK_CHECK(vkAllocateDescriptorSets(PVKInstance::getDevice(), &allocInfo, this->descriptorSets[set.first].data()), "Failed to allocate descriptor sets for set {}!", set.first);
+			m_DescriptorSets[set.first].resize(copies);
+			PVK_CHECK(vkAllocateDescriptorSets(PVKInstance::GetDevice(), &allocInfo, m_DescriptorSets[set.first].data()), "Failed to allocate descriptor sets for set {}!", set.first);
 		}
 	}
 

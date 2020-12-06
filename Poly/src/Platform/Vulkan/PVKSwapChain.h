@@ -22,35 +22,35 @@ namespace Poly
 		PVKSwapChain();
 		~PVKSwapChain();
 
-		void init(Window* window);
-		void cleanup();
+		void Init(Window* pWindow);
+		void Cleanup();
 
-		void createSwapChain();
-		SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
+		void CreateSwapChain();
+		SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 
-		uint32_t acquireNextImage(VkSemaphore semaphore, VkFence fence);
-		VkSwapchainKHR getNative() const { return this->swapChain; }
-		std::vector<VkImage>& getImages() { return this->images; }
-		std::vector<VkImageView>& getImageViews() { return this->imageViews; }
-		VkFormat getFormat() const { return this->format; }
-		VkExtent2D getExtent() const { return this->extent; }
-		uint32_t getNumImages() const { return this->imageViews.size(); }
+		uint32_t AcquireNextImage(VkSemaphore semaphore, VkFence fence);
+		VkSwapchainKHR GetNative() const { return m_SwapChain; }
+		std::vector<VkImage>& GetImages() { return m_Images; }
+		std::vector<VkImageView>& GetImageViews() { return m_ImageViews; }
+		VkFormat GetFormat() const { return m_Format; }
+		VkExtent2D GetExtent() const { return m_Extent; }
+		uint32_t GetNumImages() const { return m_ImageViews.size(); }
 
 
 	private:
-		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		void createImageViews();
+		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		void CreateImageViews();
 
 		// Vulkan
-		VkSwapchainKHR swapChain;
-		VkFormat format;
-		VkExtent2D extent;
-		std::vector<VkImage> images;
-		std::vector<VkImageView> imageViews;
+		VkSwapchainKHR	m_SwapChain	= VK_NULL_HANDLE;
+		VkFormat		m_Format	= VK_FORMAT_UNDEFINED;
+		VkExtent2D		m_Extent	= {0, 0};
+		std::vector<VkImage> m_Images;
+		std::vector<VkImageView> m_ImageViews;
 
 		// Custom
-		Window* window;
+		Window* m_pWindow = nullptr;
 	};
 }

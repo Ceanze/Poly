@@ -7,9 +7,9 @@
 namespace Poly
 {
 
-	Ref<Texture2D> Texture2D::create(uint32_t width, uint32_t height)
+	Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height)
 	{
-		switch (RendererAPI::getAPI())
+		switch (RendererAPI::GetAPI())
 		{
 		case BackendAPI::NONE: POLY_ASSERT(false, "No renderer API is selected!")
 		//case BackendAPI::VULKAN: return createRef<PVKTexture>(); CONTINUE THE TEXTURE ABSTRACTATION (PVKTexture inherit from Texture2D)
@@ -17,7 +17,7 @@ namespace Poly
 		return Ref<Texture2D>();
 	}
 
-	Ref<Texture2D> Texture2D::create(std::string path)
+	Ref<Texture2D> Texture2D::Create(std::string path)
 	{
 		return Ref<Texture2D>();
 	}

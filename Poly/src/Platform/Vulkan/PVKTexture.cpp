@@ -5,65 +5,64 @@
 
 namespace Poly
 {
-	PVKTexture::PVKTexture() : width(0), height(0), format(ColorFormat::UNDEFINED)
+	PVKTexture::PVKTexture()
 	{
 	}
 
-	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage)
+	void PVKTexture::Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage)
 	{
 		std::vector<uint32_t> vec = { queueIndices };
-		init(width, height, format, usage, flags, arrayLayers, vec, memoryUsage);
+		Init(width, height, format, usage, flags, arrayLayers, vec, memoryUsage);
 	}
 
-	void PVKTexture::init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage)
+	void PVKTexture::Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage)
 	{
-		this->width = width;
-		this->height = height;
-		this->format = format;
-		this->image.init(width, height, format, usage, flags, arrayLayers, queueIndices, memoryUsage);
+		m_Width = width;
+		m_Height = height;
+		m_Format = format;
+		m_Image.Init(width, height, format, usage, flags, arrayLayers, queueIndices, memoryUsage);
 	}
 
-	void PVKTexture::initView(ImageViewType type, ImageAspect aspect)
+	void PVKTexture::InitView(ImageViewType type, ImageAspect aspect)
 	{
-		this->imageView.init(image.getNative(), type, this->format, aspect);
+		m_ImageView.Init(m_Image.GetNative(), type, m_Format, aspect);
 	}
 
-	void PVKTexture::cleanup()
+	void PVKTexture::Cleanup()
 	{
-		this->image.cleanup();
-		this->imageView.cleanup();
+		m_Image.Cleanup();
+		m_ImageView.Cleanup();
 	}
 
-	VkMemoryRequirements PVKTexture::getMemoryRequirements() const
+	VkMemoryRequirements PVKTexture::GetMemoryRequirements() const
 	{
 		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(PVKInstance::getDevice(), this->image.getNative(), &memRequirements);
+		vkGetImageMemoryRequirements(PVKInstance::GetDevice(), m_Image.GetNative(), &memRequirements);
 
 		return memRequirements;
 	}
 
-	PVKTexture2D::PVKTexture2D(uint32_t width, uint32_t height) :
-		width(width), height(height)
+	PVKTexture2D::PVKTexture2D(uint32_t width, uint32_t height)
 	{
 		// TODO: Make it possible to change usage and format
 		// Current implementation assumes a R8G8B8A8_UNORM format with a sampled usage
-		this->image.init(width, height, ColorFormat::R8G8B8A8_UNORM, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::getQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
-		this->imageView.init(this->image.getNative(), ImageViewType::DIM_2, ColorFormat::R8G8B8A8_UNORM, ImageAspect::COLOR_BIT);
+		m_Image.Init(width, height, ColorFormat::R8G8B8A8_UNORM, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::GetQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
+		m_ImageView.Init(m_Image.GetNative(), ImageViewType::DIM_2, ColorFormat::R8G8B8A8_UNORM, ImageAspect::COLOR_BIT);
 	}
 
-	PVKTexture2D::PVKTexture2D(const std::string& path) :
-		path(path), width(0), height(0)
+	PVKTexture2D::PVKTexture2D(const std::string& path)
 	{
 		// TODO: Read from file and create texture - need stbi
+		m_Path = path;
 	}
 
 	PVKTexture2D::~PVKTexture2D()
 	{
-		this->image.cleanup();
-		this->imageView.cleanup();
+		m_Image.Cleanup();
+		m_ImageView.Cleanup();
 	}
 
-	void PVKTexture2D::setData(void* data, uint32_t size)
+	void PVKTexture2D::SetData(void* data, uint32_t size)
 	{
 	}
 

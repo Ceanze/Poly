@@ -27,37 +27,35 @@ namespace Poly
 	public:
 		TestRenderer() = default;
 		virtual ~TestRenderer() = default;
-		virtual void setWindow(Window* window) override { this->window = window; }
-		virtual void init(IPlatformRenderer* renderer) override;
-		virtual void beginScene(uint32_t imageIndex) override;
-		virtual void record() override;
-		virtual void endScene() override;
-		virtual void shutdown() override;
+		virtual void SetWindow(Window* window) override { m_pWindow = window; }
+		virtual void Init(IPlatformRenderer* pRenderer) override;
+		virtual void BeginScene(uint32_t imageIndex) override;
+		virtual void Record() override;
+		virtual void EndScene() override;
+		virtual void Shutdown() override;
 
 	private:
-		void createCommandBuffers();
-		void setupDescriptorSet();
-		void setupTestData();
+		void CreateCommandBuffers();
+		void SetupDescriptorSet();
+		void SetupTestData();
 
-		VulkanRenderer* mainRenderer = nullptr;
-		PVKSwapChain* swapChain = nullptr;
-		uint32_t imageIndex = 0;
+		VulkanRenderer*	m_pMainRenderer	= nullptr;
+		PVKSwapChain*	m_pSwapChain	= nullptr;
+		uint32_t		m_ImageIndex	= 0;
 
-		PVKPipeline pipeline;
-		PVKShader shader;
-		PVKRenderPass renderPass;
-		std::vector<PVKFramebuffer> framebuffers;
-		PVKCommandPool commandPool;
-		std::vector<PVKCommandBuffer*> commandBuffers;
-		PVKDescriptor descriptor;
+		PVKPipeline		m_Pipeline;
+		PVKShader		m_Shader;
+		PVKRenderPass	m_RenderPass;
+		std::vector<PVKFramebuffer> m_Framebuffers;
+		PVKCommandPool	m_CommandPool;
+		std::vector<PVKCommandBuffer*> m_CommandBuffers;
+		PVKDescriptor	m_Descriptor;
 
-		PVKBuffer testBuffer;
-		//PVKMemory testMemory;
-		//PVKMemory testTextureMemory;
-		PVKTexture testTexture;
-		PVKSampler* testSampler;
+		PVKBuffer		m_TestBuffer;
+		PVKTexture		m_TestTexture;
+		PVKSampler*		m_pTestSampler = nullptr;
 
-		Window* window = nullptr;
+		Window*			m_pWindow = nullptr;
 	};
 
 }

@@ -11,24 +11,24 @@ namespace Poly
 	{
 	public:
 
-		static void create(BackendAPI backend);
-		static void createRenderer(Renderer subRenderer);
-		static void setActiveCamera(Camera* camera);
-		static void init(uint32_t width, uint32_t height);
-		static void beginScene();
+		static void Create(BackendAPI backend);
+		static void CreateRenderer(Renderer subRenderer);
+		static void SetActiveCamera(Camera* pCamera);
+		static void Init(uint32_t width, uint32_t height);
+		static void BeginScene();
 		//static void draw(/*Obj*/);
-		static void endScene();
-		static void setWinTitle(const char* title);
-		static void setClearColor(float r, float g, float b, float a);
-		static void shutdown();
+		static void EndScene();
+		static void SetWinTitle(const char* title);
+		static void SetClearColor(float r, float g, float b, float a);
+		static void Shutdown();
 
-		static BackendAPI getAPI();
+		static BackendAPI GetAPI();
 
 		// Create functions here
 
 	private:
-		static IPlatformRenderer* renderer;
-		static BackendAPI api;
+		static IPlatformRenderer* s_pRenderer;
+		static BackendAPI s_API;
 	};
 
 }

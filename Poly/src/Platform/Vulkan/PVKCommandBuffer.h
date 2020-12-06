@@ -23,28 +23,28 @@ namespace Poly
 		PVKCommandBuffer();
 		~PVKCommandBuffer();
 
-		void init(VkCommandPool pool);
-		void cleanup();
+		void Init(VkCommandPool pool);
+		void Cleanup();
 
-		VkCommandBuffer getNative() const { return this->buffer; }
-		void setCommandBuffer(VkCommandBuffer buffer) { this->buffer = buffer; }
-		void createCommandBuffer();
+		VkCommandBuffer GetNative() const { return m_Buffer; }
+		void SetCommandBuffer(VkCommandBuffer buffer) { m_Buffer = buffer; }
+		void CreateCommandBuffer();
 
 		// Commands for recording
-		void begin(VkCommandBufferUsageFlags flags);
-		void cmdBeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor);
-		void cmdBindPipeline(PVKPipeline& pipeline);
-		void cmdBindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex);
-		void cmdCopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions);
-		void cmdCopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions);
-		void cmdDraw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
-		void cmdDrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance);
-		void cmdEndRenderPass();
-		void end();
+		void Begin(VkCommandBufferUsageFlags flags);
+		void BeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor);
+		void BindPipeline(PVKPipeline& pipeline);
+		void BindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex);
+		void CopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions);
+		void CopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions);
+		void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
+		void DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance);
+		void EndRenderPass();
+		void End();
 
 	private:
-		VkCommandBuffer buffer;
-		VkCommandPool pool;
+		VkCommandBuffer	m_Buffer	= VK_NULL_HANDLE;
+		VkCommandPool	m_Pool		= VK_NULL_HANDLE;
 	};
 
 }

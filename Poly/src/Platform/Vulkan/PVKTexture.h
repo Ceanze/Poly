@@ -17,23 +17,24 @@ namespace Poly
 		PVKTexture();
 		~PVKTexture() = default;
 
-		void init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage);
-		void init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage);
-		void initView(ImageViewType type, ImageAspect aspect);
-		void cleanup();
+		void Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage);
+		void Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage);
+		void InitView(ImageViewType type, ImageAspect aspect);
+		void Cleanup();
 
-		uint32_t getWidth() const { return this->width; }
-		uint32_t getHeight() const { return this->height; }
-		ColorFormat getFormat() const { return this->format; }
-		PVKImage& getImage() { return this->image; }
-		PVKImageView& getImageView() { return this->imageView; }
-		VkMemoryRequirements getMemoryRequirements() const;
+		uint32_t GetWidth() const { return m_Width; }
+		uint32_t GetHeight() const { return m_Height; }
+		ColorFormat GetFormat() const { return m_Format; }
+		PVKImage& GetImage() { return m_Image; }
+		PVKImageView& GetImageView() { return m_ImageView; }
+		VkMemoryRequirements GetMemoryRequirements() const;
 
 	private:
-		uint32_t width, height;
-		PVKImage image;
-		PVKImageView imageView;
-		ColorFormat format;
+		uint32_t		m_Width		= 0;
+		uint32_t		m_Height	= 0;
+		PVKImage		m_Image;
+		PVKImageView	m_ImageView;
+		ColorFormat		m_Format	= ColorFormat::UNDEFINED;
 	};
 
 	class PVKTexture2D : public Texture2D
@@ -43,16 +44,17 @@ namespace Poly
 		PVKTexture2D(const std::string& path);
 		virtual ~PVKTexture2D();
 
-		virtual void setData(void* data, uint32_t size) override;
+		virtual void SetData(void* data, uint32_t size) override;
 
-		virtual uint32_t getHeight() const override { return this->height; };
-		virtual uint32_t getWidth() const override { return this->width;	};
+		virtual uint32_t GetHeight() const override { return m_Height; };
+		virtual uint32_t GetWidth() const override { return m_Width;	};
 
 	private:
-		uint32_t width, height;
-		std::string path;
-		PVKImage image;
-		PVKImageView imageView;
+		uint32_t		m_Width		= 0;
+		uint32_t		m_Height	= 0;
+		std::string 	m_Path		= "";
+		PVKImage m_Image;
+		PVKImageView m_ImageView;
 	};
 
 }

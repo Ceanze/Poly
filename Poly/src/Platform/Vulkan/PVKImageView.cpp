@@ -5,10 +5,10 @@
 
 namespace Poly
 {
-	PVKImageView::PVKImageView() : imageView(VK_NULL_HANDLE)
+	PVKImageView::PVKImageView()
 	{
 	}
-	void PVKImageView::init(VkImage image, ImageViewType type, ColorFormat format, ImageAspect aspectMask, uint32_t layerCount)
+	void PVKImageView::Init(VkImage image, ImageViewType type, ColorFormat format, ImageAspect aspectMask, uint32_t layerCount)
 	{
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -28,12 +28,12 @@ namespace Poly
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 
-		PVK_CHECK(vkCreateImageView(PVKInstance::getDevice(), &createInfo, nullptr, &this->imageView), "Failed to create image view!");
+		PVK_CHECK(vkCreateImageView(PVKInstance::GetDevice(), &createInfo, nullptr, &m_ImageView), "Failed to create image view!");
 	}
 
-	void PVKImageView::cleanup()
+	void PVKImageView::Cleanup()
 	{
-		PVK_CLEANUP(this->imageView, vkDestroyImageView(PVKInstance::getDevice(), this->imageView, nullptr));
+		PVK_CLEANUP(m_ImageView, vkDestroyImageView(PVKInstance::GetDevice(), m_ImageView, nullptr));
 	}
 
 }

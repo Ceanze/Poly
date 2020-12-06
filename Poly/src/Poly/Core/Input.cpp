@@ -5,83 +5,83 @@
 
 namespace Poly
 {
-	glm::vec2 Input::mouseDelta = { 0.f, 0.f };
-	std::unordered_map<int, Input::KeyState> Input::keys;
+	glm::vec2 Input::s_MouseDelta = { 0.f, 0.f };
+	std::unordered_map<int, Input::KeyState> Input::s_Keys;
 	ENABLE_BITMASK_OPERATORS(Input::KeyState);
 
-	void Input::setKeyPressed(int key)
+	void Input::SetKeyPressed(int key)
 	{
-		auto& keyIt = keys.find(key);
-		if (keyIt == keys.end())
-			keys[key] = KeyState::PRESSED | KeyState::TOGGLED;
+		auto keyIt = s_Keys.find(key);
+		if (keyIt == s_Keys.end())
+			s_Keys[key] = KeyState::PRESSED | KeyState::TOGGLED;
 		else {
-			keys[key] |= KeyState::PRESSED;
-			keys[key] &= ~KeyState::RELEASED;
-			keys[key] ^= KeyState::TOGGLED;
+			s_Keys[key] |= KeyState::PRESSED;
+			s_Keys[key] &= ~KeyState::RELEASED;
+			s_Keys[key] ^= KeyState::TOGGLED;
 		}
 	}
 
-	void Input::setKeyReleased(int key)
+	void Input::SetKeyReleased(int key)
 	{
-		auto& keyIt = keys.find(key);
-		if (keyIt == keys.end())
-			keys[key] = KeyState::RELEASED;
+		auto keyIt = s_Keys.find(key);
+		if (keyIt == s_Keys.end())
+			s_Keys[key] = KeyState::RELEASED;
 		else {
-			keys[key] |= KeyState::RELEASED;
-			keys[key] &= ~KeyState::PRESSED;
+			s_Keys[key] |= KeyState::RELEASED;
+			s_Keys[key] &= ~KeyState::PRESSED;
 		}
 	}
 
-	void Input::setMouseDelta(double x, double y)
+	void Input::SetMouseDelta(double x, double y)
 	{
-		mouseDelta.x = x;
-		mouseDelta.y = y;
+		s_MouseDelta.x = x;
+		s_MouseDelta.y = y;
 	}
 
-	bool Input::isKeyPressed(int key)
+	bool Input::IsKeyPressed(int key)
 	{
-		return isKey(key, KeyState::PRESSED);
+		return IsKey(key, KeyState::PRESSED);
 	}
 
-	bool Input::isKeyReleased(int key)
+	bool Input::IsKeyReleased(int key)
 	{
-		return isKey(key, KeyState::RELEASED);
+		return IsKey(key, KeyState::RELEASED);
 	}
 
-	bool Input::isKeyToggled(int key)
+	bool Input::IsKeyToggled(int key)
 	{
-		return isKey(key, KeyState::TOGGLED);
+		return IsKey(key, KeyState::TOGGLED);
 	}
 
-	bool Input::isKey(int key, KeyState keyState)
+	bool Input::IsKey(int key, KeyState keyState)
 	{
-		auto& keyIt = keys.find(key);
-		if (keyIt == keys.end())
+		auto keyIt = s_Keys.find(key);
+		if (keyIt == s_Keys.end())
 			return false;
 		else
-			return (keys[key] & keyState) == keyState;
+			return (s_Keys[key] & keyState) == keyState;
 	}
 
-	Input::KeyState Input::getKeyState(int key)
+	Input::KeyState Input::GetKeyState(int key)
 	{
-		auto& keyIt = keys.find(key);
-		if (keyIt == keys.end())
+		auto keyIt = s_Keys.find(key);
+		if (keyIt == s_Keys.end())
 			return KeyState::NONE;
 		else
-			return keys[key];
+			return s_Keys[key];
 	}
 
-	glm::vec2 Input::getMouseDelta()
+	glm::vec2 Input::GetMouseDelta()
 	{
-		glm::vec2 md(mouseDelta);
-		mouseDelta = { 0.f, 0.f };
+		glm::vec2 md(s_MouseDelta);
+		s_MouseDelta = { 0.f, 0.f };
 		return md;
 	}
 
-	void Input::reset()
+	void Input::Reset()
 	{
-		mouseDelta = { 0.f, 0.f };
-		for (auto& key : keys)
+		s_MouseDelta = { 0.f, 0.f };
+		for (auto& key : s_Keys)
 			key.second = KeyState::NONE;
 	}
 

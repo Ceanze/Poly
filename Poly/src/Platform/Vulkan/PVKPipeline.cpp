@@ -13,10 +13,7 @@
 namespace Poly
 {
 
-	PVKPipeline::PVKPipeline() :
-		swapChain(nullptr),
-		pipeline(VK_NULL_HANDLE), pipelineLayout(VK_NULL_HANDLE),
-		renderPass(nullptr), shader(nullptr), pipelineType(VK_PIPELINE_BIND_POINT_GRAPHICS), descriptor(nullptr)
+	PVKPipeline::PVKPipeline()
 	{
 	}
 
@@ -24,54 +21,54 @@ namespace Poly
 	{
 	}
 
-	void PVKPipeline::init(PVKSwapChain& swapChain, PVKShader& shader, PVKRenderPass& renderPass)
+	void PVKPipeline::Init(PVKSwapChain& swapChain, PVKShader& shader, PVKRenderPass& renderPass)
 	{
-		this->swapChain = &swapChain;
-		this->renderPass = &renderPass;
+		m_pSwapChain = &swapChain;
+		m_pRenderPass = &renderPass;
 
-		this->shader = &shader;
+		m_pShader = &shader;
 
-		createPipeline();
+		CreatePipeline();
 	}
 
-	void PVKPipeline::cleanup()
+	void PVKPipeline::Cleanup()
 	{
-		vkDestroyPipeline(PVKInstance::getDevice(), this->pipeline, nullptr);
-		vkDestroyPipelineLayout(PVKInstance::getDevice(), this->pipelineLayout, nullptr);
+		vkDestroyPipeline(PVKInstance::GetDevice(), m_Pipeline, nullptr);
+		vkDestroyPipelineLayout(PVKInstance::GetDevice(), m_PipelineLayout, nullptr);
 	}
 
-	void PVKPipeline::addVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format)
+	void PVKPipeline::AddVertexDescriptions(uint32_t binding, uint32_t location, uint32_t stride, VkFormat format)
 	{
 		VkVertexInputBindingDescription bindingDesc = {};
 		bindingDesc.binding = binding;
 		bindingDesc.stride = stride;
 		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		this->vertexBinding.push_back(bindingDesc);
+		m_VertexBinding.push_back(bindingDesc);
 
 		VkVertexInputAttributeDescription attribDesc = {};
 		attribDesc.binding = binding;
 		attribDesc.location = location;
 		attribDesc.format = format;
 		attribDesc.offset = 0;
-		this->vertexAttributes.push_back(attribDesc);
+		m_VertexAttributes.push_back(attribDesc);
 	}
 
-	void PVKPipeline::setDescriptor(PVKDescriptor& descriptor)
+	void PVKPipeline::SetDescriptor(PVKDescriptor& descriptor)
 	{
-		this->descriptor = &descriptor;
+		m_pDescriptor = &descriptor;
 	}
 
-	void PVKPipeline::createPipeline()
+	void PVKPipeline::CreatePipeline()
 	{
-		VkExtent2D extent = this->swapChain->getExtent();
+		VkExtent2D extent = m_pSwapChain->GetExtent();
 
 		// Vertexbuffer attribute info
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(this->vertexBinding.size());
-		vertexInputInfo.pVertexBindingDescriptions = this->vertexBinding.data();
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(this->vertexAttributes.size());
-		vertexInputInfo.pVertexAttributeDescriptions = this->vertexAttributes.data();
+		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(m_VertexBinding.size());
+		vertexInputInfo.pVertexBindingDescriptions = m_VertexBinding.data();
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(m_VertexAttributes.size());
+		vertexInputInfo.pVertexAttributeDescriptions = m_VertexAttributes.data();
 
 		// Topology info (how to draw the triangles)
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -160,7 +157,7 @@ namespace Poly
 		dynamicState.pDynamicStates = dynamicStates;
 
 		// Pipeline layout, specifies uniforms and push layouts to the shaders
-		auto& setLayouts = this->descriptor->getSetLayouts();
+		auto setLayouts = m_pDescriptor->GetSetLayouts();
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = setLayouts.size(); // Optional
@@ -169,12 +166,12 @@ namespace Poly
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 		// Create pipeline layout, the description of all the fixed-function stages
-		PVK_CHECK(vkCreatePipelineLayout(PVKInstance::getDevice(), &pipelineLayoutInfo, nullptr, &this->pipelineLayout), "Failed to create pipeline layout!");
+		PVK_CHECK(vkCreatePipelineLayout(PVKInstance::GetDevice(), &pipelineLayoutInfo, nullptr, &m_PipelineLayout), "Failed to create pipeline layout!");
 
 		// Pipeline creation info
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		std::vector<VkPipelineShaderStageCreateInfo> infos = this->shader->getShaderCreateInfos();
+		std::vector<VkPipelineShaderStageCreateInfo> infos = m_pShader->GetShaderCreateInfos();
 		pipelineInfo.stageCount = infos.size();
 		pipelineInfo.pStages = infos.data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -185,8 +182,8 @@ namespace Poly
 		pipelineInfo.pDepthStencilState = nullptr; // Optional
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = nullptr; // Optional
-		pipelineInfo.layout = this->pipelineLayout;
-		pipelineInfo.renderPass = this->renderPass->getNative();
+		pipelineInfo.layout = m_PipelineLayout;
+		pipelineInfo.renderPass = m_pRenderPass->GetNative();
 		pipelineInfo.subpass = 0;
 		// When creating new pipelines, change basePipelineHandle OR basePipelineIndex, two different apporaches!
 		// These will only work when "VK_PIPELINE_CREATE_DERIVATIVE_BIT" is set in 'flags' of VkGraphicsPiplineCreateInfo
@@ -195,9 +192,9 @@ namespace Poly
 
 		// Create the pipeline (function can create multiple pipelines at the same time)
 		// The nullptr is a reference to a VkPipelineCache which can speed up creation performance if used
-		PVK_CHECK(vkCreateGraphicsPipelines(PVKInstance::getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->pipeline), "Failed to create graphics pipeline!");
+		PVK_CHECK(vkCreateGraphicsPipelines(PVKInstance::GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline), "Failed to create graphics pipeline!");
 
-		this->pipelineType = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		m_PipelineType = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	}
 
 }

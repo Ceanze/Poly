@@ -33,32 +33,32 @@ public:
 
 		// Poly::Model model = Poly::Model::create(modelPath);
 
-		Poly::RendererAPI::create(Poly::BackendAPI::VULKAN);
-		Poly::RendererAPI::createRenderer(Poly::Renderer::TEST);
-		this->camera = new Poly::Camera();
-		this->camera->setAspect(1280.f / 720.f);
-		this->camera->setMouseSense(3.f);
+		Poly::RendererAPI::Create(Poly::BackendAPI::VULKAN);
+		Poly::RendererAPI::CreateRenderer(Poly::Renderer::TEST);
+		pCamera = new Poly::Camera();
+		pCamera->SetAspect(1280.f / 720.f);
+		pCamera->SetMouseSense(3.f);
 		
-		Poly::RendererAPI::setActiveCamera(this->camera);
+		Poly::RendererAPI::SetActiveCamera(pCamera);
 
-		Poly::RendererAPI::init(1280, 720);
+		Poly::RendererAPI::Init(1280, 720);
 	};
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
 		//POLY_INFO("Testlayer update!");
-		this->camera->update(dt);
-		Poly::RendererAPI::beginScene();
-		Poly::RendererAPI::endScene();
+		pCamera->Update(dt);
+		Poly::RendererAPI::BeginScene();
+		Poly::RendererAPI::EndScene();
 	};
 
 	void OnDetach() override
 	{
-		delete this->camera;
+		delete pCamera;
 	}
 
 private:
-	Poly::Camera* camera = nullptr;
+	Poly::Camera* pCamera = nullptr;
 };
 
 class Sandbox : public Poly::Application
@@ -71,7 +71,7 @@ public:
 
 	~Sandbox()
 	{
-		Poly::RendererAPI::shutdown();
+		Poly::RendererAPI::Shutdown();
 	}
 };
 

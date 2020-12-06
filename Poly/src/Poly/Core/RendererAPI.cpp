@@ -4,66 +4,66 @@
 
 namespace Poly
 {
-	IPlatformRenderer* RendererAPI::renderer = nullptr;
-	BackendAPI RendererAPI::api = BackendAPI::NONE;
+	IPlatformRenderer* RendererAPI::s_pRenderer = nullptr;
+	BackendAPI RendererAPI::s_API = BackendAPI::NONE;
 
-	void RendererAPI::create(BackendAPI backend)
+	void RendererAPI::Create(BackendAPI backend)
 	{
-		api = backend;
+		s_API = backend;
 		switch (backend)
 		{
 		case BackendAPI::VULKAN:
-			renderer = new VulkanRenderer();
+			s_pRenderer = new VulkanRenderer();
 			break;
 		default:
 			POLY_CORE_FATAL("Only Vulkan renderer is currently supported!");
 		}
 	}
 
-	void RendererAPI::createRenderer(Renderer subRenderer)
+	void RendererAPI::CreateRenderer(Renderer subRenderer)
 	{
-		renderer->createRenderer(subRenderer);
+		s_pRenderer->CreateRenderer(subRenderer);
 	}
 
-	void RendererAPI::setActiveCamera(Camera* camera)
+	void RendererAPI::SetActiveCamera(Camera* pCamera)
 	{
-		renderer->setActiveCamera(camera);
+		s_pRenderer->SetActiveCamera(pCamera);
 	}
 
-	void RendererAPI::init(uint32_t width, uint32_t height)
+	void RendererAPI::Init(uint32_t width, uint32_t height)
 	{
-		renderer->init(width, height);
+		s_pRenderer->Init(width, height);
 	}
 
-	void RendererAPI::beginScene()
+	void RendererAPI::BeginScene()
 	{
-		renderer->beginScene();
+		s_pRenderer->BeginScene();
 	}
 
-	void RendererAPI::endScene()
+	void RendererAPI::EndScene()
 	{
-		renderer->endScene();
+		s_pRenderer->EndScene();
 	}
 
-	void RendererAPI::setWinTitle(const char* title)
+	void RendererAPI::SetWinTitle(const char* title)
 	{
-		//renderer->setWinTitle(title);
+		//s_pRenderer->setWinTitle(title);
 	}
 
-	void RendererAPI::setClearColor(float r, float g, float b, float a)
+	void RendererAPI::SetClearColor(float r, float g, float b, float a)
 	{
-		//renderer->setClearColor(r, g, b, a);
+		//s_pRenderer->setClearColor(r, g, b, a);
 	}
 
-	void RendererAPI::shutdown()
+	void RendererAPI::Shutdown()
 	{
-		renderer->shutdown();
-		delete renderer;
+		s_pRenderer->Shutdown();
+		delete s_pRenderer;
 	}
 
-	BackendAPI RendererAPI::getAPI()
+	BackendAPI RendererAPI::GetAPI()
 	{
-		return api;
+		return s_API;
 	}
 
 }

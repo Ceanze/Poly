@@ -15,44 +15,44 @@ namespace Poly
 		VulkanRenderer() = default;
 		virtual ~VulkanRenderer() = default;
 
-		virtual void init(uint32_t width, uint32_t height) override;
-		virtual void beginScene() override;
-		virtual void draw(Model * model) override; // More draws will be created in the future as overloads
-		virtual void endScene() override;
-		virtual void shutdown() override;
+		virtual void Init(uint32_t width, uint32_t height) override;
+		virtual void BeginScene() override;
+		virtual void Draw(Model * model) override; // More draws will be created in the future as overloads
+		virtual void EndScene() override;
+		virtual void Shutdown() override;
 
-		virtual void createRenderer(Renderer subRenderer) override;
-		virtual VertexBuffer* createVertexBuffer() override { return nullptr; };
-		virtual IndexBuffer* createIndexBuffer() override { return nullptr; };
-		virtual UniformBuffer* createUniformBuffer() override { return nullptr; };
-		virtual StorageBuffer* createStorageBuffer() override { return nullptr; };
-		virtual Texture* createTexture() override { return nullptr; };
+		virtual void CreateRenderer(Renderer subRenderer) override;
+		virtual VertexBuffer* CreateVertexBuffer() override { return nullptr; };
+		virtual IndexBuffer* CreateIndexBuffer() override { return nullptr; };
+		virtual UniformBuffer* CreateUniformBuffer() override { return nullptr; };
+		virtual StorageBuffer* CreateStorageBuffer() override { return nullptr; };
+		virtual Texture* CreateTexture() override { return nullptr; };
 
 		// Adds command buffer to be submitted for this frame
-		void addCommandBuffer(QueueType queueType, PVKCommandBuffer* buffer);
+		void AddCommandBuffer(QueueType queueType, PVKCommandBuffer* pBuffer);
 
-		PVKSwapChain* getSwapChain() { return &this->swapChain; }
+		PVKSwapChain* GetSwapChain() { return &m_SwapChain; }
 
 	private:
-		void createSyncObjects();
+		void CreateSyncObjects();
 
-		Window* window = nullptr;
+		Window* m_pWindow = nullptr;
 
 		// General vulkan
-		PVKSwapChain swapChain;
-		std::vector<PVKCommandBuffer*> graphicsBuffers; // Only for current frame
-		uint32_t imageIndex = 0;
+		PVKSwapChain m_SwapChain;
+		std::vector<PVKCommandBuffer*> m_GraphicsBuffers; // Only for current frame
+		uint32_t m_ImageIndex = 0;
 
 		// Sync
-		std::vector<VkSemaphore> imageAvailableSemaphores;
-		std::vector<VkSemaphore> renderFinishedSemaphores;
-		std::vector<VkFence> inFlightFences;
-		std::vector<VkFence> imagesInFlight;
-		size_t currentFrame = 0;
+		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+		std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+		std::vector<VkFence> m_InFlightFences;
+		std::vector<VkFence> m_ImagesInFlight;
+		size_t m_CurrentFrame = 0;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 
 		// Renderers
-		std::vector<IRenderer*> subRenderers;
+		std::vector<IRenderer*> m_SubRenderers;
 	};
 
 }

@@ -3,8 +3,6 @@
 #include "polypch.h"
 #include "PVKTypes.h"
 
-#include <vulkan/vulkan.h>
-
 namespace Poly
 {
 	class PVKBuffer;
@@ -16,19 +14,19 @@ namespace Poly
 		PVKMemory();
 		~PVKMemory();
 
-		void init(MemoryPropery memProp);
-		void cleanup();
+		void Init(MemoryPropery memProp);
+		void Cleanup();
 
-		void bindBuffer(PVKBuffer& buffer);
-		void bindTexture(PVKTexture& texture);
-		void directTransfer(PVKBuffer& buffer, const void* data, uint64_t size, uint64_t bufferOffset);
+		void BindBuffer(PVKBuffer& buffer);
+		void BindTexture(PVKTexture& texture);
+		void DirectTransfer(PVKBuffer& buffer, const void* pData, uint64_t size, uint64_t bufferOffset);
 
-		VkDeviceMemory getNative() { return this->memory; }
+		VkDeviceMemory GetNative() { return m_Memory; }
 
 	private:
-		VkDeviceMemory memory;
-		std::unordered_map<PVKBuffer*, uint64_t> bufferOffsets;
-		std::unordered_map<PVKTexture*, uint64_t> textureOffsets;
-		uint64_t currentOffset;
+		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+		std::unordered_map<PVKBuffer*, uint64_t> m_BufferOffsets;
+		std::unordered_map<PVKTexture*, uint64_t> m_TextureOffsets;
+		uint64_t m_CurrentOffset = 0;
 	};
 }

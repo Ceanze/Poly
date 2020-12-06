@@ -16,18 +16,18 @@ namespace Poly
 		PVKRenderPass();
 		~PVKRenderPass();
 
-		void init(PVKSwapChain& swapChain);
-		void cleanup();
+		void Init(PVKSwapChain& swapChain);
+		void Cleanup();
 
-		void addSubpassDependency(VkSubpassDependency dep);
+		void AddSubpassDependency(VkSubpassDependency dep);
 
-		VkRenderPass getNative() { return this->renderPass; };
+		VkRenderPass GetNative() { return m_RenderPass; };
 
 	private:
-		VkFormat imageFormat;
-		VkRenderPass renderPass;
+		VkFormat m_ImageFormat		= VK_FORMAT_UNDEFINED;
+		VkRenderPass m_RenderPass		= VK_NULL_HANDLE;
 
-		std::vector<VkSubpassDependency> subpassDependencies;
+		std::vector<VkSubpassDependency> m_SubpassDependencies;
 	};
 
 }

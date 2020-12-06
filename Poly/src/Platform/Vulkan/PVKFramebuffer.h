@@ -13,12 +13,12 @@ namespace Poly
 		PVKFramebuffer();
 		~PVKFramebuffer();
 
-		void init(PVKSwapChain& swapChain, PVKRenderPass& renderPass, VkImageView attachment);
-		void cleanup();
+		void Init(PVKSwapChain& swapChain, PVKRenderPass& renderPass, VkImageView attachment);
+		void Cleanup();
 
-		VkFramebuffer getNative() const { return this->framebuffer; }
+		VkFramebuffer GetNative() const { return m_Framebuffer; }
 
 	private:
-		VkFramebuffer framebuffer;
+		VkFramebuffer m_Framebuffer = VK_NULL_HANDLE;
 	};
 }

@@ -10,7 +10,7 @@
 #define PVK_CHECK(F, ...) if(F != VK_SUCCESS) { POLY_CORE_ERROR(__VA_ARGS__); assert(F); }
 
 // Cleanup of vectors of PVK types
-#define PVK_VEC_CLEANUP(V) for (auto& e : V) { e.cleanup(); }
+#define PVK_VEC_CLEANUP(V) for (auto& e : V) { e.Cleanup(); }
 
 // Safe cleanup of PVK types
 #define PVK_CLEANUP(handle, func) if (handle != VK_NULL_HANDLE) { func; }
