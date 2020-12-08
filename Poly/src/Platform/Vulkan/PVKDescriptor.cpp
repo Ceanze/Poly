@@ -78,7 +78,7 @@ namespace Poly
 		uint32_t numCopies = m_DescriptorSets[set].size();
 		for (uint32_t i = 0; i < numCopies; i++) {
 			VkDescriptorBufferInfo bufferInfo = {};
-			bufferInfo.buffer = buffer.GetNative();
+			bufferInfo.buffer = buffer.GetNativeVK();
 			bufferInfo.offset = offset;
 			bufferInfo.range = range;
 
@@ -102,7 +102,7 @@ namespace Poly
 	void PVKDescriptor::UpdateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = buffer.GetNative();
+		bufferInfo.buffer = buffer.GetNativeVK();
 		bufferInfo.offset = offset;
 		bufferInfo.range = range;
 

@@ -36,6 +36,11 @@ namespace Poly
 		PVK_CHECK(vmaCreateBuffer(PVKInstance::GetAllocator(), &createInfo, &allocInfo, &m_Buffer, &m_VmaAllocation, nullptr), "Failed to create buffer using VMA");
 	}
 
+	void PVKBuffer::Init(const BufferDesc* pDesc)
+	{
+
+	}
+
 	void PVKBuffer::Cleanup()
 	{
 		if (m_Mapped)
@@ -65,22 +70,34 @@ namespace Poly
 		m_Mapped = false;
 	}
 
-	VkBuffer PVKBuffer::GetNative() const
+	VkDeviceSize PVKBuffer::GetSize() const
+	{
+		return m_Size;
+	}
+
+	uint64_t PVKBuffer::GetAlignment()	const
+	{
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(PVKInstance::GetDevice(), m_Buffer, &memRequirements);
+
+		return memRequirements.alignment;
+	}
+
+	uint64_t PVKBuffer::GetNative() const
+	{
+		return reinterpret_cast<uint64_t>(m_Buffer);
+	}
+
+	VkBuffer PVKBuffer::GetNativeVK() const
 	{
 		return m_Buffer;
 	}
 
-	VkMemoryRequirements PVKBuffer::GetMemReq() const
+	VkMemoryRequirements PVKBuffer::GetMemoryRequirements() const
 	{
 		VkMemoryRequirements memRequirements;
 		vkGetBufferMemoryRequirements(PVKInstance::GetDevice(), m_Buffer, &memRequirements);
 
 		return memRequirements;
 	}
-
-	VkDeviceSize PVKBuffer::GetSize() const
-	{
-		return m_Size;
-	}
-
 }

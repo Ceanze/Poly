@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "PVKTypes.h"
+#include "Platform/API/GraphicsInstance.h"
 
 #include "VmaInclude.h"
 
@@ -15,7 +16,7 @@ namespace Poly
 		that are created for that instance.
 	*/
 
-	class PVKInstance
+	class PVKInstance : public GraphicsInstance
 	{
 	public:
 		PVKInstance();
@@ -25,6 +26,11 @@ namespace Poly
 
 		void Init(Window* window);
 		void Cleanup();
+
+		/*
+		* GraphicsInstance functions
+		*/
+		virtual Ref<Buffer> CreateBuffer(const BufferDesc* pDesc) override final;
 
 		// Sets how many queues should be created for that queue type. Must be called before init.
 		// Default queue count per queue is 1. If the requested queue count is higher than the available, the
@@ -81,7 +87,7 @@ namespace Poly
 		static VkInstance			s_Instance;
 		static VkPhysicalDevice		s_PhysicalDevice;
 		static VkDevice				s_Device;
-		static PVKQueue				s_PresentQueue; // Should maybe be in the queue map
+		static PVKQueue				s_PresentQueue; // TODO: Should maybe be in the queue map
 		static VkSurfaceKHR			s_Surface;
 		static uint32_t				s_GraphicsQueueCount;
 		static uint32_t				s_ComputeQueueCount;

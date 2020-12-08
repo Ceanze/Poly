@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+// API Specific objects
+#include "PVKBuffer.h"
 
 namespace Poly
 {
@@ -50,6 +52,8 @@ namespace Poly
 
 	void PVKInstance::Cleanup()
 	{
+		vkDeviceWaitIdle(s_Device);
+
 		vkDestroySurfaceKHR(s_Instance, s_Surface, nullptr);
 
 		if (m_EnableValidationLayers)
@@ -59,6 +63,18 @@ namespace Poly
 
 		vkDestroyDevice(s_Device, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);
+	}
+
+	/*
+	* GraphicsInstance functions
+	*/
+	Ref<Buffer> PVKInstance::CreateBuffer(const BufferDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "BufferDesc cannot be nullptr!");
+
+		Ref<PVKBuffer> pBuffer = CreateRef<PVKBuffer>();
+		pBuffer->Init(pDesc);
+		return pBuffer;
 	}
 
 	void PVKInstance::SetQueueCount(QueueType queue, uint32_t count)

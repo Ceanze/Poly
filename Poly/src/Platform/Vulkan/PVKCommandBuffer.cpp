@@ -80,12 +80,12 @@ namespace Poly
 
 	void PVKCommandBuffer::CopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions)
 	{
-		vkCmdCopyBufferToImage(m_Buffer, buffer.GetNative(), image, layout, regions.size(), regions.data());
+		vkCmdCopyBufferToImage(m_Buffer, buffer.GetNativeVK(), image, layout, regions.size(), regions.data());
 	}
 
 	void PVKCommandBuffer::CopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions)
 	{
-		vkCmdCopyBufferToImage(m_Buffer, buffer.GetNative(), image.GetNative(), image.GetLayout(), regions.size(), regions.data());
+		vkCmdCopyBufferToImage(m_Buffer, buffer.GetNativeVK(), image.GetNative(), image.GetLayout(), regions.size(), regions.data());
 	}
 
 	void PVKCommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)

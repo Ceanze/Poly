@@ -22,7 +22,7 @@ namespace Poly
 
 		uint32_t typeFilter = 0;
 		for (auto buffer : m_BufferOffsets)
-			typeFilter |= buffer.first->GetMemReq().memoryTypeBits;
+			typeFilter |= buffer.first->GetMemoryRequirements().memoryTypeBits;
 		for (auto texture : m_TextureOffsets)
 			typeFilter |= texture.first->GetMemoryRequirements().memoryTypeBits;
 
@@ -36,7 +36,7 @@ namespace Poly
 		PVK_CHECK(vkAllocateMemory(PVKInstance::GetDevice(), &allocInfo, nullptr, &m_Memory), "Failed to allocate memory!");
 
 		for (auto buffer : m_BufferOffsets)
-			PVK_CHECK(vkBindBufferMemory(PVKInstance::GetDevice(), buffer.first->GetNative(), m_Memory, buffer.second), "Failed to bind buffer memory!");
+			PVK_CHECK(vkBindBufferMemory(PVKInstance::GetDevice(), buffer.first->GetNativeVK(), m_Memory, buffer.second), "Failed to bind buffer memory!");
 
 		for (auto texture : m_TextureOffsets)
 			PVK_CHECK(vkBindImageMemory(PVKInstance::GetDevice(), texture.first->GetImage().GetNative(), m_Memory, texture.second), "Failed to bind image memory!");
@@ -50,7 +50,7 @@ namespace Poly
 	void PVKMemory::BindBuffer(PVKBuffer& buffer)
 	{
 		m_BufferOffsets[&buffer] = m_CurrentOffset;
-		m_CurrentOffset += static_cast<uint64_t>(buffer.GetMemReq().size);
+		m_CurrentOffset += static_cast<uint64_t>(buffer.GetMemoryRequirements().size);
 	}
 
 	void PVKMemory::BindTexture(PVKTexture& texture)
