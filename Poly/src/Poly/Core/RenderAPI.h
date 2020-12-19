@@ -19,7 +19,7 @@ namespace Poly
 	class RenderAPI
 	{
 	public:
-		CLASS_STATIC_CLASS(RenderAPI);
+		CLASS_STATIC(RenderAPI);
 
 		static void Init();
 		static void Release();

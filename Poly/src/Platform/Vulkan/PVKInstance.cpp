@@ -175,7 +175,7 @@ namespace Poly
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Poly";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_0;
+		appInfo.apiVersion = VK_API_VERSION_1_2;
 
 		// Create info for instance creation
 		VkInstanceCreateInfo createInfo = {};
@@ -286,6 +286,7 @@ namespace Poly
 
 	void PVKInstance::SetOptimalDevice(const std::vector<VkPhysicalDevice>& devices)
 	{
+		std::string pickedDeviceName;
 		unsigned bestScore = 0;
 		for (auto d : devices)
 		{
@@ -314,8 +315,11 @@ namespace Poly
 			if (score > bestScore && findQueueFamilies(d, s_Surface).isComplete() && deviceFeatures.samplerAnisotropy) {
 				bestScore = score;
 				s_PhysicalDevice = d;
+				pickedDeviceName = deviceProperties.deviceName;
 			}
 		}
+
+		POLY_CORE_INFO("Picked device: {}", pickedDeviceName);
 	}
 
 	void PVKInstance::CreateLogicalDevice()

@@ -4,6 +4,9 @@
     <Filter Include="Platform">
       <UniqueIdentifier>{2AC788B4-1694-E3BF-3FAD-D1672BD9184E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Platform\API">
+      <UniqueIdentifier>{1331A7CC-FF93-3671-A819-6F27945B02F4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Platform\Common">
       <UniqueIdentifier>{22E12001-8E6C-8EC5-977D-11BA0388EAC5}</UniqueIdentifier>
     </Filter>
@@ -36,6 +39,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\API\Buffer.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\GraphicsInstance.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Common\IPlatformRenderer.h">
       <Filter>Platform\Common</Filter>
     </ClInclude>
@@ -134,6 +143,9 @@
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Core\PolyUtils.h">
+      <Filter>Poly\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Poly\Core\RenderAPI.h">
       <Filter>Poly\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Poly\Core\RendererAPI.h">
@@ -248,6 +260,9 @@
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\Logger.cpp">
+      <Filter>Poly\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Poly\Core\RenderAPI.cpp">
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Core\RendererAPI.cpp">
