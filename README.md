@@ -9,6 +9,7 @@ The general purpose of this project is to learn even more about Vulkan and on ho
   - GLSL online compiler
   
 ## Currently planned features
+  - Abstracted graphics layer for Vulkan with possible support for others (OpenGL, DirectX 11) in the future.
   - Simple render graph implementation (for the moment only the bare minimum to allow synchronization is planned)
   
 ## Code standard
