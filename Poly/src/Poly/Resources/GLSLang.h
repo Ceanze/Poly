@@ -10,24 +10,24 @@
 namespace Poly
 {
 
-	inline EShLanguage ConvertShaderStageGLSLang(ShaderStage shaderStage)
+	inline EShLanguage ConvertShaderStageGLSLang(FShaderStage shaderStage)
 	{
 		switch (shaderStage)
 		{
-		case ShaderStage::VERTEX:					return EShLangVertex;
-		case ShaderStage::FRAGMENT:					return EShLangFragment;
-		case ShaderStage::COMPUTE:					return EShLangCompute;
-		case ShaderStage::TESSELLATION_CONTROL:		return EShLangTessControl;
-		case ShaderStage::TESSELLATION_EVALUATION:	return EShLangTessEvaluation;
-		case ShaderStage::GEOMETRY:					return EShLangGeometry;
-		case ShaderStage::RAYGEN:					return EShLangRayGen;
-		case ShaderStage::ANY_HIT:					return EShLangAnyHit;
-		case ShaderStage::CLOSEST_HIT:				return EShLangClosestHit;
-		case ShaderStage::MISS:						return EShLangMiss;
-		case ShaderStage::INTERSECTION:				return EShLangIntersect;
-		case ShaderStage::CALLABLE:					return EShLangCallable;
-		case ShaderStage::TASK:						return EShLangTaskNV;
-		case ShaderStage::MESH:						return EShLangMeshNV;
+		case FShaderStage::VERTEX:					return EShLangVertex;
+		case FShaderStage::FRAGMENT:				return EShLangFragment;
+		case FShaderStage::COMPUTE:					return EShLangCompute;
+		case FShaderStage::TESSELLATION_CONTROL:	return EShLangTessControl;
+		case FShaderStage::TESSELLATION_EVALUATION:	return EShLangTessEvaluation;
+		case FShaderStage::GEOMETRY:				return EShLangGeometry;
+		case FShaderStage::RAYGEN:					return EShLangRayGen;
+		case FShaderStage::ANY_HIT:					return EShLangAnyHit;
+		case FShaderStage::CLOSEST_HIT:				return EShLangClosestHit;
+		case FShaderStage::MISS:					return EShLangMiss;
+		case FShaderStage::INTERSECTION:			return EShLangIntersect;
+		case FShaderStage::CALLABLE:				return EShLangCallable;
+		case FShaderStage::TASK:					return EShLangTaskNV;
+		case FShaderStage::MESH:					return EShLangMeshNV;
 		default:									return EShLangCount;
 		}
 	}

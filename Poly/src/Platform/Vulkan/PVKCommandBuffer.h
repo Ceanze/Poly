@@ -15,7 +15,7 @@ namespace Poly
 	class PVKFramebuffer;
 	class PVKDescriptor;
 	class PVKBuffer;
-	class PVKImage;
+	class PVKTexture;
 
 	class PVKCommandBuffer
 	{
@@ -32,11 +32,10 @@ namespace Poly
 
 		// Commands for recording
 		void Begin(VkCommandBufferUsageFlags flags);
-		void BeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor);
-		void BindPipeline(PVKPipeline& pipeline);
-		void BindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex);
-		void CopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions);
-		void CopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions);
+		void BeginRenderPass(PVKRenderPass* renderPass, PVKFramebuffer* pFramebuffer, VkExtent2D extent, VkClearValue clearColor);
+		void BindPipeline(PVKPipeline* pipeline);
+		void BindDescriptor(PVKPipeline* pPipeline, PVKDescriptor* pDescriptor, uint32_t setCopyIndex);
+		void CopyBufferToImage(PVKBuffer* pBuffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions);
 		void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
 		void DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance);
 		void EndRenderPass();

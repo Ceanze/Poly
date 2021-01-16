@@ -18,7 +18,7 @@ namespace Poly
 		}
 	}
 
-	const std::vector<char> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, ShaderStage shaderStage)
+	const std::vector<char> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
 	{
 		if (!s_glslInit)
 		{

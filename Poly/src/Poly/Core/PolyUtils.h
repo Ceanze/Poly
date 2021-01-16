@@ -28,6 +28,14 @@ struct EnableBitMaskOperators
     static const bool enable = false;
 };
 
+#define FLAG_CHECK(Enum, trueCase) if (EnumCheck(Enum)) trueCase
+
+template<typename Enum>
+inline bool EnumCheck(Enum e)
+{
+    return static_cast<std::underlying_type<Enum>::type>(e) > 0;
+}
+
 template<typename Enum>
 typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator |(Enum lhs, Enum rhs)

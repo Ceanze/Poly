@@ -12,7 +12,6 @@
 #include "Platform/Vulkan/PVKCommandBuffer.h"
 #include "Platform/Vulkan/PVKDescriptor.h"
 #include "Platform/Vulkan/PVKBuffer.h"
-#include "Platform/Vulkan/PVKMemory.h"
 #include "Platform/Vulkan/PVKSampler.h"
 #include "Platform/Vulkan/PVKTexture.h"
 

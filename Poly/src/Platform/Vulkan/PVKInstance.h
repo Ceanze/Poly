@@ -22,10 +22,10 @@ namespace Poly
 		PVKInstance();
 		~PVKInstance();
 
-		static PVKInstance& Get();
+		static PVKInstance* Get();
 
-		void Init(Window* window);
-		void Cleanup();
+		virtual void Init(Window* pWindow) override final;
+		virtual void Cleanup() override final;
 
 		/*
 		* GraphicsInstance functions
@@ -46,6 +46,8 @@ namespace Poly
 		static VmaAllocator		GetAllocator() { return s_VmaAllocator; }
 
 	private:
+		inline static PVKInstance* s_PVKInstance = nullptr;
+
 		const std::vector<const char*> m_ValidationLayers = {
 			"VK_LAYER_KHRONOS_validation"
 		};

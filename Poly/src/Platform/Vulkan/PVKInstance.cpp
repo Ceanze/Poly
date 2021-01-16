@@ -31,23 +31,25 @@ namespace Poly
 	{
 	}
 
-	PVKInstance& PVKInstance::Get()
+	PVKInstance* PVKInstance::Get()
 	{
-		static PVKInstance i;
-		return i;
+		POLY_ASSERT(s_PVKInstance, "Cannot get PVKInstance before init has been called! Has RenderAPI Init been called?");
+		return s_PVKInstance;
 	}
 
-	void PVKInstance::Init(Window* window)
+	void PVKInstance::Init(Window* pWindow)
 	{
 		CreateInstance();
 		SetupDebugMessenger();
 
-		PVK_CHECK(glfwCreateWindowSurface(s_Instance, window->GetNative(), nullptr, &s_Surface), "Failed to create window surface!");
+		PVK_CHECK(glfwCreateWindowSurface(s_Instance, pWindow->GetNative(), nullptr, &s_Surface), "Failed to create window surface!");
 
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 
 		CreateVmaAllocator();
+
+		s_PVKInstance = this;
 	}
 
 	void PVKInstance::Cleanup()

@@ -7,7 +7,7 @@
 #include "PVKFramebuffer.h"
 #include "PVKDescriptor.h"
 #include "PVKBuffer.h"
-#include "PVKImage.h"
+#include "PVKTexture.h"
 
 namespace Poly
 {
@@ -52,12 +52,12 @@ namespace Poly
 		PVK_CHECK(vkBeginCommandBuffer(m_Buffer, &beginInfo), "Failed to begin recording command buffer!");
 	}
 
-	void PVKCommandBuffer::BeginRenderPass(PVKRenderPass& renderPass, PVKFramebuffer& framebuffer, VkExtent2D extent, VkClearValue clearColor)
+	void PVKCommandBuffer::BeginRenderPass(PVKRenderPass* pRenderPass, PVKFramebuffer* pFramebuffer, VkExtent2D extent, VkClearValue clearColor)
 	{
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass.GetNative();
-		renderPassInfo.framebuffer = framebuffer.GetNative();
+		renderPassInfo.renderPass = pRenderPass->GetNative();
+		renderPassInfo.framebuffer = pFramebuffer->GetNative();
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = extent;
 		renderPassInfo.clearValueCount = 1;
@@ -67,25 +67,20 @@ namespace Poly
 		vkCmdBeginRenderPass(m_Buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void PVKCommandBuffer::BindPipeline(PVKPipeline& pipeline)
+	void PVKCommandBuffer::BindPipeline(PVKPipeline* pPipeline)
 	{
-		vkCmdBindPipeline(m_Buffer, pipeline.GetType(), pipeline.GetNative());
+		vkCmdBindPipeline(m_Buffer, pPipeline->GetType(), pPipeline->GetNative());
 	}
 
-	void PVKCommandBuffer::BindDescriptor(PVKPipeline& pipeline, PVKDescriptor& descriptor, uint32_t setCopyIndex)
+	void PVKCommandBuffer::BindDescriptor(PVKPipeline* pPipeline, PVKDescriptor* pDescriptor, uint32_t setCopyIndex)
 	{
-		auto sets = descriptor.GetSets(setCopyIndex);
-		vkCmdBindDescriptorSets(m_Buffer, pipeline.GetType(), pipeline.GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
+		auto sets = pDescriptor->GetSets(setCopyIndex);
+		vkCmdBindDescriptorSets(m_Buffer, pPipeline->GetType(), pPipeline->GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
 	}
 
-	void PVKCommandBuffer::CopyBufferToImage(PVKBuffer& buffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions)
+	void PVKCommandBuffer::CopyBufferToImage(PVKBuffer* pBuffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions)
 	{
-		vkCmdCopyBufferToImage(m_Buffer, buffer.GetNativeVK(), image, layout, regions.size(), regions.data());
-	}
-
-	void PVKCommandBuffer::CopyBufferToImage(PVKBuffer& buffer, PVKImage& image, const std::vector<VkBufferImageCopy>& regions)
-	{
-		vkCmdCopyBufferToImage(m_Buffer, buffer.GetNativeVK(), image.GetNative(), image.GetLayout(), regions.size(), regions.data());
+		vkCmdCopyBufferToImage(m_Buffer, pBuffer->GetNativeVK(), image, layout, regions.size(), regions.data());
 	}
 
 	void PVKCommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)

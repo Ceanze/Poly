@@ -13,32 +13,23 @@ namespace Poly
 	{
 	}
 
-	void PVKBuffer::Init(VkDeviceSize size, BufferUsage usage, const std::vector<uint32_t>& queueFamilyIndices, VmaMemoryUsage memoryUsage)
+	void PVKBuffer::Init(const BufferDesc* pDesc)
 	{
-		m_Size = size;
+		p_BufferDesc = *pDesc;
 
 		VkBufferCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		createInfo.size = size;
-		createInfo.usage = (VkBufferUsageFlags)usage;
-
-		if (queueFamilyIndices.size() > 1)
-			createInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		else
-			createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(queueFamilyIndices.size());
-		createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+		createInfo.size = pDesc->Size;
+		createInfo.usage = ConvertBufferUsageVK(pDesc->BufferUsage);
+		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // Only one queue supported at a time for now
+		createInfo.queueFamilyIndexCount = 1;
+		createInfo.pQueueFamilyIndices = nullptr;
+		createInfo.pNext = nullptr;
 
 		VmaAllocationCreateInfo allocInfo = {};
-		allocInfo.usage = memoryUsage;
+		allocInfo.usage = ConvertMemoryUsageVMA(pDesc->MemUsage);
 
 		PVK_CHECK(vmaCreateBuffer(PVKInstance::GetAllocator(), &createInfo, &allocInfo, &m_Buffer, &m_VmaAllocation, nullptr), "Failed to create buffer using VMA");
-	}
-
-	void PVKBuffer::Init(const BufferDesc* pDesc)
-	{
-
 	}
 
 	void PVKBuffer::Cleanup()
@@ -72,7 +63,7 @@ namespace Poly
 
 	VkDeviceSize PVKBuffer::GetSize() const
 	{
-		return m_Size;
+		return p_BufferDesc.Size;
 	}
 
 	uint64_t PVKBuffer::GetAlignment()	const
@@ -91,13 +82,5 @@ namespace Poly
 	VkBuffer PVKBuffer::GetNativeVK() const
 	{
 		return m_Buffer;
-	}
-
-	VkMemoryRequirements PVKBuffer::GetMemoryRequirements() const
-	{
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(PVKInstance::GetDevice(), m_Buffer, &memRequirements);
-
-		return memRequirements;
 	}
 }

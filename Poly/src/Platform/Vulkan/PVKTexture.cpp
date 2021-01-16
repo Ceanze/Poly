@@ -9,61 +9,77 @@ namespace Poly
 	{
 	}
 
-	void PVKTexture::Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, uint32_t queueIndices, VmaMemoryUsage memoryUsage)
+	PVKTexture::~PVKTexture()
 	{
-		std::vector<uint32_t> vec = { queueIndices };
-		Init(width, height, format, usage, flags, arrayLayers, vec, memoryUsage);
+		PVK_CLEANUP(m_Image, vmaDestroyImage(PVKInstance::GetAllocator(), m_Image, m_Allocation));
+		PVK_CLEANUP(m_ImageView, vkDestroyImageView(PVKInstance::GetDevice(), m_ImageView, nullptr));
 	}
 
-	void PVKTexture::Init(uint32_t width, uint32_t height, ColorFormat format, ImageUsage usage, ImageCreate flags, uint32_t arrayLayers, const std::vector<uint32_t>& queueIndices, VmaMemoryUsage memoryUsage)
+	void PVKTexture::Init(const TextureDesc* pDesc)
 	{
-		m_Width = width;
-		m_Height = height;
-		m_Format = format;
-		m_Image.Init(width, height, format, usage, flags, arrayLayers, queueIndices, memoryUsage);
+		p_TextureDesc = *pDesc;
+
+		CreateImage();
+		CreateImageView();
 	}
 
-	void PVKTexture::InitView(ImageViewType type, ImageAspect aspect)
+	void PVKTexture::InitWithImage(const TextureDesc* pDesc, VkImage image)
 	{
-		m_ImageView.Init(m_Image.GetNative(), type, m_Format, aspect);
+		p_TextureDesc = *pDesc;
+
+		m_Image = image;
+		CreateImageView();
 	}
 
-	void PVKTexture::Cleanup()
+	void PVKTexture::CreateImage()
 	{
-		m_Image.Cleanup();
-		m_ImageView.Cleanup();
+		VkImageCreateInfo imageInfo = {};
+		imageInfo.sType					= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType				= ConvertTextureDimVK(p_TextureDesc.TextureDim);
+		imageInfo.extent.width			= p_TextureDesc.Width;
+		imageInfo.extent.height			= p_TextureDesc.Height;
+		imageInfo.extent.depth			= p_TextureDesc.Depth;
+		imageInfo.mipLevels				= p_TextureDesc.MipLevels;
+		imageInfo.arrayLayers			= p_TextureDesc.ArrayLayers;
+		imageInfo.format				= ConvertFormatVK(p_TextureDesc.Format);
+		//If you want to be able to directly access texels in the memory of the image, then you must use VK_IMAGE_TILING_LINEAR
+		imageInfo.tiling				= VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout			= VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage					= ConvertTextureUsageVK(p_TextureDesc.TextureUsage);
+		imageInfo.samples				= VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode			= VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.queueFamilyIndexCount	= 1;
+		imageInfo.pQueueFamilyIndices	= nullptr;
+		imageInfo.flags					= 0;
+
+		VmaAllocationCreateInfo allocInfo = {};
+		allocInfo.usage = ConvertMemoryUsageVMA(p_TextureDesc.MemoryUsage);
+		PVK_CHECK(vmaCreateImage(PVKInstance::GetAllocator(), &imageInfo, &allocInfo, &m_Image, &m_Allocation, nullptr), "Failed to create image using VMA!");
 	}
 
-	VkMemoryRequirements PVKTexture::GetMemoryRequirements() const
+	void PVKTexture::CreateImageView()
 	{
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(PVKInstance::GetDevice(), m_Image.GetNative(), &memRequirements);
+		VkImageViewCreateInfo createInfo = {};
+		createInfo.sType		= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.image		= m_Image;
+		createInfo.viewType		= ConvertImageViewTypeVK(p_TextureDesc.ImageViewType);
+		createInfo.format		= ConvertFormatVK(p_TextureDesc.Format);
+		createInfo.components.r	= VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g	= VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b	= VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a	= VK_COMPONENT_SWIZZLE_IDENTITY;
 
-		return memRequirements;
+		createInfo.subresourceRange.aspectMask = ConvertImageViewFlagsVK(p_TextureDesc.ImageViewFlags);
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		PVK_CHECK(vkCreateImageView(PVKInstance::GetDevice(), &createInfo, nullptr, &m_ImageView), "Failed to create image view!");
 	}
 
-	PVKTexture2D::PVKTexture2D(uint32_t width, uint32_t height)
+	uint64 PVKTexture::GetNative() const
 	{
-		// TODO: Make it possible to change usage and format
-		// Current implementation assumes a R8G8B8A8_UNORM format with a sampled usage
-		m_Image.Init(width, height, ColorFormat::R8G8B8A8_UNORM, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::GetQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
-		m_ImageView.Init(m_Image.GetNative(), ImageViewType::DIM_2, ColorFormat::R8G8B8A8_UNORM, ImageAspect::COLOR_BIT);
+		return reinterpret_cast<uint64>(m_Image);
 	}
-
-	PVKTexture2D::PVKTexture2D(const std::string& path)
-	{
-		// TODO: Read from file and create texture - need stbi
-		m_Path = path;
-	}
-
-	PVKTexture2D::~PVKTexture2D()
-	{
-		m_Image.Cleanup();
-		m_ImageView.Cleanup();
-	}
-
-	void PVKTexture2D::SetData(void* data, uint32_t size)
-	{
-	}
-
 }

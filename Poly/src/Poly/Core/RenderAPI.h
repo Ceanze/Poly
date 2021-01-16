@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.h"
+#include "Platform/API/GraphicsInstance.h"
 
 /*
 *	TODO: Convert PVKInstance to not be a static class for it to have an interface in which it inherits from.
@@ -16,14 +17,25 @@
 
 namespace Poly
 {
+	struct BufferDesc;
+
+	class Buffer;
+	class Window;
+
 	class RenderAPI
 	{
 	public:
+		enum class BackendAPI { VULKAN };
+
 		CLASS_STATIC(RenderAPI);
 
-		static void Init();
+		static void Init(BackendAPI backendAPI, Window* pWindow);
 		static void Release();
 
+		// Create functions
+		static Ref<Buffer> CreateBuffer(const BufferDesc* pDesc);
 
+	private:
+		inline static GraphicsInstance* m_pGraphicsInstance = nullptr;
 	};
 }

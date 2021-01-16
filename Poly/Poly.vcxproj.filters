@@ -45,6 +45,9 @@
     <ClInclude Include="src\Platform\API\GraphicsInstance.h">
       <Filter>Platform\API</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\API\Texture.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Common\IPlatformRenderer.h">
       <Filter>Platform\Common</Filter>
     </ClInclude>
@@ -66,16 +69,7 @@
     <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\PVKImage.h">
-      <Filter>Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\PVKImageView.h">
-      <Filter>Platform\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h">
-      <Filter>Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\PVKMemory.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h">
@@ -175,9 +169,6 @@
     <ClInclude Include="src\Poly\Rendering\Sampler.h">
       <Filter>Poly\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Rendering\Texture.h">
-      <Filter>Poly\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Poly\Resources\GLSLang.h">
       <Filter>Poly\Resources</Filter>
     </ClInclude>
@@ -205,16 +196,7 @@
     <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp">
-      <Filter>Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp">
-      <Filter>Platform\Vulkan</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp">
-      <Filter>Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\PVKMemory.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp">
@@ -275,9 +257,6 @@
       <Filter>Poly\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Rendering\Sampler.cpp">
-      <Filter>Poly\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Poly\Rendering\Texture.cpp">
       <Filter>Poly\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Resources\ResourceLoader.cpp">

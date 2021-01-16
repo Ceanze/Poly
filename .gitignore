@@ -354,3 +354,5 @@ MigrationBackup/
 # Custom ignores
 *.tlog
 bin-int/
+*.vcxproj
+*.filters

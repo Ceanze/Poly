@@ -45,14 +45,14 @@
     <IntDir>..\bin-int\Debug-windows-x86_64\Poly\</IntDir>
     <TargetName>Poly</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>C:\VulkanSDK\1.2.162.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VulkanSDK\1.2.162.1\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\bin\Release-windows-x86_64\Poly\</OutDir>
     <IntDir>..\bin-int\Release-windows-x86_64\Poly\</IntDir>
     <TargetName>Poly</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>C:\VulkanSDK\1.2.162.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VulkanSDK\1.2.162.1\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -74,7 +74,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.2.162.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -100,12 +100,13 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.2.162.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Platform\API\Buffer.h" />
     <ClInclude Include="src\Platform\API\GraphicsInstance.h" />
+    <ClInclude Include="src\Platform\API\Texture.h" />
     <ClInclude Include="src\Platform\Common\IPlatformRenderer.h" />
     <ClInclude Include="src\Platform\Common\IRenderer.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKBuffer.h" />
@@ -113,10 +114,7 @@
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKDescriptor.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKImage.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKImageView.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h" />
-    <ClInclude Include="src\Platform\Vulkan\PVKMemory.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKQueue.h" />
     <ClInclude Include="src\Platform\Vulkan\PVKRenderPass.h" />
@@ -150,7 +148,6 @@
     <ClInclude Include="src\Poly\Events\MemberFunctionHandler.h" />
     <ClInclude Include="src\Poly\Rendering\Core\API\GraphicsTypes.h" />
     <ClInclude Include="src\Poly\Rendering\Sampler.h" />
-    <ClInclude Include="src\Poly\Rendering\Texture.h" />
     <ClInclude Include="src\Poly\Resources\GLSLang.h" />
     <ClInclude Include="src\Poly\Resources\ResourceLoader.h" />
     <ClInclude Include="src\Poly\Resources\ShaderCompiler.h" />
@@ -162,10 +159,7 @@
     <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKDescriptor.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKImage.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKImageView.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\PVKMemory.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp" />
     <ClCompile Include="src\Platform\Vulkan\PVKSampler.cpp" />
@@ -186,7 +180,6 @@
     <ClCompile Include="src\Poly\Core\Timer.cpp" />
     <ClCompile Include="src\Poly\Core\Window.cpp" />
     <ClCompile Include="src\Poly\Rendering\Sampler.cpp" />
-    <ClCompile Include="src\Poly\Rendering\Texture.cpp" />
     <ClCompile Include="src\Poly\Resources\ResourceLoader.cpp" />
     <ClCompile Include="src\Poly\Resources\ShaderCompiler.cpp" />
     <ClCompile Include="src\polypch.cpp">

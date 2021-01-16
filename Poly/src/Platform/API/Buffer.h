@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Poly/Core/Core.h"
+#include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 namespace Poly
 {
 	struct BufferDesc
 	{
-
+		uint64 Size;
+		EMemoryUsage MemUsage;
+		FBufferUsage BufferUsage;
 	};
 
 	class Buffer
@@ -42,16 +45,27 @@ namespace Poly
 		/**
 		 * @return Native handle to the API specific object
 		 */
-		virtual uint64_t GetNative() const = 0;
+		virtual uint64 GetNative() const = 0;
 
 		/**
 		 * @return Alignment for the buffer in memory
 		 */
-		virtual uint64_t GetAlignment() const = 0;
+		virtual uint64 GetAlignment() const = 0;
 
 		/**
 		 * @return Size of buffer in memory
 		 */
-		virtual uint64_t GetSize() const = 0;
+		virtual uint64 GetSize() const = 0;
+
+		/**
+		 * @return const BufferDesc
+		 */
+		inline const BufferDesc& GetDesc() const
+		{
+			return p_BufferDesc;
+		}
+
+	protected:
+		BufferDesc p_BufferDesc;
 	};
 }

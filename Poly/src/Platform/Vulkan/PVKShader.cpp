@@ -35,14 +35,14 @@ namespace Poly
 			vkDestroyShaderModule(PVKInstance::GetDevice(), shaderStage.second.module, nullptr);
 	}
 
-	void PVKShader::AddStage(ShaderStage shaderStage, std::string shaderName)
+	void PVKShader::AddStage(FShaderStage shaderStage, std::string shaderName)
 	{
 		// TODO: Have this somewhere else? And fix it to relative path!
 		const std::string shaderPath = ".\\..\\assets\\shaders\\";
 		m_ShaderPaths[shaderStage] = shaderName;
 	}
 
-	VkPipelineShaderStageCreateInfo PVKShader::GetShaderCreateInfo(ShaderStage shaderStage) const
+	VkPipelineShaderStageCreateInfo PVKShader::GetShaderCreateInfo(FShaderStage shaderStage) const
 	{
 		auto it = m_ShaderStages.find(shaderStage);
 
@@ -62,7 +62,7 @@ namespace Poly
 		return infos;
 	}
 
-	void PVKShader::CreateShaderModule(ShaderStage shaderStage, const std::vector<char>& code)
+	void PVKShader::CreateShaderModule(FShaderStage shaderStage, const std::vector<char>& code)
 	{
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

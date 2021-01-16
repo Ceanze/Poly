@@ -32,7 +32,7 @@ namespace Poly
 			vkDestroyDescriptorSetLayout(PVKInstance::GetDevice(), layout.second, nullptr);
 	}
 
-	void PVKDescriptor::AddBinding(uint32_t set, uint32_t binding, BufferType bufferType, ShaderStage stageFlags)
+	void PVKDescriptor::AddBinding(uint32_t set, uint32_t binding, BufferType bufferType, FShaderStage stageFlags)
 	{
 		VkDescriptorSetLayoutBinding layout = {};
 		layout.binding = binding;
@@ -65,12 +65,12 @@ namespace Poly
 		PVK_CHECK(vkCreateDescriptorSetLayout(PVKInstance::GetDevice(), &info, nullptr, &m_SetLayouts[set]), "Failed to create descriptor set {}!", set);
 	}
 
-	void PVKDescriptor::UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer)
+	void PVKDescriptor::UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer* pBuffer)
 	{
-		UpdateBufferBinding(set, binding, buffer, 0, buffer.GetSize());
+		UpdateBufferBinding(set, binding, pBuffer, 0, pBuffer->GetSize());
 	}
 
-	void PVKDescriptor::UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
+	void PVKDescriptor::UpdateBufferBinding(uint32_t set, uint32_t binding, PVKBuffer* pBuffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		// To optimise the vkUpdateDescriptorSets should only be called once instead for each binding
 
@@ -78,7 +78,7 @@ namespace Poly
 		uint32_t numCopies = m_DescriptorSets[set].size();
 		for (uint32_t i = 0; i < numCopies; i++) {
 			VkDescriptorBufferInfo bufferInfo = {};
-			bufferInfo.buffer = buffer.GetNativeVK();
+			bufferInfo.buffer = pBuffer->GetNativeVK();
 			bufferInfo.offset = offset;
 			bufferInfo.range = range;
 
@@ -99,10 +99,10 @@ namespace Poly
 		vkUpdateDescriptorSets(PVKInstance::GetDevice(), writeSets.size(), writeSets.data(), 0, nullptr);
 	}
 
-	void PVKDescriptor::UpdateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
+	void PVKDescriptor::UpdateBufferBinding(uint32_t copyIndex, uint32_t set, uint32_t binding, PVKBuffer* pBuffer, VkDeviceSize offset, VkDeviceSize range)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = buffer.GetNativeVK();
+		bufferInfo.buffer = pBuffer->GetNativeVK();
 		bufferInfo.offset = offset;
 		bufferInfo.range = range;
 
@@ -120,15 +120,15 @@ namespace Poly
 		vkUpdateDescriptorSets(PVKInstance::GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 
-	void PVKDescriptor::UpdateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture& texture, PVKSampler& sampler)
+	void PVKDescriptor::UpdateTextureBinding(uint32_t set, uint32_t binding, ImageLayout layout, PVKTexture* pTexture, PVKSampler* pSampler)
 	{
 		std::vector<VkWriteDescriptorSet> writeSets;
 		uint32_t numCopies = m_DescriptorSets[set].size();
 		for (uint32_t i = 0; i < numCopies; i++) {
 			VkDescriptorImageInfo imageInfo = {};
 			imageInfo.imageLayout = (VkImageLayout)layout;
-			imageInfo.imageView = texture.GetImageView().GetNative();
-			imageInfo.sampler = sampler.GetNative();
+			imageInfo.imageView = pTexture->GetImageViewVK();
+			imageInfo.sampler = pSampler->GetNative();
 
 
 			VkWriteDescriptorSet descriptorWrite = {};

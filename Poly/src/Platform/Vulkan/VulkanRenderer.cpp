@@ -4,6 +4,8 @@
 #include "Poly/Core/Window.h"
 #include "Platform/Vulkan/Renderers/TestRenderer.h"
 
+#include "Poly/Core/RenderAPI.h"
+
 namespace Poly
 {
 
@@ -11,7 +13,9 @@ namespace Poly
 	{
 		// Call init on the sub renderers and create window
 		m_pWindow = new Window(width, height, "Vulkan renderer window");
-		PVKInstance::Get().Init(m_pWindow);
+		// TODO: Should be done in RenderAPI
+		//PVKInstance::Get()->Init(m_pWindow);
+		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, m_pWindow);
 		m_SwapChain.Init(m_pWindow);
 
 		// Test renderer
@@ -114,11 +118,14 @@ namespace Poly
 
 		// Cleanup the rest
 		m_SwapChain.Cleanup();
-		PVKInstance::Get().Cleanup();
+		// TODO: Should be done in RenderAPI
+		//PVKInstance::Get()->Cleanup();
 
 		delete m_pWindow;
 		for (uint32_t i = 0; i < m_SubRenderers.size(); i++)
 			delete m_SubRenderers[i];
+
+		RenderAPI::Release();
 	}
 
 	void VulkanRenderer::CreateRenderer(Renderer subRenderer)

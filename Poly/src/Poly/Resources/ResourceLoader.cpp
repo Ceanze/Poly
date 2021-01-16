@@ -20,7 +20,7 @@ namespace Poly
 			glslang::FinalizeProcess();
 	}
 
-	std::vector<char> ResourceLoader::LoadShader(const std::string& path, ShaderStage shaderStage)
+	std::vector<char> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
 	{
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
