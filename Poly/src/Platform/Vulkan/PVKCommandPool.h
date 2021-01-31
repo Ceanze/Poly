@@ -1,38 +1,32 @@
 #pragma once
 
-#include "PVKTypes.h"
-
 #include <vector>
+
+#include "PVKTypes.h"
+#include "Platform/API/CommandPool.h"
 
 namespace Poly
 {
 	class PVKCommandBuffer;
 
-	class PVKCommandPool
+	class PVKCommandPool : public CommandPool
 	{
 	public:
-		PVKCommandPool();
+		PVKCommandPool() = default;
 		~PVKCommandPool();
 
-		void Init(QueueType queueType);
-		void Cleanup();
+		virtual void Init(FQueueType queueType) override final;
 
-		VkCommandPool GetNative() const { return m_Pool; }
-		QueueType GetQueueType() const;
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Pool); }
+		VkCommandPool GetNativeVK() const { return m_Pool; }
 
-		PVKCommandBuffer* BeginSingleTimeCommand();
-		void EndSingleTimeCommand(PVKCommandBuffer* pBuffer);
-
-		PVKCommandBuffer* CreateCommandBuffer();
-		std::vector<PVKCommandBuffer*> CreateCommandBuffers(uint32_t count);
-		void RemoveCommandBuffer(PVKCommandBuffer* pBuffer);
+		virtual CommandBuffer* AllocateCommandBuffer(ECommandBufferLevel commandBufferLevel) override final;
+		virtual void FreeCommandBuffer(CommandBuffer* pCommandbuffer) override final;
 
 	private:
-		void createCommandPool();
+		void CreateCommandPool();
 
-		VkCommandPool	m_Pool	= VK_NULL_HANDLE;
-		QueueType		m_Queue	= QueueType::GRAPHICS;
-
+		VkCommandPool m_Pool = VK_NULL_HANDLE;
 		std::vector<PVKCommandBuffer*> m_Buffers;
 	};
 }

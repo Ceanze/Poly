@@ -1,49 +1,45 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-/*	
-	The creation of the command buffer is delayed and not in the init in order to gain
-	small optimizations when creating several buffers at the same time (which is done in 
-	PVKCommandPool createCommandBufferS function 
-*/
+#include "Platform/API/CommandBuffer.h"
+#include "PVKTypes.h"
 
 namespace Poly
 {
-	class PVKRenderPass;
-	class PVKPipeline;
-	class PVKFramebuffer;
-	class PVKDescriptor;
-	class PVKBuffer;
-	class PVKTexture;
-
-	class PVKCommandBuffer
+	class PVKCommandBuffer : public CommandBuffer
 	{
 	public:
-		PVKCommandBuffer();
+		PVKCommandBuffer() = default;
 		~PVKCommandBuffer();
 
-		void Init(VkCommandPool pool);
-		void Cleanup();
+		virtual void Init(CommandPool* pCommandPool) override final;
 
-		VkCommandBuffer GetNative() const { return m_Buffer; }
-		void SetCommandBuffer(VkCommandBuffer buffer) { m_Buffer = buffer; }
-		void CreateCommandBuffer();
+		/* Commands */
 
-		// Commands for recording
-		void Begin(VkCommandBufferUsageFlags flags);
-		void BeginRenderPass(PVKRenderPass* renderPass, PVKFramebuffer* pFramebuffer, VkExtent2D extent, VkClearValue clearColor);
-		void BindPipeline(PVKPipeline* pipeline);
-		void BindDescriptor(PVKPipeline* pPipeline, PVKDescriptor* pDescriptor, uint32_t setCopyIndex);
-		void CopyBufferToImage(PVKBuffer* pBuffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions);
-		void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
-		void DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance);
-		void EndRenderPass();
-		void End();
+		virtual void Begin(FCommandBufferFlag bufferFlag) override final;
+
+		virtual void BeginRenderPass(RenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) override final;
+
+		virtual void BindPipeline(Pipeline* pPipeline) override final;
+
+		virtual void BindDescriptor(Pipeline* pPipeline, Descriptor* pDescriptor) override final;
+
+		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
+
+		virtual void DrawInstanced(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance) override final;
+
+		virtual void DrawIndexedInstanced(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 vertexOffset, uint32 firstInstance) override final;
+
+		virtual void EndRenderPass() override final;
+
+		virtual void End() override final;
+
+		/* End of commands */
+
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Buffer); }
+		VkCommandBuffer GetNativeVK() const { return m_Buffer; }
 
 	private:
-		VkCommandBuffer	m_Buffer	= VK_NULL_HANDLE;
-		VkCommandPool	m_Pool		= VK_NULL_HANDLE;
+		VkCommandBuffer m_Buffer = VK_NULL_HANDLE;
 	};
 
 }

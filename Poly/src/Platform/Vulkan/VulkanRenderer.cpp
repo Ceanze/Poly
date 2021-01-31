@@ -42,6 +42,7 @@ namespace Poly
 
 		m_ImageIndex = m_SwapChain.AcquireNextImage(m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE);
 
+		// Wait for fence to make sure the image we will use is availabe and not in flight (use)
 		if (m_ImagesInFlight[m_ImageIndex] != VK_NULL_HANDLE)
 			vkWaitForFences(PVKInstance::GetDevice(), 1, &m_ImagesInFlight[m_ImageIndex], VK_TRUE, UINT16_MAX);
 		m_ImagesInFlight[m_ImageIndex] = m_InFlightFences[m_CurrentFrame];
@@ -82,7 +83,7 @@ namespace Poly
 
 		PVK_CHECK(vkResetFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame]), "Failed to reset fences!");
 
-		PVK_CHECK(vkQueueSubmit(PVKInstance::GetQueue(QueueType::GRAPHICS).queue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]), "Failed to submit draw command buffer!");
+		PVK_CHECK(vkQueueSubmit(PVKInstance::GetQueue(FQueueType::GRAPHICS).queue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]), "Failed to submit draw command buffer!");
 
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -142,17 +143,17 @@ namespace Poly
 		}
 	}
 
-	void VulkanRenderer::AddCommandBuffer(QueueType queueType, PVKCommandBuffer* pBuffer)
+	void VulkanRenderer::AddCommandBuffer(FQueueType queueType, PVKCommandBuffer* pBuffer)
 	{
 		std::vector<PVKCommandBuffer*>& buffers = m_GraphicsBuffers;
 		switch (queueType)
 		{
-		case Poly::QueueType::GRAPHICS:
+		case Poly::FQueueType::GRAPHICS:
 			break;
-		case Poly::QueueType::COMPUTE:
+		case Poly::FQueueType::COMPUTE:
 			// buffers = this->computeBuffers;
 			break;
-		case Poly::QueueType::TRANSFER:
+		case Poly::FQueueType::TRANSFER:
 			// buffers = this->transferBuffers;
 			break;
 		default:

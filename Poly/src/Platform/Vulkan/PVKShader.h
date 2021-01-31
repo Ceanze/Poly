@@ -2,26 +2,27 @@
 #include "polypch.h"
 #include "PVKTypes.h"
 
+#include "Platform/API/Shader.h"
+
 namespace Poly
 {
-	class PVKShader
+	class PVKShader : public Shader
 	{
 	public:
-		PVKShader();
+		PVKShader() = default;
 		~PVKShader();
 
-		void Init();
-		void Cleanup();
+		virtual void Init(const ShaderDesc* pDesc) override final;
 
-		void AddStage(FShaderStage shaderStage, std::string shaderName);
-		VkPipelineShaderStageCreateInfo GetShaderCreateInfo(FShaderStage shaderStage) const;
-		std::vector<VkPipelineShaderStageCreateInfo> GetShaderCreateInfos();
+		FShaderStage GetShaderStage() const { return m_ShaderStage; }
+		VkPipelineShaderStageCreateInfo GetPipelineInfo() const { return m_PipelineInfo; }
+		VkShaderModule GetNativeVK() const { return m_ShaderModule; }
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_ShaderModule); }
 
 	private:
-		void CreateShaderModule(FShaderStage shaderStage, const std::vector<char>& code);
-
-		std::unordered_map<FShaderStage, VkPipelineShaderStageCreateInfo> m_ShaderStages;
-		std::unordered_map<FShaderStage, std::string> m_ShaderPaths;
+		VkShaderModule m_ShaderModule = VK_NULL_HANDLE;
+		VkPipelineShaderStageCreateInfo m_PipelineInfo = {};
+		FShaderStage m_ShaderStage = FShaderStage::NONE;
 	};
 
 }

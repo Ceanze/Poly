@@ -33,7 +33,7 @@ namespace Poly
 		m_Pipeline.Init(*m_pSwapChain, m_Shader, m_RenderPass);
 
 		// Until this line
-		m_CommandPool.Init(QueueType::GRAPHICS);
+		m_CommandPool.Init(FQueueType::GRAPHICS);
 
 		m_Framebuffers.resize(m_pSwapChain->GetNumImages());
 		for (size_t i = 0; i < m_pSwapChain->GetNumImages(); i++)
@@ -54,7 +54,7 @@ namespace Poly
 
 	void TestRenderer::EndScene()
 	{
-		m_pMainRenderer->AddCommandBuffer(QueueType::GRAPHICS, m_CommandBuffers[m_ImageIndex]);
+		m_pMainRenderer->AddCommandBuffer(FQueueType::GRAPHICS, m_CommandBuffers[m_ImageIndex]);
 		//m_TestMemory.directTransfer(m_TestBuffer, &m_pCamera->GetMatrix(), sizeof(glm::mat4), 0);
 		m_TestBuffer.TransferData(&m_pCamera->GetMatrix(), sizeof(glm::mat4));
 	}

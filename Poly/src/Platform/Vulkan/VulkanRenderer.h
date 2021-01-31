@@ -29,7 +29,7 @@ namespace Poly
 		virtual Texture* CreateTexture() override { return nullptr; };
 
 		// Adds command buffer to be submitted for this frame
-		void AddCommandBuffer(QueueType queueType, PVKCommandBuffer* pBuffer);
+		void AddCommandBuffer(FQueueType queueType, PVKCommandBuffer* pBuffer);
 
 		PVKSwapChain* GetSwapChain() { return &m_SwapChain; }
 

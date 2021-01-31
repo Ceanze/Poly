@@ -6,7 +6,22 @@
 #include <cstdint>
 
 // API Specific objects
+#include "PVKFence.h"
+#include "PVKShader.h"
 #include "PVKBuffer.h"
+#include "PVKTexture.h"
+#include "PVKSampler.h"
+#include "PVKSwapChain.h"
+#include "PVKSemaphore.h"
+#include "PVKRenderPass.h"
+#include "PVKFramebuffer.h"
+#include "PVKTextureView.h"
+#include "PVKCommandPool.h"
+#include "PVKCommandQueue.h"
+#include "PVKDescriptorSet.h"
+#include "PVKCommandBuffer.h"
+#include "PVKPipelineLayout.h"
+#include "PVKGraphicsPipeline.h"
 
 namespace Poly
 {
@@ -18,7 +33,7 @@ namespace Poly
 	uint32_t			PVKInstance::s_GraphicsQueueCount	= 1;
 	uint32_t 			PVKInstance::s_ComputeQueueCount	= 1;
 	uint32_t 			PVKInstance::s_TransferQueueCount	= 1;
-	std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> PVKInstance::s_Queues;
+	std::unordered_map<Poly::FQueueType, std::vector<Poly::PVKQueue>> PVKInstance::s_Queues;
 	VmaAllocator PVKInstance::s_VmaAllocator = VK_NULL_HANDLE;
 
 	PVKInstance::PVKInstance()
@@ -79,22 +94,145 @@ namespace Poly
 		return pBuffer;
 	}
 
-	void PVKInstance::SetQueueCount(QueueType queue, uint32_t count)
+	Ref<Texture> PVKInstance::CreateTexture(const TextureDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "TextureDesc cannot be nullptr!");
+
+		Ref<PVKTexture> pTexture = CreateRef<PVKTexture>();
+		pTexture->Init(pDesc);
+		return pTexture;
+	}
+
+	Ref<CommandQueue> PVKInstance::CreateCommandQueue(FQueueType queueType, uint32 queueIndex)
+	{
+		POLY_ASSERT(queueType == FQueueType::NONE, "QueueType cannot be NONE!");
+
+		Ref<PVKCommandQueue> pCommandQueue = CreateRef<PVKCommandQueue>();
+		pCommandQueue->Init(queueType, queueIndex);
+		return pCommandQueue;
+	}
+
+	Ref<TextureView> PVKInstance::CreateTextureView(const TextureViewDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "TextureViewDesc cannot be nullptr!");
+
+		Ref<PVKTextureView> pTextureView = CreateRef<PVKTextureView>();
+		pTextureView->Init(pDesc);
+		return pTextureView;
+	}
+
+	Ref<SwapChain> PVKInstance::CreateSwapChain(const SwapChainDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "SwapChainDesc cannot be nullptr!");
+
+		Ref<PVKSwapChain> pSwapChain = CreateRef<PVKSwapChain>();
+		pSwapChain->Init(pDesc);
+		return pSwapChain;
+	}
+
+	Ref<Fence> PVKInstance::CreateFence(FFenceFlag flag)
+	{
+		Ref<PVKFence> pFence = CreateRef<PVKFence>();
+		pFence->Init(flag);
+		return pFence;
+	}
+
+	Ref<Semaphore> PVKInstance::CreateSemaphore()
+	{
+		Ref<PVKSemaphore> pSemaphore = CreateRef<PVKSemaphore>();
+		pSemaphore->Init();
+		return pSemaphore;
+	}
+
+	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType)
+	{
+		POLY_ASSERT(queueType == FQueueType::NONE, "FQueueType cannot be NONE!");
+
+		Ref<PVKCommandPool> pCommandPool = CreateRef<PVKCommandPool>();
+		pCommandPool->Init(queueType);
+		return pCommandPool;
+	}
+
+	Ref<Sampler> PVKInstance::CreateSampler(const SamplerDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "SamplerDesc cannot be nullptr!");
+
+		Ref<PVKSampler> pSampler = CreateRef<PVKSampler>();
+		pSampler->Init(pDesc);
+		return pSampler;
+	}
+
+	Ref<Shader> PVKInstance::CreateShader(const ShaderDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "ShaderDesc cannot be nullptr!");
+
+		Ref<PVKShader> pShader = CreateRef<PVKShader>();
+		pShader->Init(pDesc);
+		return pShader;
+	}
+
+	Ref<RenderPass> PVKInstance::CreateRenderPass(const RenderPassDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "RenderPassDesc cannot be nullptr!");
+
+		Ref<PVKRenderPass> pShader = CreateRef<PVKRenderPass>();
+		pShader->Init(pDesc);
+		return pShader;
+	}
+
+	Ref<GraphicsPipeline> PVKInstance::CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "GraphicsPipelineDesc cannot be nullptr!");
+
+		Ref<PVKGraphicsPipeline> pShader = CreateRef<PVKGraphicsPipeline>();
+		pShader->Init(pDesc);
+		return pShader;
+	}
+
+	Ref<PipelineLayout> PVKInstance::CreatePipelineLayout(const PipelineLayoutDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "PipelineLayoutDesc cannot be nullptr!");
+
+		Ref<PVKPipelineLayout> pShader = CreateRef<PVKPipelineLayout>();
+		pShader->Init(pDesc);
+		return pShader;
+	}
+
+	Ref<Framebuffer> PVKInstance::CreateFramebuffer(const FramebufferDesc* pDesc)
+	{
+		POLY_ASSERT(pDesc, "FramebufferDesc cannot be nullptr!");
+
+		Ref<PVKFramebuffer> pShader = CreateRef<PVKFramebuffer>();
+		pShader->Init(pDesc);
+		return pShader;
+	}
+
+	Ref<DescriptorSet> PVKInstance::CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex)
+	{
+		POLY_ASSERT(pLayout, "PipelineLayout cannot be nullptr!");
+
+		Ref<PVKDescriptorSet> pShader = CreateRef<PVKDescriptorSet>();
+		pShader->Init(pLayout, setIndex);
+		return pShader;
+	}
+
+
+	void PVKInstance::SetQueueCount(FQueueType queue, uint32_t count)
 	{
 		switch (queue) {
-		case QueueType::GRAPHICS:
+		case FQueueType::GRAPHICS:
 			s_GraphicsQueueCount = count;
 			break;
-		case QueueType::COMPUTE:
+		case FQueueType::COMPUTE:
 			s_ComputeQueueCount = count;
 			break;
-		case QueueType::TRANSFER:
+		case FQueueType::TRANSFER:
 			s_TransferQueueCount = count;
 			break;
 		}
 	}
 
-	PVKQueue& PVKInstance::GetQueue(QueueType queueType, uint32_t index)
+	PVKQueue& PVKInstance::GetQueue(FQueueType queueType, uint32_t index)
 	{
 		// Check if valid queue and index, return if successful
 		auto it = s_Queues.find(queueType);
@@ -105,7 +243,8 @@ namespace Poly
 		}
 
 		// Return default graphics queue if the requested is not supported
-		return s_Queues[QueueType::GRAPHICS][0];
+		POLY_CORE_WARN("Requested queue with index {} could not be gotten! Returned standard graphics queue instead", index);
+		return s_Queues[FQueueType::GRAPHICS][0];
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::DebugCallback(
@@ -290,7 +429,7 @@ namespace Poly
 	{
 		std::string pickedDeviceName;
 		unsigned bestScore = 0;
-		for (auto d : devices)
+		for (auto& d : devices)
 		{
 			unsigned score = 0;
 			// Query the device
@@ -451,25 +590,25 @@ namespace Poly
 		for (uint32_t fIndex = 0; fIndex < queueFamilyCount; fIndex++) {
 			// Graphics queue
 			if (VK_QUEUE_GRAPHICS_BIT & queueFamilies[fIndex].queueFlags) {
-				s_Queues[QueueType::GRAPHICS].resize(s_GraphicsQueueCount);
+				s_Queues[FQueueType::GRAPHICS].resize(s_GraphicsQueueCount);
 				for (uint32_t qIndex = 0; qIndex < s_GraphicsQueueCount; qIndex++) {
-					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[QueueType::GRAPHICS][qIndex].queue);
+					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::GRAPHICS][qIndex].queue);
 				}
 			}
 
 			// Compute queue
 			if (VK_QUEUE_COMPUTE_BIT & queueFamilies[fIndex].queueFlags) {
-				s_Queues[QueueType::COMPUTE].resize(s_ComputeQueueCount);
+				s_Queues[FQueueType::COMPUTE].resize(s_ComputeQueueCount);
 				for (uint32_t qIndex = 0; qIndex < s_ComputeQueueCount; qIndex++) {
-					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[QueueType::COMPUTE][qIndex].queue);
+					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::COMPUTE][qIndex].queue);
 				}
 			}
 
 			// Transfer queue
 			if (VK_QUEUE_TRANSFER_BIT & queueFamilies[fIndex].queueFlags) {
-				s_Queues[QueueType::TRANSFER].resize(s_TransferQueueCount);
+				s_Queues[FQueueType::TRANSFER].resize(s_TransferQueueCount);
 				for (uint32_t qIndex = 0; qIndex < s_TransferQueueCount; qIndex++) {
-					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[QueueType::TRANSFER][qIndex].queue);
+					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::TRANSFER][qIndex].queue);
 				}
 			}
 		}

@@ -7,6 +7,8 @@
 
 namespace Poly
 {
+	class Shader;
+
 	class ResourceLoader
 	{
 	public:
@@ -16,7 +18,7 @@ namespace Poly
 		static void Init();
 		static void Release();
 
-		static std::vector<char> LoadShader(const std::string& path, FShaderStage shaderStage);
+		static Ref<Shader> LoadShader(const std::string& path, FShaderStage shaderStage);
 
 	private:
 		static bool s_GLSLInit;

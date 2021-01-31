@@ -30,18 +30,32 @@ namespace Poly
 		/*
 		* GraphicsInstance functions
 		*/
-		virtual Ref<Buffer> CreateBuffer(const BufferDesc* pDesc) override final;
+		virtual Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc) override final;
+		virtual Ref<Texture>			CreateTexture(const TextureDesc* pDesc) override final;
+		virtual Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex) override final;
+		virtual Ref<TextureView>		CreateTextureView(const TextureViewDesc* pDesc) override final;
+		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) override final;
+		virtual Ref<Fence>				CreateFence(FFenceFlag flag) override final;
+		virtual Ref<Semaphore>			CreateSemaphore() override final;
+		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType) override final;
+		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) override final;
+		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) override final;
+		virtual Ref<RenderPass>			CreateRenderPass(const RenderPassDesc* pDesc) override final;
+		virtual Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc) override final;
+		virtual Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc) override final;
+		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) override final;
+		virtual Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex) override final;
 
 		// Sets how many queues should be created for that queue type. Must be called before init.
 		// Default queue count per queue is 1. If the requested queue count is higher than the available, the
 		// most available will be set.
-		static void SetQueueCount(QueueType queue, uint32_t count);
+		static void SetQueueCount(FQueueType queue, uint32_t count);
 
 		static VkDevice			GetDevice() { return s_Device; }
 		static VkPhysicalDevice	GetPhysicalDevice() { return s_PhysicalDevice; }
 		static VkInstance		GetInstance() { return s_Instance; }
 		static PVKQueue&		GetPresentQueue() { return s_PresentQueue; }
-		static PVKQueue&		GetQueue(QueueType queueType, uint32_t index = 0);
+		static PVKQueue&		GetQueue(FQueueType queueType, uint32_t index = 0);
 		static VkSurfaceKHR		GetSurface() { return s_Surface; }
 		static VmaAllocator		GetAllocator() { return s_VmaAllocator; }
 
@@ -94,7 +108,7 @@ namespace Poly
 		static uint32_t				s_GraphicsQueueCount;
 		static uint32_t				s_ComputeQueueCount;
 		static uint32_t				s_TransferQueueCount;
-		static std::unordered_map<Poly::QueueType, std::vector<Poly::PVKQueue>> s_Queues;
+		static std::unordered_map<Poly::FQueueType, std::vector<Poly::PVKQueue>> s_Queues;
 
 		static VmaAllocator s_VmaAllocator;
 

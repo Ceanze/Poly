@@ -1,5 +1,8 @@
 #include "polypch.h"
 #include "ResourceLoader.h"
+#include "Platform/API/Shader.h"
+#include "Core/RenderAPI.h"
+#include "Platform/API/Shader.h"
 
 #include "GLSLang.h"
 
@@ -20,7 +23,7 @@ namespace Poly
 			glslang::FinalizeProcess();
 	}
 
-	std::vector<char> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
+	Ref<Shader> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
 	{
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
@@ -82,8 +85,13 @@ namespace Poly
 		const uint32_t sourceSize = static_cast<uint32_t>(sprirv.size()) * sizeof(uint32_t);
 		std::vector<char> correctType = std::vector<char>(reinterpret_cast<char*>(sprirv.data()), reinterpret_cast<char*>(sprirv.data()) + sourceSize);
 
-		// TODO: Return shader or other object instead?
-		return correctType;
+		ShaderDesc desc = {};
+		desc.EntryPoint		= "main";
+		desc.ShaderCode		= correctType;
+		desc.ShaderStage	= shaderStage;
+		Ref<Shader> polyShader = RenderAPI::CreateShader(&desc);
+
+		return polyShader;
 	}
 
 }

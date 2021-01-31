@@ -1,94 +1,133 @@
 #include "polypch.h"
 #include "PVKCommandBuffer.h"
 #include "Poly/Core/PolyUtils.h"
-#include "PVKInstance.h"
-#include "PVKPipeline.h"
-#include "PVKRenderPass.h"
-#include "PVKFramebuffer.h"
-#include "PVKDescriptor.h"
+
 #include "PVKBuffer.h"
 #include "PVKTexture.h"
+#include "PVKInstance.h"
+#include "PVKRenderPass.h"
+#include "PVKFramebuffer.h"
+#include "PVKCommandPool.h"
+#include "PVKDescriptorSet.h"
+#include "PVKPipelineLayout.h"
+#include "PVKGraphicsPipeline.h"
 
 namespace Poly
 {
 
-	PVKCommandBuffer::PVKCommandBuffer()
-	{
-	}
-
 	PVKCommandBuffer::~PVKCommandBuffer()
 	{
+		// Destruction of command buffers happens when command pool is destroyed
 	}
 
-	void PVKCommandBuffer::Init(VkCommandPool pool)
+	void PVKCommandBuffer::Init(CommandPool* pCommandPool)
 	{
-		m_Pool = pool;
-	}
+		p_pCommandPool = pCommandPool;
 
-	void PVKCommandBuffer::Cleanup()
-	{
-		// Commands buffers are cleared automatically by the command pool
-	}
-
-	void PVKCommandBuffer::CreateCommandBuffer()
-	{
 		VkCommandBufferAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = m_Pool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = 1;
-		allocInfo.pNext = nullptr;
+		allocInfo.sType					= VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool			= reinterpret_cast<PVKCommandPool*>(pCommandPool)->GetNativeVK();
+		allocInfo.level					= VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Current implementation only supports primary
+		allocInfo.commandBufferCount	= 1;
 
-		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::GetDevice(), &allocInfo, &m_Buffer), "Failed to allocate command buffer!");
+		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::GetDevice(), &allocInfo, &m_Buffer), "Failed to allocate command buffers!")
 	}
 
-	void PVKCommandBuffer::Begin(VkCommandBufferUsageFlags flags)
+
+	void PVKCommandBuffer::Begin(FCommandBufferFlag bufferFlag)
 	{
+		// TODO: Add support for secondary buffers
+
 		VkCommandBufferBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = flags; // Optional
-		beginInfo.pInheritanceInfo = nullptr; // Optional
+		beginInfo.sType				= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags				= ConvertCommandBufferUsage(bufferFlag);
+		beginInfo.pInheritanceInfo	= nullptr;
 
-		PVK_CHECK(vkBeginCommandBuffer(m_Buffer, &beginInfo), "Failed to begin recording command buffer!");
+		PVK_CHECK(vkBeginCommandBuffer(m_Buffer, &beginInfo), "Failed to begin recording of command buffer!");
 	}
 
-	void PVKCommandBuffer::BeginRenderPass(PVKRenderPass* pRenderPass, PVKFramebuffer* pFramebuffer, VkExtent2D extent, VkClearValue clearColor)
+	void PVKCommandBuffer::BeginRenderPass(RenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount)
 	{
+		VkExtent2D extent = { width, height };
 		VkRenderPassBeginInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = pRenderPass->GetNative();
-		renderPassInfo.framebuffer = pFramebuffer->GetNative();
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = extent;
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-		renderPassInfo.pNext = nullptr;
+
+		// TODO: Make clear color thingy magic better
+		VkClearColorValue clearColorValue = {};
+		memcpy(clearColorValue.float32, pClearColor, sizeof(float) * 4);
+		VkClearValue clearValue = {};
+		clearValue.color = clearColorValue;
+
+		renderPassInfo.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass			= reinterpret_cast<PVKRenderPass*>(pRenderPass)->GetNativeVK();
+		renderPassInfo.framebuffer			= reinterpret_cast<PVKFramebuffer*>(pFramebuffer)->GetNativeVK();
+		renderPassInfo.renderArea.offset	= { 0, 0 };
+		renderPassInfo.renderArea.extent	= extent;
+		renderPassInfo.clearValueCount		= clearColorCount;
+		renderPassInfo.pClearValues			= &clearValue;
+		renderPassInfo.pNext				= nullptr;
 
 		vkCmdBeginRenderPass(m_Buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
-	void PVKCommandBuffer::BindPipeline(PVKPipeline* pPipeline)
+	void PVKCommandBuffer::BindPipeline(Pipeline* pPipeline)
 	{
-		vkCmdBindPipeline(m_Buffer, pPipeline->GetType(), pPipeline->GetNative());
+		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
+		{
+			vkCmdBindPipeline(
+				m_Buffer,
+				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
+				reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetNativeVK());
+		}
 	}
 
-	void PVKCommandBuffer::BindDescriptor(PVKPipeline* pPipeline, PVKDescriptor* pDescriptor, uint32_t setCopyIndex)
+	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, Descriptor* pDescriptor)
 	{
-		auto sets = pDescriptor->GetSets(setCopyIndex);
-		vkCmdBindDescriptorSets(m_Buffer, pPipeline->GetType(), pPipeline->GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
+		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
+		{
+			VkDescriptorSet descSet = reinterpret_cast<PVKDescriptorSet*>(pDescriptor)->GetNativeVK();
+			vkCmdBindDescriptorSets(
+				m_Buffer,
+				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
+				reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
+				0,
+				1,
+				&descSet,
+				0,
+				nullptr);
+		}
 	}
 
-	void PVKCommandBuffer::CopyBufferToImage(PVKBuffer* pBuffer, VkImage image, VkImageLayout layout, const std::vector<VkBufferImageCopy>& regions)
+	void PVKCommandBuffer::CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
 	{
-		vkCmdCopyBufferToImage(m_Buffer, pBuffer->GetNativeVK(), image, layout, regions.size(), regions.data());
+		VkImageSubresourceLayers subresource = {};
+		subresource.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
+		subresource.baseArrayLayer	= copyBufferDesc.ArrayLayer;
+		subresource.layerCount		= copyBufferDesc.ArrayCount;
+		subresource.mipLevel		= copyBufferDesc.MipLevel;
+
+		VkBufferImageCopy copyDesc = {};
+		copyDesc.bufferImageHeight	= copyBufferDesc.BufferImageHeight;
+		copyDesc.bufferOffset		= copyBufferDesc.BufferOffset;
+		copyDesc.bufferRowLength	= copyBufferDesc.BufferRowLengh;
+		copyDesc.imageExtent		= { copyBufferDesc.Width, copyBufferDesc.Height, copyBufferDesc.Depth };
+		copyDesc.imageOffset		= { copyBufferDesc.ImageOffsetX, copyBufferDesc.ImageOffsetY, copyBufferDesc.ImageOffsetZ };
+		copyDesc.imageSubresource	= subresource;
+
+		vkCmdCopyBufferToImage(
+			m_Buffer,
+			reinterpret_cast<PVKBuffer*>(pBuffer)->GetNativeVK(),
+			reinterpret_cast<PVKTexture*>(pTexture)->GetNativeVK(),
+			ConvertTextureLayoutVK(layout),
+			1,
+			&copyDesc);
 	}
 
-	void PVKCommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
+	void PVKCommandBuffer::DrawInstanced(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 	{
 		vkCmdDraw(m_Buffer, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
-	void PVKCommandBuffer::DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance)
+	void PVKCommandBuffer::DrawIndexedInstanced(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 vertexOffset, uint32 firstInstance)
 	{
 		vkCmdDrawIndexed(m_Buffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}

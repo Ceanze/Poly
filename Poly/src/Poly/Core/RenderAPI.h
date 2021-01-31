@@ -17,10 +17,35 @@
 
 namespace Poly
 {
+	struct ShaderDesc;
 	struct BufferDesc;
+	struct SamplerDesc;
+	struct TextureDesc;
+	struct SwapChainDesc;
+	struct RenderPassDesc;
+	struct FramebufferDesc;
+	struct TextureViewDesc;
+	struct CommandQueueDesc;
+	struct DescriptorSetDesc;
+	struct PipelineLayoutDesc;
+	struct GraphicsPipelineDesc;
 
+	class Fence;
+	class Shader;
 	class Buffer;
 	class Window;
+	class Sampler;
+	class Texture;
+	class Semaphore;
+	class SwapChain;
+	class RenderPass;
+	class Framebuffer;
+	class TextureView;
+	class CommandPool;
+	class CommandQueue;
+	class DescriptorSet;
+	class PipelineLayout;
+	class GraphicsPipeline;
 
 	class RenderAPI
 	{
@@ -32,10 +57,31 @@ namespace Poly
 		static void Init(BackendAPI backendAPI, Window* pWindow);
 		static void Release();
 
+		static CommandQueue*		GetCommandQueue(FQueueType queue);
+
 		// Create functions
-		static Ref<Buffer> CreateBuffer(const BufferDesc* pDesc);
+		static Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc);
+		static Ref<Texture>				CreateTexture(const TextureDesc* pDesc);
+		static Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex);
+		static Ref<TextureView>			CreateTextureView(const TextureViewDesc* pDesc);
+		static Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc);
+		static Ref<Fence>				CreateFence(FFenceFlag flag);
+		static Ref<Semaphore>			CreateSemaphore();
+		static Ref<CommandPool>			CreateCommandPool(FQueueType queueType);
+		static Ref<Sampler>				CreateSampler(const SamplerDesc* pDesc);
+		static Ref<Shader>				CreateShader(const ShaderDesc* pDesc);
+		static Ref<RenderPass>			CreateRenderPass(const RenderPassDesc* pDesc);
+		static Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc);
+		static Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc);
+		static Ref<Framebuffer>			CreateFramebuffer(const FramebufferDesc* pDesc);
+		static Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex);
 
 	private:
-		inline static GraphicsInstance* m_pGraphicsInstance = nullptr;
+		inline static GraphicsInstance*	m_pGraphicsInstance	= nullptr;
+
+		// Queue types [TODO: Support multiple queues per type]
+		inline static Ref<CommandQueue>	m_pGraphicsQueue	= nullptr;
+		inline static Ref<CommandQueue>	m_pComputeQueue		= nullptr;
+		inline static Ref<CommandQueue>	m_pTransferQueue	= nullptr;
 	};
 }
