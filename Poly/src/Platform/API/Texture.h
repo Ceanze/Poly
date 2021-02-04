@@ -12,12 +12,11 @@ namespace Poly
 		uint32			Depth			= 1;
 		uint32			ArrayLayers		= 0;
 		uint32			MipLevels		= 0;
+		uint32			SampleCount		= 0;
 		EMemoryUsage	MemoryUsage		= EMemoryUsage::UNKNOWN;
 		EFormat			Format			= EFormat::UNDEFINED;
 		FTextureUsage	TextureUsage	= FTextureUsage::NONE;
 		ETextureDim		TextureDim		= ETextureDim::NONE;
-		EImageViewType	ImageViewType	= EImageViewType::NONE;
-		FImageViewFlag	ImageViewFlags	= FImageViewFlag::NONE;
 	};
 
 	class Texture

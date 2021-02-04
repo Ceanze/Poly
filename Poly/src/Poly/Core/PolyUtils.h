@@ -15,7 +15,7 @@
 // Safe cleanup of PVK types
 #define PVK_CLEANUP(handle, func) if (handle != VK_NULL_HANDLE) { func; }
 
-#define POLY_ASSERT(exp, ...) { if(!(exp)) {POLY_CORE_ERROR(__VA_ARGS__); } assert(exp); }
+#define POLY_VALIDATE(exp, ...) { if(!(exp)) {POLY_CORE_ERROR(__VA_ARGS__); } assert(exp); }
 
 // Bit helpers
 #define BIT(bit)	(1 << bit)

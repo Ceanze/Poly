@@ -4,13 +4,13 @@
 
 namespace Poly
 {
-
-	PVKBuffer::PVKBuffer()
-	{
-	}
-
 	PVKBuffer::~PVKBuffer()
 	{
+		if (m_Mapped)
+			Unmap();
+
+		//vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
+		vmaDestroyBuffer(PVKInstance::GetAllocator(), m_Buffer, m_VmaAllocation);
 	}
 
 	void PVKBuffer::Init(const BufferDesc* pDesc)
@@ -30,15 +30,6 @@ namespace Poly
 		allocInfo.usage = ConvertMemoryUsageVMA(pDesc->MemUsage);
 
 		PVK_CHECK(vmaCreateBuffer(PVKInstance::GetAllocator(), &createInfo, &allocInfo, &m_Buffer, &m_VmaAllocation, nullptr), "Failed to create buffer using VMA");
-	}
-
-	void PVKBuffer::Cleanup()
-	{
-		if (m_Mapped)
-			Unmap();
-
-		//vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
-		vmaDestroyBuffer(PVKInstance::GetAllocator(), m_Buffer, m_VmaAllocation);
 	}
 
 	void* PVKBuffer::Map()

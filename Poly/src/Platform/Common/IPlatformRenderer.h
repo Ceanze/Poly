@@ -29,7 +29,6 @@ namespace Poly
 		virtual void SetActiveCamera(Camera* pCamera) { m_pCamera = pCamera; }
 		virtual void Draw(Model* pModel) = 0; // More draws will be created in the future as overloads
 		virtual void EndScene() = 0;
-		virtual void Shutdown() = 0;
 
 		virtual void CreateRenderer(Renderer subRenderer) = 0;
 		virtual VertexBuffer* CreateVertexBuffer() = 0;

@@ -1,33 +1,23 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <vector>
-
-// TODO: Add support for several subpasses and color attachments
+#include "Platform/API/RenderPass.h"
+#include "PVKTypes.h"
 
 namespace Poly
 {
-
-	class PVKSwapChain;
-
-	class PVKRenderPass
+	class PVKRenderPass : public RenderPass
 	{
 	public:
-		PVKRenderPass();
+		PVKRenderPass() = default;
 		~PVKRenderPass();
 
-		void Init(PVKSwapChain& swapChain);
-		void Cleanup();
+		virtual void Init(const RenderPassDesc* pDesc) override final;
 
-		void AddSubpassDependency(VkSubpassDependency dep);
-
-		VkRenderPass GetNative() { return m_RenderPass; };
+		VkRenderPass GetNativeVK() const { return m_RenderPass; }
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_RenderPass); }
 
 	private:
-		VkFormat m_ImageFormat		= VK_FORMAT_UNDEFINED;
-		VkRenderPass m_RenderPass		= VK_NULL_HANDLE;
-
-		std::vector<VkSubpassDependency> m_SubpassDependencies;
+		VkRenderPass m_RenderPass = VK_NULL_HANDLE;
 	};
 
 }

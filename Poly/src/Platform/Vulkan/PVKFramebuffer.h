@@ -1,22 +1,20 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "Platform/API/Framebuffer.h"
+#include "PVKTypes.h"
 
 namespace Poly
 {
-	class PVKSwapChain;
-	class PVKRenderPass;
-
-	class PVKFramebuffer
+	class PVKFramebuffer : public Framebuffer
 	{
 	public:
-		PVKFramebuffer();
+		PVKFramebuffer() = default;
 		~PVKFramebuffer();
 
-		void Init(PVKSwapChain& swapChain, PVKRenderPass& renderPass, VkImageView attachment);
-		void Cleanup();
+		virtual void Init(const FramebufferDesc* pDesc) override final;
 
-		VkFramebuffer GetNative() const { return m_Framebuffer; }
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Framebuffer); }
+		VkFramebuffer GetNativeVK() const { return m_Framebuffer; }
 
 	private:
 		VkFramebuffer m_Framebuffer = VK_NULL_HANDLE;

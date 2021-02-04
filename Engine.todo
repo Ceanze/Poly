@@ -1,0 +1,39 @@
+Abstraction:
+- Shader @done
+- Sampler @done
+- DescriptorPool? @done
+- Descriptor @done
+- Pipeline @done
+	- Pipeline @done
+	- PipelineLayout @done
+- RenderPass @done
+- Framebuffer @done
+- CommandPool @done
+- CommandBuffer @done
+	- Dependent on: @done
+		- CommandPool @done
+		- RenderPass @done
+		- Framebuffer @done
+		- Pipeline @done
+		- Descriptor @done
+- CommandQueue @done
+	- Dependent on: @done
+		- CommandBuffer @done
+- Semaphore @done
+- Fence @done
+- SwapChain @done
+	- Dependent on: @done
+		- CommandBuffer @done
+		- CommandQueue @done
+		- Semaphore @done
+- When finished with abstraction: Have all destruction be done in the destructors, not in Cleanup() @done
+
+
+Goals:
+	- Abstraction
+	- Shader auto create
+	- Render Graph
+
+General:
+	- Fix the GraphicsPipeline to allow empty descs in GraphicsPipelineDesc (maybe allows this already?)
+	- Remove all warnings

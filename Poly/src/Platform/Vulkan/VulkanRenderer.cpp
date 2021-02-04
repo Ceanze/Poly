@@ -6,17 +6,50 @@
 
 #include "Poly/Core/RenderAPI.h"
 
+#include "Platform/API/SwapChain.h"
+#include "Platform/API/CommandQueue.h"
+
 namespace Poly
 {
+	VulkanRenderer::~VulkanRenderer()
+	{
+		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
+
+		// Cleanup sync objects
+		// for (size_t i = 0; i < m_RenderFinishedSemaphores.size(); i++) {
+		// 	vkDestroySemaphore(PVKInstance::GetDevice(), m_RenderFinishedSemaphores[i], nullptr);
+		// 	vkDestroySemaphore(PVKInstance::GetDevice(), m_ImageAvailableSemaphores[i], nullptr);
+		// 	vkDestroyFence(PVKInstance::GetDevice(), m_InFlightFences[i], nullptr);
+		// }
+
+		// Cleanup the rest
+		// m_SwapChain.Cleanup();
+		// TODO: Should be done in RenderAPI
+		//PVKInstance::Get()->Cleanup();
+
+		// delete m_pWindow;
+		for (uint32_t i = 0; i < m_SubRenderers.size(); i++)
+			delete m_SubRenderers[i];
+
+		// RenderAPI::Release();
+	}
 
 	void VulkanRenderer::Init(uint32_t width, uint32_t height)
 	{
 		// Call init on the sub renderers and create window
-		m_pWindow = new Window(width, height, "Vulkan renderer window");
-		// TODO: Should be done in RenderAPI
-		//PVKInstance::Get()->Init(m_pWindow);
-		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, m_pWindow);
-		m_SwapChain.Init(m_pWindow);
+		// m_pWindow = new Window(width, height, "Vulkan renderer window");
+		// RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, m_pWindow);
+		m_pWindow = RenderAPI::GetWindow();
+
+		SwapChainDesc swapChainDesc = {
+			.pWindow		= m_pWindow,
+			.pQueue			= RenderAPI::GetCommandQueue(FQueueType::GRAPHICS),
+			.Width			= width,
+			.Height			= height,
+			.BufferCount	= 3,
+			.Format			= EFormat::B8G8R8A8_UNORM
+		};
+		m_SwapChain = RenderAPI::CreateSwapChain(&swapChainDesc);
 
 		// Test renderer
 		for (auto& subRenderer : m_SubRenderers) {
@@ -30,25 +63,26 @@ namespace Poly
 
 	void VulkanRenderer::BeginScene()
 	{
-		vkWaitForFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+		// vkWaitForFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
 		// Checks minimization
-		int width = 0, height = 0;
-		glfwGetFramebufferSize(m_pWindow->GetNative(), &width, &height);
-		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(m_pWindow->GetNative(), &width, &height);
-			glfwWaitEvents();
-		}
+		// int width = 0, height = 0;
+		// glfwGetFramebufferSize(m_pWindow->GetNative(), &width, &height);
+		// while (width == 0 || height == 0) {
+		// 	glfwGetFramebufferSize(m_pWindow->GetNative(), &width, &height);
+		// 	glfwWaitEvents();
+		// }
 
-		m_ImageIndex = m_SwapChain.AcquireNextImage(m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE);
+		// m_ImageIndex = m_SwapChain.AcquireNextImage(m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE);
 
-		if (m_ImagesInFlight[m_ImageIndex] != VK_NULL_HANDLE)
-			vkWaitForFences(PVKInstance::GetDevice(), 1, &m_ImagesInFlight[m_ImageIndex], VK_TRUE, UINT16_MAX);
-		m_ImagesInFlight[m_ImageIndex] = m_InFlightFences[m_CurrentFrame];
+		// // Wait for fence to make sure the image we will use is availabe and not in flight (use)
+		// if (m_ImagesInFlight[m_ImageIndex] != VK_NULL_HANDLE)
+		// 	vkWaitForFences(PVKInstance::GetDevice(), 1, &m_ImagesInFlight[m_ImageIndex], VK_TRUE, UINT16_MAX);
+		// m_ImagesInFlight[m_ImageIndex] = m_InFlightFences[m_CurrentFrame];
 
 		// Call all subrenderers beginScene
 		for (auto& subRenderer : m_SubRenderers)
-			subRenderer->BeginScene(m_ImageIndex);
+			subRenderer->BeginScene(m_SwapChain->GetBackbufferIndex());
 	}
 
 	void VulkanRenderer::Draw(Model* model)
@@ -63,69 +97,44 @@ namespace Poly
 		for (auto& subRenderer : m_SubRenderers)
 			subRenderer->EndScene();
 
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		// VkSubmitInfo submitInfo = {};
+		// submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-		submitInfo.commandBufferCount = m_GraphicsBuffers.size();
-		std::vector<VkCommandBuffer> buffers;
-		for (uint32_t i = 0; i < m_GraphicsBuffers.size(); i++)
-			buffers.push_back(m_GraphicsBuffers[i]->GetNative());
-		submitInfo.pCommandBuffers = buffers.data();
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
+		// VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
+		// VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		// submitInfo.waitSemaphoreCount = 1;
+		// submitInfo.pWaitSemaphores = waitSemaphores;
+		// submitInfo.pWaitDstStageMask = waitStages;
+		// submitInfo.commandBufferCount = m_GraphicsBuffers.size();
+		// std::vector<VkCommandBuffer> buffers;
+		// for (uint32_t i = 0; i < m_GraphicsBuffers.size(); i++)
+		// 	buffers.push_back(m_GraphicsBuffers[i]->GetNative());
+		// submitInfo.pCommandBuffers = buffers.data();
+		// VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
+		// submitInfo.signalSemaphoreCount = 1;
+		// submitInfo.pSignalSemaphores = signalSemaphores;
 
-		PVK_CHECK(vkResetFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame]), "Failed to reset fences!");
+		// PVK_CHECK(vkResetFences(PVKInstance::GetDevice(), 1, &m_InFlightFences[m_CurrentFrame]), "Failed to reset fences!");
 
-		PVK_CHECK(vkQueueSubmit(PVKInstance::GetQueue(QueueType::GRAPHICS).queue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]), "Failed to submit draw command buffer!");
+		// PVK_CHECK(vkQueueSubmit(PVKInstance::GetQueue(FQueueType::GRAPHICS).queue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]), "Failed to submit draw command buffer!");
 
-		VkPresentInfoKHR presentInfo = {};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-		VkSwapchainKHR swapChains[] = { m_SwapChain.GetNative() };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &m_ImageIndex;
-		presentInfo.pResults = nullptr; // Optional
-		PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
+		// VkPresentInfoKHR presentInfo = {};
+		// presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		// presentInfo.waitSemaphoreCount = 1;
+		// presentInfo.pWaitSemaphores = signalSemaphores;
+		// VkSwapchainKHR swapChains[] = { m_SwapChain.GetNative() };
+		// presentInfo.swapchainCount = 1;
+		// presentInfo.pSwapchains = swapChains;
+		// presentInfo.pImageIndices = &m_ImageIndex;
+		// presentInfo.pResults = nullptr; // Optional
+		// PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
 
-		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		// m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+		m_SwapChain->Present(m_GraphicsBuffers, nullptr);
 
 		// Clear buffers for next frame
 		m_GraphicsBuffers.clear();
-	}
-
-	void VulkanRenderer::Shutdown()
-	{
-		vkDeviceWaitIdle(PVKInstance::GetDevice());
-
-		// Cleanup all the sub renderer and own sync objects
-		for (auto& subRenderer : m_SubRenderers)
-			subRenderer->Shutdown();
-
-		// Cleanup sync objects
-		for (size_t i = 0; i < m_RenderFinishedSemaphores.size(); i++) {
-			vkDestroySemaphore(PVKInstance::GetDevice(), m_RenderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(PVKInstance::GetDevice(), m_ImageAvailableSemaphores[i], nullptr);
-			vkDestroyFence(PVKInstance::GetDevice(), m_InFlightFences[i], nullptr);
-		}
-
-		// Cleanup the rest
-		m_SwapChain.Cleanup();
-		// TODO: Should be done in RenderAPI
-		//PVKInstance::Get()->Cleanup();
-
-		delete m_pWindow;
-		for (uint32_t i = 0; i < m_SubRenderers.size(); i++)
-			delete m_SubRenderers[i];
-
-		RenderAPI::Release();
 	}
 
 	void VulkanRenderer::CreateRenderer(Renderer subRenderer)
@@ -142,17 +151,17 @@ namespace Poly
 		}
 	}
 
-	void VulkanRenderer::AddCommandBuffer(QueueType queueType, PVKCommandBuffer* pBuffer)
+	void VulkanRenderer::AddCommandBuffer(FQueueType queueType, CommandBuffer* pBuffer)
 	{
-		std::vector<PVKCommandBuffer*>& buffers = m_GraphicsBuffers;
+		std::vector<CommandBuffer*>& buffers = m_GraphicsBuffers;
 		switch (queueType)
 		{
-		case Poly::QueueType::GRAPHICS:
+		case Poly::FQueueType::GRAPHICS:
 			break;
-		case Poly::QueueType::COMPUTE:
+		case Poly::FQueueType::COMPUTE:
 			// buffers = this->computeBuffers;
 			break;
-		case Poly::QueueType::TRANSFER:
+		case Poly::FQueueType::TRANSFER:
 			// buffers = this->transferBuffers;
 			break;
 		default:
@@ -165,23 +174,23 @@ namespace Poly
 
 	void VulkanRenderer::CreateSyncObjects()
 	{
-		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ImagesInFlight.resize(m_SwapChain.GetNumImages(), VK_NULL_HANDLE);
+		// m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		// m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		// m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+		// m_ImagesInFlight.resize(m_SwapChain.GetNumImages(), VK_NULL_HANDLE);
 
-		VkSemaphoreCreateInfo semaphoreInfo = {};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		// VkSemaphoreCreateInfo semaphoreInfo = {};
+		// semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-		VkFenceCreateInfo fenceInfo = {};
-		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+		// VkFenceCreateInfo fenceInfo = {};
+		// fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		// fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]), "Failed to create semaphores!");
-			PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]), "Failed to create semaphores!");
-			PVK_CHECK(vkCreateFence(PVKInstance::GetDevice(), &fenceInfo, nullptr, &m_InFlightFences[i]), "Failed to create fences!");
-		}
+		// for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		// 	PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]), "Failed to create semaphores!");
+		// 	PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]), "Failed to create semaphores!");
+		// 	PVK_CHECK(vkCreateFence(PVKInstance::GetDevice(), &fenceInfo, nullptr, &m_InFlightFences[i]), "Failed to create fences!");
+		// }
 	}
 
 }

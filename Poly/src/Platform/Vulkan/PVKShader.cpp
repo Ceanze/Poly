@@ -3,82 +3,35 @@
 #include "PVKInstance.h"
 #include "VulkanCommon.h"
 
-// TODO: Remove, only for testing online spirv compiler
-// #include "Poly/Resources/ShaderCompiler.h"
 #include "Poly/Resources/ResourceLoader.h"
 
 namespace Poly
 {
 
-	PVKShader::PVKShader()
-	{
-	}
-
 	PVKShader::~PVKShader()
 	{
+		vkDestroyShaderModule(PVKInstance::GetDevice(), m_ShaderModule, nullptr);
 	}
 
-	void PVKShader::Init()
+	void PVKShader::Init(const ShaderDesc* pDesc)
 	{
-		for (auto& shader : m_ShaderPaths) {
-			// std::vector<char> code = readFile("./../assets/shaders/" + shader.second);
-			// std::vector<char> code = ShaderCompiler::CompileGLSL(shader.second, "./../assets/shaders/", shader.first);
-			std::vector<char> code = ResourceLoader::LoadShader("./../assets/shaders/" + shader.second, shader.first);
-			CreateShaderModule(shader.first, code);
-		}
-		m_ShaderPaths.clear();
-	}
+		m_ShaderStage = pDesc->ShaderStage;
+		m_EntryPoint = pDesc->EntryPoint;
 
-	void PVKShader::Cleanup()
-	{
-		for (auto shaderStage : m_ShaderStages)
-			vkDestroyShaderModule(PVKInstance::GetDevice(), shaderStage.second.module, nullptr);
-	}
-
-	void PVKShader::AddStage(FShaderStage shaderStage, std::string shaderName)
-	{
-		// TODO: Have this somewhere else? And fix it to relative path!
-		const std::string shaderPath = ".\\..\\assets\\shaders\\";
-		m_ShaderPaths[shaderStage] = shaderName;
-	}
-
-	VkPipelineShaderStageCreateInfo PVKShader::GetShaderCreateInfo(FShaderStage shaderStage) const
-	{
-		auto it = m_ShaderStages.find(shaderStage);
-
-		if (it == m_ShaderStages.end())
-			POLY_ERROR("Could not find the desired shader stage!");
-
-		return it->second;
-	}
-
-	std::vector<VkPipelineShaderStageCreateInfo> PVKShader::GetShaderCreateInfos()
-	{
-		std::vector<VkPipelineShaderStageCreateInfo> infos;
-
-		for (auto shader : m_ShaderStages)
-			infos.push_back(shader.second);
-
-		return infos;
-	}
-
-	void PVKShader::CreateShaderModule(FShaderStage shaderStage, const std::vector<char>& code)
-	{
+		// Create shader module
 		VkShaderModuleCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+		createInfo.sType	= VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize	= pDesc->ShaderCode.size();
+		createInfo.pCode	= reinterpret_cast<const uint32_t*>(pDesc->ShaderCode.data());
+		createInfo.flags	= 0;
+		createInfo.pNext	= nullptr;
 
-		VkShaderModule shaderModule;
-		PVK_CHECK(vkCreateShaderModule(PVKInstance::GetDevice(), &createInfo, nullptr, &shaderModule), "Failed to create shader module!");
+		PVK_CHECK(vkCreateShaderModule(PVKInstance::GetDevice(), &createInfo, nullptr, &m_ShaderModule), "Failed to create shader module!");
 
-		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
-		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStageInfo.stage = ConvertShaderStageVK(shaderStage);
-		shaderStageInfo.module = shaderModule;
-		shaderStageInfo.pName = "main"; // Main should always be considered default
-
-		m_ShaderStages[shaderStage] = shaderStageInfo;
+		// Save the pipeline info for easier use later on
+		m_PipelineInfo.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		m_PipelineInfo.stage	= ConvertShaderStageVK(pDesc->ShaderStage);
+		m_PipelineInfo.module	= m_ShaderModule;
+		m_PipelineInfo.pName	= m_EntryPoint.c_str();
 	}
-
 }

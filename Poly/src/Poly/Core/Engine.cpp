@@ -1,9 +1,11 @@
 #include "polypch.h"
 #include "Engine.h"
 
-#include "Application.h"
-#include "Timestamp.h"
 #include "Timer.h"
+#include "Window.h"
+#include "RenderAPI.h"
+#include "Timestamp.h"
+#include "Application.h"
 
 #include "Poly/Resources/ResourceLoader.h"
 
@@ -15,7 +17,13 @@ namespace Poly
 {
 	void Engine::Init()
 	{
+		Poly::Logger::init();
+
 		ResourceLoader::Init();
+
+		s_pWindow = new Window(1280, 720, "Test Window");
+
+		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, s_pWindow);
 	}
 
 	void Engine::Run(Application* pApp)
@@ -47,5 +55,9 @@ namespace Poly
 	void Engine::Release()
 	{
 		ResourceLoader::Release();
+
+		delete s_pWindow;
+
+		RenderAPI::Release();
 	}
 }

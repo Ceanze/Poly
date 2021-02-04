@@ -1,11 +1,16 @@
 #include "polypch.h"
 #include "ResourceLoader.h"
+#include "Platform/API/Shader.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Platform/API/Shader.h"
 
 #include "GLSLang.h"
 
 namespace Poly
 {
 	bool ResourceLoader::s_GLSLInit = false;
+
+	constexpr const char* SHADER_PATH = "../assets/shaders/";
 
 	void ResourceLoader::Init()
 	{
@@ -20,19 +25,21 @@ namespace Poly
 			glslang::FinalizeProcess();
 	}
 
-	std::vector<char> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
+	Ref<Shader> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
 	{
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
+		std::string realPath = SHADER_PATH + path;
+
 		// Extract folder and filename
-		size_t slashPos = path.find_last_of("/\\");
-		std::string folder = path.substr(0, slashPos);
-		std::string filename = path.substr(slashPos + 1);
+		size_t slashPos = realPath.find_last_of("/\\");
+		std::string folder = realPath.substr(0, slashPos);
+		std::string filename = realPath.substr(slashPos + 1);
 
 		// Load and transfer content to string
-		std::ifstream file(path);
+		std::ifstream file(realPath);
 
-		POLY_ASSERT(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
+		POLY_VALIDATE(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
 
 		const std::string inputGLSL((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 		const char* pInputCString = inputGLSL.c_str();
@@ -82,8 +89,13 @@ namespace Poly
 		const uint32_t sourceSize = static_cast<uint32_t>(sprirv.size()) * sizeof(uint32_t);
 		std::vector<char> correctType = std::vector<char>(reinterpret_cast<char*>(sprirv.data()), reinterpret_cast<char*>(sprirv.data()) + sourceSize);
 
-		// TODO: Return shader or other object instead?
-		return correctType;
+		ShaderDesc desc = {};
+		desc.EntryPoint		= "main";
+		desc.ShaderCode		= correctType;
+		desc.ShaderStage	= shaderStage;
+		Ref<Shader> polyShader = RenderAPI::CreateShader(&desc);
+
+		return polyShader;
 	}
 
 }

@@ -11,8 +11,6 @@ namespace Poly
 
 	Application::Application()
 	{
-		Poly::Logger::init();
-
 		POLY_EVENT_SUB(Application, OnCloseWindowEvent);
 	}
 
