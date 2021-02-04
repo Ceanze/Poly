@@ -27,6 +27,7 @@ namespace Poly
 	{
 		PVKCommandBuffer* pBuffer = new PVKCommandBuffer();
 		pBuffer->Init(this);
+		m_Buffers.push_back(pBuffer);
 		return pBuffer;
 	}
 
