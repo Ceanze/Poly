@@ -115,7 +115,6 @@ namespace Poly
 	};
 	ENABLE_BITMASK_OPERATORS(FImageViewFlag);
 
-	// TODO: Consider if this should be class instead with sync and submit functions?
 	enum class FQueueType
 	{
 		NONE			= 0,

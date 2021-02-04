@@ -164,8 +164,8 @@ namespace Poly
 		assembly.Topology			= ETopology::TRIANGLE_LIST;
 
 		ViewportDesc viewport = {};
-		viewport.Width		= m_pSwapChain->GetDesc().Width;
-		viewport.Height		= m_pSwapChain->GetDesc().Height;
+		viewport.Width		= static_cast<float>(m_pSwapChain->GetDesc().Width);
+		viewport.Height		= static_cast<float>(m_pSwapChain->GetDesc().Height);
 
 		ScissorDesc scissor = {};
 		scissor.Width		= m_pSwapChain->GetDesc().Width;

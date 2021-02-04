@@ -38,7 +38,7 @@ namespace Poly
 		static void Reset();
 
 	private:
-		static glm::vec2 s_MouseDelta;
+		static glm::dvec2 s_MouseDelta;
 		static std::unordered_map<int, KeyState> s_Keys;
 	};
 

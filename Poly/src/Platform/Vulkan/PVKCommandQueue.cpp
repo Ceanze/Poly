@@ -61,9 +61,9 @@ namespace Poly
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.pCommandBuffers		= submitBuffers.data();
-		submitInfo.commandBufferCount	= submitBuffers.size();
+		submitInfo.commandBufferCount	= static_cast<uint32>(submitBuffers.size());
 		submitInfo.pWaitDstStageMask	= waitStages.data();
-		submitInfo.waitSemaphoreCount	= waitSemaphores.size();
+		submitInfo.waitSemaphoreCount	= static_cast<uint32>(waitSemaphores.size());
 		submitInfo.pWaitSemaphores		= waitSemaphores.data();
 		submitInfo.pNext				= nullptr;
 		submitInfo.pSignalSemaphores	= &pSignalSemaphoreVK;

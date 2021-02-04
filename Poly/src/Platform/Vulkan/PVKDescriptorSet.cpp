@@ -88,7 +88,7 @@ namespace Poly
 
 		VkDescriptorPoolCreateInfo poolInfo = {};
 		poolInfo.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount	= poolSizes.size();
+		poolInfo.poolSizeCount	= static_cast<uint32>(poolSizes.size());
 		poolInfo.pPoolSizes		= poolSizes.data();
 		poolInfo.maxSets		= 1; // Since this instance will only be for one set
 

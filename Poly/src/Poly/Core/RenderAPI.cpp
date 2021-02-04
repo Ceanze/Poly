@@ -61,6 +61,9 @@ namespace Poly
 
 			return m_pTransferQueue.get();
 		}
+
+		POLY_CORE_WARN("Tried to get unknown or NONE FQueueType in GetCommandQueue, returning nullptr");
+		return nullptr;
 	}
 
 	Ref<Buffer> RenderAPI::CreateBuffer(const BufferDesc* pDesc)

@@ -56,7 +56,7 @@ namespace Poly
 			VkDescriptorSetLayout vkLayout;
 			VkDescriptorSetLayoutCreateInfo createInfo = {};
 			createInfo.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			createInfo.bindingCount	= bindingsVK.size();
+			createInfo.bindingCount	= static_cast<uint32>(bindingsVK.size());
 			createInfo.pBindings	= bindingsVK.data();
 			createInfo.flags		= 0;
 			createInfo.pNext		= nullptr;
@@ -79,9 +79,9 @@ namespace Poly
 		createInfo.sType					= VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		createInfo.pNext					= nullptr;
 		createInfo.pPushConstantRanges		= pushConstantRangesVK.data();
-		createInfo.pushConstantRangeCount	= pushConstantRangesVK.size();
+		createInfo.pushConstantRangeCount	= static_cast<uint32>(pushConstantRangesVK.size());
 		createInfo.pSetLayouts				= m_DescriptorSetLayoutsVK.data();
-		createInfo.setLayoutCount			= m_DescriptorSetLayoutsVK.size();
+		createInfo.setLayoutCount			= static_cast<uint32>(m_DescriptorSetLayoutsVK.size());
 
 		PVK_CHECK(vkCreatePipelineLayout(PVKInstance::GetDevice(), &createInfo, nullptr, &m_Layout), "Failed to create pipeline layout!");
 	}

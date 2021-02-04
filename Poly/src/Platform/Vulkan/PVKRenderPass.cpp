@@ -83,9 +83,9 @@ namespace Poly
 			subpassDescVK.pipelineBindPoint			= VK_PIPELINE_BIND_POINT_GRAPHICS; // Only graphics is currently supported
 			subpassDescVK.flags						= 0;
 			subpassDescVK.pInputAttachments			= inputRefs[subpassIndex].data();
-			subpassDescVK.inputAttachmentCount		= inputRefs[subpassIndex].size();
+			subpassDescVK.inputAttachmentCount		= static_cast<uint32>(inputRefs[subpassIndex].size());
 			subpassDescVK.pColorAttachments			= colorRefs[subpassIndex].data();
-			subpassDescVK.colorAttachmentCount		= colorRefs[subpassIndex].size();
+			subpassDescVK.colorAttachmentCount		= static_cast<uint32>(colorRefs[subpassIndex].size());
 			subpassDescVK.pResolveAttachments		= resolveRefs[subpassIndex].data();
 			subpassDescVK.preserveAttachmentCount	= 0;
 			subpassDescVK.pPreserveAttachments		= nullptr;
@@ -112,11 +112,11 @@ namespace Poly
 
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount	= attachments.size();
+		renderPassInfo.attachmentCount	= static_cast<uint32>(attachments.size());
 		renderPassInfo.pAttachments		= attachments.data();
-		renderPassInfo.subpassCount		= subpasses.size();
+		renderPassInfo.subpassCount		= static_cast<uint32>(subpasses.size());
 		renderPassInfo.pSubpasses		= subpasses.data();
-		renderPassInfo.dependencyCount	= dependencies.size();
+		renderPassInfo.dependencyCount	= static_cast<uint32>(dependencies.size());
 		renderPassInfo.pDependencies	= dependencies.data();
 		renderPassInfo.flags			= 0;
 		renderPassInfo.pNext			= nullptr;

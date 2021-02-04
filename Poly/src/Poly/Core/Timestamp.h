@@ -23,7 +23,7 @@ namespace Poly
 			: m_NanoSeconds(other.m_NanoSeconds)
 		{}
 
-		inline Timestamp(Timestamp&& other)
+		inline Timestamp(Timestamp&& other) noexcept
 			: m_NanoSeconds(other.m_NanoSeconds)
 		{ other.m_NanoSeconds = 0; }
 

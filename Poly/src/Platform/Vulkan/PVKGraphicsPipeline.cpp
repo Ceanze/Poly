@@ -47,9 +47,9 @@ namespace Poly
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType							= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.pVertexBindingDescriptions		= vertexBinds.data();
-		vertexInputInfo.vertexBindingDescriptionCount	= vertexBinds.size();
+		vertexInputInfo.vertexBindingDescriptionCount	= static_cast<uint32>(vertexBinds.size());
 		vertexInputInfo.pVertexAttributeDescriptions	= vertexAttribs.data();
-		vertexInputInfo.vertexAttributeDescriptionCount	= vertexAttribs.size();
+		vertexInputInfo.vertexAttributeDescriptionCount	= static_cast<uint32>(vertexAttribs.size());
 		vertexInputInfo.flags							= 0;
 		vertexInputInfo.pNext							= nullptr;
 
@@ -156,7 +156,7 @@ namespace Poly
 		colorBlending.sType				= VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		colorBlending.logicOpEnable		= pDesc->ColorBlendState.LogicOpEnable;
 		colorBlending.logicOp			= ConvertLogicOpVK(pDesc->ColorBlendState.LogicOp);
-		colorBlending.attachmentCount	= colorBlendAttachments.size();
+		colorBlending.attachmentCount	= static_cast<uint32>(colorBlendAttachments.size());
 		colorBlending.pAttachments		= colorBlendAttachments.data();
 		colorBlending.blendConstants[0]	= pDesc->ColorBlendState.BlendConstants[0];
 		colorBlending.blendConstants[1]	= pDesc->ColorBlendState.BlendConstants[1];
@@ -171,7 +171,7 @@ namespace Poly
 
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType				= VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamicState.dynamicStateCount	= dynamicStates.size();
+		dynamicState.dynamicStateCount	= static_cast<uint32>(dynamicStates.size());
 		dynamicState.pDynamicStates		= dynamicStates.data();
 
 		// Create shader stage infos
@@ -200,7 +200,7 @@ namespace Poly
 		// Finally, create the pipeline
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType					= VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.stageCount				= shaderStages.size();
+		pipelineInfo.stageCount				= static_cast<uint32>(shaderStages.size());
 		pipelineInfo.pStages				= shaderStages.data();
 		pipelineInfo.pVertexInputState		= &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState	= &inputAssembly;
