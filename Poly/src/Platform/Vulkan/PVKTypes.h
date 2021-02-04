@@ -126,29 +126,29 @@ namespace Poly
 	inline VkImageAspectFlags ConvertImageViewFlagsVK(FImageViewFlag imageViewFlag)
 	{
 		VkImageAspectFlags mask = 0;
-		FLAG_CHECK(imageViewFlag | FImageViewFlag::DEPTH_STENCIL, mask |= VK_IMAGE_ASPECT_DEPTH_BIT);
-		FLAG_CHECK(imageViewFlag | FImageViewFlag::RENDER_TARGET, mask |= VK_IMAGE_ASPECT_COLOR_BIT);
-		FLAG_CHECK(imageViewFlag | FImageViewFlag::SHADER_RESOURCE, mask |= VK_IMAGE_ASPECT_COLOR_BIT);
-		FLAG_CHECK(imageViewFlag | FImageViewFlag::UNORDERED_ACCESS, mask |= VK_IMAGE_ASPECT_COLOR_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::DEPTH_STENCIL,		mask |= VK_IMAGE_ASPECT_DEPTH_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::RENDER_TARGET,		mask |= VK_IMAGE_ASPECT_COLOR_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::SHADER_RESOURCE,		mask |= VK_IMAGE_ASPECT_COLOR_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::UNORDERED_ACCESS,	mask |= VK_IMAGE_ASPECT_COLOR_BIT);
 		return mask;
 	}
 
 	inline VkPipelineStageFlags ConvertPipelineStageFlagsVK(FPipelineStage pipelineStage)
 	{
 		VkPipelineStageFlags mask = 0;
-		FLAG_CHECK(pipelineStage | FPipelineStage::TOP_OF_PIPE, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::DRAW_INDIRECT, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::VERTEX_INPUT, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::VERTEX_SHADER, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::FRAGMENT_SHADER, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::EARLY_FRAGMENT_TEST, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::LATE_FRAGMENT_TEST, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::COLOR_ATTACHMENT_OUTPUT, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::COMPUTE_SHADER, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::TRANSFER, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::BOTTOM_OF_PIPE, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::ALL_GRAPHICS, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-		FLAG_CHECK(pipelineStage | FPipelineStage::ALL_COMMANDS, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::TOP_OF_PIPE,				mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::DRAW_INDIRECT,			mask |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::VERTEX_INPUT,			mask |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::VERTEX_SHADER,			mask |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::FRAGMENT_SHADER,			mask |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::EARLY_FRAGMENT_TEST,		mask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::LATE_FRAGMENT_TEST,		mask |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::COLOR_ATTACHMENT_OUTPUT,	mask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::COMPUTE_SHADER,			mask |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::TRANSFER,				mask |= VK_PIPELINE_STAGE_TRANSFER_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::BOTTOM_OF_PIPE,			mask |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_GRAPHICS,			mask |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_COMMANDS,			mask |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 		return mask;
 	}
 
@@ -165,14 +165,14 @@ namespace Poly
 	inline VkCommandBufferUsageFlags ConvertCommandBufferUsage(FCommandBufferFlag commandBufferFlag)
 	{
 		VkCommandBufferUsageFlags mask = 0;
-		FLAG_CHECK(commandBufferFlag | FCommandBufferFlag::ONE_TIME_SUBMIT, mask |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+		FLAG_CHECK(commandBufferFlag & FCommandBufferFlag::ONE_TIME_SUBMIT, mask |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 		return mask;
 	}
 
 	inline VkFenceCreateFlags ConvertFenceFlagsVK(FFenceFlag fenceFlag)
 	{
 		VkFenceCreateFlags mask = 0;
-		FLAG_CHECK(fenceFlag | FFenceFlag::SIGNALED, mask |= VK_FENCE_CREATE_SIGNALED_BIT);
+		FLAG_CHECK(fenceFlag & FFenceFlag::SIGNALED, mask |= VK_FENCE_CREATE_SIGNALED_BIT);
 		return mask;
 	}
 
@@ -294,23 +294,23 @@ namespace Poly
 	inline VkAccessFlags ConvertAccessFlagVK(FAccessFlag accessFlag)
 	{
 		VkAccessFlags mask = 0;
-		FLAG_CHECK(accessFlag | FAccessFlag::INDIRECT_COMMAND_READ, mask |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::INDEX_READ, mask |= VK_ACCESS_INDEX_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::VERTEX_ATTRIBUTE_READ, mask |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::UNIFORM_READ, mask |= VK_ACCESS_UNIFORM_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::INPUT_ATTACHMENT_READ, mask |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::SHADER_READ, mask |= VK_ACCESS_SHADER_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::SHADER_WRITE, mask |= VK_ACCESS_SHADER_WRITE_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::COLOR_ATTACHMENT_READ, mask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::COLOR_ATTACHMENT_WRITE, mask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ, mask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE, mask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::TRANSFER_READ, mask |= VK_ACCESS_TRANSFER_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::TRANSFER_WRITE, mask |= VK_ACCESS_TRANSFER_WRITE_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::HOST_READ, mask |= VK_ACCESS_HOST_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::HOST_WRITE, mask |= VK_ACCESS_HOST_WRITE_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::MEMORY_READ, mask |= VK_ACCESS_MEMORY_READ_BIT);
-		FLAG_CHECK(accessFlag | FAccessFlag::MEMORY_WRITE, mask |= VK_ACCESS_MEMORY_WRITE_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::INDIRECT_COMMAND_READ, mask |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::INDEX_READ, mask |= VK_ACCESS_INDEX_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::VERTEX_ATTRIBUTE_READ, mask |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::UNIFORM_READ, mask |= VK_ACCESS_UNIFORM_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::INPUT_ATTACHMENT_READ, mask |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::SHADER_READ, mask |= VK_ACCESS_SHADER_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::SHADER_WRITE, mask |= VK_ACCESS_SHADER_WRITE_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::COLOR_ATTACHMENT_READ, mask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::COLOR_ATTACHMENT_WRITE, mask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ, mask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE, mask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::TRANSFER_READ, mask |= VK_ACCESS_TRANSFER_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::TRANSFER_WRITE, mask |= VK_ACCESS_TRANSFER_WRITE_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::HOST_READ, mask |= VK_ACCESS_HOST_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::HOST_WRITE, mask |= VK_ACCESS_HOST_WRITE_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::MEMORY_READ, mask |= VK_ACCESS_MEMORY_READ_BIT);
+		FLAG_CHECK(accessFlag & FAccessFlag::MEMORY_WRITE, mask |= VK_ACCESS_MEMORY_WRITE_BIT);
 		return mask;
 	}
 
@@ -445,10 +445,10 @@ namespace Poly
 	inline VkColorComponentFlags ConvertColorComponentVK(FColorComponentFlag colorComponent)
 	{
 		VkColorComponentFlags mask = 0;
-		FLAG_CHECK(colorComponent | FColorComponentFlag::RED, mask |= VK_COLOR_COMPONENT_R_BIT);
-		FLAG_CHECK(colorComponent | FColorComponentFlag::GREEN, mask |= VK_COLOR_COMPONENT_G_BIT);
-		FLAG_CHECK(colorComponent | FColorComponentFlag::BLUE, mask |= VK_COLOR_COMPONENT_B_BIT);
-		FLAG_CHECK(colorComponent | FColorComponentFlag::ALPHA, mask |= VK_COLOR_COMPONENT_A_BIT);
+		FLAG_CHECK(colorComponent & FColorComponentFlag::RED, mask |= VK_COLOR_COMPONENT_R_BIT);
+		FLAG_CHECK(colorComponent & FColorComponentFlag::GREEN, mask |= VK_COLOR_COMPONENT_G_BIT);
+		FLAG_CHECK(colorComponent & FColorComponentFlag::BLUE, mask |= VK_COLOR_COMPONENT_B_BIT);
+		FLAG_CHECK(colorComponent & FColorComponentFlag::ALPHA, mask |= VK_COLOR_COMPONENT_A_BIT);
 		return mask;
 	}
 

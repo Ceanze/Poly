@@ -5,10 +5,6 @@
 
 namespace Poly
 {
-	PVKTexture::PVKTexture()
-	{
-	}
-
 	PVKTexture::~PVKTexture()
 	{
 		if (m_HandleImage)

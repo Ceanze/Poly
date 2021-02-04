@@ -3,6 +3,7 @@
 namespace Poly
 {
 	class Application;
+	class Window;
 
 	class Engine
 	{
@@ -15,5 +16,8 @@ namespace Poly
 		static void Run(Application* pApp);
 
 		static void Release();
+
+	private:
+		inline static Window* s_pWindow = nullptr;
 	};
 }

@@ -21,7 +21,7 @@ namespace Poly
 
 		virtual void BindPipeline(Pipeline* pPipeline) override final;
 
-		virtual void BindDescriptor(Pipeline* pPipeline, Descriptor* pDescriptor) override final;
+		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) override final;
 
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
 

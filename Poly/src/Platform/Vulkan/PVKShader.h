@@ -23,6 +23,7 @@ namespace Poly
 		VkShaderModule m_ShaderModule = VK_NULL_HANDLE;
 		VkPipelineShaderStageCreateInfo m_PipelineInfo = {};
 		FShaderStage m_ShaderStage = FShaderStage::NONE;
+		std::string m_EntryPoint = "";
 	};
 
 }

@@ -59,6 +59,8 @@ namespace Poly
 
 		static CommandQueue*		GetCommandQueue(FQueueType queue);
 
+		static Window*				GetWindow() { return m_pWindow; }
+
 		// Create functions
 		static Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc);
 		static Ref<Texture>				CreateTexture(const TextureDesc* pDesc);
@@ -78,6 +80,7 @@ namespace Poly
 
 	private:
 		inline static GraphicsInstance*	m_pGraphicsInstance	= nullptr;
+		inline static Window*			m_pWindow			= nullptr;
 
 		// Queue types [TODO: Support multiple queues per type]
 		inline static Ref<CommandQueue>	m_pGraphicsQueue	= nullptr;

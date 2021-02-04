@@ -78,9 +78,13 @@ namespace Poly
 				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
 				reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetNativeVK());
 		}
+		else
+		{
+			POLY_VALIDATE(false, "BindPipeline failed: Given pipeline did not have any type associated with it!");
+		}
 	}
 
-	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, Descriptor* pDescriptor)
+	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor)
 	{
 		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
 		{

@@ -57,7 +57,6 @@ namespace Poly
 
 	void RendererAPI::Shutdown()
 	{
-		s_pRenderer->Shutdown();
 		delete s_pRenderer;
 	}
 

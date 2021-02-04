@@ -16,7 +16,7 @@ namespace Poly
 	void PVKSemaphore::Init()
 	{
 		VkSemaphoreCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		createInfo.flags = 0;
 		createInfo.pNext = nullptr;
 

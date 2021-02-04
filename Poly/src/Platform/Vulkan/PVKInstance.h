@@ -25,7 +25,6 @@ namespace Poly
 		static PVKInstance* Get();
 
 		virtual void Init(Window* pWindow) override final;
-		virtual void Cleanup() override final;
 
 		/*
 		* GraphicsInstance functions

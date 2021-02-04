@@ -37,9 +37,9 @@ namespace Poly
 		VkExtent2D		GetExtentVK() const { return m_Extent; }
 		virtual uint32	GetBackbufferIndex() const override final { return m_ImageIndex; }
 		virtual uint32	GetBackbufferCount() const override final { return p_SwapchainDesc.BufferCount; }
-		virtual const Texture* GetTexture(uint32 bufferIndex) const override final { return reinterpret_cast<Texture*>(m_Textures.at(bufferIndex)); }
+		virtual Texture* GetTexture(uint32 bufferIndex) const override final { return reinterpret_cast<Texture*>(m_Textures.at(bufferIndex)); }
 		const PVKTexture* GetTextureVK(uint32 bufferIndex) const { return m_Textures.at(bufferIndex); }
-		virtual const TextureView* GetTextureView(uint32 bufferIndex) const override final { return reinterpret_cast<TextureView*>(m_TextureViews.at(bufferIndex)); }
+		virtual TextureView* GetTextureView(uint32 bufferIndex) const override final { return reinterpret_cast<TextureView*>(m_TextureViews.at(bufferIndex)); }
 		const PVKTextureView* GetTextureViewVK(uint32 bufferIndex) const { return m_TextureViews.at(bufferIndex); }
 
 

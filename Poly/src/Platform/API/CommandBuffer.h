@@ -9,7 +9,7 @@ namespace Poly
 	class Texture;
 	class Pipeline;
 	class RenderPass;
-	class Descriptor;
+	class DescriptorSet;
 	class Framebuffer;
 	class CommandPool;
 	class CommandQueue;
@@ -25,9 +25,9 @@ namespace Poly
 		uint32			MipLevel			= 0;
 		uint32			ArrayLayer			= 0;
 		uint32			ArrayCount			= 0;
-		uint32			ImageOffsetX		= 0;
-		uint32			ImageOffsetY		= 0;
-		uint32			ImageOffsetZ		= 0;
+		int				ImageOffsetX		= 0;
+		int				ImageOffsetY		= 0;
+		int				ImageOffsetZ		= 0;
 		uint32			Width				= 0;
 		uint32			Height				= 0;
 		uint32			Depth				= 0;
@@ -73,7 +73,7 @@ namespace Poly
 		 * @param pDescriptor - Descriptor containing the sets
 		 * @param setIndex - Which set to bind
 		 */
-		virtual void BindDescriptor(Pipeline* pPipeline, Descriptor* pDescriptor) = 0;
+		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) = 0;
 
 		/**
 		 * Copy buffer to a texture

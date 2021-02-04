@@ -52,13 +52,13 @@ namespace Poly
 		 * Get the texture
 		 * @return Texture pointer of image buffers
 		 */
-		virtual const Texture* GetTexture(uint32 bufferIndex) const = 0;
+		virtual Texture* GetTexture(uint32 bufferIndex) const = 0;
 
 		/**
 		 * Get the texture view
 		 * @return Texture pointer of image view buffers
 		 */
-		virtual const TextureView* GetTextureView(uint32 bufferIndex) const = 0;
+		virtual TextureView* GetTextureView(uint32 bufferIndex) const = 0;
 
 		/**
 		 * Get the current backbuffer index

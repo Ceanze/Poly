@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Poly/Core/Core.h"
+#include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 namespace Poly
 {
@@ -42,7 +43,6 @@ namespace Poly
 		CLASS_ABSTRACT(GraphicsInstance);
 
 		virtual void Init(Window* pWindow) = 0;
-		virtual void Cleanup() = 0;
 
 		virtual Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc) = 0;
 		virtual Ref<Texture>			CreateTexture(const TextureDesc* pDesc) = 0;

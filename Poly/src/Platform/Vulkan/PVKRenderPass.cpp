@@ -34,17 +34,19 @@ namespace Poly
 		// Subpasses and Color attachment references
 		std::vector<VkSubpassDescription> subpasses;
 		subpasses.reserve(pDesc->Subpasses.size());
+
+		std::vector<std::vector<VkAttachmentReference>>	inputRefs(pDesc->Subpasses.size());
+		std::vector<std::vector<VkAttachmentReference>>	colorRefs(pDesc->Subpasses.size());
+		std::vector<std::vector<VkAttachmentReference>>	resolveRefs(pDesc->Subpasses.size());
+		uint32 subpassIndex = 0;
 		for (auto& subpass : pDesc->Subpasses)
 		{
 			VkSubpassDescription subpassVK = {};
-			std::vector<VkAttachmentReference>	inputRefs;
-			std::vector<VkAttachmentReference>	colorRefs;
-			std::vector<VkAttachmentReference>	resolveRefs;
-			VkAttachmentReference				depthRef = {VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_UNDEFINED};
-			inputRefs.reserve(subpass.InputAttachmentsLayouts.size());
-			colorRefs.reserve(subpass.ColorAttachmentsLayouts.size());
-			resolveRefs.reserve(subpass.ResolveAttachmentsLayouts.size());
+			VkAttachmentReference depthRef = {VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_UNDEFINED};
 
+			inputRefs[subpassIndex].reserve(subpass.InputAttachmentsLayouts.size());
+			colorRefs[subpassIndex].reserve(subpass.ColorAttachmentsLayouts.size());
+			resolveRefs[subpassIndex].reserve(subpass.ResolveAttachmentsLayouts.size());
 
 			// Go through each different type of attachment, check if they are used.
 			for (auto& inputAttachment : subpass.InputAttachmentsLayouts)
@@ -52,7 +54,7 @@ namespace Poly
 				VkAttachmentReference ref = {};
 				ref.attachment	= inputAttachment.Index;
 				ref.layout		= ConvertTextureLayoutVK(inputAttachment.Layout);
-				inputRefs.push_back(ref);
+				inputRefs[subpassIndex].push_back(ref);
 			}
 
 			for (auto& colorAttachment : subpass.ColorAttachmentsLayouts)
@@ -60,7 +62,7 @@ namespace Poly
 				VkAttachmentReference ref = {};
 				ref.attachment	= colorAttachment.Index;
 				ref.layout		= ConvertTextureLayoutVK(colorAttachment.Layout);
-				colorRefs.push_back(ref);
+				colorRefs[subpassIndex].push_back(ref);
 			}
 
 			for (auto& resolveAttachment : subpass.ResolveAttachmentsLayouts)
@@ -68,7 +70,7 @@ namespace Poly
 				VkAttachmentReference ref = {};
 				ref.attachment	= resolveAttachment.Index;
 				ref.layout		= ConvertTextureLayoutVK(resolveAttachment.Layout);
-				resolveRefs.push_back(ref);
+				resolveRefs[subpassIndex].push_back(ref);
 			}
 
 			if (subpass.DepthStencilAttachmentLayout.Layout != ETextureLayout::UNDEFINED)
@@ -80,15 +82,16 @@ namespace Poly
 			VkSubpassDescription subpassDescVK = {};
 			subpassDescVK.pipelineBindPoint			= VK_PIPELINE_BIND_POINT_GRAPHICS; // Only graphics is currently supported
 			subpassDescVK.flags						= 0;
-			subpassDescVK.pInputAttachments			= inputRefs.data();
-			subpassDescVK.inputAttachmentCount		= inputRefs.size();
-			subpassDescVK.pColorAttachments			= colorRefs.data();
-			subpassDescVK.colorAttachmentCount		= colorRefs.size();
-			subpassDescVK.pResolveAttachments		= resolveRefs.data();
+			subpassDescVK.pInputAttachments			= inputRefs[subpassIndex].data();
+			subpassDescVK.inputAttachmentCount		= inputRefs[subpassIndex].size();
+			subpassDescVK.pColorAttachments			= colorRefs[subpassIndex].data();
+			subpassDescVK.colorAttachmentCount		= colorRefs[subpassIndex].size();
+			subpassDescVK.pResolveAttachments		= resolveRefs[subpassIndex].data();
 			subpassDescVK.preserveAttachmentCount	= 0;
 			subpassDescVK.pPreserveAttachments		= nullptr;
 			subpassDescVK.pDepthStencilAttachment	= depthRef.attachment == VK_ATTACHMENT_UNUSED ? nullptr : &depthRef;
 			subpasses.push_back(subpassDescVK);
+			subpassIndex++;
 		}
 
 		// Dependencies

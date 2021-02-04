@@ -55,6 +55,7 @@ namespace Poly
 			// Create VK Descriptor layout
 			VkDescriptorSetLayout vkLayout;
 			VkDescriptorSetLayoutCreateInfo createInfo = {};
+			createInfo.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			createInfo.bindingCount	= bindingsVK.size();
 			createInfo.pBindings	= bindingsVK.data();
 			createInfo.flags		= 0;

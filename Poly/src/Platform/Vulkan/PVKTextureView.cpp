@@ -19,7 +19,7 @@ namespace Poly
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType	= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.pNext	= nullptr;
-		createInfo.image	= pTexture ? pTexture->GetImageVK() : nullptr;
+		createInfo.image	= pTexture ? pTexture->GetNativeVK() : nullptr;
 		createInfo.viewType	= ConvertImageViewTypeVK(pDesc->ImageViewType);
 		createInfo.format	= ConvertFormatVK(pDesc->Format);
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY; // Current implementation assume these are always correct

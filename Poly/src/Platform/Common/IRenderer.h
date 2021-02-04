@@ -26,7 +26,6 @@ namespace Poly
 		virtual void BeginScene(uint32_t imageIndex) = 0;
 		virtual void Record() = 0;
 		virtual void EndScene() = 0;
-		virtual void Shutdown() = 0;
 
 	protected:
 		Camera* m_pCamera;

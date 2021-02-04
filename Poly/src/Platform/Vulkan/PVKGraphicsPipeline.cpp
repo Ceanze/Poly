@@ -19,6 +19,7 @@ namespace Poly
 	void PVKGraphicsPipeline::Init(const GraphicsPipelineDesc* pDesc)
 	{
 		m_pPipelineLayout = reinterpret_cast<PVKPipelineLayout*>(pDesc->pPipelineLayout);
+		p_PipelineType = EPipelineType::GRAPHICS;
 
 		// Create vertex arrays
 		std::vector<VkVertexInputBindingDescription> vertexBinds;
@@ -69,8 +70,8 @@ namespace Poly
 
 		// Scissor [Only supports one currently]
 		VkRect2D scissor = {};
-		scissor.offset = { pDesc->Scissor.Width, pDesc->Scissor.Height };
-		scissor.extent = { pDesc->Scissor.OffsetX, pDesc->Scissor.OffsetY };
+		scissor.extent = { pDesc->Scissor.Width, pDesc->Scissor.Height };
+		scissor.offset = { pDesc->Scissor.OffsetX, pDesc->Scissor.OffsetY };
 
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType			= VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -164,8 +165,8 @@ namespace Poly
 
 		// Dynamic state
 		std::vector<VkDynamicState> dynamicStates = {
-			VK_DYNAMIC_STATE_VIEWPORT,
-			VK_DYNAMIC_STATE_LINE_WIDTH
+			//VK_DYNAMIC_STATE_VIEWPORT,
+			//VK_DYNAMIC_STATE_LINE_WIDTH
 		};
 
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
@@ -182,16 +183,19 @@ namespace Poly
 		if (pDesc->pVertexShader)
 		{
 			PVKShader* pVertexShader = reinterpret_cast<PVKShader*>(pDesc->pVertexShader);
-			POLY_ASSERT(pVertexShader->GetShaderStage() == FShaderStage::VERTEX, "Shader type of Vertex does not match!");
+			POLY_VALIDATE(pVertexShader->GetShaderStage() == FShaderStage::VERTEX, "Shader type of Vertex does not match!");
 			shaderStages.push_back(pVertexShader->GetPipelineInfo());
 		}
 
 		if (pDesc->pFragmentShader)
 		{
 			PVKShader* pFragmentShader = reinterpret_cast<PVKShader*>(pDesc->pFragmentShader);
-			POLY_ASSERT(pFragmentShader->GetShaderStage() == FShaderStage::FRAGMENT, "Shader type of Fragment does not match!");
+			POLY_VALIDATE(pFragmentShader->GetShaderStage() == FShaderStage::FRAGMENT, "Shader type of Fragment does not match!");
 			shaderStages.push_back(pFragmentShader->GetPipelineInfo());
 		}
+
+		if (!pDesc->pVertexShader && !pDesc->pFragmentShader)
+			POLY_VALIDATE(false, "Atleast one shader must be bound to a graphics pipeline!");
 
 		// Finally, create the pipeline
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};

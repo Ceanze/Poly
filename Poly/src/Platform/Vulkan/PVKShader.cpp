@@ -16,6 +16,7 @@ namespace Poly
 	void PVKShader::Init(const ShaderDesc* pDesc)
 	{
 		m_ShaderStage = pDesc->ShaderStage;
+		m_EntryPoint = pDesc->EntryPoint;
 
 		// Create shader module
 		VkShaderModuleCreateInfo createInfo = {};
@@ -31,6 +32,6 @@ namespace Poly
 		m_PipelineInfo.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		m_PipelineInfo.stage	= ConvertShaderStageVK(pDesc->ShaderStage);
 		m_PipelineInfo.module	= m_ShaderModule;
-		m_PipelineInfo.pName	= pDesc->EntryPoint.c_str();
+		m_PipelineInfo.pName	= m_EntryPoint.c_str();
 	}
 }

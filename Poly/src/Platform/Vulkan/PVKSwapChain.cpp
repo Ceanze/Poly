@@ -40,6 +40,7 @@ namespace Poly
 		CreateSyncObjects();
 		CreateSwapChain();
 		CreateImageViews();
+		AcquireNextImage();
 	}
 
 	void PVKSwapChain::Resize(uint32 width, uint32 height)
@@ -49,6 +50,8 @@ namespace Poly
 
 	void PVKSwapChain::Present(std::vector<CommandBuffer*> commandBuffers, Semaphore* pWaitSemaphore)
 	{
+		POLY_CORE_INFO("PRESENT");
+
 		m_ImagesInFlight[m_FrameIndex]->Reset();
 
 		p_SwapchainDesc.pQueue->Submit(commandBuffers, pWaitSemaphore, m_RenderSemaphores[m_FrameIndex], m_ImagesInFlight[m_FrameIndex]);
@@ -65,6 +68,8 @@ namespace Poly
 		presentInfo.pImageIndices = &m_ImageIndex;
 		presentInfo.pResults = nullptr; // Optional
 		PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
+
+		AcquireNextImage();
 	}
 
 	void PVKSwapChain::CreateSwapChain()
@@ -211,6 +216,7 @@ namespace Poly
 
 		// Create swapchain image views
 		m_TextureViews.resize(imageCount);
+		m_Textures.resize(imageCount);
 		for (size_t i = 0; i < imageCount; i++) {
 			// Texture
 			TextureDesc textureDesc		= {};

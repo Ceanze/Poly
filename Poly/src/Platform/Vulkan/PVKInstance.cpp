@@ -44,11 +44,22 @@ namespace Poly
 
 	PVKInstance::~PVKInstance()
 	{
+		vkDeviceWaitIdle(s_Device);
+
+		vkDestroySurfaceKHR(s_Instance, s_Surface, nullptr);
+
+		if (m_EnableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(s_Instance, m_DebugMessenger, nullptr);
+
+		vmaDestroyAllocator(s_VmaAllocator);
+
+		vkDestroyDevice(s_Device, nullptr);
+		vkDestroyInstance(s_Instance, nullptr);
 	}
 
 	PVKInstance* PVKInstance::Get()
 	{
-		POLY_ASSERT(s_PVKInstance, "Cannot get PVKInstance before init has been called! Has RenderAPI Init been called?");
+		POLY_VALIDATE(s_PVKInstance, "Cannot get PVKInstance before init has been called! Has RenderAPI Init been called?");
 		return s_PVKInstance;
 	}
 
@@ -67,27 +78,12 @@ namespace Poly
 		s_PVKInstance = this;
 	}
 
-	void PVKInstance::Cleanup()
-	{
-		vkDeviceWaitIdle(s_Device);
-
-		vkDestroySurfaceKHR(s_Instance, s_Surface, nullptr);
-
-		if (m_EnableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(s_Instance, m_DebugMessenger, nullptr);
-
-		vmaDestroyAllocator(s_VmaAllocator);
-
-		vkDestroyDevice(s_Device, nullptr);
-		vkDestroyInstance(s_Instance, nullptr);
-	}
-
 	/*
 	* GraphicsInstance functions
 	*/
 	Ref<Buffer> PVKInstance::CreateBuffer(const BufferDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "BufferDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "BufferDesc cannot be nullptr!");
 
 		Ref<PVKBuffer> pBuffer = CreateRef<PVKBuffer>();
 		pBuffer->Init(pDesc);
@@ -96,7 +92,7 @@ namespace Poly
 
 	Ref<Texture> PVKInstance::CreateTexture(const TextureDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "TextureDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "TextureDesc cannot be nullptr!");
 
 		Ref<PVKTexture> pTexture = CreateRef<PVKTexture>();
 		pTexture->Init(pDesc);
@@ -105,7 +101,7 @@ namespace Poly
 
 	Ref<CommandQueue> PVKInstance::CreateCommandQueue(FQueueType queueType, uint32 queueIndex)
 	{
-		POLY_ASSERT(queueType == FQueueType::NONE, "QueueType cannot be NONE!");
+		POLY_VALIDATE(queueType != FQueueType::NONE, "QueueType cannot be NONE!");
 
 		Ref<PVKCommandQueue> pCommandQueue = CreateRef<PVKCommandQueue>();
 		pCommandQueue->Init(queueType, queueIndex);
@@ -114,7 +110,7 @@ namespace Poly
 
 	Ref<TextureView> PVKInstance::CreateTextureView(const TextureViewDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "TextureViewDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "TextureViewDesc cannot be nullptr!");
 
 		Ref<PVKTextureView> pTextureView = CreateRef<PVKTextureView>();
 		pTextureView->Init(pDesc);
@@ -123,7 +119,7 @@ namespace Poly
 
 	Ref<SwapChain> PVKInstance::CreateSwapChain(const SwapChainDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "SwapChainDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "SwapChainDesc cannot be nullptr!");
 
 		Ref<PVKSwapChain> pSwapChain = CreateRef<PVKSwapChain>();
 		pSwapChain->Init(pDesc);
@@ -146,7 +142,7 @@ namespace Poly
 
 	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType)
 	{
-		POLY_ASSERT(queueType == FQueueType::NONE, "FQueueType cannot be NONE!");
+		POLY_VALIDATE(queueType != FQueueType::NONE, "FQueueType cannot be NONE!");
 
 		Ref<PVKCommandPool> pCommandPool = CreateRef<PVKCommandPool>();
 		pCommandPool->Init(queueType);
@@ -155,7 +151,7 @@ namespace Poly
 
 	Ref<Sampler> PVKInstance::CreateSampler(const SamplerDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "SamplerDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "SamplerDesc cannot be nullptr!");
 
 		Ref<PVKSampler> pSampler = CreateRef<PVKSampler>();
 		pSampler->Init(pDesc);
@@ -164,7 +160,7 @@ namespace Poly
 
 	Ref<Shader> PVKInstance::CreateShader(const ShaderDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "ShaderDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "ShaderDesc cannot be nullptr!");
 
 		Ref<PVKShader> pShader = CreateRef<PVKShader>();
 		pShader->Init(pDesc);
@@ -173,7 +169,7 @@ namespace Poly
 
 	Ref<RenderPass> PVKInstance::CreateRenderPass(const RenderPassDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "RenderPassDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "RenderPassDesc cannot be nullptr!");
 
 		Ref<PVKRenderPass> pShader = CreateRef<PVKRenderPass>();
 		pShader->Init(pDesc);
@@ -182,7 +178,7 @@ namespace Poly
 
 	Ref<GraphicsPipeline> PVKInstance::CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "GraphicsPipelineDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "GraphicsPipelineDesc cannot be nullptr!");
 
 		Ref<PVKGraphicsPipeline> pShader = CreateRef<PVKGraphicsPipeline>();
 		pShader->Init(pDesc);
@@ -191,7 +187,7 @@ namespace Poly
 
 	Ref<PipelineLayout> PVKInstance::CreatePipelineLayout(const PipelineLayoutDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "PipelineLayoutDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "PipelineLayoutDesc cannot be nullptr!");
 
 		Ref<PVKPipelineLayout> pShader = CreateRef<PVKPipelineLayout>();
 		pShader->Init(pDesc);
@@ -200,7 +196,7 @@ namespace Poly
 
 	Ref<Framebuffer> PVKInstance::CreateFramebuffer(const FramebufferDesc* pDesc)
 	{
-		POLY_ASSERT(pDesc, "FramebufferDesc cannot be nullptr!");
+		POLY_VALIDATE(pDesc, "FramebufferDesc cannot be nullptr!");
 
 		Ref<PVKFramebuffer> pShader = CreateRef<PVKFramebuffer>();
 		pShader->Init(pDesc);
@@ -209,7 +205,7 @@ namespace Poly
 
 	Ref<DescriptorSet> PVKInstance::CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex)
 	{
-		POLY_ASSERT(pLayout, "PipelineLayout cannot be nullptr!");
+		POLY_VALIDATE(pLayout, "PipelineLayout cannot be nullptr!");
 
 		Ref<PVKDescriptorSet> pShader = CreateRef<PVKDescriptorSet>();
 		pShader->Init(pLayout, setIndex);
@@ -411,7 +407,7 @@ namespace Poly
 		if (deviceCount == 0) {
 			throw std::runtime_error("failed to find GPUs with Vulkan support!");
 		}
-		
+
 		// Get the physical devices
 		std::vector<VkPhysicalDevice> devices(deviceCount);
 		vkEnumeratePhysicalDevices(s_Instance, &deviceCount, devices.data());
@@ -539,7 +535,7 @@ namespace Poly
 		createInfo.device = s_Device;
 		createInfo.instance = s_Instance;
 		createInfo.vulkanApiVersion = VK_API_VERSION_1_1;
-		
+
 		// All three are enabled by default in vulkan 1.1
 		if (VK_KHR_dedicated_allocation)
 		{

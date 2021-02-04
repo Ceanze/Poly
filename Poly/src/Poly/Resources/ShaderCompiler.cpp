@@ -32,7 +32,7 @@ namespace Poly
 		// Load and transfer content to string
 		std::ifstream file(folder + filename);
 
-		POLY_ASSERT(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
+		POLY_VALIDATE(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
 
 		const std::string inputGLSL((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 		const char* pInputCString = inputGLSL.c_str();

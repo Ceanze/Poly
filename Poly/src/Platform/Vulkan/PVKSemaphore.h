@@ -3,6 +3,7 @@
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Platform/API/Semaphore.h"
+#include "PVKTypes.h"
 
 namespace Poly
 {
@@ -19,7 +20,7 @@ namespace Poly
 		virtual FPipelineStage GetWaitStageMask() const override final { return m_WaitStage; }
 		VkPipelineStageFlags GetWaitStageMaskVK() const { return ConvertPipelineStageFlagsVK(m_WaitStage); }
 
-		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Semaphore); };
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Semaphore); }
 
 		VkSemaphore GetNativeVK() const { return m_Semaphore; }
 

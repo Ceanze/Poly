@@ -31,9 +31,9 @@ namespace Poly
 
 	struct RenderPassSubpassAttachmentReference
 	{
-		uint32			Index	= 0;
-		ETextureLayout	Layout	= ETextureLayout::UNDEFINED;
-	}
+		uint32			Index = 0;
+		ETextureLayout	Layout = ETextureLayout::UNDEFINED;
+	};
 
 	struct RenderPassSubpassDesc
 	{

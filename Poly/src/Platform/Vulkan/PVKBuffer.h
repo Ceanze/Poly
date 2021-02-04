@@ -11,11 +11,10 @@ namespace Poly
 	class PVKBuffer : public Buffer
 	{
 	public:
-		PVKBuffer();
+		PVKBuffer() = default;
 		~PVKBuffer();
 
 		virtual void Init(const BufferDesc* pDesc) override final;
-		void Cleanup();
 
 		virtual void* Map() override final;
 		virtual void TransferData(const void* data, const size_t size) override final;

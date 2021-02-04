@@ -26,10 +26,14 @@ Abstraction:
 		- CommandBuffer @done
 		- CommandQueue @done
 		- Semaphore @done
-- When finished with abstraction: Have all destruction be done in the destructors, not in Cleanup()
+- When finished with abstraction: Have all destruction be done in the destructors, not in Cleanup() @done
 
 
 Goals:
 	- Abstraction
 	- Shader auto create
 	- Render Graph
+
+General:
+	- Fix the GraphicsPipeline to allow empty descs in GraphicsPipelineDesc (maybe allows this already?)
+	- Remove all warnings

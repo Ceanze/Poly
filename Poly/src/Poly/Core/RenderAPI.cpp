@@ -10,6 +10,7 @@ namespace Poly
 {
 	void RenderAPI::Init(BackendAPI backendAPI, Window* pWindow)
 	{
+		m_pWindow = pWindow;
 		switch (backendAPI)
 		{
 		case BackendAPI::VULKAN:
@@ -19,7 +20,7 @@ namespace Poly
 			break;
 		}
 		default:
-			POLY_ASSERT(false, "No valid backendAPI selected!");
+			POLY_VALIDATE(false, "No valid backendAPI selected!");
 		}
 
 		Sampler::InitDefaults();
@@ -31,7 +32,6 @@ namespace Poly
 		{
 			Sampler::CleanupDefaults();
 
-			m_pGraphicsInstance->Cleanup();
 			delete m_pGraphicsInstance;
 		}
 	}

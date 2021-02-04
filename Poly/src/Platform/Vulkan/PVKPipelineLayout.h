@@ -16,8 +16,8 @@ namespace Poly
 
 		virtual void Init(const PipelineLayoutDesc* pDesc) override final;
 
-		const std::vector<DescriptorSetBinding>& GetBindings(uint32 setIndex) const { m_DescriptorLayouts[setIndex].DescriptorSetBindings; }
-		VkDescriptorSetLayout GetDescriptorSetLayoutVK(uint32 setIndex) const { m_DescriptorSetLayoutsVK[setIndex]; }
+		const std::vector<DescriptorSetBinding>& GetBindings(uint32 setIndex) const { return m_DescriptorLayouts[setIndex].DescriptorSetBindings; }
+		VkDescriptorSetLayout GetDescriptorSetLayoutVK(uint32 setIndex) const { return m_DescriptorSetLayoutsVK[setIndex]; }
 		const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayoutsVK() const { return m_DescriptorSetLayoutsVK; }
 
 		VkPipelineLayout GetNativeVK() const { return m_Layout; }

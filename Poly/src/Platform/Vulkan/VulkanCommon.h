@@ -72,7 +72,7 @@ namespace Poly {
 			else if ((desiredQueue) && (graphicsCheck == 0))
 				return { i, queueFamilies[i].queueCount };
 		}
-		POLY_ASSERT(false, "Failed to find queue index for queue family {}!", queueFamily);
+		POLY_VALIDATE(false, "Failed to find queue index for queue family {}!", queueFamily);
 		return {0, 0};
 	}
 
@@ -109,7 +109,7 @@ namespace Poly {
 			}
 		}
 
-		POLY_ASSERT(false, "Failed to find suitable memory type!");
+		POLY_VALIDATE(false, "Failed to find suitable memory type!");
 		return 0;
 	}
 }

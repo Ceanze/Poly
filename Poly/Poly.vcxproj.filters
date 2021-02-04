@@ -42,10 +42,55 @@
     <ClInclude Include="src\Platform\API\Buffer.h">
       <Filter>Platform\API</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\API\CommandBuffer.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\CommandPool.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\CommandQueue.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\DescriptorSet.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\Fence.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\Framebuffer.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\API\GraphicsInstance.h">
       <Filter>Platform\API</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\API\GraphicsPipeline.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\Pipeline.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\PipelineLayout.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\RenderPass.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\Sampler.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\Semaphore.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\Shader.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\SwapChain.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\API\Texture.h">
+      <Filter>Platform\API</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\API\TextureView.h">
       <Filter>Platform\API</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Common\IPlatformRenderer.h">
@@ -63,16 +108,25 @@
     <ClInclude Include="src\Platform\Vulkan\PVKCommandPool.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\PVKDescriptor.h">
+    <ClInclude Include="src\Platform\Vulkan\PVKCommandQueue.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKDescriptorSet.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKFence.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKFramebuffer.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKGraphicsPipeline.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKInstance.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\PVKPipeline.h">
+    <ClInclude Include="src\Platform\Vulkan\PVKPipelineLayout.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKQueue.h">
@@ -84,6 +138,9 @@
     <ClInclude Include="src\Platform\Vulkan\PVKSampler.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKSemaphore.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKShader.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
@@ -91,6 +148,9 @@
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKTexture.h">
+      <Filter>Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\PVKTextureView.h">
       <Filter>Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\PVKTypes.h">
@@ -166,9 +226,6 @@
     <ClInclude Include="src\Poly\Rendering\Core\API\GraphicsTypes.h">
       <Filter>Poly\Rendering\Core\API</Filter>
     </ClInclude>
-    <ClInclude Include="src\Poly\Rendering\Sampler.h">
-      <Filter>Poly\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Poly\Resources\GLSLang.h">
       <Filter>Poly\Resources</Filter>
     </ClInclude>
@@ -181,6 +238,9 @@
     <ClInclude Include="src\polypch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\API\Sampler.cpp">
+      <Filter>Platform\API</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKBuffer.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
@@ -190,22 +250,34 @@
     <ClCompile Include="src\Platform\Vulkan\PVKCommandPool.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\PVKDescriptor.cpp">
+    <ClCompile Include="src\Platform\Vulkan\PVKCommandQueue.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKDescriptorSet.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKFence.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKFramebuffer.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKGraphicsPipeline.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKInstance.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\PVKPipeline.cpp">
+    <ClCompile Include="src\Platform\Vulkan\PVKPipelineLayout.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKRenderPass.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKSampler.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKSemaphore.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKShader.cpp">
@@ -215,6 +287,9 @@
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\PVKTexture.cpp">
+      <Filter>Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\PVKTextureView.cpp">
       <Filter>Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\Renderers\TestRenderer.cpp">
@@ -255,9 +330,6 @@
     </ClCompile>
     <ClCompile Include="src\Poly\Core\Window.cpp">
       <Filter>Poly\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Poly\Rendering\Sampler.cpp">
-      <Filter>Poly\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Poly\Resources\ResourceLoader.cpp">
       <Filter>Poly\Resources</Filter>

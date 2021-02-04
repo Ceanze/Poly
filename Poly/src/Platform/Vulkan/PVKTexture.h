@@ -11,7 +11,7 @@ namespace Poly
 	class PVKTexture : public Texture
 	{
 	public:
-		PVKTexture();
+		PVKTexture() = default;
 		~PVKTexture();
 
 		virtual void Init(const TextureDesc* pDesc) override final;
@@ -29,7 +29,7 @@ namespace Poly
 		VkFormat GetFormatVK() const { return ConvertFormatVK(p_TextureDesc.Format); }
 
 		VkImage GetNativeVK() { return m_Image; }
-		virtual uint64 GetNative() const override final { reinterpret_cast<uint64>(m_Image); };
+		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Image); }
 
 	private:
 		void CreateImage();

@@ -20,8 +20,9 @@ namespace Poly
 	void PVKDescriptorSet::Init(PipelineLayout* pLayout, uint32 setIndex)
 	{
 		m_SetIndex = setIndex;
-		CreatePool(reinterpret_cast<PVKPipelineLayout*>(pLayout));
-		CreateDescriptorSet(reinterpret_cast<PVKPipelineLayout*>(pLayout));
+		m_pPipelineLayout = reinterpret_cast<PVKPipelineLayout*>(pLayout);
+		CreatePool(m_pPipelineLayout);
+		CreateDescriptorSet(m_pPipelineLayout);
 	}
 
 	void PVKDescriptorSet::UpdateBufferBinding(uint32 binding, Buffer* pBuffer, uint64 offset, uint64 range)

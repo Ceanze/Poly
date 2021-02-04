@@ -44,10 +44,10 @@ namespace Poly
 
 	struct ScissorDesc
 	{
-		float	OffsetX	= 0.0f;
-		float	OffsetY	= 0.0f;
-		float	Width	= 0.0f;
-		float	Height	= 0.0f;
+		int		OffsetX	= 0;
+		int		OffsetY	= 0;
+		uint32	Width	= 0;
+		uint32	Height	= 0;
 	};
 
 	struct RasterizationDesc
@@ -55,7 +55,7 @@ namespace Poly
 		bool			DepthClampEnable		= false;
 		bool			DiscardEnable			= false;
 		EPolygonMode	PolygonMode				= EPolygonMode::NONE;
-		float			LineWidth				= 0.0f;
+		float			LineWidth				= 1.0f;
 		ECullMode		CullMode				= ECullMode::NONE;
 		bool			ClockwiseFrontFace		= false;
 		bool			DepthBiasEnable			= false;
