@@ -50,8 +50,6 @@ namespace Poly
 
 	void PVKSwapChain::Present(std::vector<CommandBuffer*> commandBuffers, Semaphore* pWaitSemaphore)
 	{
-		POLY_CORE_INFO("PRESENT");
-
 		m_ImagesInFlight[m_FrameIndex]->Reset();
 
 		p_SwapchainDesc.pQueue->Submit(commandBuffers, pWaitSemaphore, m_RenderSemaphores[m_FrameIndex], m_ImagesInFlight[m_FrameIndex]);

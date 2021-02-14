@@ -66,7 +66,8 @@ namespace Poly {
 
 	void Window::CloseWindowCallback(GLFWwindow* pWindow)
 	{
-		POLY_EVENT_PUB(CloseWindowEvent());
+		CloseWindowEvent e = {};
+		POLY_EVENT_PUB(e);
 	}
 
 	void Window::KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods)
