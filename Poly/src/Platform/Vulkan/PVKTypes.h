@@ -40,6 +40,28 @@ namespace Poly
 		return mask;
 	}
 
+	inline VkShaderStageFlagBits ConvertShaderStageBitsVK(FShaderStage stage)
+	{
+		switch (stage)
+		{
+		case FShaderStage::VERTEX:					return VK_SHADER_STAGE_VERTEX_BIT;
+		case FShaderStage::FRAGMENT:				return VK_SHADER_STAGE_FRAGMENT_BIT;
+		case FShaderStage::COMPUTE:					return VK_SHADER_STAGE_COMPUTE_BIT;
+		case FShaderStage::TESSELLATION_CONTROL:	return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		case FShaderStage::TESSELLATION_EVALUATION:	return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		case FShaderStage::GEOMETRY:				return VK_SHADER_STAGE_GEOMETRY_BIT;
+		case FShaderStage::RAYGEN:					return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+		case FShaderStage::ANY_HIT:					return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+		case FShaderStage::CLOSEST_HIT:				return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+		case FShaderStage::MISS:					return VK_SHADER_STAGE_MISS_BIT_KHR;
+		case FShaderStage::INTERSECTION:			return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+		case FShaderStage::CALLABLE:				return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+		case FShaderStage::TASK:					return VK_SHADER_STAGE_TASK_BIT_NV;
+		case FShaderStage::MESH:					return VK_SHADER_STAGE_MESH_BIT_NV;
+		default:									return VK_SHADER_STAGE_ALL;
+		}
+	}
+
 	inline VkBufferUsageFlags ConvertBufferUsageVK(FBufferUsage bufferUsage)
 	{
 		VkBufferUsageFlags mask = 0;

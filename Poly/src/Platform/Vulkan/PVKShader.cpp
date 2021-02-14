@@ -30,7 +30,7 @@ namespace Poly
 
 		// Save the pipeline info for easier use later on
 		m_PipelineInfo.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		m_PipelineInfo.stage	= ConvertShaderStageVK(pDesc->ShaderStage);
+		m_PipelineInfo.stage	= ConvertShaderStageBitsVK(pDesc->ShaderStage);
 		m_PipelineInfo.module	= m_ShaderModule;
 		m_PipelineInfo.pName	= m_EntryPoint.c_str();
 	}
