@@ -71,7 +71,8 @@ namespace Poly
 	void TestRenderer::EndScene()
 	{
 		m_pMainRenderer->AddCommandBuffer(FQueueType::GRAPHICS, m_CommandBuffers[m_ImageIndex]);
-		m_TestBuffer->TransferData(&m_pCamera->GetMatrix(), sizeof(glm::mat4));
+		glm::mat4 camMatrix = m_pCamera->GetMatrix();
+		m_TestBuffer->TransferData(&camMatrix, sizeof(glm::mat4));
 	}
 
 	void TestRenderer::CreateCommandBuffers()
@@ -204,22 +205,22 @@ namespace Poly
 	void TestRenderer::SetupTestData()
 	{
 		m_pTestSampler = Sampler::GetDefaultLinearSampler();
-		//m_TestTexture.Init(1, 1, ColorFormat::R8G8B8A8_SRGB, ImageUsage::SAMPLED, ImageCreate::NONE, 1, PVKInstance::GetQueue(QueueType::GRAPHICS).queueIndex, VMA_MEMORY_USAGE_GPU_ONLY);
-		//m_TestTexture.InitView(ImageViewType::DIM_2, ImageAspect::COLOR_BIT);
 
-		TextureDesc textureDesc = {
-			.Width			= 1,
-			.Height			= 1,
-			.Depth			= 1,
-			.ArrayLayers	= 1,
-			.MipLevels		= 1,
-			.SampleCount	= 1,
-			.MemoryUsage	= EMemoryUsage::GPU_ONLY,
-			.Format			= EFormat::R8G8B8A8_UNORM,
-			.TextureUsage	= FTextureUsage::SAMPLED,
-			.TextureDim		= ETextureDim::DIM_2D,
-		};
-		m_TestTexture = RenderAPI::CreateTexture(&textureDesc);
+		 //TextureDesc textureDesc = {
+		 //	.Width			= 1,
+		 //	.Height			= 1,
+		 //	.Depth			= 1,
+		 //	.ArrayLayers	= 1,
+		 //	.MipLevels		= 1,
+		 //	.SampleCount	= 1,
+		 //	.MemoryUsage	= EMemoryUsage::GPU_ONLY,
+		 //	.Format			= EFormat::R8G8B8A8_UNORM,
+		 //	.TextureUsage	= FTextureUsage::SAMPLED,
+		 //	.TextureDim		= ETextureDim::DIM_2D,
+		 //};
+		 //m_TestTexture = RenderAPI::CreateTexture(&textureDesc);
+
+		m_TestTexture = ResourceLoader::LoadTexture("textures/ceanze.png", EFormat::R8G8B8A8_UNORM);
 
 		TextureViewDesc textureViewDesc = {
 			.pTexture			= m_TestTexture.get(),

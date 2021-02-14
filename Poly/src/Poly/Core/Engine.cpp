@@ -19,11 +19,11 @@ namespace Poly
 	{
 		Poly::Logger::init();
 
-		ResourceLoader::Init();
-
 		s_pWindow = new Window(1280, 720, "Test Window");
 
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, s_pWindow);
+
+		ResourceLoader::Init();
 	}
 
 	void Engine::Run(Application* pApp)
