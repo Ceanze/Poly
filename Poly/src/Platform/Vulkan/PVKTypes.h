@@ -20,42 +20,38 @@
 
 namespace Poly
 {
-	inline VkShaderStageFlagBits ConvertShaderStageVK(FShaderStage stage)
+	inline VkShaderStageFlags ConvertShaderStageVK(FShaderStage stage)
 	{
-		switch (stage)
-		{
-		case FShaderStage::VERTEX:					return VK_SHADER_STAGE_VERTEX_BIT;
-		case FShaderStage::FRAGMENT:				return VK_SHADER_STAGE_FRAGMENT_BIT;
-		case FShaderStage::COMPUTE:					return VK_SHADER_STAGE_COMPUTE_BIT;
-		case FShaderStage::TESSELLATION_CONTROL:	return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-		case FShaderStage::TESSELLATION_EVALUATION:	return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-		case FShaderStage::GEOMETRY:				return VK_SHADER_STAGE_GEOMETRY_BIT;
-		case FShaderStage::RAYGEN:					return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-		case FShaderStage::ANY_HIT:					return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-		case FShaderStage::CLOSEST_HIT:				return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-		case FShaderStage::MISS:					return VK_SHADER_STAGE_MISS_BIT_KHR;
-		case FShaderStage::INTERSECTION:			return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
-		case FShaderStage::CALLABLE:				return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
-		case FShaderStage::TASK:					return VK_SHADER_STAGE_TASK_BIT_NV;
-		case FShaderStage::MESH:					return VK_SHADER_STAGE_MESH_BIT_NV;
-		default:									return VK_SHADER_STAGE_ALL;
-		}
+		VkShaderStageFlags mask = 0;
+		FLAG_CHECK(stage & FShaderStage::VERTEX,					mask |= VK_SHADER_STAGE_VERTEX_BIT);
+		FLAG_CHECK(stage & FShaderStage::FRAGMENT,					mask |= VK_SHADER_STAGE_FRAGMENT_BIT);
+		FLAG_CHECK(stage & FShaderStage::COMPUTE,					mask |= VK_SHADER_STAGE_COMPUTE_BIT);
+		FLAG_CHECK(stage & FShaderStage::TESSELLATION_CONTROL,		mask |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
+		FLAG_CHECK(stage & FShaderStage::TESSELLATION_EVALUATION,	mask |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
+		FLAG_CHECK(stage & FShaderStage::GEOMETRY,					mask |= VK_SHADER_STAGE_GEOMETRY_BIT);
+		FLAG_CHECK(stage & FShaderStage::ANY_HIT,					mask |= VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+		FLAG_CHECK(stage & FShaderStage::CLOSEST_HIT,				mask |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+		FLAG_CHECK(stage & FShaderStage::MISS,						mask |= VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+		FLAG_CHECK(stage & FShaderStage::INTERSECTION,				mask |= VK_SHADER_STAGE_MISS_BIT_KHR);
+		FLAG_CHECK(stage & FShaderStage::INTERSECTION,				mask |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR);
+		FLAG_CHECK(stage & FShaderStage::CALLABLE,					mask |= VK_SHADER_STAGE_CALLABLE_BIT_KHR);
+		FLAG_CHECK(stage & FShaderStage::TASK,						mask |= VK_SHADER_STAGE_TASK_BIT_NV);
+		FLAG_CHECK(stage & FShaderStage::MESH,						mask |= VK_SHADER_STAGE_MESH_BIT_NV);
+		return mask;
 	}
 
-	inline VkBufferUsageFlagBits ConvertBufferUsageVK(FBufferUsage bufferUsage)
+	inline VkBufferUsageFlags ConvertBufferUsageVK(FBufferUsage bufferUsage)
 	{
-		switch (bufferUsage)
-		{
-		case FBufferUsage::VERTEX_BUFFER:		return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		case FBufferUsage::INDEX_BUFFER:		return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-		case FBufferUsage::STORAGE_BUFFER:		return VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		case FBufferUsage::UNIFORM_BUFFER:		return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		case FBufferUsage::TRANSFER_SRC:		return VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		case FBufferUsage::TRANSFER_DST:		return VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-		case FBufferUsage::RAY_TRACING:			return VK_BUFFER_USAGE_RAY_TRACING_BIT_NV;
-		case FBufferUsage::INDIRECT_BUFFER:		return VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-		default:								return VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
-		}
+		VkBufferUsageFlags mask = 0;
+		FLAG_CHECK(bufferUsage & FBufferUsage::VERTEX_BUFFER,	mask |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::INDEX_BUFFER,	mask |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::STORAGE_BUFFER,	mask |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::UNIFORM_BUFFER,	mask |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::TRANSFER_SRC,	mask |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::TRANSFER_DST,	mask |= VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::RAY_TRACING,		mask |= VK_BUFFER_USAGE_RAY_TRACING_BIT_NV);
+		FLAG_CHECK(bufferUsage & FBufferUsage::INDIRECT_BUFFER,	mask |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
+		return mask;
 	}
 
 	inline VmaMemoryUsage ConvertMemoryUsageVMA(EMemoryUsage memUsage)
@@ -80,21 +76,19 @@ namespace Poly
 		}
 	}
 
-	inline VkImageUsageFlagBits ConvertTextureUsageVK(FTextureUsage textureUsage)
+	inline VkImageUsageFlags ConvertTextureUsageVK(FTextureUsage textureUsage)
 	{
-		switch (textureUsage)
-		{
-		case FTextureUsage::TRANSFER_SRC:				return VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-		case FTextureUsage::TRANSFER_DST:				return VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-		case FTextureUsage::SAMPLED:					return VK_IMAGE_USAGE_SAMPLED_BIT;
-		case FTextureUsage::STORAGE:					return VK_IMAGE_USAGE_STORAGE_BIT;
-		case FTextureUsage::COLOR_ATTACHMENT:			return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		case FTextureUsage::INPUT_ATTACHMENT:			return VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-		case FTextureUsage::DEPTH_STENCIL_ATTACHMENT:	return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		case FTextureUsage::SHADING_RATE:				return VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV;
-		case FTextureUsage::FRAGMENT_DENSITY:			return VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;
-		default:										return VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM;
-		}
+		VkImageUsageFlags mask = 0;
+		FLAG_CHECK(textureUsage & FTextureUsage::TRANSFER_SRC,				mask |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::TRANSFER_DST,				mask |= VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::SAMPLED,					mask |= VK_IMAGE_USAGE_SAMPLED_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::STORAGE,					mask |= VK_IMAGE_USAGE_STORAGE_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::COLOR_ATTACHMENT,			mask |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::INPUT_ATTACHMENT,			mask |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::DEPTH_STENCIL_ATTACHMENT,	mask |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+		FLAG_CHECK(textureUsage & FTextureUsage::SHADING_RATE,				mask |= VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV);
+		FLAG_CHECK(textureUsage & FTextureUsage::FRAGMENT_DENSITY,			mask |= VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT);
+		return mask;
 	}
 
 	inline VkImageType ConvertTextureDimVK(ETextureDim textureDim)
