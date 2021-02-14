@@ -33,7 +33,7 @@ struct EnableBitMaskOperators
 template<typename Enum>
 inline bool EnumCheck(Enum e)
 {
-    return static_cast<std::underlying_type<Enum>::type>(e) > 0;
+    return static_cast<std::underlying_type_t<Enum>>(e) > 0;
 }
 
 template<typename Enum>
@@ -52,8 +52,8 @@ typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator &(Enum lhs, Enum rhs)
 {
     return static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs)&
-        static_cast<std::underlying_type<Enum>::type>(rhs)
+        static_cast<std::underlying_type_t<Enum>>(lhs)&
+        static_cast<std::underlying_type_t<Enum>>(rhs)
         );
 }
 
@@ -62,8 +62,8 @@ typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator ^(Enum lhs, Enum rhs)
 {
     return static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs) ^
-        static_cast<std::underlying_type<Enum>::type>(rhs)
+        static_cast<std::underlying_type_t<Enum>>(lhs) ^
+        static_cast<std::underlying_type_t<Enum>>(rhs)
         );
 }
 
@@ -72,7 +72,7 @@ typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator ~(Enum rhs)
 {
     return static_cast<Enum> (
-        ~static_cast<std::underlying_type<Enum>::type>(rhs)
+        ~static_cast<std::underlying_type_t<Enum>>(rhs)
         );
 }
 
@@ -81,8 +81,8 @@ typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator |=(Enum & lhs, Enum rhs)
 {
     lhs = static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs) |
-        static_cast<std::underlying_type<Enum>::type>(rhs)
+        static_cast<std::underlying_type_t<Enum>>(lhs) |
+        static_cast<std::underlying_type_t<Enum>>(rhs)
         );
 
     return lhs;
@@ -93,8 +93,8 @@ typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator &=(Enum & lhs, Enum rhs)
 {
     lhs = static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs)&
-        static_cast<std::underlying_type<Enum>::type>(rhs)
+        static_cast<std::underlying_type_t<Enum>>(lhs)&
+        static_cast<std::underlying_type_t<Enum>>(rhs)
         );
 
     return lhs;
@@ -105,8 +105,8 @@ typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
 operator ^=(Enum & lhs, Enum rhs)
 {
     lhs = static_cast<Enum> (
-        static_cast<std::underlying_type<Enum>::type>(lhs)^
-        static_cast<std::underlying_type<Enum>::type>(rhs)
+        static_cast<std::underlying_type_t<Enum>>(lhs)^
+        static_cast<std::underlying_type_t<Enum>>(rhs)
         );
 
     return lhs;
