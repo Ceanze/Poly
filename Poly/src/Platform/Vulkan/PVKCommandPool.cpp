@@ -46,16 +46,23 @@ namespace Poly
 		{
 			POLY_CORE_WARN("Tried to free a command buffer that was not part of the used pool!");
 		}
+	}
 
+	void PVKCommandPool::Reset()
+	{
+		if (m_Buffers.size() == 0)
+			return;
+
+		PVK_CHECK(vkResetCommandPool(PVKInstance::GetDevice(), m_Pool, 0), "Failed to reset command pool!");
 	}
 
 	void PVKCommandPool::CreateCommandPool()
 	{
-		uint32_t queueIndex = PVKInstance::GetQueue(p_QueueType).queueIndex;
+		uint32_t queueFamilyIndex = PVKInstance::GetQueue(p_QueueType).queueFamilyIndex;
 
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType				= VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.queueFamilyIndex	= queueIndex;
+		poolInfo.queueFamilyIndex	= queueFamilyIndex;
 		poolInfo.flags				= 0;
 
 		PVK_CHECK(vkCreateCommandPool(PVKInstance::GetDevice(), &poolInfo, nullptr, &m_Pool), "Failed to create command pool!");

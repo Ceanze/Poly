@@ -22,6 +22,7 @@ namespace Poly
 
 		virtual CommandBuffer* AllocateCommandBuffer(ECommandBufferLevel commandBufferLevel) override final;
 		virtual void FreeCommandBuffer(CommandBuffer* pCommandbuffer) override final;
+		virtual void Reset() override final;
 
 	private:
 		void CreateCommandPool();

@@ -589,6 +589,7 @@ namespace Poly
 				s_Queues[FQueueType::GRAPHICS].resize(s_GraphicsQueueCount);
 				for (uint32_t qIndex = 0; qIndex < s_GraphicsQueueCount; qIndex++) {
 					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::GRAPHICS][qIndex].queue);
+					s_Queues[FQueueType::GRAPHICS][qIndex].queueFamilyIndex = fIndex;
 				}
 			}
 
@@ -597,6 +598,7 @@ namespace Poly
 				s_Queues[FQueueType::COMPUTE].resize(s_ComputeQueueCount);
 				for (uint32_t qIndex = 0; qIndex < s_ComputeQueueCount; qIndex++) {
 					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::COMPUTE][qIndex].queue);
+					s_Queues[FQueueType::COMPUTE][qIndex].queueFamilyIndex = fIndex;
 				}
 			}
 
@@ -605,6 +607,7 @@ namespace Poly
 				s_Queues[FQueueType::TRANSFER].resize(s_TransferQueueCount);
 				for (uint32_t qIndex = 0; qIndex < s_TransferQueueCount; qIndex++) {
 					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::TRANSFER][qIndex].queue);
+					s_Queues[FQueueType::TRANSFER][qIndex].queueFamilyIndex = fIndex;
 				}
 			}
 		}

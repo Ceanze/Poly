@@ -33,6 +33,11 @@ namespace Poly
 		virtual void FreeCommandBuffer(CommandBuffer* pCommandBuffer) = 0;
 
 		/**
+		 * Reset all command buffers created by this command pool
+		 */
+		virtual void Reset() = 0;
+
+		/**
 		 * @return Native handle to the API specific object
 		 */
 		virtual uint64 GetNative() const = 0;

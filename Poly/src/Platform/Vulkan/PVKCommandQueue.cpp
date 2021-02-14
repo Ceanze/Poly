@@ -16,9 +16,7 @@ namespace Poly
 	void PVKCommandQueue::Init(FQueueType queueType, uint32 queueIndex)
 	{
 		// The command queues created by the device should already be created before this step by PVKInstance
-		PVKQueue queue = PVKInstance::GetQueue(queueType, queueIndex);
-		m_Queue = queue.queue;
-		m_QueueIndex = queue.queueIndex;
+		m_Queue = PVKInstance::GetQueue(queueType, queueIndex);
 		m_QueueType = queueType;
 	}
 
@@ -69,9 +67,16 @@ namespace Poly
 		submitInfo.pSignalSemaphores	= &pSignalSemaphoreVK;
 		submitInfo.signalSemaphoreCount	= pSignalSemaphore ? 1 : 0;
 
-		PVK_CHECK(vkQueueSubmit(m_Queue, 1, &submitInfo, pFence ? reinterpret_cast<PVKFence*>(pFence)->GetNativeVK() : VK_NULL_HANDLE), "Failed to submit to queue with index {}", m_QueueIndex);
+		PVK_CHECK(vkQueueSubmit(m_Queue.queue, 1, &submitInfo, pFence ? reinterpret_cast<PVKFence*>(pFence)->GetNativeVK() : VK_NULL_HANDLE), "Failed to submit to {} queue with index {}", GetQueueName(), m_Queue.queueIndex);
 
 		if (!m_WaitSemaphores.empty()) m_WaitSemaphores.clear();
+	}
+
+	void PVKCommandQueue::Submit(CommandBuffer* pCommandBuffer, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence)
+	{
+		std::vector<CommandBuffer*> buffers(1);
+		buffers[0] = pCommandBuffer;
+		Submit(buffers, pWaitSemaphore, pSignalSemaphore, pFence);
 	}
 
 	void PVKCommandQueue::AddWaitSemaphore(Semaphore* pWaitSemaphore)
@@ -81,6 +86,17 @@ namespace Poly
 
 	void PVKCommandQueue::Wait()
 	{
-		PVK_CHECK(vkQueueWaitIdle(m_Queue), "Failed to wait for queue with index {}", m_QueueIndex);
+		PVK_CHECK(vkQueueWaitIdle(m_Queue.queue), "Failed to wait for {} queue with index {}", GetQueueName(), m_Queue.queueIndex);
+	}
+
+	std::string PVKCommandQueue::GetQueueName()
+	{
+		switch (m_QueueType)
+		{
+			case FQueueType::GRAPHICS:	return "GRAPHICS";
+			case FQueueType::COMPUTE:	return "COMPUTE";
+			case FQueueType::TRANSFER:	return "TRANSFER";
+			default:					return "[No queue type found]";
+		}
 	}
 }
