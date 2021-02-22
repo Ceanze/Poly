@@ -10,7 +10,7 @@ namespace Poly
 		vkDestroyRenderPass(PVKInstance::GetDevice(), m_RenderPass, nullptr);
 	}
 
-	void PVKRenderPass::Init(const RenderPassDesc* pDesc)
+	void PVKRenderPass::Init(const GraphicsRenderPassDesc* pDesc)
 	{
 		// AttachmentDesc
 		std::vector<VkAttachmentDescription> attachments;

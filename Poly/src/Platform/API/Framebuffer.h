@@ -5,15 +5,15 @@
 
 namespace Poly
 {
-	class RenderPass;
 	class TextureView;
+	class GraphicsRenderPass;
 
 	struct FramebufferDesc
 	{
-		uint32			Width			= 0;
-		uint32			Height			= 0;
-		RenderPass*		pRenderPass		= nullptr;
-		TextureView*	pTextureView	= nullptr;
+		uint32				Width			= 0;
+		uint32				Height			= 0;
+		GraphicsRenderPass*	pRenderPass		= nullptr;
+		TextureView*		pTextureView	= nullptr;
 	};
 
 	class Framebuffer

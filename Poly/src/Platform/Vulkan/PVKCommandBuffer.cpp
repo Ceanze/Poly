@@ -46,7 +46,7 @@ namespace Poly
 		PVK_CHECK(vkBeginCommandBuffer(m_Buffer, &beginInfo), "Failed to begin recording of command buffer!");
 	}
 
-	void PVKCommandBuffer::BeginRenderPass(RenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount)
+	void PVKCommandBuffer::BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount)
 	{
 		VkExtent2D extent = { width, height };
 		VkRenderPassBeginInfo renderPassInfo = {};

@@ -1,0 +1,24 @@
+General RenderGraph creation structure:
+	- Create RenderGraph [RenderGraph::Create()]
+	- Create RenderPass [RenderPass::Create()]
+	- Add global inputs to RenderGraph [RenderGraph.AddInputResource()]
+	- Add RenderPass to RenderGraph [RenderGraph.Add(RenderPass)]
+	- Add linkage for RenderPass [RenderGraph.AddLink("src", "dst")]
+	- Mark atleast one RenderPass as output [RenderGraph.MarkOutput("rp.out")]
+	- Compile RenderGraph [RenderGraph.Compile()]
+
+RenderPass reflection:
+	- AddInput("name") will know what type it is when it is linked, since the output must match the type
+	- AddOutput("name") will always be of a texture type, since that is the only resource that can be CREATED from a pass
+	- AddPassThough("name") follows the same construct of AddInput, since it is technically both an input and output
+	- AddInputResource("name", ResourcePtr) will get its type from the ResourcePtr
+
+RenderPass execute:
+	- Two parameters are needed - a render context and a render data.
+		- The render context sets important variables needed for the render call, such as pipeline parameters
+		  It can also call certain functions such as [clear?] the draw command and blit
+		- The render data is what contains the data that was specified during the reflect. These resources
+		  are able to be accessed with the same name ["likeThis"] as they were defined as in the reflect.
+
+RenderPass compile:
+	- Uncertain if needed at the moment - creation of internal information should be created in the constructor when Create() is called

@@ -12,9 +12,9 @@
 
 namespace Poly
 {
-	class PipelineLayout;
-	class RenderPass;
 	class Shader;
+	class PipelineLayout;
+	class GraphicsRenderPass;
 
 	struct VertexInput
 	{
@@ -120,7 +120,7 @@ namespace Poly
 		ColorBlendStateDesc	ColorBlendState	= {};
 
 		PipelineLayout*		pPipelineLayout	= nullptr;
-		RenderPass*			pRenderPass		= nullptr;
+		GraphicsRenderPass*	pRenderPass		= nullptr;
 
 		uint32				Subpass			= 0;
 

@@ -85,6 +85,21 @@ namespace Poly
 	};
 	ENABLE_BITMASK_OPERATORS(FTextureUsage);
 
+	enum class FResourceBindPoint
+	{
+		NONE				= 0,
+		VERTEX				= FLAG(1),
+		INDEX				= FLAG(2),
+		UNIFORM				= FLAG(3),
+		CONSTANT			= UNIFORM,
+		STORAGE				= FLAG(4),
+		UNORDERED_ACCESS	= STORAGE,
+		INDIRECT			= FLAG(5),
+		COLOR_ATTACHMENT	= FLAG(6),
+		RENDER_TARGET		= COLOR_ATTACHMENT,
+		DEPTH_STENCIL		= FLAG(7)
+	};
+
 	enum class ETextureDim
 	{
 		NONE	= 0,
@@ -108,9 +123,8 @@ namespace Poly
 	enum class FImageViewFlag
 	{
 		NONE				= 0,
-		SHADER_RESOURCE		= FLAG(1),
-		RENDER_TARGET		= SHADER_RESOURCE,
-		UNORDERED_ACCESS	= SHADER_RESOURCE,
+		COLOR				= FLAG(1),
+		SHADER_RESOURCE		= COLOR,
 		DEPTH_STENCIL		= FLAG(2)
 	};
 	ENABLE_BITMASK_OPERATORS(FImageViewFlag);

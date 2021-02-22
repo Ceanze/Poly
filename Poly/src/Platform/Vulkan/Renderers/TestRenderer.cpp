@@ -9,7 +9,7 @@
 
 #include "Platform/API/Shader.h"
 #include "Platform/API/GraphicsPipeline.h"
-#include "Platform/API/RenderPass.h"
+#include "Platform/API/GraphicsRenderPass.h"
 #include "Platform/API/DescriptorSet.h"
 #include "Platform/API/PipelineLayout.h"
 #include "Platform/API/CommandPool.h"
@@ -102,7 +102,7 @@ namespace Poly
 
 	void TestRenderer::SetupRenderPass()
 	{
-		RenderPassAttachmentDesc attachmentDesc = {};
+		GraphicsRenderPassAttachmentDesc attachmentDesc = {};
 		attachmentDesc.Format			= m_pSwapChain->GetDesc().Format;
 		attachmentDesc.SampleCount		= 1;
 		attachmentDesc.LoadOp			= ELoadOp::CLEAR;
@@ -112,14 +112,14 @@ namespace Poly
 		attachmentDesc.InitialLayout	= ETextureLayout::UNDEFINED;
 		attachmentDesc.FinalLayout		= ETextureLayout::PRESENT;
 
-		RenderPassSubpassAttachmentReference attachmentRef = {};
+		GraphicsRenderPassSubpassAttachmentReference attachmentRef = {};
 		attachmentRef.Index		= 0;
 		attachmentRef.Layout	= ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
 
-		RenderPassSubpassDesc subpassDesc = {};
+		GraphicsRenderPassSubpassDesc subpassDesc = {};
 		subpassDesc.ColorAttachmentsLayouts = { attachmentRef };
 
-		RenderPassSubpassDependencyDesc depDesc = {};
+		GraphicsRenderPassSubpassDependencyDesc depDesc = {};
 		depDesc.SrcSubpass		= EXTERNAL_SUBPASS;
 		depDesc.DstSubpass		= 0;
 		depDesc.SrcStageMask	= FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
@@ -127,7 +127,7 @@ namespace Poly
 		depDesc.DstStageMask	= FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
 		depDesc.DstAccessMask	= FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE;
 
-		RenderPassDesc renderPassDesc = {};
+		GraphicsRenderPassDesc renderPassDesc = {};
 		renderPassDesc.Attachments			= { attachmentDesc };
 		renderPassDesc.Subpasses			= { subpassDesc };
 		renderPassDesc.SubpassDependencies	= { depDesc };
@@ -226,7 +226,7 @@ namespace Poly
 			.pTexture			= m_TestTexture.get(),
 			.ImageViewType		= EImageViewType::TYPE_2D,
 			.Format				= EFormat::R8G8B8A8_UNORM,
-			.ImageViewFlag		= FImageViewFlag::RENDER_TARGET,
+			.ImageViewFlag		= FImageViewFlag::COLOR,
 			.MipLevel			= 0,
 			.MipLevelCount		= 1,
 			.ArrayLayer			= 0,

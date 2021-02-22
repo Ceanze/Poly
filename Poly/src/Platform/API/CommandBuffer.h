@@ -8,11 +8,11 @@ namespace Poly
 	class Buffer;
 	class Texture;
 	class Pipeline;
-	class RenderPass;
-	class DescriptorSet;
 	class Framebuffer;
 	class CommandPool;
 	class CommandQueue;
+	class DescriptorSet;
+	class GraphicsRenderPass;
 
 	// Command structs (for those who want to take in like 50 parameters)
 
@@ -59,7 +59,7 @@ namespace Poly
 		 * @param clearColors - Clear color of the render pass, each color requires a float4
 		 * @param clearColorCount - Amount of clear colors to use from clear colors
 		 */
-		virtual void BeginRenderPass(RenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) = 0;
+		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) = 0;
 
 		/**
 		 * Bind a pipeline

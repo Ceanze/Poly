@@ -116,7 +116,7 @@ namespace Poly
 		return m_pGraphicsInstance->CreateShader(pDesc);
 	}
 
-	Ref<RenderPass> RenderAPI::CreateRenderPass(const RenderPassDesc* pDesc)
+	Ref<GraphicsRenderPass> RenderAPI::CreateRenderPass(const GraphicsRenderPassDesc* pDesc)
 	{
 		return m_pGraphicsInstance->CreateRenderPass(pDesc);
 	}

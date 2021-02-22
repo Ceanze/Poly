@@ -167,7 +167,7 @@ namespace Poly
 		return pShader;
 	}
 
-	Ref<RenderPass> PVKInstance::CreateRenderPass(const RenderPassDesc* pDesc)
+	Ref<GraphicsRenderPass> PVKInstance::CreateRenderPass(const GraphicsRenderPassDesc* pDesc)
 	{
 		POLY_VALIDATE(pDesc, "RenderPassDesc cannot be nullptr!");
 

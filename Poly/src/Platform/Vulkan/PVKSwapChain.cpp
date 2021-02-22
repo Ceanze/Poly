@@ -239,7 +239,7 @@ namespace Poly
 			textureViewDesc.MipLevelCount	= 1;
 			textureViewDesc.ArrayLayer		= 0;
 			textureViewDesc.ArrayLayerCount	= 1;
-			textureViewDesc.ImageViewFlag	= FImageViewFlag::RENDER_TARGET;
+			textureViewDesc.ImageViewFlag	= FImageViewFlag::COLOR;
 			textureViewDesc.ImageViewType	= EImageViewType::TYPE_2D;
 			m_TextureViews[i] = new PVKTextureView();
 			m_TextureViews[i]->Init(&textureViewDesc);

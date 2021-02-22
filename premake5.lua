@@ -358,7 +358,7 @@ project "Poly"
 	cppdialect "C++latest"
 
 	pchheader "polypch.h"
-	pchsource "Poly/src/polypch.cpp"
+	pchsource "%{prj.name}/src/polypch.cpp"
 
 	setDirs()
 	srcFiles()
@@ -380,6 +380,11 @@ project "Poly"
 		"%{prj.name}/libs/VMA/src",
 		"%{prj.name}/libs/stb_image",
 		"%{prj.name}/libs/glslang"
+	}
+
+	forceincludes
+	{
+		"polypch.h"
 	}
 
 	libdirs

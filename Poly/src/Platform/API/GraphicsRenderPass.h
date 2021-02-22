@@ -7,7 +7,7 @@
 
 namespace Poly
 {
-	struct RenderPassAttachmentDesc
+	struct GraphicsRenderPassAttachmentDesc
 	{
 		EFormat			Format			= EFormat::UNDEFINED;
 		uint32			SampleCount		= 0;
@@ -19,7 +19,7 @@ namespace Poly
 		ETextureLayout	FinalLayout		= ETextureLayout::UNDEFINED;
 	};
 
-	struct RenderPassSubpassDependencyDesc
+	struct GraphicsRenderPassSubpassDependencyDesc
 	{
 		uint32			SrcSubpass		= EXTERNAL_SUBPASS;
 		uint32			DstSubpass		= EXTERNAL_SUBPASS;
@@ -29,37 +29,37 @@ namespace Poly
 		FAccessFlag		DstAccessMask	= FAccessFlag::NONE;
 	};
 
-	struct RenderPassSubpassAttachmentReference
+	struct GraphicsRenderPassSubpassAttachmentReference
 	{
 		uint32			Index = 0;
 		ETextureLayout	Layout = ETextureLayout::UNDEFINED;
 	};
 
-	struct RenderPassSubpassDesc
+	struct GraphicsRenderPassSubpassDesc
 	{
-		std::vector<RenderPassSubpassAttachmentReference>	InputAttachmentsLayouts;
-		std::vector<RenderPassSubpassAttachmentReference>	ColorAttachmentsLayouts;
-		std::vector<RenderPassSubpassAttachmentReference>	ResolveAttachmentsLayouts;
-		RenderPassSubpassAttachmentReference				DepthStencilAttachmentLayout;
+		std::vector<GraphicsRenderPassSubpassAttachmentReference>	InputAttachmentsLayouts;
+		std::vector<GraphicsRenderPassSubpassAttachmentReference>	ColorAttachmentsLayouts;
+		std::vector<GraphicsRenderPassSubpassAttachmentReference>	ResolveAttachmentsLayouts;
+		GraphicsRenderPassSubpassAttachmentReference				DepthStencilAttachmentLayout;
 	};
 
-	struct RenderPassDesc
+	struct GraphicsRenderPassDesc
 	{
-		std::vector<RenderPassAttachmentDesc>			Attachments;
-		std::vector<RenderPassSubpassDesc>				Subpasses;
-		std::vector<RenderPassSubpassDependencyDesc>	SubpassDependencies;
+		std::vector<GraphicsRenderPassAttachmentDesc>			Attachments;
+		std::vector<GraphicsRenderPassSubpassDesc>				Subpasses;
+		std::vector<GraphicsRenderPassSubpassDependencyDesc>	SubpassDependencies;
 	};
 
-	class RenderPass
+	class GraphicsRenderPass
 	{
 	public:
-		CLASS_ABSTRACT(RenderPass);
+		CLASS_ABSTRACT(GraphicsRenderPass);
 
 		/**
 		 * Init the Buffer object
 		 * @param desc	Buffer creation description
 		*/
-		virtual void Init(const RenderPassDesc* pDesc) = 0;
+		virtual void Init(const GraphicsRenderPassDesc* pDesc) = 0;
 
 		/**
 		 * @return Native handle to the API specific object
@@ -67,6 +67,6 @@ namespace Poly
 		virtual uint64 GetNative() const = 0;
 
 	protected:
-		RenderPassDesc p_PipelineDesc;
+		GraphicsRenderPassDesc p_PipelineDesc;
 	};
 }
