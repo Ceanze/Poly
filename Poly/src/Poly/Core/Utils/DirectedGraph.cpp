@@ -39,11 +39,15 @@ namespace Poly
 			return INVALID_ID;
 		}
 
+#ifndef POLY_DIRECTED_GRAPH_ENABLE_LOOPS
 		if (src == dst)
 		{
-			POLY_CORE_ERROR("Cannot add an edge with the same src and dst node ID! src: {} dst: {}", src, dst);
+			POLY_CORE_ERROR("Standard setting does not allow for loops (same src and dst for an edge) as per the simple directed graph ruleset.\
+							To enable loops, define POLY_DIRECTED_GRAPH_ENABLE_LOOPS before header include.\
+							src and dst were {}", src);
 			return INVALID_ID;
 		}
+#endif
 
 		m_Edges[m_CurrentEdgeIndex] = Edge(src, dst);
 		m_Nodes[src].m_OutgoingEdges.push_back(m_CurrentEdgeIndex);

@@ -6,6 +6,8 @@ namespace Poly
 {
 	/**
 	 * A directed graph is a graph in which all of the edges that are connecting the nodes also have a direction.
+	 * Standard implementation does not allow loops on nodes (connecting an edge to themselves), this is therefore
+	 * a "Simple Directed Graph". To enable loops define POLY_DIRECTED_GRAPH_ENABLE_LOOPS before including header.
 	 */
 
 	class DirectedGraph
