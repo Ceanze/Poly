@@ -19,7 +19,7 @@ namespace Poly
 	{
 	public:
 		RenderGraph(const std::string& name);
-		~RenderGraph();
+		~RenderGraph() = default;
 
 		static Ref<RenderGraph> Create(const std::string& name);
 
