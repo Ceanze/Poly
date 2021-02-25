@@ -22,3 +22,42 @@ RenderPass execute:
 
 RenderPass compile:
 	- Uncertain if needed at the moment - creation of internal information should be created in the constructor when Create() is called
+
+RenderGraph compile:
+	- RenderGraphCompiler - static Create, has a compile function which takes in a RenderGraph to compile
+	1. Set up an execution order (get mandatory passes (graph output, passes with execution edges), traverse graph in reverse to get all passes that are
+		contributing to the finished product. Sort the graph topologically (top-down, from input to output) to get the order. This guarantess that the order
+		follow in a directed manner and from the input to the output, even with the execution dep. (since this is also an edge in the DirectedGraph).
+	2. For every pass that is now confirmed to be used - reflect and then compile
+	2.5 (Falcor has an insertAutoPasses, does not seem necessary for me, will therefore be avoided for now)
+	3. Check if the created graph is valid - At least one output to the graph (markOutput) and check if all inputs from reflection are being used in the graph
+	4. Allocate resources
+		- Register, and calculate life time based on when the resources are being used. Use the index of the passes in the array (that are in order). For instance if a buffer
+		  is needed to be alive for pass 1 and 5 it will have a life time range of 1-5, meaning that it needs to keep its data and whatnot during that span.
+		  (this part can be done with the ResourceCache - lifetime and registeration)
+		- Register the inputs, which will match the previously registered outputs (since inputs does not create data) - This means that inputs will use _same_ resources
+		  that outputs will use (duh) and that outputs can be going to several other inputs
+		- Finally allocate the actual resources - this basically goes through the reflection data (field in falcor) that has been registered in the ResourceCache and creates
+		  the resources based on that information
+	5. Once compilation is finished make sure to clear data that is no longer being used (vectors and similar) to allow for more compilations
+
+RenderGraph syncronization handling
+	- Cannot find this part in falcor.
+	- Idea: After compilation go through the graph once more, now that the graph is valid and should be working, and for each edge check for differences
+	  in the src and dst pass, i.e. the layout of a texture, queue transfer, or data dependency (from write to read or vice versa). Save the edge if a sync might be needed.
+		- Check if the sync can be in a render pass (layout change probably can for instance)
+		- For the last pass to write to the backbuffer also make sure to set the layout to PRESENT [idea: make last output a node ("pass") and set a layout dependency]
+		- Note: Try to make it so that one barrier can be used for multiple resources at once for optimization. This should be possible to have for all outputs of a pass,
+		  since they should be able to be synced at the same time. - This can be difficult since multiple inputs from different passes might use the same output, instead
+		  go though all of the inputs :)
+	- Alternative idea: Go though all passes (in order) inputs and add sync there instead, to make sure it changes from correct layout or similar save the latest state
+	  that it was in to correctly sync it.
+
+RenderGraph execute:
+	- In falcor a RenderGraphExe is created by the RenderGraphCompiler which is calling the execute of all renderpasses with its Execute() function
+	  This function basically creates the render data (containing renderPassName, resourceCache, (dict and some defaultParams)).
+	- RenderData has a [] operator to allow the user to simply do renderData["resourceName"]->AsTexture() to get a texture. This calls the ResourceCache GetResource
+	  which returns the correct resource handle which RenderData then can convert to correct resource type and return.
+
+Ideas:
+	- ResourceCache - Creates and handles the resource allocation

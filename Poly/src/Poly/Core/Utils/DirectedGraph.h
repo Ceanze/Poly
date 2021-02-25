@@ -85,6 +85,36 @@ namespace Poly
 		 */
 		void RemoveEdges(uint32 srcNode, uint32 dstNode);
 
+		/**
+		 * @return true if node exists in the graph
+		 */
+		bool NodeExists(uint32 nodeID) const { return m_Nodes.contains(nodeID); }
+
+		/**
+		 * @return true if edge exists in the graph
+		 */
+		bool EdgeExists(uint32 edgeID) const { return m_Edges.contains(edgeID); }
+
+		/**
+		 * @return Current node index
+		 */
+		uint32 CurrentNodeIndex() const { return m_CurrentNodeIndex; }
+
+		/**
+		 * @return Current edge index
+		 */
+		uint32 CurrentEdgeIndex() const { return m_CurrentEdgeIndex; }
+
+		/**
+		 * @return Node* for the given ID, nullptr if node does not exist
+		 */
+		const Node* GetNode(uint32 id) const { return m_Nodes.contains(id) ? &(m_Nodes.at(id)) : nullptr; }
+
+		/**
+		 * @return Edge* for the given ID, nullptr if edge does not exist
+		 */
+		const Edge* GetEdge(uint32 id) const { return m_Edges.contains(id) ? &(m_Edges.at(id)) : nullptr; }
+
 	private:
 		void RemoveEdges(std::vector<uint32>& edgeIDs, bool incommingEdges);
 		void RemoveEdgeFromNode(uint32 edgeID, uint32 nodeID, bool removeSrc);
