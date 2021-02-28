@@ -34,6 +34,11 @@ namespace Poly
 		virtual void Compile();
 
 	protected:
+		friend class RenderGraph;
 		std::string p_Name = "";
+		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
+		std::vector<std::pair<std::string, std::string>> p_ExternalResources;
+
+		// TODO: If/when scenes are added make it a member variable of the renderpass (Ref<Scene>)
 	};
 }

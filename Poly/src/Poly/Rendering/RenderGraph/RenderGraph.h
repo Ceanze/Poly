@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Poly/Core/Core.h"
-#include <string>
+
+#include <unordered_set>
 
 /**
  * RenderGraph implementation - inspired a lot by the following resources:
@@ -14,10 +15,12 @@ namespace Poly
 {
 	class RenderPass;
 	class Resource;
+	class DirectedGraph;
 
 	class RenderGraph
 	{
 	public:
+		// Prefer to use the static Create function to create the render graph
 		RenderGraph(const std::string& name);
 		~RenderGraph() = default;
 
@@ -52,7 +55,8 @@ namespace Poly
 		 * - Data-dependency:		By linking two passes' resources to each other a data-dependency will be created.
 		 * 							This enforces the graph to keep the data between those passes dependent on each other,
 		 * 							removing possible overlap in data usage
-		 * 							USAGE: src and dst must follow "renderPassName.resourceName" structure
+		 * 							USAGE: src and dst must follow "renderPassName.resourceName" structure. If resource is external
+		 * 									then use the global namespace of $ instead of rennderPassName
 		 *
 		 * - Execution-dependency:	By linking two passes, without any resource, two each other an execution-dependency will be created.
 		 * 							This enforces the graph to keep the execution of the passes in a certain order depending on each other,
@@ -76,11 +80,18 @@ namespace Poly
 		/**
 		 * Add a global input resource node to the graph. This resource will be in the global space
 		 * which means it will use the $ prefix, i.e. resource name will become $.resource
-		 * @param name - Resource name without any prefix - it is automatically added
+		 * @param name - Resource name without any prefix - prefix is automatically added
 		 * @param pResource - Ref to the resource
 		 * @return true if resource could be added successfully
 		 */
-		bool AddInputResource(const std::string& name, Ref<Resource> pResource);
+		bool AddExternalResource(const std::string& name, Ref<Resource> pResource);
+
+		/**
+		 * Removes a previously added external resource
+		 * @param name - Name of resource to remove
+		 * @return true if resource could be removed successfully
+		 */
+		bool RemoveExternalResource(const std::string& name);
 
 		/**
 		 * Marks the given RenderPass name to be an output of the graph
@@ -90,7 +101,43 @@ namespace Poly
 		 */
 		bool MarkOutput(const std::string& name);
 
+		/**
+		 * Unmarks the given RenderPass name to no longer be an output of the graph
+		 * @param name	- Resource to unmark following renderPass.resource structure
+		 * @return true if output could be added successfully
+		 */
+		bool UnmarkOutput(const std::string& name);
+
 	private:
+		struct EdgeData
+		{
+			// If auto generation is added - mark it here
+			std::string Src;
+			std::string Dst;
+		};
+
+		struct Output
+		{
+			uint32 NodeID;
+			std::string ResourceName;
+
+			bool operator== (const Output& other)
+			{
+				return NodeID == other.NodeID && ResourceName == other.ResourceName;
+			}
+		};
+
+		/**
+		 * @return pair.first = Render pass name, pair.second = resource name belonging to the aforementioned pass
+		 */
+		std::pair<std::string, std::string> GetPassNameResourcePair(std::string name);
+
 		std::string m_Name = "";
+		Ref<DirectedGraph> m_pGraph;
+		std::unordered_map<std::string, uint32> m_NameToNodeIndex;
+		std::unordered_map<uint32, Ref<RenderPass>> m_Passes;
+		std::unordered_map<uint32, EdgeData> m_Edges;
+		std::unordered_set<Output> m_Outputs;
+		std::unordered_map<std::string, Ref<Resource>> m_ExternalResources;
 	};
 }

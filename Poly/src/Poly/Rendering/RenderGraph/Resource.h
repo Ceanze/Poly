@@ -43,6 +43,11 @@ namespace Poly
 		Texture* GetAsTexture() const { return m_pTexture.get(); }
 
 		/**
+		 * @return name of resource used in rendergraph
+		 */
+		const std::string& GetName() const { return m_Name; }
+
+		/**
 		 * Create a resource based on a buffer
 		 * NOTE: Must be ref to make sure resource is kept alive
 		 * @param pBuffer - Ref to the buffer to be created as a resource
@@ -59,5 +64,6 @@ namespace Poly
 	private:
 		Ref<Buffer>		m_pBuffer	= nullptr;
 		Ref<Texture> 	m_pTexture	= nullptr;
+		std::string		m_Name		= "";
 	};
 }
