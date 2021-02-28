@@ -121,9 +121,17 @@ namespace Poly
 			uint32 NodeID;
 			std::string ResourceName;
 
-			bool operator== (const Output& other)
+			bool operator== (const Output& other) const
 			{
 				return NodeID == other.NodeID && ResourceName == other.ResourceName;
+			}
+		};
+
+		struct OutputKeyHasher
+		{
+			size_t operator()(const Output& key) const
+			{
+				return std::hash<uint32>()(key.NodeID) ^ (std::hash<std::string>()(key.ResourceName) >> 1);
 			}
 		};
 
@@ -137,7 +145,7 @@ namespace Poly
 		std::unordered_map<std::string, uint32> m_NameToNodeIndex;
 		std::unordered_map<uint32, Ref<RenderPass>> m_Passes;
 		std::unordered_map<uint32, EdgeData> m_Edges;
-		std::unordered_set<Output> m_Outputs;
+		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
 		std::unordered_map<std::string, Ref<Resource>> m_ExternalResources;
 	};
 }
