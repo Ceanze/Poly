@@ -4,15 +4,16 @@
 
 namespace Poly
 {
-	class RenderGraph;
 	class Resource;
+	class RenderPass;
+	class RenderGraph;
 
 	class RenderGraphCompiler
 	{
 	private:
 		struct PassData
 		{
-			Ref<Resource>	pResource;
+			Ref<RenderPass>	pResource;
 			uint32			NodeIndex;
 		};
 

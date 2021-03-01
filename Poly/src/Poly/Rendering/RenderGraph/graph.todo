@@ -36,7 +36,8 @@ RenderGraph compile:
 		  is needed to be alive for pass 1 and 5 it will have a life time range of 1-5, meaning that it needs to keep its data and whatnot during that span.
 		  (this part can be done with the ResourceCache - lifetime and registeration)
 		- Register the inputs, which will match the previously registered outputs (since inputs does not create data) - This means that inputs will use _same_ resources
-		  that outputs will use (duh) and that outputs can be going to several other inputs
+		  that outputs will use (duh) and that outputs can be going to several other inputs. For passthroughs: When checking inputs check the edges that lead to the
+		  output of another resource. When that resource is given, check if it is a passtrhough resource, if it is then merge it with the input of that pass.
 		- Finally allocate the actual resources - this basically goes through the reflection data (field in falcor) that has been registered in the ResourceCache and creates
 		  the resources based on that information
 	5. Once compilation is finished make sure to clear data that is no longer being used (vectors and similar) to allow for more compilations

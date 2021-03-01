@@ -17,6 +17,7 @@ namespace Poly
 
 		SetupExecutionOrder();
 		CompilePasses();
+		AddSync();
 		ValidateGraph();
 		AllocateResources();
 	}
@@ -72,7 +73,23 @@ namespace Poly
 
 	void RenderGraphCompiler::CompilePasses()
 	{
+		// This function for now only calls the render passes compile function
+		// but is here for possible future expansion
 
+		for (const auto& pass : m_OrderedPasses)
+		{
+			pass.pResource->Compile();
+		}
+	}
+
+	void RenderGraphCompiler::AddSync()
+	{
+		/**
+		 * Syncronization will be done by adding special SyncPasses between passes whose resources
+		 * need to be synced. To do this, go though the passes in order and for each pass check what
+		 * state the resources it is using are in. If the resources current state doesn't match what
+		 * the previous state it was in then add a barrier [or renderpass sync for some textures].
+		 */
 	}
 
 	void RenderGraphCompiler::ValidateGraph()
@@ -82,13 +99,6 @@ namespace Poly
 
 	void RenderGraphCompiler::AllocateResources()
 	{
-
+		// See ResourceCache in falcor
 	}
-
-	void RenderGraphCompiler::AddSync()
-	{
-
-	}
-
-
 }
