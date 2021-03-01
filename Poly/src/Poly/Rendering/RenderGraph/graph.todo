@@ -25,11 +25,11 @@ RenderPass compile:
 
 RenderGraph compile:
 	- RenderGraphCompiler - static Create, has a compile function which takes in a RenderGraph to compile
-	1. Set up an execution order (get mandatory passes (graph output, passes with execution edges), traverse graph in reverse to get all passes that are
+	1. Set up an execution order (get mandatory passes (graph output, passes with execution edges)), traverse graph in reverse to get all passes that are
 		contributing to the finished product. Sort the graph topologically (top-down, from input to output) to get the order. This guarantess that the order
 		follow in a directed manner and from the input to the output, even with the execution dep. (since this is also an edge in the DirectedGraph).
 	2. For every pass that is now confirmed to be used - reflect and then compile
-	2.5 (Falcor has an insertAutoPasses, does not seem necessary for me, will therefore be avoided for now)
+	2.5 Add sync (falcor uses insertAutoPasses which seems to sync textures atleast)
 	3. Check if the created graph is valid - At least one output to the graph (markOutput) and check if all inputs from reflection are being used in the graph
 	4. Allocate resources
 		- Register, and calculate life time based on when the resources are being used. Use the index of the passes in the array (that are in order). For instance if a buffer

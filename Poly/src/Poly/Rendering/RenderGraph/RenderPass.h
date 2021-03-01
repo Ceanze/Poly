@@ -33,6 +33,8 @@ namespace Poly
 		 */
 		virtual void Compile();
 
+		std::string GetName() const { return p_Name; }
+
 	protected:
 		friend class RenderGraph;
 		std::string p_Name = "";

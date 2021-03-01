@@ -109,6 +109,7 @@ namespace Poly
 		bool UnmarkOutput(const std::string& name);
 
 	private:
+		friend class RenderGraphCompiler;
 		struct EdgeData
 		{
 			// If auto generation is added - mark it here

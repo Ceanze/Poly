@@ -92,7 +92,7 @@ namespace Poly
 		}
 
 		// Make sure it is a data-data connected or an execution-execution connection
-		if (srcPair.second == "" && dstPair.second != "" || srcPair.second != "" && dstPair.second == "")
+		if (srcPair.second.empty() && !dstPair.second.empty() || !srcPair.second.empty() && dstPair.second.empty())
 		{
 			POLY_CORE_WARN("Cannot link {} with {}, dependency type does not match (both must be data-data or exe-exe dep.)", src, dst);
 			return false;
