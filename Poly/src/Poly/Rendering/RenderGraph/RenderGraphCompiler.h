@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Poly/Core/Core.h"
+#include "RenderPassReflection.h"
 
 namespace Poly
 {
@@ -13,8 +14,9 @@ namespace Poly
 	private:
 		struct PassData
 		{
-			Ref<RenderPass>	pResource;
-			uint32			NodeIndex;
+			Ref<RenderPass>			pPass;
+			uint32					NodeIndex;
+			RenderPassReflection	Reflection;
 		};
 
 	public:

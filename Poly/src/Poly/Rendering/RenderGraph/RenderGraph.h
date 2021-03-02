@@ -8,7 +8,7 @@
  * RenderGraph implementation - inspired a lot by the following resources:
  * https://github.com/NVIDIAGameWorks/Falcor/tree/master/Source/Falcor/RenderGraph
  * https://github.com/IbexOmega/CrazyCanvas/tree/master/LambdaEngine/Include/Rendering
- * https://github.com/planetchili/hw3d/tree/master/hw3d
+ * https://themaister.net/blog/2017/08/15/render-graphs-and-vulkan-a-deep-dive/
  */
 
 namespace Poly

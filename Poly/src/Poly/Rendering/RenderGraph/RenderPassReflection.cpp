@@ -8,7 +8,7 @@ namespace Poly
 		IOData data = {};
 		data.Name			= name;
 		data.IOType			= EIOType::INPUT;
-		data.ResourceType	= EResourceType::UNKNOWN;
+		data.BindPoint		= FResourceBindPoint::NONE;
 		AddIO(data);
 	}
 
@@ -17,7 +17,7 @@ namespace Poly
 		IOData data = {};
 		data.Name			= name;
 		data.IOType			= EIOType::OUTPUT;
-		data.ResourceType	= EResourceType::UNKNOWN;
+		data.BindPoint		= FResourceBindPoint::NONE;
 		AddIO(data);
 	}
 
@@ -26,7 +26,7 @@ namespace Poly
 		IOData data = {};
 		data.Name			= name;
 		data.IOType			= EIOType::PASS_THROUGH;
-		data.ResourceType	= EResourceType::UNKNOWN;
+		data.BindPoint		= FResourceBindPoint::NONE;
 		AddIO(data);
 	}
 

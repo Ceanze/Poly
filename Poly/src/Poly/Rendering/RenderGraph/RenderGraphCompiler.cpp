@@ -65,8 +65,9 @@ namespace Poly
 		for (auto nodeID : sorted)
 		{
 			PassData data = {};
-			data.pResource	= m_pRenderGraph->m_Passes[nodeID];
+			data.pPass	= m_pRenderGraph->m_Passes[nodeID];
 			data.NodeIndex	= nodeID;
+			data.Reflection	= data.pPass->Reflect();
 			m_OrderedPasses.push_back(data);
 		}
 	}
@@ -78,8 +79,20 @@ namespace Poly
 
 		for (const auto& pass : m_OrderedPasses)
 		{
-			pass.pResource->Compile();
+			pass.pPass->Compile();
 		}
+	}
+
+	void RenderGraphCompiler::ValidateGraph()
+	{
+		// Checks if the current graph is valid to render to a swap chain for.
+		// To do this check if there are any resources marked for output and
+		// that all inputs are being used in passes
+	}
+
+	void RenderGraphCompiler::AllocateResources()
+	{
+		// See ResourceCache in falcor
 	}
 
 	void RenderGraphCompiler::AddSync()
@@ -87,18 +100,9 @@ namespace Poly
 		/**
 		 * Syncronization will be done by adding special SyncPasses between passes whose resources
 		 * need to be synced. To do this, go though the passes in order and for each pass check what
-		 * state the resources it is using are in. If the resources current state doesn't match what
-		 * the previous state it was in then add a barrier [or renderpass sync for some textures].
+		 * state the resources it is using are in (gotten from reflection). If the resources current
+		 * state doesn't match what the previous state it was in then add a barrier
+		 * [or renderpass sync for some textures].
 		 */
-	}
-
-	void RenderGraphCompiler::ValidateGraph()
-	{
-
-	}
-
-	void RenderGraphCompiler::AllocateResources()
-	{
-		// See ResourceCache in falcor
 	}
 }

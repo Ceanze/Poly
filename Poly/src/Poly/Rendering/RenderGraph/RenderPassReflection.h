@@ -9,18 +9,6 @@ namespace Poly
 	 * that the render pass is going to use.
 	 */
 
-	enum class EResourceType
-	{
-		UNKNOWN					= 0,
-		VERTEX_BUFFER			= 1,
-		INDEX_BUFFER			= 2,
-		STORAGE_BUFFER			= 3,
-		UNORDERED_ACCESS_BUFFER	= STORAGE_BUFFER,
-		COLOR_ATTACHMENT		= 4,
-		RENDER_TARGET			= COLOR_ATTACHMENT,
-		DEPTH_STENCIL			= 5
-	};
-
 	enum class EIOType
 	{
 		UNKNOWN			= 0,
@@ -33,10 +21,11 @@ namespace Poly
 	{
 		std::string			Name			= "";
 		EIOType				IOType			= EIOType::UNKNOWN;
-		EResourceType		ResourceType	= EResourceType::UNKNOWN;
 		EFormat				Format			= EFormat::UNDEFINED;
 		FResourceBindPoint	BindPoint		= FResourceBindPoint::NONE;
 		ETextureLayout		TextureLayout	= ETextureLayout::UNDEFINED;
+		union { uint32 Width; uint32 Size; };
+		uint32				Height			= 0;
 	};
 
 	class RenderPassReflection

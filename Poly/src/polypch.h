@@ -25,3 +25,4 @@
 // Custom files
 #include "Poly/Core/Logger.h"
 #include "Poly/Core/PolyUtils.h"
+#include "Poly/Core/Core.h"

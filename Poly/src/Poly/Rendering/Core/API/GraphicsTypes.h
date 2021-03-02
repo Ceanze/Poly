@@ -97,7 +97,9 @@ namespace Poly
 		INDIRECT			= FLAG(5),
 		COLOR_ATTACHMENT	= FLAG(6),
 		RENDER_TARGET		= COLOR_ATTACHMENT,
-		DEPTH_STENCIL		= FLAG(7)
+		DEPTH_STENCIL		= FLAG(7),
+		SHADER_READ			= FLAG(8),
+		SAMPLER				= SHADER_READ
 	};
 
 	enum class ETextureDim
