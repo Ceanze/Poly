@@ -37,6 +37,30 @@ namespace Poly
 			if (existing.Name == name)
 			{
 				existing.Format = format;
+
+				// Check if we can set the layout that is required for this resource
+				if (existing.IOType == EIOType::INPUT)
+				{
+					if (format == EFormat::D24_UNORM_S8_UINT)
+						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					else
+						existing.TextureLayout = ETextureLayout::SHADER_READ_ONLY_OPTIMAL;
+				}
+				else if (existing.IOType == EIOType::OUTPUT)
+				{
+					if (format == EFormat::D24_UNORM_S8_UINT)
+						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					else
+						existing.TextureLayout = ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
+				}
+				else if (existing.IOType == EIOType::PASS_THROUGH) // TODO: Check for edge cases
+				{
+					if (format == EFormat::D24_UNORM_S8_UINT)
+						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					else
+						existing.TextureLayout = ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
+				}
+
 				return;
 			}
 		}

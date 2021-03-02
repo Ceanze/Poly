@@ -36,6 +36,7 @@ namespace Poly
 		EResourceType		ResourceType	= EResourceType::UNKNOWN;
 		EFormat				Format			= EFormat::UNDEFINED;
 		FResourceBindPoint	BindPoint		= FResourceBindPoint::NONE;
+		ETextureLayout		TextureLayout	= ETextureLayout::UNDEFINED;
 	};
 
 	class RenderPassReflection
