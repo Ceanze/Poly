@@ -24,6 +24,15 @@ namespace Poly
 		static Ref<ResourceCache> Create();
 
 		/**
+		 * Register an external resource which is not handled by the resource cache
+		 * External resources are expected to be alive during the render graphs lifespan
+		 * Additional calls to this function with same name will update the resource pointer
+		 * @param name - name of resource following $.resourceName format
+		 * @param pResource - resource pointer
+		 */
+		void RegisterExternalResource(const std::string& name, Ref<Resource> pResource);
+
+		/**
 		 * Registers a resource to be created
 		 * @param name - name of resource following renderPass.resourceName format
 		 * @param timepoint - index of render pass (from execution order)
@@ -43,10 +52,17 @@ namespace Poly
 		 */
 		Ref<Resource> GetResource(const std::string& name);
 
+		/**
+		 * Resets the cache, losing ownership of resource and clears vectors
+		 */
+		void Reset();
+
 	private:
 		void CalcLifetime(std::pair<uint32, uint32>& lifetime, uint32 newTimepoint);
 
 		std::unordered_map<std::string, uint32> m_NameToIndex;
 		std::vector<ResourceData> m_Resources;
+		std::unordered_map<std::string, uint32> m_NameToExternalIndex;
+		std::vector<Ref<Resource>> m_ExternalResources;
 	};
 }

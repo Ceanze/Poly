@@ -4,6 +4,7 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
+#include "Platform/API/CommandQueue.h"
 #include "Resource.h"
 
 namespace Poly
@@ -13,6 +14,17 @@ namespace Poly
 		return CreateRef<ResourceCache>();
 	}
 	
+	void ResourceCache::RegisterExternalResource(const std::string& name, Ref<Resource> pResource)
+	{
+		if (m_NameToExternalIndex.contains(name))
+			m_ExternalResources[m_NameToExternalIndex[name]] = pResource;
+		else
+		{
+			m_NameToExternalIndex[name] = m_ExternalResources.size();
+			m_ExternalResources.push_back(pResource);
+		}
+	}
+
 	void ResourceCache::RegisterResource(const std::string& name, uint32 timepoint, IOData iodata, const std::string& alias)
 	{
 		if (m_NameToIndex.contains(name))
@@ -22,9 +34,9 @@ namespace Poly
 		}
 
 		bool isAlias = !alias.empty();
-		if (isAlias && !m_NameToIndex.contains(alias))
+		if (isAlias && (!m_NameToIndex.contains(alias) && !m_NameToExternalIndex.contains(alias)))
 		{
-			POLY_CORE_WARN("Resource {} cannot use alias {}, alias has not been added", name, alias);
+			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", name, alias);
 			return;
 		}
 
@@ -36,12 +48,20 @@ namespace Poly
 			data.Lifetime	= {timepoint, timepoint};
 			data.Name		= name;
 			data.IOInfo		= iodata;
+			m_Resources.push_back(data);
 		}
 		else // Aliased resource
 		{
-			uint32 index = m_NameToIndex[alias];
-			m_NameToIndex[name] = index;
-			CalcLifetime(m_Resources[index].Lifetime, timepoint);
+			if (m_NameToIndex.contains(alias))
+			{
+				uint32 index = m_NameToIndex[alias];
+				m_NameToIndex[name] = index;
+				CalcLifetime(m_Resources[index].Lifetime, timepoint);
+			}
+			else
+			{
+				m_NameToExternalIndex[name] = m_NameToExternalIndex[alias];
+			}
 		}
 	}
 
@@ -79,13 +99,27 @@ namespace Poly
 
 	Ref<Resource> ResourceCache::GetResource(const std::string& name)
 	{
-		if (!m_NameToIndex.contains(name))
+		if (!m_NameToIndex.contains(name) && !m_NameToExternalIndex.contains(name))
 		{
 			POLY_CORE_WARN("Resource {} cannot be gotten, it does not exist", name);
 			return nullptr;
 		}
 
-		return m_Resources[m_NameToIndex[name]].pResource;
+		if (m_NameToIndex.contains(name))
+			return m_Resources[m_NameToIndex[name]].pResource;
+		else
+			return m_ExternalResources[m_NameToExternalIndex[name]];
+	}
+
+	void ResourceCache::Reset()
+	{
+		m_NameToIndex.clear();
+		m_NameToExternalIndex.clear();
+
+		// Wait for GPU since graphic objects might be deleted
+		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
+		m_Resources.clear();
+		m_ExternalResources.clear();
 	}
 
 	void ResourceCache::CalcLifetime(std::pair<uint32, uint32>& lifetime, uint32 newTimepoint)
@@ -94,10 +128,5 @@ namespace Poly
 			lifetime.first = newTimepoint;
 		else if (newTimepoint > lifetime.second)
 			lifetime.second = newTimepoint;
-	}
-
-	FBufferUsage ResourceCache::GetBufferUsage(EResourceType resourceType)
-	{
-
 	}
 }
