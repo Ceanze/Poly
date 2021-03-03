@@ -33,7 +33,15 @@ namespace Poly
 		 */
 		virtual void Compile();
 
+		/**
+		 * @return name of render pass
+		 */
 		std::string GetName() const { return p_Name; }
+
+		/**
+		 * @return read-only vector of external resources
+		 */
+		const std::vector<std::pair<std::string, std::string>>& GetExternalResources() const { return p_ExternalResources; }
 
 	protected:
 		friend class RenderGraph;

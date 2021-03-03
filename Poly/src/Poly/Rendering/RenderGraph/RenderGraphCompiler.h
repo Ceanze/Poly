@@ -8,6 +8,7 @@ namespace Poly
 	class Resource;
 	class RenderPass;
 	class RenderGraph;
+	class ResourceCache;
 
 	class RenderGraphCompiler
 	{
@@ -30,11 +31,13 @@ namespace Poly
 	private:
 		void SetupExecutionOrder();
 		void CompilePasses();
-		void AddSync();
 		void ValidateGraph();
 		void AllocateResources();
+		void AddSync();
+		bool IsResourceUsed(uint32 nodeIndex, const std::string& outputName);
 
 		RenderGraph* m_pRenderGraph = nullptr;
 		std::vector<PassData> m_OrderedPasses;
+		Ref<ResourceCache> m_pResourceCache;
 	};
 }
