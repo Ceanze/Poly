@@ -99,7 +99,7 @@ namespace Poly
 		}
 
 
-		uint32 index = m_pGraph->AddEdge(m_NameToNodeIndex[srcPair.second], m_NameToNodeIndex[dstPair.first]);
+		uint32 index = m_pGraph->AddEdge(m_NameToNodeIndex[srcPair.first], m_NameToNodeIndex[dstPair.first]);
 
 		EdgeData edgeData = {};
 		edgeData.Src = src;
