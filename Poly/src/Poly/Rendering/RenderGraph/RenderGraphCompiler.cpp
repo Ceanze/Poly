@@ -137,7 +137,7 @@ namespace Poly
 	{
 		m_pResourceCache = ResourceCache::Create();
 
-		for (uint32 passID; passID < m_OrderedPasses.size(); passID++)
+		for (uint32 passID = 0; passID < m_OrderedPasses.size(); passID++)
 		{
 			auto& passData = m_OrderedPasses[passID];
 

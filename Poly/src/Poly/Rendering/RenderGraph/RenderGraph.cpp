@@ -2,12 +2,14 @@
 #include "RenderGraph.h"
 #include "RenderPass.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
+#include "RenderGraphCompiler.h"
 
 namespace Poly
 {
 	RenderGraph::RenderGraph(const std::string& name)
 	: m_Name(std::move(name))
 	{
+		m_pGraph = DirectedGraph::Create();
 	}
 
 	Ref<RenderGraph> RenderGraph::Create(const std::string& name)
@@ -17,7 +19,8 @@ namespace Poly
 
 	void RenderGraph::Compile()
 	{
-
+		Ref<RenderGraphCompiler> compiler = RenderGraphCompiler::Create();
+		compiler->Compile(this);
 	}
 
 	bool RenderGraph::AddPass(const Ref<RenderPass>& pPass, const std::string& name)
@@ -25,7 +28,7 @@ namespace Poly
 		POLY_VALIDATE(pPass, "Added pass cannot be nullptr");
 
 		auto namePair = GetPassNameResourcePair(name);
-		if (namePair.second != "")
+		if (!namePair.second.empty())
 		{
 			POLY_CORE_WARN("Cannot add a pass with name {}, its naming is invalid (contains a dot)", name);
 			return false;
@@ -214,7 +217,7 @@ namespace Poly
 
 	std::pair<std::string, std::string> RenderGraph::GetPassNameResourcePair(std::string name)
 	{
-		uint32 pos = name.find_first_of('.');
+		auto pos = name.find_first_of('.');
 
 		// If no dot was found - then only a pass name was given
 		if (pos == std::string::npos)

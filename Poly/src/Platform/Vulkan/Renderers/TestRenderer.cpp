@@ -20,6 +20,12 @@
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Sampler.h"
+
+// TEMP - TESTING OF RENDER GRAPH
+#include "Poly/Rendering/RenderGraph/RenderGraph.h"
+#include "Poly/Rendering/RenderGraph/Passes/TestPass.h"
+#include "Poly/Rendering/RenderGraph/Passes/TestPass1.h"
+
 namespace Poly
 {
 
@@ -57,6 +63,20 @@ namespace Poly
 
 		SetupTestData();
 		CreateCommandBuffers();
+
+		// TEMP - TESTING OF RENDER GRAPH
+		Ref<RenderGraph> rg = RenderGraph::Create("Test graph");
+		auto pass0 = TestPass::Create();
+		auto pass1 = TestPass1::Create();
+
+		rg->AddPass(pass0, "0");
+		rg->AddPass(pass1, "1");
+
+		rg->AddLink("0.a", "1.a");
+
+		rg->MarkOutput("1.b");
+
+		rg->Compile();
 	}
 
 	void TestRenderer::BeginScene(uint32_t imageIndex)

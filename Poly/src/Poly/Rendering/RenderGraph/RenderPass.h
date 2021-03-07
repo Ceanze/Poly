@@ -13,8 +13,8 @@ namespace Poly
 	class RenderPass
 	{
 	public:
-		RenderPass();
-		~RenderPass();
+		RenderPass() = default;
+		virtual ~RenderPass() = default;
 
 		/**
 		 * Informs the RenderGraph about the inputs and outputs of the RenderPass
@@ -31,7 +31,7 @@ namespace Poly
 		 * OPTIONAL
 		 * Compile or recompile the RenderPass
 		 */
-		virtual void Compile();
+		virtual void Compile() {};
 
 		/**
 		 * @return name of render pass
