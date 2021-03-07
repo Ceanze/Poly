@@ -9,9 +9,14 @@
 
 namespace Poly
 {
-	Ref<ResourceCache> ResourceCache::Create()
+	ResourceCache::ResourceCache(RenderGraphDefaultParams defaultParams)
 	{
-		return CreateRef<ResourceCache>();
+		m_DefaultParams = defaultParams;
+	}
+
+	Ref<ResourceCache> ResourceCache::Create(RenderGraphDefaultParams defaultParams)
+	{
+		return CreateRef<ResourceCache>(defaultParams);
 	}
 	
 	void ResourceCache::RegisterExternalResource(const std::string& name, Ref<Resource> pResource)
@@ -83,8 +88,8 @@ namespace Poly
 			else if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT || bindPoint == FResourceBindPoint::DEPTH_STENCIL)
 			{
 				TextureDesc desc = {};
-				desc.Width			= resourceData.IOInfo.Width;
-				desc.Height			= resourceData.IOInfo.Height;
+				desc.Width			= resourceData.IOInfo.Width == 0 ? m_DefaultParams.TextureWidth : resourceData.IOInfo.Width;
+				desc.Height			= resourceData.IOInfo.Height == 0 ? m_DefaultParams.TextureHeight : resourceData.IOInfo.Height;
 				desc.Depth			= 1;
 				desc.ArrayLayers	= 1;
 				desc.MipLevels		= 1; // TODO: Add support for mips

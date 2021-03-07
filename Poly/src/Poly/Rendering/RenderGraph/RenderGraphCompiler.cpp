@@ -3,6 +3,7 @@
 #include "RenderGraph.h"
 #include "RenderPass.h"
 #include "ResourceCache.h"
+#include "RenderGraphTypes.h"
 #include "Poly/Core/Utils/DirectedGraphHelper.h"
 
 namespace Poly
@@ -135,7 +136,11 @@ namespace Poly
 
 	void RenderGraphCompiler::AllocateResources()
 	{
-		m_pResourceCache = ResourceCache::Create();
+		RenderGraphDefaultParams defaults = {};
+		defaults.TextureHeight	= 720;
+		defaults.TextureWidth	= 1080;
+
+		m_pResourceCache = ResourceCache::Create(defaults);
 
 		for (uint32 passID = 0; passID < m_OrderedPasses.size(); passID++)
 		{
@@ -225,10 +230,10 @@ namespace Poly
 
 				m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + input.Name, passID, input, alias);
 			}
-
-			// Now allocate the resources
-			m_pResourceCache->AllocateResources();
 		}
+
+		// Now allocate the resources
+		m_pResourceCache->AllocateResources();
 	}
 
 	void RenderGraphCompiler::AddSync()

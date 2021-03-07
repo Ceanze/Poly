@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderPassReflection.h"
+#include "RenderGraphTypes.h"
 
 namespace Poly
 {
@@ -18,10 +19,10 @@ namespace Poly
 		};
 
 	public:
-		ResourceCache() = default;
+		ResourceCache(RenderGraphDefaultParams defaultParams);
 		~ResourceCache() = default;
 
-		static Ref<ResourceCache> Create();
+		static Ref<ResourceCache> Create(RenderGraphDefaultParams defaultParams);
 
 		/**
 		 * Register an external resource which is not handled by the resource cache
@@ -59,6 +60,8 @@ namespace Poly
 
 	private:
 		void CalcLifetime(std::pair<uint32, uint32>& lifetime, uint32 newTimepoint);
+
+		RenderGraphDefaultParams m_DefaultParams;
 
 		std::unordered_map<std::string, uint32> m_NameToIndex;
 		std::vector<ResourceData> m_Resources;
