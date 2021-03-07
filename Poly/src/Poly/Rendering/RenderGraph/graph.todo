@@ -62,3 +62,9 @@ RenderGraph execute:
 
 Ideas:
 	- ResourceCache - Creates and handles the resource allocation
+
+TODO:
+	- Setup a RenderContext and RenderData
+		- RenderContext: A wrapper around a commandBuffer with potential additonal functions
+		- RenderData: The data that the pass needs to execute (Resources)
+	- Finish SyncPass

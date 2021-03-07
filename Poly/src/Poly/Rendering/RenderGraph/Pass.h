@@ -18,18 +18,18 @@ namespace Poly
 		virtual ~Pass() = default;
 
 		/**
-		 * Execute the RenderPass
+		 * Execute the Pass
 		 */
 		virtual void Execute(/* Render Context, Render Data */) = 0;
 
 		/**
 		 * OPTIONAL
-		 * Compile or recompile the RenderPass
+		 * Compile or recompile the Pass
 		 */
 		virtual void Compile() {};
 
 		/**
-		 * @return name of render pass
+		 * @return name of pass
 		 */
 		std::string GetName() const { return p_Name; }
 
