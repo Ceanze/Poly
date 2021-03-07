@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderPassReflection.h"
+#include "Pass.h"
 
 namespace Poly
 {
@@ -10,10 +11,10 @@ namespace Poly
 	 * Compile is called on first-time compilation and recompilation
 	 */
 
-	class RenderPass
+	class RenderPass : public Pass
 	{
 	public:
-		RenderPass() = default;
+		RenderPass() { p_Type = Pass::Type::RENDER; }
 		virtual ~RenderPass() = default;
 
 		/**
@@ -33,21 +34,8 @@ namespace Poly
 		 */
 		virtual void Compile() {};
 
-		/**
-		 * @return name of render pass
-		 */
-		std::string GetName() const { return p_Name; }
-
-		/**
-		 * @return read-only vector of external resources
-		 */
-		const std::vector<std::pair<std::string, std::string>>& GetExternalResources() const { return p_ExternalResources; }
-
 	protected:
 		friend class RenderGraph;
-		std::string p_Name = "";
-		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
-		std::vector<std::pair<std::string, std::string>> p_ExternalResources;
 
 		// TODO: If/when scenes are added make it a member variable of the renderpass (Ref<Scene>)
 	};

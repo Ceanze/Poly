@@ -23,7 +23,7 @@ namespace Poly
 		compiler->Compile(this);
 	}
 
-	bool RenderGraph::AddPass(const Ref<RenderPass>& pPass, const std::string& name)
+	bool RenderGraph::AddPass(const Ref<Pass>& pPass, const std::string& name)
 	{
 		POLY_VALIDATE(pPass, "Added pass cannot be nullptr");
 

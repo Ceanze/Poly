@@ -19,9 +19,9 @@ namespace Poly
 
 		SetupExecutionOrder();
 		CompilePasses();
-		AddSync();
 		ValidateGraph();
 		AllocateResources();
+		AddSync();
 	}
 
 	void RenderGraphCompiler::SetupExecutionOrder()
@@ -69,7 +69,7 @@ namespace Poly
 			PassData data = {};
 			data.pPass	= m_pRenderGraph->m_Passes[nodeID];
 			data.NodeIndex	= nodeID;
-			data.Reflection	= data.pPass->Reflect();
+			data.Reflection	= data.pPass->GetPassType() == Pass::Type::RENDER ? static_cast<RenderPass*>(data.pPass.get())->Reflect() : RenderPassReflection(); // TODO: Add compute check here
 			m_OrderedPasses.push_back(data);
 		}
 	}
@@ -245,6 +245,8 @@ namespace Poly
 		 * state doesn't match what the previous state it was in then add a barrier
 		 * [or renderpass sync for some textures].
 		 */
+
+		// Resources are created at this stage
 	}
 
 	bool RenderGraphCompiler::IsResourceUsed(uint32 nodeIndex, const std::string& outputName)

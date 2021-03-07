@@ -13,6 +13,7 @@
 
 namespace Poly
 {
+	class Pass;
 	class RenderPass;
 	class Resource;
 	class DirectedGraph;
@@ -39,7 +40,7 @@ namespace Poly
 		 * @param name - Name of the pass to be added
 		 * @return true if pass is added successfully
 		 */
-		bool AddPass(const Ref<RenderPass>& pPass, const std::string& name);
+		bool AddPass(const Ref<Pass>& pPass, const std::string& name);
 
 		/**
 		 * Removes a pass from the graph - be aware of loose edges after this has been done
@@ -144,7 +145,7 @@ namespace Poly
 		std::string m_Name = "";
 		Ref<DirectedGraph> m_pGraph;
 		std::unordered_map<std::string, uint32> m_NameToNodeIndex;
-		std::unordered_map<uint32, Ref<RenderPass>> m_Passes;
+		std::unordered_map<uint32, Ref<Pass>> m_Passes;
 		std::unordered_map<uint32, EdgeData> m_Edges;
 		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
 		std::unordered_map<std::string, Ref<Resource>> m_ExternalResources;

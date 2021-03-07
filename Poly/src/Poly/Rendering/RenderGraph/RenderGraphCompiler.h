@@ -5,6 +5,7 @@
 
 namespace Poly
 {
+	class Pass;
 	class Resource;
 	class RenderPass;
 	class RenderGraph;
@@ -15,7 +16,7 @@ namespace Poly
 	private:
 		struct PassData
 		{
-			Ref<RenderPass>			pPass;
+			Ref<Pass>				pPass;
 			uint32					NodeIndex;
 			RenderPassReflection	Reflection;
 		};
