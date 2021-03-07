@@ -7,23 +7,25 @@
 
 namespace Poly
 {
-	Resource::Resource(Ref<Buffer> pBuffer)
+	Resource::Resource(Ref<Buffer> pBuffer, const std::string& name)
 	{
 		m_pBuffer = pBuffer;
+		m_Name = name;
 	}
 
-	Resource::Resource(Ref<Texture> pTexture)
+	Resource::Resource(Ref<Texture> pTexture, const std::string& name)
 	{
 		m_pTexture = pTexture;
+		m_Name = name;
 	}
 
-	Ref<Resource> Resource::Create(Ref<Buffer> pBuffer)
+	Ref<Resource> Resource::Create(Ref<Buffer> pBuffer, const std::string& name)
 	{
-		return CreateRef<Resource>(pBuffer);
+		return CreateRef<Resource>(pBuffer, name);
 	}
 
-	Ref<Resource> Resource::Create(Ref<Texture> pTexture)
+	Ref<Resource> Resource::Create(Ref<Texture> pTexture, const std::string& name)
 	{
-		return CreateRef<Resource>(pTexture);
+		return CreateRef<Resource>(pTexture, name);
 	}
 }

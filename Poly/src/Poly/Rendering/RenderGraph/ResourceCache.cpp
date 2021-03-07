@@ -78,7 +78,7 @@ namespace Poly
 				desc.MemUsage		= EMemoryUsage::GPU_ONLY; // TODO: Check if staging buffers should/can be created here
 				desc.Size			= resourceData.IOInfo.Size;
 
-				resourceData.pResource = Resource::Create(RenderAPI::CreateBuffer(&desc));
+				resourceData.pResource = Resource::Create(RenderAPI::CreateBuffer(&desc), resourceData.Name);
 			}
 			else if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT || bindPoint == FResourceBindPoint::DEPTH_STENCIL)
 			{
@@ -91,8 +91,9 @@ namespace Poly
 				desc.SampleCount	= 1;
 				desc.TextureDim		= ETextureDim::DIM_2D;
 				desc.TextureUsage	= bindPoint == FResourceBindPoint::COLOR_ATTACHMENT ? FTextureUsage::COLOR_ATTACHMENT : FTextureUsage::DEPTH_STENCIL_ATTACHMENT;
+				desc.Format			= resourceData.IOInfo.Format;
 
-				resourceData.pResource = Resource::Create(RenderAPI::CreateTexture(&desc));
+				resourceData.pResource = Resource::Create(RenderAPI::CreateTexture(&desc), resourceData.Name);
 			}
 		}
 	}

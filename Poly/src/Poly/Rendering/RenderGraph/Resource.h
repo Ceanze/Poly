@@ -16,8 +16,8 @@ namespace Poly
 	class Resource
 	{
 	public:
-		Resource(Ref<Buffer> pBuffer);
-		Resource(Ref<Texture> pTexture);
+		Resource(Ref<Buffer> pBuffer, const std::string& name = "");
+		Resource(Ref<Texture> pTexture, const std::string& name = "");
 		~Resource() = default;
 
 		/**
@@ -52,14 +52,14 @@ namespace Poly
 		 * NOTE: Must be ref to make sure resource is kept alive
 		 * @param pBuffer - Ref to the buffer to be created as a resource
 		 */
-		static Ref<Resource> Create(Ref<Buffer> pBuffer);
+		static Ref<Resource> Create(Ref<Buffer> pBuffer, const std::string& name = "");
 
 		/**
 		 * Create a resource based on a texture
 		 * NOTE: Must be ref to make sure resource is kept alive
 		 * @param pTexture - Ref to the texture to be created as a resource
 		 */
-		static Ref<Resource> Create(Ref<Texture> pTexture);
+		static Ref<Resource> Create(Ref<Texture> pTexture, const std::string& name = "");
 
 	private:
 		Ref<Buffer>		m_pBuffer	= nullptr;
