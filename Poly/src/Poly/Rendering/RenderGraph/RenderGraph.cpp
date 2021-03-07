@@ -185,7 +185,7 @@ namespace Poly
 		}
 
 		Output output = {};
-		output.NodeID = m_NameToNodeIndex[name];
+		output.NodeID = m_NameToNodeIndex[namePair.first];
 		output.ResourceName = namePair.second;
 		m_Outputs.insert(output);
 
