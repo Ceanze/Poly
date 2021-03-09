@@ -33,6 +33,34 @@ namespace Poly
 		uint32			Depth				= 0;
 	};
 
+	struct BufferBarrier
+	{
+		FAccessFlag	SrcAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag	DstAccessFlag	= FAccessFlag::NONE;
+		uint32		SrcQueueIndex	= 0;
+		uint32		DstQueueIndex	= 0;
+		Buffer*		pBuffer			= nullptr;
+		uint32		Offset			= 0;
+	};
+
+	struct TextureBarrier
+	{
+		FAccessFlag		SrcAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag		DstAccessFlag	= FAccessFlag::NONE;
+		ETextureLayout	OldLayout		= ETextureLayout::UNDEFINED;
+		ETextureLayout	NewLayout		= ETextureLayout::UNDEFINED;
+		uint32			SrcQueueIndex	= 0;
+		uint32			DstQueueIndex	= 0;
+		Texture*		pTexture		= nullptr;
+		FImageViewFlag	AspectMask		= FImageViewFlag::NONE;
+	};
+
+	struct AccessBarrier
+	{
+		FAccessFlag		SrcAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag		DstAccessFlag	= FAccessFlag::NONE;
+	};
+
 	class CommandBuffer
 	{
 	public:
@@ -172,6 +200,14 @@ namespace Poly
 		 * @param dstAccessMask - First point after barrier the buffer will be accessed
 		 */
 		virtual void PipelineBufferBarrier(Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag) = 0;
+
+		/**
+		 * Add multiple barriers of different types, for only one barrier of either buffer or texture see their respective functions
+		 * @param accessBarriers
+		 * @param bufferBarriers
+		 * @param textureBarriers
+		 */
+		virtual void PipelineBarrier(FPipelineStage srcStage, FPipelineStage dstStage, const std::vector<AccessBarrier>& accessBarriers, const std::vector<BufferBarrier>& bufferBarriers, const std::vector<TextureBarrier>& textureBarriers) = 0;
 
 		/**
 		 * End the render pass
