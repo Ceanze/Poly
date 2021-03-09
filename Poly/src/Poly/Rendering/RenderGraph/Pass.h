@@ -2,6 +2,8 @@
 
 namespace Poly
 {
+	class RenderContext;
+	class RenderData;
 	class Pass
 	{
 	public:
@@ -20,7 +22,7 @@ namespace Poly
 		/**
 		 * Execute the Pass
 		 */
-		virtual void Execute(/* Render Context, Render Data */) = 0;
+		virtual void Execute(const RenderContext& context, const RenderData& renderData) = 0;
 
 		/**
 		 * OPTIONAL

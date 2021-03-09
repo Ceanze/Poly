@@ -26,7 +26,7 @@ namespace Poly
 		/**
 		 * Execute the RenderPass
 		 */
-		virtual void Execute(/* Render Context, Render Data */) = 0;
+		virtual void Execute(const RenderContext& context, const RenderData& renderData) = 0;
 
 		/**
 		 * OPTIONAL
