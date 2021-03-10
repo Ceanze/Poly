@@ -48,6 +48,16 @@ namespace Poly
 		const std::string& GetName() const { return m_Name; }
 
 		/**
+		 * @return current queue index
+		 */
+		uint32 GetCurrentQueueIndex() const { return m_CurrentQueueIndex; }
+
+		/**
+		 * @return current layout, UNDEFINED if resource is buffer
+		 */
+		ETextureLayout GetCurrentLayout() const { return m_CurrentLayout; }
+
+		/**
 		 * Create a resource based on a buffer
 		 * NOTE: Must be ref to make sure resource is kept alive
 		 * @param pBuffer - Ref to the buffer to be created as a resource
@@ -62,8 +72,11 @@ namespace Poly
 		static Ref<Resource> Create(Ref<Texture> pTexture, const std::string& name = "");
 
 	private:
+		friend class SyncPass;
 		Ref<Buffer>		m_pBuffer	= nullptr;
-		Ref<Texture> 	m_pTexture	= nullptr;
+		Ref<Texture>	m_pTexture	= nullptr;
 		std::string		m_Name		= "";
+		uint32			m_CurrentQueueIndex	= 0;
+		ETextureLayout	m_CurrentLayout		= ETextureLayout::UNDEFINED;
 	};
 }

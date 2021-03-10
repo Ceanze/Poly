@@ -13,22 +13,38 @@ namespace Poly
 	class SyncPass : public Pass
 	{
 	public:
+		// static const constexpr uint32 SAME_QUEUE = UINT32_MAX;
+
+		enum class SyncType
+		{
+			NONE	= 0,
+			TEXTURE	= 1,
+			BUFFER	= 2,
+			MEMORY	= 3
+		};
 		struct SyncData
 		{
-			ETextureLayout		srcLayout		= ETextureLayout::UNDEFINED;
-			ETextureLayout		dstLayout		= ETextureLayout::UNDEFINED;
-			FResourceBindPoint	srcBindPoint	= FResourceBindPoint::NONE;
-			FResourceBindPoint	dstBindPoint	= FResourceBindPoint::NONE;
+			SyncType			Type			= SyncType::NONE;
+			std::string			ResourceName	= "";
+			ETextureLayout		SrcLayout		= ETextureLayout::UNDEFINED;
+			ETextureLayout		DstLayout		= ETextureLayout::UNDEFINED;
+			FResourceBindPoint	SrcBindPoint	= FResourceBindPoint::NONE;
+			FResourceBindPoint	DstBindPoint	= FResourceBindPoint::NONE;
+
+			bool operator== (const SyncData& other)
+			{
+				return ResourceName == other.ResourceName;
+			}
 		};
 
 	public:
-		SyncPass() = default;
+		SyncPass(const std::string& name);
 		~SyncPass() = default;
 
 		/**
 		 * Execute the SyncPass
 		 */
-		virtual void Execute(/* Render Context, Render Data */) override final;
+		virtual void Execute(const RenderContext& context, const RenderData& renderData) override final;
 
 		/**
 		 * OPTIONAL
@@ -38,9 +54,14 @@ namespace Poly
 
 		void AddSyncData(SyncData syncData);
 
-		static Ref<SyncPass> Create();
+		static Ref<SyncPass> Create(const std::string& name);
+
+		const std::string& GetName() const { return m_Name; }
 
 	private:
+		FAccessFlag ConvertToAccessFlag(FResourceBindPoint bindPoint);
+
 		std::vector<SyncData> m_SyncData;
+		std::string m_Name = "";
 	};
 }
