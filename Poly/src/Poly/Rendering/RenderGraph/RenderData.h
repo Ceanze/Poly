@@ -22,7 +22,7 @@ namespace Poly
 		 * Get a resource with the same name given in Reflect
 		 * @return Resource
 		 */
-		Resource* operator[] (const std::string& resourceName);
+		const Resource* operator[] (const std::string& resourceName);
 
 	private:
 		Ref<ResourceCache> m_pResourceCache;
