@@ -99,8 +99,10 @@ namespace Poly
 		RENDER_TARGET		= COLOR_ATTACHMENT,
 		DEPTH_STENCIL		= FLAG(7),
 		SHADER_READ			= FLAG(8),
-		SAMPLER				= SHADER_READ
+		SAMPLER				= SHADER_READ,
+		INPUT_ATTACHMENT	= FLAG(9)
 	};
+	ENABLE_BITMASK_OPERATORS(FResourceBindPoint);
 
 	enum class ETextureDim
 	{
