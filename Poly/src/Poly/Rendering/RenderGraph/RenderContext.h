@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Platform/API/CommandBuffer.h" // CommandBuffer is important for the interface of RenderContext, included here for ease of use
+
 namespace Poly
 {
 	class CommandBuffer;
@@ -12,7 +14,7 @@ namespace Poly
 
 		void SetCommandBuffer(CommandBuffer* pCommandBuffer);
 
-		const CommandBuffer* GetCommandBuffer() const;
+		CommandBuffer* GetCommandBuffer() const;
 
 		static Ref<RenderContext> Create();
 

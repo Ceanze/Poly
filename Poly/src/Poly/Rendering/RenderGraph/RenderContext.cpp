@@ -10,7 +10,7 @@ namespace Poly
 		m_pCommandBuffer = pCommandBuffer;
 	}
 	
-	const CommandBuffer* RenderContext::GetCommandBuffer() const
+	CommandBuffer* RenderContext::GetCommandBuffer() const
 	{
 		return m_pCommandBuffer;
 	}

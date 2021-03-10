@@ -25,6 +25,9 @@ namespace Poly
 		const Resource* operator[] (const std::string& resourceName) const;
 
 	private:
+		friend class SyncPass;
+		Resource* GetResourceNonConst(const std::string& resourceName) const;
+
 		Ref<ResourceCache> m_pResourceCache;
 		std::string m_RenderPassName = "";
 		RenderGraphDefaultParams m_DefaultParams = {};

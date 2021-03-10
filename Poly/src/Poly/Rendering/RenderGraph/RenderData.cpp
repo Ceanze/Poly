@@ -11,9 +11,14 @@ namespace Poly
 		m_DefaultParams		= defaultParams;
 	}
 	
-	const Resource* RenderData::operator[] (const std::string& resourceName)
+	Resource* RenderData::GetResourceNonConst(const std::string& resourceName) const
 	{
-		m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName);
+		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
+	}
+
+	const Resource* RenderData::operator[] (const std::string& resourceName) const
+	{
+		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
 	}
 
 
