@@ -38,7 +38,7 @@ namespace Poly
 		};
 
 	public:
-		SyncPass();
+		SyncPass(const std::string& name);
 		~SyncPass() = default;
 
 		/**
@@ -54,7 +54,7 @@ namespace Poly
 
 		void AddSyncData(SyncData syncData);
 
-		static Ref<SyncPass> Create();
+		static Ref<SyncPass> Create(const std::string& name);
 
 		const std::string& GetName() const { return p_Name; }
 

@@ -8,8 +8,9 @@
 
 namespace Poly
 {
-	SyncPass::SyncPass()
+	SyncPass::SyncPass(const std::string& name)
 	{
+		p_Name = name;
 		p_Type = Pass::Type::SYNC;
 	}
 
@@ -95,9 +96,9 @@ namespace Poly
 			POLY_CORE_WARN("AddSyncData for resource {} could not be done, resource has already been added to {}", syncData.ResourceName, p_Name);
 	}
 
-	Ref<SyncPass> SyncPass::Create()
+	Ref<SyncPass> SyncPass::Create(const std::string& name)
 	{
-		return CreateRef<SyncPass>();
+		return CreateRef<SyncPass>(name);
 	}
 
 	FAccessFlag SyncPass::ConvertToAccessFlag(FResourceBindPoint bindPoint)
