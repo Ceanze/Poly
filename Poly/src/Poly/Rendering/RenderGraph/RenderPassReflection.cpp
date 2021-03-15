@@ -32,7 +32,7 @@ namespace Poly
 
 	void RenderPassReflection::SetFormat(const std::string& name, EFormat format)
 	{
-		for (auto& existing : IOs)
+		for (auto& existing : m_IOs)
 		{
 			if (existing.Name == name)
 			{
@@ -70,7 +70,7 @@ namespace Poly
 
 	void RenderPassReflection::SetBindPoint(const std::string& name, FResourceBindPoint bindPoint)
 	{
-		for (auto& existing : IOs)
+		for (auto& existing : m_IOs)
 		{
 			if (existing.Name == name)
 			{
@@ -82,10 +82,10 @@ namespace Poly
 		POLY_CORE_WARN("[RenderPassReflection]: Tried to set bindpoint of {}, but that IO does not exist with the given name!", name);
 	}
 
-	std::vector<IOData> RenderPassReflection::GetInputs()
+	std::vector<IOData> RenderPassReflection::GetInputs() const
 	{
 		std::vector<IOData> data;
-		for (auto& IO : IOs)
+		for (auto& IO : m_IOs)
 		{
 			if (IO.IOType == EIOType::INPUT)
 				data.push_back(IO);
@@ -94,10 +94,10 @@ namespace Poly
 		return data;
 	}
 
-	std::vector<IOData> RenderPassReflection::GetOutputs()
+	std::vector<IOData> RenderPassReflection::GetOutputs() const
 	{
 		std::vector<IOData> data;
-		for (auto& IO : IOs)
+		for (auto& IO : m_IOs)
 		{
 			if (IO.IOType == EIOType::OUTPUT)
 				data.push_back(IO);
@@ -106,10 +106,10 @@ namespace Poly
 		return data;
 	}
 
-	std::vector<IOData> RenderPassReflection::GetPassThroughs()
+	std::vector<IOData> RenderPassReflection::GetPassThroughs() const
 	{
 		std::vector<IOData> data;
-		for (auto& IO : IOs)
+		for (auto& IO : m_IOs)
 		{
 			if (IO.IOType == EIOType::PASS_THROUGH)
 				data.push_back(IO);
@@ -118,10 +118,20 @@ namespace Poly
 		return data;
 	}
 
+	const IOData& RenderPassReflection::GetIOData(const std::string& resName) const
+	{
+		auto it = std::find(m_IOs.begin(), m_IOs.end(), resName);
+		if (it != m_IOs.end())
+			return *it;
+
+		POLY_CORE_WARN("Reflection with resource name {} could not be found", resName);
+		return IOData();
+	}
+
 	void RenderPassReflection::AddIO(IOData io)
 	{
 		// Check for existing
-		for (const auto& existing : IOs)
+		for (const auto& existing : m_IOs)
 		{
 			if (existing.Name == io.Name)
 			{
@@ -130,6 +140,6 @@ namespace Poly
 			}
 		}
 
-		IOs.push_back(io);
+		m_IOs.push_back(io);
 	}
 }

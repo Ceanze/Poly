@@ -26,6 +26,8 @@ namespace Poly
 		ETextureLayout		TextureLayout	= ETextureLayout::UNDEFINED;
 		union { uint32 Width; uint32 Size; };
 		uint32				Height			= 0;
+
+		bool operator== (const IOData& other) const { return Name == other.Name; }
 	};
 
 	class RenderPassReflection
@@ -67,14 +69,15 @@ namespace Poly
 		 */
 		void SetBindPoint(const std::string& name, FResourceBindPoint bindPoint);
 
-		std::vector<IOData> GetInputs();
-		std::vector<IOData> GetOutputs();
-		std::vector<IOData> GetPassThroughs();
-		std::vector<IOData> GetAllIOs() const { return IOs; }
+		std::vector<IOData> GetInputs() const;
+		std::vector<IOData> GetOutputs() const;
+		std::vector<IOData> GetPassThroughs() const;
+		std::vector<IOData> GetAllIOs() const { return m_IOs; }
+		const IOData& GetIOData(const std::string& resName) const;
 
 	private:
 		void AddIO(IOData io);
 
-		std::vector<IOData> IOs;
+		std::vector<IOData> m_IOs;
 	};
 }
