@@ -38,7 +38,7 @@ namespace Poly
 		};
 
 	public:
-		SyncPass(const std::string& name);
+		SyncPass();
 		~SyncPass() = default;
 
 		/**
@@ -54,14 +54,13 @@ namespace Poly
 
 		void AddSyncData(SyncData syncData);
 
-		static Ref<SyncPass> Create(const std::string& name);
+		static Ref<SyncPass> Create();
 
-		const std::string& GetName() const { return m_Name; }
+		const std::string& GetName() const { return p_Name; }
 
 	private:
 		FAccessFlag ConvertToAccessFlag(FResourceBindPoint bindPoint);
 
 		std::vector<SyncData> m_SyncData;
-		std::string m_Name = "";
 	};
 }
