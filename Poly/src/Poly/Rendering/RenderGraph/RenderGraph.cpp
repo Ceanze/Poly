@@ -215,6 +215,28 @@ namespace Poly
 		return true;
 	}
 
+	const RenderGraph::EdgeData& RenderGraph::GetEdgeData(uint32 edgeID) const
+	{
+		if (!m_Edges.contains(edgeID))
+		{
+			POLY_CORE_WARN("Cannot get edge with ID {}, ID does not exist in graph", edgeID);
+			return EdgeData();
+		}
+
+		return m_Edges.at(edgeID);
+	}
+
+	const Ref<Pass>& RenderGraph::GetPass(uint32 nodeID) const
+	{
+		if (!m_Passes.contains(nodeID))
+		{
+			POLY_CORE_WARN("Cannot get pass with ID {}, ID does not exist in graph", nodeID);
+			return nullptr;
+		}
+
+		return m_Passes.at(nodeID);
+	}
+
 	std::pair<std::string, std::string> RenderGraph::GetPassNameResourcePair(std::string name)
 	{
 		auto pos = name.find_first_of('.');

@@ -21,6 +21,14 @@ namespace Poly
 	class RenderGraph
 	{
 	public:
+		struct EdgeData
+		{
+			// If auto generation is added - mark it here
+			std::string Src;
+			std::string Dst;
+		};
+
+	public:
 		// Prefer to use the static Create function to create the render graph
 		RenderGraph(const std::string& name);
 		~RenderGraph() = default;
@@ -109,14 +117,18 @@ namespace Poly
 		 */
 		bool UnmarkOutput(const std::string& name);
 
+		/**
+		 * @return EdgeData for specified edgeID
+		 */
+		const EdgeData& GetEdgeData(uint32 edgeID) const;
+
+		/**
+		 * @return Pass for specified nodeID
+		 */
+		const Ref<Pass>& GetPass(uint32 nodeID) const;
+
 	private:
 		friend class RenderGraphCompiler;
-		struct EdgeData
-		{
-			// If auto generation is added - mark it here
-			std::string Src;
-			std::string Dst;
-		};
 
 		struct Output
 		{

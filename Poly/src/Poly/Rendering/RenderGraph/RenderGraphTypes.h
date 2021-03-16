@@ -2,6 +2,8 @@
 
 namespace Poly
 {
+	using PassResourcePair = std::pair<std::string, std::string>;
+
 	/**
 	 * Specifies default values for things like texture size
 	 * and other common values
