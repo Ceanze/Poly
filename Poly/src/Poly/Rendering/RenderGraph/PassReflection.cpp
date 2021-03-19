@@ -1,9 +1,9 @@
 #include "polypch.h"
-#include "RenderPassReflection.h"
+#include "PassReflection.h"
 
 namespace Poly
 {
-	void RenderPassReflection::AddInput(const std::string& name)
+	void PassReflection::AddInput(const std::string& name)
 	{
 		IOData data = {};
 		data.Name			= name;
@@ -12,7 +12,7 @@ namespace Poly
 		AddIO(data);
 	}
 
-	void RenderPassReflection::AddOutput(const std::string& name)
+	void PassReflection::AddOutput(const std::string& name)
 	{
 		IOData data = {};
 		data.Name			= name;
@@ -21,7 +21,7 @@ namespace Poly
 		AddIO(data);
 	}
 
-	void RenderPassReflection::AddPassThrough(const std::string& name)
+	void PassReflection::AddPassThrough(const std::string& name)
 	{
 		IOData data = {};
 		data.Name			= name;
@@ -30,7 +30,7 @@ namespace Poly
 		AddIO(data);
 	}
 
-	void RenderPassReflection::SetFormat(const std::string& name, EFormat format)
+	void PassReflection::SetFormat(const std::string& name, EFormat format)
 	{
 		for (auto& existing : m_IOs)
 		{
@@ -65,10 +65,10 @@ namespace Poly
 			}
 		}
 
-		POLY_CORE_WARN("[RenderPassReflection]: Tried to set format of {}, but that IO does not exist with the given name!", name);
+		POLY_CORE_WARN("[PassReflection]: Tried to set format of {}, but that IO does not exist with the given name!", name);
 	}
 
-	void RenderPassReflection::SetBindPoint(const std::string& name, FResourceBindPoint bindPoint)
+	void PassReflection::SetBindPoint(const std::string& name, FResourceBindPoint bindPoint)
 	{
 		for (auto& existing : m_IOs)
 		{
@@ -79,10 +79,10 @@ namespace Poly
 			}
 		}
 
-		POLY_CORE_WARN("[RenderPassReflection]: Tried to set bindpoint of {}, but that IO does not exist with the given name!", name);
+		POLY_CORE_WARN("[PassReflection]: Tried to set bindpoint of {}, but that IO does not exist with the given name!", name);
 	}
 
-	std::vector<IOData> RenderPassReflection::GetInputs() const
+	std::vector<IOData> PassReflection::GetInputs() const
 	{
 		std::vector<IOData> data;
 		for (auto& IO : m_IOs)
@@ -94,7 +94,7 @@ namespace Poly
 		return data;
 	}
 
-	std::vector<IOData> RenderPassReflection::GetOutputs() const
+	std::vector<IOData> PassReflection::GetOutputs() const
 	{
 		std::vector<IOData> data;
 		for (auto& IO : m_IOs)
@@ -106,7 +106,7 @@ namespace Poly
 		return data;
 	}
 
-	std::vector<IOData> RenderPassReflection::GetPassThroughs() const
+	std::vector<IOData> PassReflection::GetPassThroughs() const
 	{
 		std::vector<IOData> data;
 		for (auto& IO : m_IOs)
@@ -118,9 +118,10 @@ namespace Poly
 		return data;
 	}
 
-	const IOData& RenderPassReflection::GetIOData(const std::string& resName) const
+	const IOData& PassReflection::GetIOData(const std::string& resName) const
 	{
-		auto it = std::find(m_IOs.begin(), m_IOs.end(), resName);
+		//auto it = std::find(m_IOs.begin(), m_IOs.end(), resName);
+		auto it = std::find_if(m_IOs.begin(), m_IOs.end(), [resName](const IOData& io) { return io.Name == resName; });
 		if (it != m_IOs.end())
 			return *it;
 
@@ -128,14 +129,14 @@ namespace Poly
 		return IOData();
 	}
 
-	void RenderPassReflection::AddIO(IOData io)
+	void PassReflection::AddIO(IOData io)
 	{
 		// Check for existing
 		for (const auto& existing : m_IOs)
 		{
 			if (existing.Name == io.Name)
 			{
-				POLY_CORE_WARN("[RenderPassReflection]: Tried to add IO {} but it already exists!", existing.Name);
+				POLY_CORE_WARN("[PassReflection]: Tried to add IO {} but it already exists!", existing.Name);
 				return;
 			}
 		}

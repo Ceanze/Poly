@@ -30,11 +30,11 @@ namespace Poly
 		bool operator== (const IOData& other) const { return Name == other.Name; }
 	};
 
-	class RenderPassReflection
+	class PassReflection
 	{
 	public:
-		RenderPassReflection() = default;
-		~RenderPassReflection() = default;
+		PassReflection() = default;
+		~PassReflection() = default;
 
 		/**
 		 * Adds an input to the render pass
