@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RenderPassReflection.h"
 #include "Pass.h"
 
 namespace Poly
@@ -19,9 +18,9 @@ namespace Poly
 
 		/**
 		 * Informs the RenderGraph about the inputs and outputs of the RenderPass
-		 * @return A RenderPassReflection created for this render pass
+		 * @return A PassReflection created for this render pass
 		 */
-		virtual RenderPassReflection Reflect() = 0;
+		virtual PassReflection Reflect() = 0;
 
 		/**
 		 * Execute the RenderPass

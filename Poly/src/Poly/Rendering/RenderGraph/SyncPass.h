@@ -41,6 +41,8 @@ namespace Poly
 		SyncPass(const std::string& name);
 		~SyncPass() = default;
 
+		virtual PassReflection Reflect() override final;
+
 		/**
 		 * Execute the SyncPass
 		 */

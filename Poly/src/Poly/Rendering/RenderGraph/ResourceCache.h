@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderPassReflection.h"
+#include "PassReflection.h"
 #include "RenderGraphTypes.h"
 
 namespace Poly

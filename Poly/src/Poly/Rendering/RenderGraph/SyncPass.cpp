@@ -14,6 +14,19 @@ namespace Poly
 		p_Type = Pass::Type::SYNC;
 	}
 
+	PassReflection SyncPass::Reflect()
+	{
+		PassReflection reflect = {};
+		// Every resource that a sync pass handles is a passthrough
+		for (const auto& syncData : m_SyncData)
+		{
+			reflect.AddPassThrough(syncData.ResourceName);
+			reflect.SetBindPoint(syncData.ResourceName, syncData.SrcBindPoint);
+		}
+
+		return reflect;
+	}
+
 	void SyncPass::Execute(const RenderContext& context, const RenderData& renderData)
 	{
 		// When executing the command buffer has already begun
@@ -121,5 +134,7 @@ namespace Poly
 			return FAccessFlag::INDIRECT_COMMAND_READ;
 		if (bindPoint == FResourceBindPoint::INPUT_ATTACHMENT)
 			return FAccessFlag::INPUT_ATTACHMENT_READ;
+
+		return FAccessFlag::NONE;
 	}
 }

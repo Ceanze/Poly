@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Poly/Core/Core.h"
-#include "RenderPassReflection.h"
+#include "PassReflection.h"
 
 namespace Poly
 {
@@ -18,7 +18,9 @@ namespace Poly
 		{
 			Ref<Pass>				pPass;
 			uint32					NodeIndex;
-			RenderPassReflection	Reflection;
+			PassReflection	Reflection;
+
+			bool operator== (const PassData& other) const { return NodeIndex == other.NodeIndex; }
 		};
 
 	public:
@@ -34,7 +36,7 @@ namespace Poly
 		void CompilePasses();
 		void ValidateGraph();
 		void AllocateResources();
-		void AddSync();
+		void AddSync(bool* pNewPasses);
 		bool IsResourceUsed(uint32 nodeIndex, const std::string& outputName);
 
 		RenderGraph* m_pRenderGraph = nullptr;

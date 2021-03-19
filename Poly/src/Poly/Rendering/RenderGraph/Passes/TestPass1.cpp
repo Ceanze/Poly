@@ -3,9 +3,9 @@
 
 namespace Poly
 {
-	RenderPassReflection TestPass1::Reflect()
+	PassReflection TestPass1::Reflect()
 	{
-		RenderPassReflection reflection;
+		PassReflection reflection;
 		reflection.AddInput("a");
 		reflection.SetFormat("a", EFormat::R8G8B8A8_UNORM);
 		reflection.SetBindPoint("a", FResourceBindPoint::SAMPLER);
@@ -16,8 +16,8 @@ namespace Poly
 
 		return reflection;
 	}
-	
-	void TestPass1::Execute()
+
+	void TestPass1::Execute(const RenderContext& context, const RenderData& renderData)
 	{
 
 	}

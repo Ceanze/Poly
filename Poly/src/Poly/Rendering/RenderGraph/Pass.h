@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PassReflection.h"
+
 namespace Poly
 {
 	class RenderContext;
@@ -18,6 +20,12 @@ namespace Poly
 	public:
 		Pass() = default;
 		virtual ~Pass() = default;
+
+		/**
+		 * Informs the RenderGraph about the inputs and outputs of the RenderPass
+		 * @return A PassReflection created for this render pass
+		 */
+		virtual PassReflection Reflect() = 0;
 
 		/**
 		 * Execute the Pass

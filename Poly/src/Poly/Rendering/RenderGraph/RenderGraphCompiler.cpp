@@ -2,8 +2,10 @@
 #include "RenderGraphCompiler.h"
 #include "RenderGraph.h"
 #include "RenderPass.h"
+#include "SyncPass.h"
 #include "ResourceCache.h"
 #include "RenderGraphTypes.h"
+#include "Resource.h"
 #include "Poly/Core/Utils/DirectedGraphHelper.h"
 
 namespace Poly
@@ -19,9 +21,15 @@ namespace Poly
 
 		SetupExecutionOrder();
 		CompilePasses();
-		ValidateGraph();
 		AllocateResources();
-		AddSync();
+
+		bool newPasses = false;
+		AddSync(&newPasses);
+		if (newPasses)
+		{
+			SetupExecutionOrder();
+			ValidateGraph();
+		}
 	}
 
 	void RenderGraphCompiler::SetupExecutionOrder()
@@ -69,7 +77,7 @@ namespace Poly
 			PassData data = {};
 			data.pPass	= m_pRenderGraph->m_Passes[nodeID];
 			data.NodeIndex	= nodeID;
-			data.Reflection	= data.pPass->GetPassType() == Pass::Type::RENDER ? static_cast<RenderPass*>(data.pPass.get())->Reflect() : RenderPassReflection(); // TODO: Add compute check here
+			data.Reflection	= data.pPass.get()->Reflect();
 			m_OrderedPasses.push_back(data);
 		}
 	}
@@ -236,7 +244,7 @@ namespace Poly
 		m_pResourceCache->AllocateResources();
 	}
 
-	void RenderGraphCompiler::AddSync()
+	void RenderGraphCompiler::AddSync(bool* pNewPasses)
 	{
 		/**
 		 * Syncronization will be done by adding special SyncPasses between passes whose resources
@@ -246,7 +254,90 @@ namespace Poly
 		 * [or renderpass sync for some textures].
 		 */
 
-		// Resources are created at this stage
+		// Resources are created before this stage
+
+		struct SyncPassData
+		{
+			Ref<SyncPass>				pSyncPass;
+			std::string					srcName;
+			std::string					dstName;
+			std::unordered_set<uint32>	brokenEdgeIDs;
+		};
+
+		std::vector<SyncPassData> addedSyncPasses;
+
+		// Go through the passes in order of use
+		for (const auto& passData : m_OrderedPasses)
+		{
+			// Go though all the inputs of the pass
+			Ref<SyncPass> syncPass = nullptr;
+			std::unordered_set<uint32> brokenEdges;
+			auto incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
+			for (const auto& edgeID : incommingEdges)
+			{
+				const std::string& srcName = m_pRenderGraph->m_Edges[edgeID].Src;
+				const std::string& dstName = m_pRenderGraph->m_Edges[edgeID].Dst;
+				PassResourcePair srcPair = m_pRenderGraph->GetPassNameResourcePair(srcName);
+				PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(dstName);
+				const auto& srcReflection = passData.Reflection.GetIOData(srcPair.second);
+				const auto& dstReflection = passData.Reflection.GetIOData(dstPair.second);
+
+				const auto& srcRes = m_pResourceCache->GetResource(srcName);
+
+
+				// If the current layout of the input resource does not match this pass, add sync
+				if (srcReflection.TextureLayout != dstReflection.TextureLayout)
+				{
+					// add sync [make this render pass transition later]
+					if (!syncPass)
+						syncPass = SyncPass::Create("[SyncPass] " + srcPair.first + " to " + dstPair.first); // TODO: Make a cheaper way to combine strings
+					SyncPass::SyncData data = {};
+					data.Type			= SyncPass::SyncType::TEXTURE;
+					data.ResourceName	= dstPair.second;
+					data.SrcLayout		= srcRes->GetCurrentLayout();
+					data.DstLayout		= dstReflection.TextureLayout;
+					data.SrcBindPoint	= srcReflection.BindPoint;
+					data.DstBindPoint	= dstReflection.BindPoint;
+					syncPass->AddSyncData(data);
+
+					// Register alias for the syncPass resource so it can be accessed in its execute
+					// TODO: Create specific function for syncpass additions
+					m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
+					brokenEdges.insert(edgeID);
+				}
+
+				// TODO: Add more sync checks
+
+			}
+			// If a sync pass was created, add it to the array
+			if (syncPass)
+			{
+				*pNewPasses = true;
+				SyncPassData data = {};
+				data.pSyncPass		= syncPass;
+				data.brokenEdgeIDs	= brokenEdges;
+				addedSyncPasses.push_back(data);
+			}
+		}
+
+		// Add sync passes to the graph
+		for (const auto& syncPassData : addedSyncPasses)
+		{
+			// Create pass
+			m_pRenderGraph->AddPass(syncPassData.pSyncPass, syncPassData.pSyncPass->GetName());
+
+			for (const uint32 brokenEdgeID : syncPassData.brokenEdgeIDs)
+			{
+				RenderGraph::EdgeData edge = m_pRenderGraph->GetEdgeData(brokenEdgeID);
+				// Current implementation assumes that the resource name is set to dst resource name
+				PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(edge.Dst);
+
+				// Add links for new pass
+				m_pRenderGraph->RemoveLink(syncPassData.srcName, syncPassData.dstName);
+				m_pRenderGraph->AddLink(edge.Src, syncPassData.pSyncPass->GetName() + "." + dstPair.second);
+				m_pRenderGraph->AddLink(syncPassData.pSyncPass->GetName() + "." + dstPair.second, edge.Dst);
+			}
+		}
 	}
 
 	bool RenderGraphCompiler::IsResourceUsed(uint32 nodeIndex, const std::string& outputName)
