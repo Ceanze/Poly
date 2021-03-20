@@ -34,6 +34,8 @@ namespace Poly
 
 	void RenderGraphCompiler::SetupExecutionOrder()
 	{
+		m_OrderedPasses.clear();
+
 		// Determine which passes are actual needed:
 		std::unordered_set<uint32> mandatoryPasses;
 
@@ -105,14 +107,21 @@ namespace Poly
 			return;
 		}
 
-		for (auto passData : m_OrderedPasses)
+		for (const auto& passData : m_OrderedPasses)
 		{
 			const auto& inputs = passData.Reflection.GetInputs();
-			auto incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
-			auto externalResources = passData.pPass->GetExternalResources();
-			for (auto& input : inputs)
+			const auto& passthroughs = passData.Reflection.GetPassThroughs();
+			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
+			const auto& externalResources = passData.pPass->GetExternalResources();
+			for (uint32 i = 0; i < inputs.size() + passthroughs.size(); i++)
 			{
-				std::string dst = passData.pPass->GetName() + "." + input.Name;
+				std::vector<IOData> current = inputs;
+				if (i >= inputs.size())
+					current = passthroughs;
+
+				uint32 index = inputs.empty() ? i : i % inputs.size();
+
+				std::string dst = passData.pPass->GetName() + "." + current[index].Name;
 				bool valid = false;
 				for (auto edgeID : incommingEdges)
 				{
@@ -216,7 +225,10 @@ namespace Poly
 				{
 					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
 					if (edgeData.Dst == resourceName)
+					{
 						alias = edgeData.Src;
+						break;
+					}
 				}
 
 				// If incomming didn't get any match, check for externals
@@ -226,7 +238,10 @@ namespace Poly
 					for (auto& external : externals)
 					{
 						if (external.second == input.Name)
+						{
 							alias = "$." + external.first;
+							break;
+						}
 					}
 				}
 
@@ -259,8 +274,6 @@ namespace Poly
 		struct SyncPassData
 		{
 			Ref<SyncPass>				pSyncPass;
-			std::string					srcName;
-			std::string					dstName;
 			std::unordered_set<uint32>	brokenEdgeIDs;
 		};
 
@@ -279,7 +292,9 @@ namespace Poly
 				const std::string& dstName = m_pRenderGraph->m_Edges[edgeID].Dst;
 				PassResourcePair srcPair = m_pRenderGraph->GetPassNameResourcePair(srcName);
 				PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(dstName);
-				const auto& srcReflection = passData.Reflection.GetIOData(srcPair.second);
+				uint32 srcPassIndex = m_pRenderGraph->m_NameToNodeIndex[srcPair.first];
+				auto srcIt = std::find_if(m_OrderedPasses.begin(), m_OrderedPasses.end(), [srcPassIndex](const PassData& passData) { return passData.NodeIndex == srcPassIndex; });
+				const auto& srcReflection = srcIt->Reflection.GetIOData(srcPair.second);
 				const auto& dstReflection = passData.Reflection.GetIOData(dstPair.second);
 
 				const auto& srcRes = m_pResourceCache->GetResource(srcName);
@@ -294,7 +309,7 @@ namespace Poly
 					SyncPass::SyncData data = {};
 					data.Type			= SyncPass::SyncType::TEXTURE;
 					data.ResourceName	= dstPair.second;
-					data.SrcLayout		= srcRes->GetCurrentLayout();
+					data.SrcLayout		= srcReflection.TextureLayout;
 					data.DstLayout		= dstReflection.TextureLayout;
 					data.SrcBindPoint	= srcReflection.BindPoint;
 					data.DstBindPoint	= dstReflection.BindPoint;
@@ -333,7 +348,7 @@ namespace Poly
 				PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(edge.Dst);
 
 				// Add links for new pass
-				m_pRenderGraph->RemoveLink(syncPassData.srcName, syncPassData.dstName);
+				m_pRenderGraph->RemoveLink(edge.Src, edge.Dst);
 				m_pRenderGraph->AddLink(edge.Src, syncPassData.pSyncPass->GetName() + "." + dstPair.second);
 				m_pRenderGraph->AddLink(syncPassData.pSyncPass->GetName() + "." + dstPair.second, edge.Dst);
 			}
