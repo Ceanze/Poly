@@ -48,7 +48,7 @@ namespace Poly
 
 	}
 
-	void PVKSwapChain::Present(std::vector<CommandBuffer*> commandBuffers, Semaphore* pWaitSemaphore)
+	void PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore)
 	{
 		m_ImagesInFlight[m_FrameIndex]->Reset();
 

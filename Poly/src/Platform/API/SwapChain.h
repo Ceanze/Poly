@@ -46,7 +46,7 @@ namespace Poly
 		 * @param commandBufers - (optional) Additional buffers to submit before presentation
 		 * @param pWaitSemaphore - (optional) Semaphore to wait on before present
 		 */
-		virtual void Present(std::vector<CommandBuffer*> commandBuffers, Semaphore* pWaitSemaphore) = 0;
+		virtual void Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) = 0;
 
 		/**
 		 * Get the texture

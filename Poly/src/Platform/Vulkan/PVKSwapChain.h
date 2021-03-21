@@ -29,7 +29,7 @@ namespace Poly
 		virtual void Init(const SwapChainDesc* pDesc) override final;
 
 		virtual void Resize(uint32 width, uint32 height) override final;
-		virtual void Present(std::vector<CommandBuffer*> commandBuffers, Semaphore* pWaitSemaphore) override final;
+		virtual void Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) override final;
 
 		uint64			GetNative() const { return reinterpret_cast<uint64>(m_SwapChain); }
 		VkSwapchainKHR	GetNativeVK() const { return m_SwapChain; }
