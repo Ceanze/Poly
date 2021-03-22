@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Poly/Core/Core.h"
 #include "PassReflection.h"
+#include "RenderGraphTypes.h"
 
 namespace Poly
 {
@@ -10,14 +10,15 @@ namespace Poly
 	class RenderPass;
 	class RenderGraph;
 	class ResourceCache;
+	class RenderGraphProgram;
 
 	class RenderGraphCompiler
 	{
 	private:
 		struct PassData
 		{
-			Ref<Pass>				pPass;
-			uint32					NodeIndex;
+			Ref<Pass>		pPass;
+			uint32			NodeIndex;
 			PassReflection	Reflection;
 
 			bool operator== (const PassData& other) const { return NodeIndex == other.NodeIndex; }
@@ -29,7 +30,7 @@ namespace Poly
 
 		static Ref<RenderGraphCompiler> Create();
 
-		void Compile(RenderGraph* pRenderGraph);
+		Ref<RenderGraphProgram> Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams);
 
 	private:
 		void SetupExecutionOrder();
@@ -39,8 +40,9 @@ namespace Poly
 		void AddSync(bool* pNewPasses);
 		bool IsResourceUsed(uint32 nodeIndex, const std::string& outputName);
 
-		RenderGraph* m_pRenderGraph = nullptr;
-		std::vector<PassData> m_OrderedPasses;
-		Ref<ResourceCache> m_pResourceCache;
+		RenderGraph*				m_pRenderGraph = nullptr;
+		std::vector<PassData>		m_OrderedPasses;
+		Ref<ResourceCache>			m_pResourceCache = nullptr;
+		RenderGraphDefaultParams	m_DefaultParams = {};
 	};
 }

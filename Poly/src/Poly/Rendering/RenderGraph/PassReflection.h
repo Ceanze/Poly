@@ -9,18 +9,18 @@ namespace Poly
 	 * that the render pass is going to use.
 	 */
 
-	enum class EIOType
+	enum class FIOType
 	{
 		UNKNOWN			= 0,
-		INPUT			= 1,
-		OUTPUT			= 2,
-		PASS_THROUGH	= 3
+		INPUT			= FLAG(1),
+		OUTPUT			= FLAG(2)
 	};
+	ENABLE_BITMASK_OPERATORS(FIOType);
 
 	struct IOData
 	{
 		std::string			Name			= "";
-		EIOType				IOType			= EIOType::UNKNOWN;
+		FIOType				IOType			= FIOType::UNKNOWN;
 		EFormat				Format			= EFormat::UNDEFINED;
 		FResourceBindPoint	BindPoint		= FResourceBindPoint::NONE;
 		ETextureLayout		TextureLayout	= ETextureLayout::UNDEFINED;
@@ -69,9 +69,7 @@ namespace Poly
 		 */
 		void SetBindPoint(const std::string& name, FResourceBindPoint bindPoint);
 
-		std::vector<IOData> GetInputs() const;
-		std::vector<IOData> GetOutputs() const;
-		std::vector<IOData> GetPassThroughs() const;
+		std::vector<IOData> GetIOData(FIOType IOType) const;
 		std::vector<IOData> GetAllIOs() const { return m_IOs; }
 		const IOData& GetIOData(const std::string& resName) const;
 

@@ -1,11 +1,11 @@
 #include "polypch.h"
 #include "RenderGraphCompiler.h"
-#include "RenderGraph.h"
-#include "RenderPass.h"
 #include "SyncPass.h"
-#include "ResourceCache.h"
-#include "RenderGraphTypes.h"
 #include "Resource.h"
+#include "RenderPass.h"
+#include "RenderGraph.h"
+#include "ResourceCache.h"
+#include "RenderGraphProgram.h"
 #include "Poly/Core/Utils/DirectedGraphHelper.h"
 
 namespace Poly
@@ -15,9 +15,10 @@ namespace Poly
 		return CreateRef<RenderGraphCompiler>();
 	}
 
-	void RenderGraphCompiler::Compile(RenderGraph* pRenderGraph)
+	Ref<RenderGraphProgram> RenderGraphCompiler::Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams)
 	{
 		m_pRenderGraph = pRenderGraph;
+		m_DefaultParams = defaultParams;
 
 		SetupExecutionOrder();
 		CompilePasses();
@@ -30,6 +31,11 @@ namespace Poly
 			SetupExecutionOrder();
 			ValidateGraph();
 		}
+
+		Ref<RenderGraphProgram> program = RenderGraphProgram::Create(m_pRenderGraph, m_pResourceCache, m_DefaultParams);
+		for (const auto& passData : m_OrderedPasses)
+			program->AddPass(passData.pPass);
+		return program;
 	}
 
 	void RenderGraphCompiler::SetupExecutionOrder()
@@ -109,19 +115,12 @@ namespace Poly
 
 		for (const auto& passData : m_OrderedPasses)
 		{
-			const auto& inputs = passData.Reflection.GetInputs();
-			const auto& passthroughs = passData.Reflection.GetPassThroughs();
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 			const auto& externalResources = passData.pPass->GetExternalResources();
-			for (uint32 i = 0; i < inputs.size() + passthroughs.size(); i++)
+			for (uint32 i = 0; i < inputs.size(); i++)
 			{
-				std::vector<IOData> current = inputs;
-				if (i >= inputs.size())
-					current = passthroughs;
-
-				uint32 index = inputs.empty() ? i : i % inputs.size();
-
-				std::string dst = passData.pPass->GetName() + "." + current[index].Name;
+				std::string dst = passData.pPass->GetName() + "." + inputs[i].Name;
 				bool valid = false;
 				for (auto edgeID : incommingEdges)
 				{
@@ -153,18 +152,14 @@ namespace Poly
 
 	void RenderGraphCompiler::AllocateResources()
 	{
-		RenderGraphDefaultParams defaults = {};
-		defaults.TextureHeight	= 720;
-		defaults.TextureWidth	= 1080;
-
-		m_pResourceCache = ResourceCache::Create(defaults);
+		m_pResourceCache = ResourceCache::Create(m_DefaultParams);
 
 		for (uint32 passID = 0; passID < m_OrderedPasses.size(); passID++)
 		{
 			auto& passData = m_OrderedPasses[passID];
 
 			// Register outputs
-			const auto& outputs = passData.Reflection.GetOutputs();
+			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT);
 			for (auto& output : outputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + output.Name;
@@ -177,44 +172,8 @@ namespace Poly
 				m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + output.Name, passID, output);
 			}
 
-			// Make aliases of the passthroughs
-			const auto& passThroughs = passData.Reflection.GetPassThroughs();
-			for (auto& passThough : passThroughs)
-			{
-				std::string resourceName = passData.pPass->GetName() + "." + passThough.Name;
-				std::string alias = "";
-
-				// Find incomming edge to alias to
-				const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
-				for (auto edgeID : incommingEdges)
-				{
-					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
-					if (edgeData.Dst == resourceName)
-						alias = edgeData.Src;
-				}
-
-				// If incomming didn't get any match, check for externals
-				if (alias.empty())
-				{
-					const auto& externals = passData.pPass->GetExternalResources();
-					for (auto& external : externals)
-					{
-						if (external.second == passThough.Name)
-							alias = "$." + external.first;
-					}
-				}
-
-				if (alias.empty())
-				{
-					POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceName);
-					return;
-				}
-
-				m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + passThough.Name, passID, passThough, alias);
-			}
-
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetInputs();
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT);
 			for (auto& input : inputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + input.Name;

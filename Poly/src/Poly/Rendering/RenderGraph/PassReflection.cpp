@@ -7,7 +7,7 @@ namespace Poly
 	{
 		IOData data = {};
 		data.Name			= name;
-		data.IOType			= EIOType::INPUT;
+		data.IOType			= FIOType::INPUT;
 		data.BindPoint		= FResourceBindPoint::NONE;
 		AddIO(data);
 	}
@@ -16,7 +16,7 @@ namespace Poly
 	{
 		IOData data = {};
 		data.Name			= name;
-		data.IOType			= EIOType::OUTPUT;
+		data.IOType			= FIOType::OUTPUT;
 		data.BindPoint		= FResourceBindPoint::NONE;
 		AddIO(data);
 	}
@@ -25,7 +25,7 @@ namespace Poly
 	{
 		IOData data = {};
 		data.Name			= name;
-		data.IOType			= EIOType::PASS_THROUGH;
+		data.IOType			= FIOType::INPUT | FIOType::OUTPUT;
 		data.BindPoint		= FResourceBindPoint::NONE;
 		AddIO(data);
 	}
@@ -39,21 +39,21 @@ namespace Poly
 				existing.Format = format;
 
 				// Check if we can set the layout that is required for this resource
-				if (existing.IOType == EIOType::INPUT)
-				{
-					if (format == EFormat::D24_UNORM_S8_UINT)
-						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-					else
-						existing.TextureLayout = ETextureLayout::SHADER_READ_ONLY_OPTIMAL;
-				}
-				else if (existing.IOType == EIOType::OUTPUT)
+				if (existing.IOType == (FIOType::INPUT | FIOType::OUTPUT)) // TODO: Check for edge cases
 				{
 					if (format == EFormat::D24_UNORM_S8_UINT)
 						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					else
 						existing.TextureLayout = ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
 				}
-				else if (existing.IOType == EIOType::PASS_THROUGH) // TODO: Check for edge cases
+				else if (existing.IOType == FIOType::INPUT)
+				{
+					if (format == EFormat::D24_UNORM_S8_UINT)
+						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					else
+						existing.TextureLayout = ETextureLayout::SHADER_READ_ONLY_OPTIMAL;
+				}
+				else if (existing.IOType == FIOType::OUTPUT)
 				{
 					if (format == EFormat::D24_UNORM_S8_UINT)
 						existing.TextureLayout = ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -82,36 +82,12 @@ namespace Poly
 		POLY_CORE_WARN("[PassReflection]: Tried to set bindpoint of {}, but that IO does not exist with the given name!", name);
 	}
 
-	std::vector<IOData> PassReflection::GetInputs() const
+	std::vector<IOData> PassReflection::GetIOData(FIOType IOType) const
 	{
 		std::vector<IOData> data;
 		for (auto& IO : m_IOs)
 		{
-			if (IO.IOType == EIOType::INPUT)
-				data.push_back(IO);
-		}
-
-		return data;
-	}
-
-	std::vector<IOData> PassReflection::GetOutputs() const
-	{
-		std::vector<IOData> data;
-		for (auto& IO : m_IOs)
-		{
-			if (IO.IOType == EIOType::OUTPUT)
-				data.push_back(IO);
-		}
-
-		return data;
-	}
-
-	std::vector<IOData> PassReflection::GetPassThroughs() const
-	{
-		std::vector<IOData> data;
-		for (auto& IO : m_IOs)
-		{
-			if (IO.IOType == EIOType::PASS_THROUGH)
+			if (BitsSet(IO.IOType, IOType))
 				data.push_back(IO);
 		}
 
