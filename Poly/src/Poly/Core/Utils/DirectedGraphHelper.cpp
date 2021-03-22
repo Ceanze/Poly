@@ -21,7 +21,7 @@ namespace Poly
 
 		m_TraverseStack.pop();
 
-		if (IsBitsSet(m_Flags, CreateFlags::IGNORE_VISITED))
+		if (BitsSet(m_Flags, CreateFlags::IGNORE_VISITED))
 		{
 			// If current node is visited, go thorugh the stack and check if there
 			// are any other valid options
@@ -40,7 +40,7 @@ namespace Poly
 			m_Visited[currNode] = true;
 		}
 
-		bool reversed = IsBitsSet(m_Flags, CreateFlags::REVERSE);
+		bool reversed = BitsSet(m_Flags, CreateFlags::REVERSE);
 		const std::vector<uint32>& children = reversed ? m_pGraph->GetNode(currNode)->GetIncommingEdges() : m_pGraph->GetNode(currNode)->GetOutgoingEdges();
 		for (const auto& child : children)
 		{
@@ -53,13 +53,13 @@ namespace Poly
 
 	std::vector<uint32> DirectedGraphHelper::TopologySort(SortFlags flags)
 	{
-		// if (IsBitsSet(flags, SortFlags::DEPTH_FIRST))
+		// if (BitsSet(flags, SortFlags::DEPTH_FIRST))
 		// {
 		// 	POLY_CORE_WARN("Only Depth First is currently supported for sorting");
 		// 	return;
 		// }
 
-		if (IsBitsSet(flags, SortFlags::NONE))
+		if (BitsSet(flags, SortFlags::NONE))
 		{
 			POLY_CORE_WARN("SortFlag cannot be \"NONE\" for TopologySort!");
 			return {};
@@ -122,7 +122,7 @@ namespace Poly
 		}
 
 		// Only need to set visted array if we need to ignore previous nodes
-		if (IsBitsSet(m_Flags, CreateFlags::IGNORE_VISITED))
+		if (BitsSet(m_Flags, CreateFlags::IGNORE_VISITED))
 		{
 			m_Visited.assign(m_pGraph->CurrentNodeIndex(), false);
 		}
