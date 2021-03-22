@@ -72,7 +72,7 @@ namespace Poly
 		static Ref<CommandPool>			CreateCommandPool(FQueueType queueType);
 		static Ref<Sampler>				CreateSampler(const SamplerDesc* pDesc);
 		static Ref<Shader>				CreateShader(const ShaderDesc* pDesc);
-		static Ref<GraphicsRenderPass>	CreateRenderPass(const GraphicsRenderPassDesc* pDesc);
+		static Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc);
 		static Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc);
 		static Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc);
 		static Ref<Framebuffer>			CreateFramebuffer(const FramebufferDesc* pDesc);

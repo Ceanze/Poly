@@ -54,7 +54,7 @@ namespace Poly
 		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType) = 0;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) = 0;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) = 0;
-		virtual Ref<GraphicsRenderPass>	CreateRenderPass(const GraphicsRenderPassDesc* pDesc) = 0;
+		virtual Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc) = 0;
 		virtual Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc) = 0;
 		virtual Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc) = 0;
 		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) = 0;

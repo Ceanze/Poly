@@ -39,7 +39,7 @@ namespace Poly
 		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType) override final;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) override final;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) override final;
-		virtual Ref<GraphicsRenderPass>	CreateRenderPass(const GraphicsRenderPassDesc* pDesc) override final;
+		virtual Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc) override final;
 		virtual Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc) override final;
 		virtual Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc) override final;
 		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) override final;

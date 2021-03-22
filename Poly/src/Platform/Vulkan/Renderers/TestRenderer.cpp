@@ -152,7 +152,7 @@ namespace Poly
 		renderPassDesc.Subpasses			= { subpassDesc };
 		renderPassDesc.SubpassDependencies	= { depDesc };
 
-		m_RenderPass = RenderAPI::CreateRenderPass(&renderPassDesc);
+		m_RenderPass = RenderAPI::CreateGraphicsRenderPass(&renderPassDesc);
 	}
 
 	void TestRenderer::SetupPipelineLayout()
