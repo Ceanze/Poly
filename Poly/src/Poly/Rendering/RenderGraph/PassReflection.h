@@ -26,6 +26,8 @@ namespace Poly
 		ETextureLayout		TextureLayout	= ETextureLayout::UNDEFINED;
 		union { uint32 Width; uint32 Size; };
 		uint32				Height			= 0;
+		uint32				Set				= 0;
+		uint32				Binding			= 0;
 
 		bool operator== (const IOData& other) const { return Name == other.Name; }
 	};
@@ -40,7 +42,7 @@ namespace Poly
 		 * Adds an input to the render pass
 		 * @param name - name of resource, only resource name is required - not render pass name
 		 */
-		void AddInput(const std::string& name);
+		void AddInput(const std::string& name, uint32 set, uint32 binding);
 
 		/**
 		 * Adds an output to the render pass
@@ -61,6 +63,21 @@ namespace Poly
 		 * @param format - format of the texture
 		 */
 		void SetFormat(const std::string& name, EFormat format);
+
+		/**
+		 * Sets the size of the resource, only necessary when creating a new output in a pass and it's a buffer
+		 * @param name - name of the resource, only resource name is required - not render pass name
+		 * @param size - size of buffer
+		 */
+		void SetBufferSize(const std::string& name, uint32 size);
+
+		/**
+		 * Sets the width and height of the resource, only necessary when creating a new output in a pass and it's a texture
+		 * @param name - name of the resource, only resource name is required - not render pass name
+		 * @param width - width of texture
+		 * @param height - height of texture
+		 */
+		void SetTextureSize(const std::string& name, uint32 width, uint32 height);
 
 		/**
 		 * Sets the bind point of the resource, necessary for internal resource creation and syncronization

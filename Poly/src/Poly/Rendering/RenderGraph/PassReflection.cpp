@@ -3,12 +3,14 @@
 
 namespace Poly
 {
-	void PassReflection::AddInput(const std::string& name)
+	void PassReflection::AddInput(const std::string& name, uint32 set, uint32 binding)
 	{
 		IOData data = {};
 		data.Name			= name;
 		data.IOType			= FIOType::INPUT;
 		data.BindPoint		= FResourceBindPoint::NONE;
+		data.Set			= set;
+		data.Binding		= binding;
 		AddIO(data);
 	}
 
@@ -66,6 +68,35 @@ namespace Poly
 		}
 
 		POLY_CORE_WARN("[PassReflection]: Tried to set format of {}, but that IO does not exist with the given name!", name);
+	}
+
+	void PassReflection::SetBufferSize(const std::string& name, uint32 size)
+	{
+		for (auto& existing : m_IOs)
+		{
+			if (existing.Name == name)
+			{
+				existing.Size = size;
+				return;
+			}
+		}
+
+		POLY_CORE_WARN("[PassReflection]: Tried to set size of {}, but that IO does not exist with the given name!", name);
+	}
+
+	void PassReflection::SetTextureSize(const std::string& name, uint32 width, uint32 height)
+	{
+		for (auto& existing : m_IOs)
+		{
+			if (existing.Name == name)
+			{
+				existing.Width = width;
+				existing.Height = height;
+				return;
+			}
+		}
+
+		POLY_CORE_WARN("[PassReflection]: Tried to set width and height of {}, but that IO does not exist with the given name!", name);
 	}
 
 	void PassReflection::SetBindPoint(const std::string& name, FResourceBindPoint bindPoint)
