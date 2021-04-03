@@ -17,7 +17,7 @@ namespace Poly
 
 		virtual void Begin(FCommandBufferFlag bufferFlag) override final;
 
-		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) override final;
+		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues) override final;
 
 		virtual void BindPipeline(Pipeline* pPipeline) override final;
 

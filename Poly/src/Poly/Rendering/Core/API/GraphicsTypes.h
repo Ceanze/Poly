@@ -11,6 +11,25 @@ namespace Poly
 {
 	const constexpr uint32 EXTERNAL_SUBPASS = ~0U;
 
+	union ClearColorValue
+	{
+		float	Float32[4];
+		int32_t	Int32[4];
+		uint32	Uint32[4];
+	};
+
+	struct ClearDepthStencilValue
+	{
+		float	Depth;
+		uint32	Stencil;
+	};
+
+	struct ClearValue
+	{
+		ClearColorValue			Color;
+		ClearDepthStencilValue	DepthStencil;
+	};
+
 	enum class FShaderStage : uint32
 	{
 		NONE					= 0,

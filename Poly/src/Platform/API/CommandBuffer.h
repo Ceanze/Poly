@@ -87,7 +87,7 @@ namespace Poly
 		 * @param clearColors - Clear color of the render pass, each color requires a float4
 		 * @param clearColorCount - Amount of clear colors to use from clear colors
 		 */
-		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) = 0;
+		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues) = 0;
 
 		/**
 		 * Bind a pipeline

@@ -101,10 +101,12 @@ namespace Poly
 		for (uint32_t i = 0; i < m_CommandBuffers.size(); i++) {
 			m_CommandBuffers[i] = m_CommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
-			float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+			std::vector<ClearValue> clearColor(1);
+			memset(clearColor.data(), 0, sizeof(ClearValue));
+			clearColor[0].Color.Float32[3] = 1.0f;
 
 			m_CommandBuffers[i]->Begin(FCommandBufferFlag::NONE);
-			m_CommandBuffers[i]->BeginRenderPass(m_RenderPass.get(), m_Framebuffers[i].get(), m_pSwapChain->GetDesc().Width, m_pSwapChain->GetDesc().Height, clearColor, 1);
+			m_CommandBuffers[i]->BeginRenderPass(m_RenderPass.get(), m_Framebuffers[i].get(), m_pSwapChain->GetDesc().Width, m_pSwapChain->GetDesc().Height, clearColor);
 			m_CommandBuffers[i]->BindPipeline(m_Pipeline.get());
 			m_CommandBuffers[i]->BindDescriptor(m_Pipeline.get(), m_DescriptorSets[i].get());
 			m_CommandBuffers[i]->DrawInstanced(3, 1, 0, 0);

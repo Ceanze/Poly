@@ -46,24 +46,21 @@ namespace Poly
 		PVK_CHECK(vkBeginCommandBuffer(m_Buffer, &beginInfo), "Failed to begin recording of command buffer!");
 	}
 
-	void PVKCommandBuffer::BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount)
+	void PVKCommandBuffer::BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues)
 	{
 		VkExtent2D extent = { width, height };
 		VkRenderPassBeginInfo renderPassInfo = {};
 
-		// TODO: Make clear color thingy magic better
-		VkClearColorValue clearColorValue = {};
-		memcpy(clearColorValue.float32, pClearColor, sizeof(float) * 4);
-		VkClearValue clearValue = {};
-		clearValue.color = clearColorValue;
+		std::vector<VkClearValue> vkClearValues(clearValues.size());
+		memcpy(vkClearValues.data(), clearValues.data(), sizeof(ClearValue));
 
 		renderPassInfo.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass			= reinterpret_cast<PVKRenderPass*>(pRenderPass)->GetNativeVK();
 		renderPassInfo.framebuffer			= reinterpret_cast<PVKFramebuffer*>(pFramebuffer)->GetNativeVK();
 		renderPassInfo.renderArea.offset	= { 0, 0 };
 		renderPassInfo.renderArea.extent	= extent;
-		renderPassInfo.clearValueCount		= clearColorCount;
-		renderPassInfo.pClearValues			= &clearValue;
+		renderPassInfo.clearValueCount		= vkClearValues.size();
+		renderPassInfo.pClearValues			= vkClearValues.data();
 		renderPassInfo.pNext				= nullptr;
 
 		vkCmdBeginRenderPass(m_Buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
