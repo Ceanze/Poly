@@ -56,7 +56,7 @@ namespace Poly
 			desc.Height			= m_pSwapChain->GetDesc().Height;
 			desc.Width			= m_pSwapChain->GetDesc().Width;
 			desc.pRenderPass	= m_RenderPass.get();
-			desc.pTextureView	= m_pSwapChain->GetTextureView(i);
+			desc.Attachments	= { m_pSwapChain->GetTextureView(i) };
 
 			m_Framebuffers[i] = RenderAPI::CreateFramebuffer(&desc);
 		}
