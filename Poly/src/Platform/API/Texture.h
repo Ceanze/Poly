@@ -43,6 +43,16 @@ namespace Poly
 			return p_TextureDesc;
 		}
 
+		/**
+		 * @return width of image
+		 */
+		uint32 GetWidth() const { return p_TextureDesc.Width; }
+
+		/**
+		 * @return height of image
+		 */
+		uint32 GetHeight() const { return p_TextureDesc.Height; }
+
 	protected:
 		TextureDesc p_TextureDesc;
 	};
