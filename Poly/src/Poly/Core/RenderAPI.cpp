@@ -28,6 +28,9 @@ namespace Poly
 
 	void RenderAPI::Release()
 	{
+		m_pGraphicsQueue->Wait();
+		m_FramebufferCache.Reset();
+
 		if (m_pGraphicsInstance)
 		{
 			Sampler::CleanupDefaults();
@@ -139,6 +142,11 @@ namespace Poly
 	Ref<DescriptorSet> RenderAPI::CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex)
 	{
 		return m_pGraphicsInstance->CreateDescriptorSet(pLayout, setIndex);
+	}
+
+	Ref<Framebuffer> RenderAPI::GetFramebuffer(const std::vector<TextureView*>& attachments, TextureView* pDepthAttachment, GraphicsRenderPass* pPass, uint32 width, uint32 height)
+	{
+		return m_FramebufferCache.GetFramebuffer(attachments, pDepthAttachment, pPass, width, height);
 	}
 
 

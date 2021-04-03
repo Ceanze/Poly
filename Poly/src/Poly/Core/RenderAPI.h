@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "Platform/API/GraphicsInstance.h"
+#include "Platform/API/FramebufferCache.h"
 
 /*
 *	TODO: Convert PVKInstance to not be a static class for it to have an interface in which it inherits from.
@@ -78,6 +79,17 @@ namespace Poly
 		static Ref<Framebuffer>			CreateFramebuffer(const FramebufferDesc* pDesc);
 		static Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex);
 
+		/**
+		 * Gets or creates a framebuffer and returns it
+		 * @param attachments - Texture view attachments to be used for the framebuffer
+		 * @param pDepthAttachment - Texture view depth attachment to be used - nullptr if no depth attachment
+		 * @param pPass - Graphics render pass the framebuffer will use
+		 * @param width
+		 * @param height
+		 * @return Ref<Framebuffer>
+		 */
+		static Ref<Framebuffer>			GetFramebuffer(const std::vector<TextureView*>& attachments, TextureView* pDepthAttachment, GraphicsRenderPass* pPass, uint32 width, uint32 height);
+
 	private:
 		inline static GraphicsInstance*	m_pGraphicsInstance	= nullptr;
 		inline static Window*			m_pWindow			= nullptr;
@@ -86,5 +98,7 @@ namespace Poly
 		inline static Ref<CommandQueue>	m_pGraphicsQueue	= nullptr;
 		inline static Ref<CommandQueue>	m_pComputeQueue		= nullptr;
 		inline static Ref<CommandQueue>	m_pTransferQueue	= nullptr;
+
+		inline static FramebufferCache	m_FramebufferCache;
 	};
 }
