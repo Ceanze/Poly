@@ -113,6 +113,26 @@ namespace Poly
 		POLY_CORE_WARN("[PassReflection]: Tried to set bindpoint of {}, but that IO does not exist with the given name!", name);
 	}
 
+	void PassReflection::SetSampler(const std::string& name, Sampler* pSampler)
+	{
+		for (auto& existing : m_IOs)
+		{
+			if (existing.Name == name)
+			{
+				if (existing.BindPoint == FResourceBindPoint::SAMPLER)
+				{
+					existing.pSampler = pSampler;
+					return;
+				}
+
+				POLY_CORE_WARN("[PassReflection]: Tried to set sampler of {}, but that IO is not bound as a sampler type!", name);
+				return;
+			}
+		}
+
+		POLY_CORE_WARN("[PassReflection]: Tried to set sampler of {}, but that IO does not exist with the given name!", name);
+	}
+
 	std::vector<IOData> PassReflection::GetIOData(FIOType IOType) const
 	{
 		std::vector<IOData> data;

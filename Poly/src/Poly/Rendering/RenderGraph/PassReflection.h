@@ -9,6 +9,8 @@ namespace Poly
 	 * that the render pass is going to use.
 	 */
 
+	class Sampler;
+
 	enum class FIOType
 	{
 		UNKNOWN			= 0,
@@ -28,6 +30,7 @@ namespace Poly
 		uint32				Height			= 0;
 		uint32				Set				= 0;
 		uint32				Binding			= 0;
+		Sampler*			pSampler		= nullptr;
 
 		bool operator== (const IOData& other) const { return Name == other.Name; }
 	};
@@ -85,6 +88,13 @@ namespace Poly
 		 * @param bindPoint - binding point of the resource
 		 */
 		void SetBindPoint(const std::string& name, FResourceBindPoint bindPoint);
+
+		/**
+		 * Sets the sampler to be used for a given resource - resource must be a texture resource
+		 * @param name - name of the resource - only resource name is required - not render pass name
+		 * @param pSampler - sampler to be set
+		 */
+		void SetSampler(const std::string& name, Sampler* pSampler);
 
 		std::vector<IOData> GetIOData(FIOType IOType) const;
 		std::vector<IOData> GetAllIOs() const { return m_IOs; }
