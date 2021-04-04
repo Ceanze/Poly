@@ -121,7 +121,7 @@ namespace Poly
 		SAMPLER				= SHADER_READ,
 		INPUT_ATTACHMENT	= FLAG(9)
 	};
-	ENABLE_BITMASK_OPERATORS(FResourceBindPoint);
+	ENABLE_BITMASK_OPERATORS(FResourceBindPoint); // TODO: Should this really be a flag?
 
 	enum class ETextureDim
 	{
@@ -263,6 +263,15 @@ namespace Poly
 		INPUT_ATTACHMENT				= 11,
 		RENDER_TARGET					= INPUT_ATTACHMENT
 	};
+
+	inline EDescriptorType ConvertBindpointToDescriptorType(FResourceBindPoint bindpoint)
+	{
+		if (BitsSet(FResourceBindPoint::SAMPLER, bindpoint))			return EDescriptorType::SAMPLER;
+		if (BitsSet(FResourceBindPoint::STORAGE, bindpoint))			return EDescriptorType::STORAGE_BUFFER;
+		if (BitsSet(FResourceBindPoint::UNIFORM, bindpoint))			return EDescriptorType::UNIFORM_BUFFER;
+		if (BitsSet(FResourceBindPoint::INPUT_ATTACHMENT, bindpoint))	return EDescriptorType::INPUT_ATTACHMENT;
+		return EDescriptorType::NONE;
+	}
 
 	enum class ELoadOp
 	{
