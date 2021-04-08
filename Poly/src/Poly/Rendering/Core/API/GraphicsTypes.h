@@ -24,7 +24,7 @@ namespace Poly
 		uint32	Stencil;
 	};
 
-	struct ClearValue
+	union ClearValue
 	{
 		ClearColorValue			Color;
 		ClearDepthStencilValue	DepthStencil;

@@ -54,6 +54,14 @@ namespace Poly
 		std::vector<VkClearValue> vkClearValues(clearValues.size());
 		memcpy(vkClearValues.data(), clearValues.data(), sizeof(ClearValue));
 
+		//VkClearColorValue clearColorValue = {};
+		//clearColorValue.float32[0] = 0.0f;
+		//clearColorValue.float32[1] = 0.0f;
+		//clearColorValue.float32[2] = 0.0f;
+		//clearColorValue.float32[3] = 1.0f;
+		//VkClearValue clearValue = {};
+		//clearValue.color = clearColorValue;
+
 		renderPassInfo.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass			= reinterpret_cast<PVKRenderPass*>(pRenderPass)->GetNativeVK();
 		renderPassInfo.framebuffer			= reinterpret_cast<PVKFramebuffer*>(pFramebuffer)->GetNativeVK();
