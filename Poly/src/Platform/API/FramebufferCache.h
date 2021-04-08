@@ -20,7 +20,14 @@ namespace Poly
 		std::vector<TextureView*>	Attachments;
 		TextureView*				pDepthAttachment	= nullptr;
 		GraphicsRenderPass*			pPass				= nullptr;
-		size_t						Hash				= 0;
+		mutable size_t				Hash				= 0;
+
+		bool operator== (const Key & other) const
+		{
+			return	pDepthAttachment == other.pDepthAttachment
+					&& pPass == other.pPass
+					&& Hash == other.Hash;
+		}
 	};
 
 	struct KeyHasher

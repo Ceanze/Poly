@@ -43,12 +43,12 @@ namespace Poly
 		/**
 		 * @return width of framebuffer
 		 */
-		uint32 GetWidth() const { p_FramebufferDesc.Width; }
+		uint32 GetWidth() const { return p_FramebufferDesc.Width; }
 
 		/**
 		 * @return height of framebuffer
 		 */
-		uint32 GetHeight() const { p_FramebufferDesc.Height; }
+		uint32 GetHeight() const { return p_FramebufferDesc.Height; }
 
 	protected:
 		FramebufferDesc p_FramebufferDesc;
