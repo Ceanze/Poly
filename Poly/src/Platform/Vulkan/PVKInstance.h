@@ -45,6 +45,8 @@ namespace Poly
 		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) override final;
 		virtual Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex) override final;
 
+		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) = 0;
+
 		// Sets how many queues should be created for that queue type. Must be called before init.
 		// Default queue count per queue is 1. If the requested queue count is higher than the available, the
 		// most available will be set.

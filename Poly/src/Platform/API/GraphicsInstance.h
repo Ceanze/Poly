@@ -59,5 +59,7 @@ namespace Poly
 		virtual Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc) = 0;
 		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) = 0;
 		virtual Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex) = 0;
+
+		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) = 0;
 	};
 }

@@ -144,6 +144,11 @@ namespace Poly
 		return m_pGraphicsInstance->CreateDescriptorSet(pLayout, setIndex);
 	}
 
+	Ref<DescriptorSet> RenderAPI::CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet)
+	{
+		return m_pGraphicsInstance->CreateDescriptorSetCopy(pSrcDescriptorSet);
+	}
+
 	Ref<Framebuffer> RenderAPI::GetFramebuffer(const std::vector<TextureView*>& attachments, TextureView* pDepthAttachment, GraphicsRenderPass* pPass, uint32 width, uint32 height)
 	{
 		return m_FramebufferCache.GetFramebuffer(attachments, pDepthAttachment, pPass, width, height);

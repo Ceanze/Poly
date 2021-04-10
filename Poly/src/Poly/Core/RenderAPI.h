@@ -62,6 +62,8 @@ namespace Poly
 
 		static Window*				GetWindow() { return m_pWindow; }
 
+		static GraphicsInstance*	GetGraphicsInstance() { return m_pGraphicsInstance; }
+
 		// Create functions
 		static Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc);
 		static Ref<Texture>				CreateTexture(const TextureDesc* pDesc);
@@ -78,6 +80,8 @@ namespace Poly
 		static Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc);
 		static Ref<Framebuffer>			CreateFramebuffer(const FramebufferDesc* pDesc);
 		static Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex);
+
+		static Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet);
 
 		/**
 		 * Gets or creates a framebuffer and returns it

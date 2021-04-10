@@ -212,6 +212,37 @@ namespace Poly
 		return pShader;
 	}
 
+	Ref<DescriptorSet> PVKInstance::CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet)
+	{
+		Ref<PVKDescriptorSet> pNewSet = CreateRef<PVKDescriptorSet>();
+		PipelineLayout* pPipelineLayout = pSrcDescriptorSet->GetLayout();
+		uint32 setIndex = pSrcDescriptorSet->GetSetIndex();
+		pNewSet->Init(pPipelineLayout, setIndex);
+
+		VkCopyDescriptorSet copySetDesc = {};
+		copySetDesc.sType			= VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
+		copySetDesc.pNext			= nullptr;
+		copySetDesc.srcSet			= static_cast<PVKDescriptorSet*>(pSrcDescriptorSet.get())->GetNativeVK();
+		copySetDesc.srcArrayElement	= 0;
+		copySetDesc.dstSet			= pNewSet->GetNativeVK();
+		copySetDesc.dstArrayElement	= 0;
+		copySetDesc.descriptorCount	= 1; // TODO: Change this to allow for multiple counts
+
+		const auto& bindings = static_cast<PVKPipelineLayout*>(pPipelineLayout)->GetBindings(setIndex);
+		std::vector<VkCopyDescriptorSet> copies;
+		copies.reserve(bindings.size());
+		for (uint32 i = 0; i < bindings.size(); i++)
+		{
+			copySetDesc.srcBinding	= bindings[i].Binding;
+			copySetDesc.dstBinding	= bindings[i].Binding;
+			copies.push_back(copySetDesc);
+		}
+
+		vkUpdateDescriptorSets(s_Device, 0, nullptr, copies.size(), copies.data());
+
+		return pNewSet;
+	}
+
 
 	void PVKInstance::SetQueueCount(FQueueType queue, uint32_t count)
 	{
