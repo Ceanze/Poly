@@ -43,5 +43,9 @@ namespace Poly
 		 * @return Native handle to the API specific object
 		 */
 		virtual uint64 GetNative() const = 0;
+
+		virtual PipelineLayout* GetLayout() const = 0;
+
+		virtual uint32 GetSetIndex() const = 0;
 	};
 }

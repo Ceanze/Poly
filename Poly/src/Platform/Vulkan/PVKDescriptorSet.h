@@ -3,6 +3,7 @@
 #include "polypch.h"
 #include "PVKTypes.h"
 #include "Platform/API/DescriptorSet.h"
+#include "Platform/API/PipelineLayout.h"
 
 namespace Poly
 {
@@ -24,6 +25,8 @@ namespace Poly
 		VkDescriptorSetLayout GetSetLayout() const { return m_SetLayout; };
 		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Set); }
 		VkDescriptorSet GetNativeVK() const { return m_Set; }
+		virtual PipelineLayout* GetLayout() const override final { return m_pPipelineLayout; };
+		virtual uint32 GetSetIndex() const override final { return m_SetIndex; };
 
 	private:
 		void CreatePool(PVKPipelineLayout* pLayout);
@@ -35,5 +38,4 @@ namespace Poly
 		uint32					m_SetIndex			= 0;
 		PVKPipelineLayout*		m_pPipelineLayout	= nullptr;
 	};
-
 }
