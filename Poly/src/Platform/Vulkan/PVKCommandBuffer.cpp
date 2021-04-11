@@ -131,6 +131,33 @@ namespace Poly
 			&copyDesc);
 	}
 
+	void PVKCommandBuffer::SetViewport(const ViewportDesc* pViewport)
+	{
+		// TODO: Allow for multiple viewports
+
+		VkViewport viewport = {};
+		viewport.height		= pViewport->Height;
+		viewport.width		= pViewport->Width;
+		viewport.x			= pViewport->PosX;
+		viewport.y			= pViewport->PosY;
+		viewport.minDepth	= pViewport->MinDepth;
+		viewport.maxDepth	= pViewport->MaxDepth;
+
+		vkCmdSetViewport(m_Buffer, 0, 1, &viewport);
+	}
+
+	void PVKCommandBuffer::SetScissor(const ScissorDesc* pScissor)
+	{
+		// TODO: Allow for multiple scissors
+		VkRect2D scissor = {};
+		scissor.extent.height	= pScissor->Height;
+		scissor.extent.width	= pScissor->Width;
+		scissor.offset.x		= pScissor->OffsetX;
+		scissor.offset.y		= pScissor->OffsetY;
+
+		vkCmdSetScissor(m_Buffer, 0, 1, &scissor);
+	}
+
 	void PVKCommandBuffer::DrawInstanced(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 	{
 		vkCmdDraw(m_Buffer, vertexCount, instanceCount, firstVertex, firstInstance);
@@ -467,6 +494,11 @@ namespace Poly
 	void PVKCommandBuffer::End()
 	{
 		PVK_CHECK(vkEndCommandBuffer(m_Buffer), "Failed to record command buffer!")
+	}
+
+	void PVKCommandBuffer::Reset()
+	{
+		vkResetCommandBuffer(m_Buffer, 0);
 	}
 
 }

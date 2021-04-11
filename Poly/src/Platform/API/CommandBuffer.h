@@ -5,6 +5,9 @@
 
 namespace Poly
 {
+	struct ScissorDesc;
+	struct ViewportDesc;
+
 	class Buffer;
 	class Texture;
 	class Pipeline;
@@ -113,6 +116,18 @@ namespace Poly
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
 
 		/**
+		 * Set dynamic viewport
+		 * @param viewport - viewport struct
+		 */
+		virtual void SetViewport(const ViewportDesc* pViewport) = 0;
+
+		/**
+		 * Set dynamic scissor rect
+		 * @param scissor - scissor struct
+		 */
+		virtual void SetScissor(const ScissorDesc* pScissor) = 0;
+
+		/**
 		 * Draw the the bound objects instanced
 		 * @param vertexCount - Amount of verticies
 		 * @param instanceCount - Amount of instances (1 when not drawing instanced)
@@ -218,6 +233,12 @@ namespace Poly
 		 * End the recording of commands
 		 */
 		virtual void End() = 0;
+
+		/**
+		 * Reset the command buffer - clears all commands
+		 * Note: Mustn't be in pending state
+		 */
+		virtual void Reset() = 0;
 
 		/**
 		 * @return Native handle to the API specific object

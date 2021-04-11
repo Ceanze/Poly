@@ -34,6 +34,7 @@ namespace Poly
 
 	struct ViewportDesc
 	{
+		bool	IsDynamic	= true; // True - the other parameters are ignored and set dynamically at render time
 		float	PosX		= 0.0f;
 		float	PosY		= 0.0f;
 		float	Width		= 0.0f;
@@ -44,10 +45,11 @@ namespace Poly
 
 	struct ScissorDesc
 	{
-		int		OffsetX	= 0;
-		int		OffsetY	= 0;
-		uint32	Width	= 0;
-		uint32	Height	= 0;
+		bool	IsDynamic	= true;  // True - the other parameters are ignored and set dynamically at render time
+		int		OffsetX		= 0;
+		int		OffsetY		= 0;
+		uint32	Width		= 0;
+		uint32	Height		= 0;
 	};
 
 	struct RasterizationDesc

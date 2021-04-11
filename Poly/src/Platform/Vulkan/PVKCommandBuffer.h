@@ -25,6 +25,10 @@ namespace Poly
 
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
 
+		virtual void SetViewport(const ViewportDesc* pViewport) override final;
+
+		virtual void SetScissor(const ScissorDesc* pScissor) override final;
+
 		virtual void DrawInstanced(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance) override final;
 
 		virtual void DrawIndexedInstanced(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 vertexOffset, uint32 firstInstance) override final;
@@ -46,6 +50,8 @@ namespace Poly
 		virtual void EndRenderPass() override final;
 
 		virtual void End() override final;
+
+		virtual void Reset() override final;
 
 		/* End of commands */
 
