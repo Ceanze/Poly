@@ -36,7 +36,7 @@ namespace Poly
 		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) override final;
 		virtual Ref<Fence>				CreateFence(FFenceFlag flag) override final;
 		virtual Ref<Semaphore>			CreateSemaphore() override final;
-		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType) override final;
+		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) override final;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) override final;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) override final;
 		virtual Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc) override final;
@@ -45,7 +45,7 @@ namespace Poly
 		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) override final;
 		virtual Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex) override final;
 
-		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) = 0;
+		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) override final;
 
 		// Sets how many queues should be created for that queue type. Must be called before init.
 		// Default queue count per queue is 1. If the requested queue count is higher than the available, the

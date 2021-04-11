@@ -181,6 +181,13 @@ namespace Poly
 	};
 	ENABLE_BITMASK_OPERATORS(FPipelineStage);
 
+	enum class FCommandPoolFlags
+	{
+		NONE					= 0,
+		RESET_COMMAND_BUFFERS	= FLAG(1)
+	};
+	ENABLE_BITMASK_OPERATORS(FCommandPoolFlags);
+
 	enum class ECommandBufferLevel
 	{
 		NONE			= 0,
@@ -266,7 +273,7 @@ namespace Poly
 
 	inline EDescriptorType ConvertBindpointToDescriptorType(FResourceBindPoint bindpoint)
 	{
-		if (BitsSet(FResourceBindPoint::SAMPLER, bindpoint))			return EDescriptorType::SAMPLER;
+		if (BitsSet(FResourceBindPoint::SAMPLER, bindpoint))			return EDescriptorType::COMBINED_IMAGE_SAMPLER;
 		if (BitsSet(FResourceBindPoint::STORAGE, bindpoint))			return EDescriptorType::STORAGE_BUFFER;
 		if (BitsSet(FResourceBindPoint::UNIFORM, bindpoint))			return EDescriptorType::UNIFORM_BUFFER;
 		if (BitsSet(FResourceBindPoint::INPUT_ATTACHMENT, bindpoint))	return EDescriptorType::INPUT_ATTACHMENT;

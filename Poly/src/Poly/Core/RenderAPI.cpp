@@ -104,9 +104,9 @@ namespace Poly
 		return m_pGraphicsInstance->CreateSemaphoreW();
 	}
 
-	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType)
+	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)
 	{
-		return m_pGraphicsInstance->CreateCommandPool(queueType);
+		return m_pGraphicsInstance->CreateCommandPool(queueType, flags);
 	}
 
 	Ref<Sampler> RenderAPI::CreateSampler(const SamplerDesc* pDesc)

@@ -59,7 +59,7 @@ namespace Poly
 		Ref<Buffer>			m_TestBuffer;
 		Ref<TextureView>	m_TestTextureView;
 		Ref<Texture>		m_TestTexture;
-		Sampler*			m_pTestSampler = nullptr;
+		Ref<Sampler>		m_pTestSampler = nullptr;
 
 		Window*			m_pWindow = nullptr;
 	};

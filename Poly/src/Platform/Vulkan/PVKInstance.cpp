@@ -140,12 +140,12 @@ namespace Poly
 		return pSemaphore;
 	}
 
-	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType)
+	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)
 	{
 		POLY_VALIDATE(queueType != FQueueType::NONE, "FQueueType cannot be NONE!");
 
 		Ref<PVKCommandPool> pCommandPool = CreateRef<PVKCommandPool>();
-		pCommandPool->Init(queueType);
+		pCommandPool->Init(queueType, flags);
 		return pCommandPool;
 	}
 
@@ -284,17 +284,17 @@ namespace Poly
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 		{
-			POLY_CORE_TRACE("{}", pCallbackData->pMessage);
+			POLY_CORE_TRACE("{}\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 		{
-			POLY_CORE_WARN("{}", pCallbackData->pMessage);
+			POLY_CORE_WARN("{}\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 		{
-			POLY_CORE_ERROR("{}", pCallbackData->pMessage);
+			POLY_CORE_ERROR("{}\n", pCallbackData->pMessage);
 			break;
 		}
 		// default:

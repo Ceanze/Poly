@@ -72,7 +72,7 @@ namespace Poly
 		static Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc);
 		static Ref<Fence>				CreateFence(FFenceFlag flag);
 		static Ref<Semaphore>			CreateSemaphore();
-		static Ref<CommandPool>			CreateCommandPool(FQueueType queueType);
+		static Ref<CommandPool>			CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags);
 		static Ref<Sampler>				CreateSampler(const SamplerDesc* pDesc);
 		static Ref<Shader>				CreateShader(const ShaderDesc* pDesc);
 		static Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc);

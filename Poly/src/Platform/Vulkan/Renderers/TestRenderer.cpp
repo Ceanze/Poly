@@ -47,7 +47,7 @@ namespace Poly
 		SetupPipeline();
 		SetupDescriptorSet();
 
-		m_CommandPool = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS);
+		m_CommandPool = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::NONE);
 
 		m_Framebuffers.resize(m_pSwapChain->GetBackbufferCount());
 		for (uint32 i = 0; i < m_pSwapChain->GetBackbufferCount(); i++)
@@ -56,7 +56,7 @@ namespace Poly
 			desc.Height			= m_pSwapChain->GetDesc().Height;
 			desc.Width			= m_pSwapChain->GetDesc().Width;
 			desc.pRenderPass	= m_RenderPass.get();
-			desc.Attachments	= { m_pSwapChain->GetTextureView(i) };
+			desc.Attachments	= { m_pSwapChain->GetTextureView(i).get() };
 
 			m_Framebuffers[i] = RenderAPI::CreateFramebuffer(&desc);
 		}
@@ -108,7 +108,7 @@ namespace Poly
 			m_CommandBuffers[i]->Begin(FCommandBufferFlag::NONE);
 			m_CommandBuffers[i]->BeginRenderPass(m_RenderPass.get(), m_Framebuffers[i].get(), m_pSwapChain->GetDesc().Width, m_pSwapChain->GetDesc().Height, clearColor);
 			m_CommandBuffers[i]->BindPipeline(m_Pipeline.get());
-			m_CommandBuffers[i]->BindDescriptor(m_Pipeline.get(), m_DescriptorSets[i].get());
+			m_CommandBuffers[i]->BindDescriptor(m_Pipeline.get(), m_DescriptorSets[0].get());
 			m_CommandBuffers[i]->DrawInstanced(3, 1, 0, 0);
 			m_CommandBuffers[i]->EndRenderPass();
 			m_CommandBuffers[i]->End();
@@ -266,7 +266,7 @@ namespace Poly
 		for (uint32 i = 0; i < m_DescriptorSets.size(); i++)
 		{
 			m_DescriptorSets[i]->UpdateBufferBinding(0, m_TestBuffer.get(), 0, m_TestBuffer->GetSize());
-			m_DescriptorSets[i]->UpdateTextureBinding(1, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, m_TestTextureView.get(), m_pTestSampler);
+			m_DescriptorSets[i]->UpdateTextureBinding(1, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, m_TestTextureView.get(), m_pTestSampler.get());
 		}
 	}
 

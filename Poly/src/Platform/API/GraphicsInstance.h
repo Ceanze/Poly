@@ -51,7 +51,7 @@ namespace Poly
 		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) = 0;
 		virtual Ref<Fence>				CreateFence(FFenceFlag flag) = 0;
 		virtual Ref<Semaphore>			CreateSemaphore() = 0;
-		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType) = 0;
+		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) = 0;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) = 0;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) = 0;
 		virtual Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc) = 0;

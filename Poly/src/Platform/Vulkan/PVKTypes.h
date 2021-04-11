@@ -166,6 +166,13 @@ namespace Poly
 		return mask;
 	}
 
+	inline VkCommandPoolCreateFlags ConvertCommandPoolFlagsVK(FCommandPoolFlags flag)
+	{
+		VkCommandPoolCreateFlags mask = 0;
+		FLAG_CHECK(flag & FCommandPoolFlags::RESET_COMMAND_BUFFERS,	mask |= VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+		return mask;
+	}
+
 	inline VkCommandBufferLevel ConvertCommandBufferType(ECommandBufferLevel commandBufferType)
 	{
 		switch (commandBufferType)

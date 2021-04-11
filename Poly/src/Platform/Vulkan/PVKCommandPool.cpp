@@ -17,9 +17,10 @@ namespace Poly
 		m_Buffers.clear();
 	}
 
-	void PVKCommandPool::Init(FQueueType queueType)
+	void PVKCommandPool::Init(FQueueType queueType, FCommandPoolFlags flags)
 	{
 		p_QueueType = queueType;
+		m_Flags = flags;
 		CreateCommandPool();
 	}
 
@@ -63,7 +64,7 @@ namespace Poly
 		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType				= VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.queueFamilyIndex	= queueFamilyIndex;
-		poolInfo.flags				= 0;
+		poolInfo.flags				= ConvertCommandPoolFlagsVK(m_Flags);
 
 		PVK_CHECK(vkCreateCommandPool(PVKInstance::GetDevice(), &poolInfo, nullptr, &m_Pool), "Failed to create command pool!");
 	}
