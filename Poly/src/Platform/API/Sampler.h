@@ -47,8 +47,8 @@ namespace Poly
 			return p_SamplerDesc;
 		}
 
-		inline static Sampler* GetDefaultLinearSampler() { return s_pLinearSampler.get(); }
-		inline static Sampler* GetDefaultNearestSampler() { return s_pNearestSampler.get(); }
+		inline static Ref<Sampler> GetDefaultLinearSampler() { return s_pLinearSampler; }
+		inline static Ref<Sampler> GetDefaultNearestSampler() { return s_pNearestSampler; }
 
 	protected:
 		SamplerDesc p_SamplerDesc;
