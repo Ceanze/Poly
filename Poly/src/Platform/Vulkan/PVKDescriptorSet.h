@@ -3,13 +3,13 @@
 #include "polypch.h"
 #include "PVKTypes.h"
 #include "Platform/API/DescriptorSet.h"
-#include "Platform/API/PipelineLayout.h"
+#include "Platform/Vulkan/PVKPipelineLayout.h"
 
 namespace Poly
 {
 	class PVKBuffer;
 	class PVKSampler;
-	class PVKPipelineLayout;
+	//class PVKPipelineLayout;
 
 	class PVKDescriptorSet : public DescriptorSet
 	{
