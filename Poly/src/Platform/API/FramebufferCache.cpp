@@ -10,7 +10,8 @@ namespace Poly
 	void FramebufferCache::Key::CreateHash()
 	{
 		Hash = std::hash<size_t>()(pPass->GetNative());
-		Hash ^= std::hash<size_t>()(pDepthAttachment->GetNative());
+		if (pDepthAttachment)
+			Hash ^= std::hash<size_t>()(pDepthAttachment->GetNative());
 		for (const auto& attachment : Attachments)
 			Hash ^= (Hash << 5) + (Hash >> 2) + std::hash<size_t>()(attachment->GetNative());
 	}
@@ -30,7 +31,8 @@ namespace Poly
 		// Create new framebuffer
 
 		// Place depth attachment at the end if it was given
-		std::vector<TextureView*> allAttachments(attachments.size());
+		std::vector<TextureView*> allAttachments;
+		allAttachments.reserve(attachments.size());
 		allAttachments.insert(allAttachments.begin(), attachments.begin(), attachments.end());
 		if (pDepthAttachment)
 			allAttachments.push_back(pDepthAttachment);
