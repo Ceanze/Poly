@@ -2,6 +2,7 @@
 
 namespace Poly
 {
+	class Resource;
 	class SwapChain;
 	class RenderGraphProgram;
 
@@ -28,7 +29,8 @@ namespace Poly
 		// void ResizeCallback()
 
 	private:
-		Ref<SwapChain> m_pSwapChain;
-		Ref<RenderGraphProgram> m_pRenderGraphProgram;
+		Ref<SwapChain>				m_pSwapChain;
+		Ref<RenderGraphProgram>		m_pRenderGraphProgram;
+		std::vector<Ref<Resource>>	m_BackbufferResources;
 	};
 }
