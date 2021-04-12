@@ -6,7 +6,7 @@ namespace Poly
 	PassReflection TestPass1::Reflect()
 	{
 		PassReflection reflection;
-		reflection.AddInput("a");
+		reflection.AddInput("a", 0, 0);
 		reflection.SetFormat("a", EFormat::R8G8B8A8_UNORM);
 		reflection.SetBindPoint("a", FResourceBindPoint::SAMPLER);
 
