@@ -12,13 +12,14 @@ namespace Poly
 		RenderContext() = default;
 		~RenderContext() = default;
 
-		void SetCommandBuffer(CommandBuffer* pCommandBuffer);
-
 		CommandBuffer* GetCommandBuffer() const;
 
 		static Ref<RenderContext> Create();
 
 	private:
+		friend class RenderGraphProgram;
+		void SetCommandBuffer(CommandBuffer* pCommandBuffer);
+
 		CommandBuffer*	m_pCommandBuffer	= nullptr;
 	};
 }
