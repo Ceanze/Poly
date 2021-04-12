@@ -39,6 +39,9 @@ namespace Poly
 		void AllocateResources();
 		void AddSync(bool* pNewPasses);
 		bool IsResourceUsed(uint32 nodeIndex, const std::string& outputName);
+		bool IsResourceGraphOutput(uint32 nodeIndex, const std::string& outputName);
+		FAccessFlag GetAccessFlag(FResourceBindPoint bindPoint);
+		FPipelineStage GetPipelineStage(FResourceBindPoint bindPoint);
 
 		RenderGraph*				m_pRenderGraph = nullptr;
 		std::vector<PassData>		m_OrderedPasses;
