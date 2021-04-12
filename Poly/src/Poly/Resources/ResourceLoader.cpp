@@ -34,10 +34,10 @@ namespace Poly
 			POLY_CORE_ERROR("[ResourceLoader]: Failed to initialize glslang! No shaders will be loaded!");
 
 		// Command pools and buffers
-		s_TransferCommandPool	= RenderAPI::CreateCommandPool(FQueueType::TRANSFER);
+		s_TransferCommandPool	= RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
 		s_TransferCommandBuffer	= s_TransferCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
-		s_GraphicsCommandPool	= RenderAPI::CreateCommandPool(FQueueType::GRAPHICS);
+		s_GraphicsCommandPool	= RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::NONE);
 		s_GraphicsCommandBuffer	= s_GraphicsCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
 		// Semaphore

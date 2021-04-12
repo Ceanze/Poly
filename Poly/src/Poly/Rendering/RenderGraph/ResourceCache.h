@@ -16,6 +16,7 @@ namespace Poly
 			Ref<Resource>				pResource	= nullptr;
 			std::string					Name		= "";
 			IOData						IOInfo		= {};
+			bool						IsOutput	= false;
 		};
 
 	public:
@@ -41,6 +42,20 @@ namespace Poly
 		 * @param alias - [optional] informs that the resource is going by another name added previously
 		 */
 		void RegisterResource(const std::string& name, uint32 timepoint, IOData iodata, const std::string& alias = "");
+
+		/**
+		 * Mark a resource as being the output of the graph - this will
+		 * make it and all aliases to it an alias to the backbuffer for each frame
+		 * @param name - name of resource following renderPass.resourceName format
+		 * @param iodata - IOData for that resource
+		 */
+		void MarkOutput(const std::string& name, IOData iodata);
+
+		/**
+		 * Sets the current backbuffer resource for this frame to be used
+		 * @param pResource - current backbuffer
+		 */
+		void SetBackbuffer(Ref<Resource> pResource);
 
 		/**
 		 * Allocated the previously registered resoruces

@@ -4,6 +4,7 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
+#include "Platform/API/TextureView.h"
 #include "Platform/API/CommandQueue.h"
 #include "Resource.h"
 
@@ -70,10 +71,36 @@ namespace Poly
 		}
 	}
 
+	void ResourceCache::MarkOutput(const std::string& name, IOData iodata)
+	{
+		auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.Name == name; });
+		if (itr == m_Resources.end()) // Register resource if it hasn't been that already
+		{
+			RegisterResource(name, 0, iodata);
+			m_Resources.back().IsOutput = true;
+		}
+		else
+		{
+			itr->IsOutput = true;
+		}
+
+	}
+
+	void ResourceCache::SetBackbuffer(Ref<Resource> pResource)
+	{
+		auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.IsOutput; });
+		if (itr != m_Resources.end())
+			itr->pResource = pResource;
+	}
+
 	void ResourceCache::AllocateResources()
 	{
 		for (auto& resourceData : m_Resources)
 		{
+			// Skip resource marked as output - these are handled separate as they will use externally allocated backbuffer
+			if (resourceData.IsOutput)
+				continue;
+
 			FResourceBindPoint bindPoint = resourceData.IOInfo.BindPoint;
 
 			if (bindPoint == FResourceBindPoint::STORAGE || bindPoint == FResourceBindPoint::UNIFORM)
@@ -97,8 +124,21 @@ namespace Poly
 				desc.TextureDim		= ETextureDim::DIM_2D;
 				desc.TextureUsage	= bindPoint == FResourceBindPoint::COLOR_ATTACHMENT ? FTextureUsage::COLOR_ATTACHMENT : FTextureUsage::DEPTH_STENCIL_ATTACHMENT;
 				desc.Format			= resourceData.IOInfo.Format;
+				Ref<Texture> pTexture = RenderAPI::CreateTexture(&desc);
 
-				resourceData.pResource = Resource::Create(RenderAPI::CreateTexture(&desc), resourceData.Name);
+				TextureViewDesc desc2 = {};
+				desc2.ArrayLayer		= 0;
+				desc2.ArrayLayerCount	= 1;
+				desc2.Format			= resourceData.IOInfo.Format;
+				desc2.ImageViewFlag		= bindPoint == FResourceBindPoint::COLOR_ATTACHMENT ? FImageViewFlag::COLOR : FImageViewFlag::DEPTH_STENCIL;
+				desc2.ImageViewType		= EImageViewType::TYPE_2D;
+				desc2.MipLevel			= 0;
+				desc2.MipLevelCount		= 1;
+				desc2.pTexture			= pTexture.get();
+				Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&desc2);
+
+				resourceData.pResource = Resource::Create(pTexture, pTextureView, resourceData.Name);
+				resourceData.pResource->SetSampler(resourceData.IOInfo.pSampler ? resourceData.IOInfo.pSampler : m_DefaultParams.pSampler);
 			}
 		}
 	}
