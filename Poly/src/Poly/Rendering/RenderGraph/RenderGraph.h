@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Poly/Core/Core.h"
+#include "RenderGraphTypes.h"
 
 #include <unordered_set>
 
@@ -17,6 +17,7 @@ namespace Poly
 	class RenderPass;
 	class Resource;
 	class DirectedGraph;
+	class RenderGraphProgram;
 
 	class RenderGraph
 	{
@@ -39,7 +40,7 @@ namespace Poly
 		 * Compiles the rendergraph - all changes to it are final after this point.
 		 * If any changes are required a recompilation will also be needed.
 		 */
-		void Compile();
+		Ref<RenderGraphProgram> Compile();
 
 		/**
 		 * Adds a pass to the graph. The name used here is the name that the pass will be set to
@@ -127,8 +128,21 @@ namespace Poly
 		 */
 		const Ref<Pass>& GetPass(uint32 nodeID) const;
 
+		/**
+		 * Sets the default params of the render graph. Members with default
+		 * params set will not change. E.g. if "TextureWidth = 0" and the previous
+		 * default was 1280 then it will stay 1280, since 0 is default and non valid for texture width
+		 */
+		void SetDefaultParams(RenderGraphDefaultParams* pDefaultParams);
+
+		/**
+		 * @return Default params of the render graph
+		 */
+		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }
+
 	private:
 		friend class RenderGraphCompiler;
+		friend class RenderGraphProgram;
 
 		struct Output
 		{
@@ -161,5 +175,6 @@ namespace Poly
 		std::unordered_map<uint32, EdgeData> m_Edges;
 		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
 		std::unordered_map<std::string, Ref<Resource>> m_ExternalResources;
+		RenderGraphDefaultParams m_DefaultParams;
 	};
 }

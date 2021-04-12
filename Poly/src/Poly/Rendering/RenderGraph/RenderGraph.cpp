@@ -3,6 +3,10 @@
 #include "RenderPass.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
 #include "RenderGraphCompiler.h"
+#include "RenderGraphProgram.h"
+#include "Poly/Core/Window.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Platform/API/Sampler.h"
 
 namespace Poly
 {
@@ -10,6 +14,14 @@ namespace Poly
 	: m_Name(std::move(name))
 	{
 		m_pGraph = DirectedGraph::Create();
+
+		Window* window = RenderAPI::GetWindow();
+		m_DefaultParams = {
+			.TextureWidth		= window->GetWidth(),
+			.TextureHeight		= window->GetHeight(),
+			.MaxBackbufferCount	= 3,
+			.pSampler			= Sampler::GetDefaultLinearSampler()
+		};
 	}
 
 	Ref<RenderGraph> RenderGraph::Create(const std::string& name)
@@ -17,10 +29,12 @@ namespace Poly
 		return CreateRef<RenderGraph>(name);
 	}
 
-	void RenderGraph::Compile()
+	Ref<RenderGraphProgram> RenderGraph::Compile()
 	{
 		Ref<RenderGraphCompiler> compiler = RenderGraphCompiler::Create();
-		compiler->Compile(this);
+		Ref<RenderGraphProgram> program = compiler->Compile(this, m_DefaultParams);
+		program->Init();
+		return program;
 	}
 
 	bool RenderGraph::AddPass(const Ref<Pass>& pPass, const std::string& name)
@@ -36,7 +50,7 @@ namespace Poly
 
 		if (m_NameToNodeIndex.contains(name))
 		{
-			POLY_CORE_WARN("Pass with name {} has already been added to the render graph", name);
+			POLY_CORE_WARN("Pass with name {} has already been added to the render graph, ignoring call", name);
 			return false;
 		}
 
@@ -235,6 +249,18 @@ namespace Poly
 		}
 
 		return m_Passes.at(nodeID);
+	}
+
+	void RenderGraph::SetDefaultParams(RenderGraphDefaultParams* pDefaultParams)
+	{
+		if (pDefaultParams->TextureHeight)
+			m_DefaultParams.TextureHeight = pDefaultParams->TextureHeight;
+		if (pDefaultParams->TextureWidth)
+			m_DefaultParams.TextureWidth = pDefaultParams->TextureWidth;
+		if (pDefaultParams->MaxBackbufferCount)
+			m_DefaultParams.MaxBackbufferCount = pDefaultParams->MaxBackbufferCount;
+		if (pDefaultParams->pSampler)
+			m_DefaultParams.pSampler = pDefaultParams->pSampler;
 	}
 
 	std::pair<std::string, std::string> RenderGraph::GetPassNameResourcePair(std::string name)
