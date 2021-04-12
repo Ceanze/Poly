@@ -4,9 +4,8 @@
 
 namespace Poly
 {
-	RenderData::RenderData(const std::string& renderPassName, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
+	RenderData::RenderData(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
 	{
-		m_RenderPassName	= renderPassName;
 		m_pResourceCache	= pResourceCache;
 		m_DefaultParams		= defaultParams;
 	}

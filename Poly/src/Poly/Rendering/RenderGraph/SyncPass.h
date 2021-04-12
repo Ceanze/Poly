@@ -24,12 +24,14 @@ namespace Poly
 		};
 		struct SyncData
 		{
-			SyncType			Type			= SyncType::NONE;
-			std::string			ResourceName	= "";
-			ETextureLayout		SrcLayout		= ETextureLayout::UNDEFINED;
-			ETextureLayout		DstLayout		= ETextureLayout::UNDEFINED;
-			FResourceBindPoint	SrcBindPoint	= FResourceBindPoint::NONE;
-			FResourceBindPoint	DstBindPoint	= FResourceBindPoint::NONE;
+			SyncType			Type				= SyncType::NONE;
+			std::string			ResourceName		= "";
+			ETextureLayout		SrcLayout			= ETextureLayout::UNDEFINED;
+			ETextureLayout		DstLayout			= ETextureLayout::UNDEFINED;
+			FAccessFlag			SrcAccessFlag		= FAccessFlag::NONE;
+			FAccessFlag			DstAccessFlag		= FAccessFlag::NONE;
+			FPipelineStage		SrcPipelineStage	= FPipelineStage::NONE;
+			FPipelineStage		DstPipelineStage	= FPipelineStage::NONE;
 
 			bool operator== (const SyncData& other)
 			{
@@ -61,8 +63,6 @@ namespace Poly
 		const std::string& GetName() const { return p_Name; }
 
 	private:
-		FAccessFlag ConvertToAccessFlag(FResourceBindPoint bindPoint);
-
 		std::vector<SyncData> m_SyncData;
 	};
 }

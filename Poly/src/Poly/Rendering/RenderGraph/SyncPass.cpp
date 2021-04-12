@@ -21,7 +21,6 @@ namespace Poly
 		for (const auto& syncData : m_SyncData)
 		{
 			reflect.AddPassThrough(syncData.ResourceName);
-			reflect.SetBindPoint(syncData.ResourceName, syncData.SrcBindPoint);
 		}
 
 		return reflect;
@@ -35,6 +34,9 @@ namespace Poly
 		// SyncPasses change the layout (and queueIndex) if that is required, this change
 		// will not be instant on the GPU but will however be instant in the Resources
 		// current layout (and queueIndex), keep that in mind
+
+		FPipelineStage srcStage = FPipelineStage::NONE;
+		FPipelineStage dstStage = FPipelineStage::NONE;
 
 		std::vector<BufferBarrier>	bufferBarriers;
 		std::vector<TextureBarrier>	textureBarriers;
@@ -55,20 +57,23 @@ namespace Poly
 			if (data.Type == SyncType::BUFFER)
 			{
 				BufferBarrier barrier = {};
-				barrier.SrcAccessFlag	= ConvertToAccessFlag(data.SrcBindPoint);
-				barrier.DstAccessFlag	= ConvertToAccessFlag(data.DstBindPoint);
+				barrier.SrcAccessFlag	= data.SrcAccessFlag;
+				barrier.DstAccessFlag	= data.DstAccessFlag;
 				barrier.SrcQueueIndex	= 0; // TODO: Allow multiple queues
 				barrier.DstQueueIndex	= 0;
 				barrier.pBuffer			= renderData[data.ResourceName]->GetAsBuffer();
 				barrier.Offset			= 0; // TODO: Allow for offset?
 				bufferBarriers.push_back(barrier);
+
+				srcStage |= data.SrcPipelineStage;
+				dstStage |= data.DstPipelineStage;
 			}
 			else if (data.Type == SyncType::TEXTURE)
 			{
 				Texture* pTexture = renderData[data.ResourceName]->GetAsTexture();
 				TextureBarrier barrier = {};
-				barrier.SrcAccessFlag	= ConvertToAccessFlag(data.SrcBindPoint);
-				barrier.DstAccessFlag	= ConvertToAccessFlag(data.DstBindPoint);
+				barrier.SrcAccessFlag	= data.SrcAccessFlag;
+				barrier.DstAccessFlag	= data.DstAccessFlag;
 				barrier.OldLayout		= data.SrcLayout;
 				barrier.NewLayout		= data.DstLayout;
 				barrier.SrcQueueIndex	= 0;
@@ -77,22 +82,28 @@ namespace Poly
 				barrier.AspectMask		= pTexture->GetDesc().Format == EFormat::D24_UNORM_S8_UINT ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
 				textureBarriers.push_back(barrier);
 
+				srcStage |= data.SrcPipelineStage;
+				dstStage |= data.DstPipelineStage;
+
 				// Update layout in resource
 				renderData.GetResourceNonConst(data.ResourceName)->m_CurrentLayout = data.DstLayout;
 			}
 			else if (data.Type == SyncType::MEMORY)
 			{
 				AccessBarrier barrier = {};
-				barrier.SrcAccessFlag	= ConvertToAccessFlag(data.SrcBindPoint);
-				barrier.DstAccessFlag	= ConvertToAccessFlag(data.DstBindPoint);
+				barrier.SrcAccessFlag	= data.SrcAccessFlag;
+				barrier.DstAccessFlag	= data.DstAccessFlag;
 				accessBarriers.push_back(barrier);
+
+				srcStage |= data.SrcPipelineStage;
+				dstStage |= data.DstPipelineStage;
 			}
 		}
 
 		// TODO: Deduce optimal pipeline stage?
 		context.GetCommandBuffer()->PipelineBarrier(
-			FPipelineStage::TOP_OF_PIPE,
-			FPipelineStage::BOTTOM_OF_PIPE,
+			srcStage,
+			dstStage,
 			accessBarriers,
 			bufferBarriers,
 			textureBarriers);
@@ -112,29 +123,5 @@ namespace Poly
 	Ref<SyncPass> SyncPass::Create(const std::string& name)
 	{
 		return CreateRef<SyncPass>(name);
-	}
-
-	FAccessFlag SyncPass::ConvertToAccessFlag(FResourceBindPoint bindPoint)
-	{
-		if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT)
-			return FAccessFlag::COLOR_ATTACHMENT_WRITE;
-		if (bindPoint == FResourceBindPoint::DEPTH_STENCIL)
-			return FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE;
-		if (bindPoint == FResourceBindPoint::UNIFORM)
-			return FAccessFlag::UNIFORM_READ;
-		if (bindPoint == FResourceBindPoint::SAMPLER)
-			return FAccessFlag::SHADER_READ;
-		if (bindPoint == FResourceBindPoint::STORAGE)
-			return FAccessFlag::SHADER_READ;
-		if (bindPoint == FResourceBindPoint::VERTEX)
-			return FAccessFlag::VERTEX_ATTRIBUTE_READ;
-		if (bindPoint == FResourceBindPoint::INDEX)
-			return FAccessFlag::INDEX_READ;
-		if (bindPoint == FResourceBindPoint::INDIRECT)
-			return FAccessFlag::INDIRECT_COMMAND_READ;
-		if (bindPoint == FResourceBindPoint::INPUT_ATTACHMENT)
-			return FAccessFlag::INPUT_ATTACHMENT_READ;
-
-		return FAccessFlag::NONE;
 	}
 }

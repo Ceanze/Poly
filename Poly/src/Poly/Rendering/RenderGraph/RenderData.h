@@ -15,7 +15,7 @@ namespace Poly
 	class RenderData
 	{
 	public:
-		RenderData(const std::string& renderPassName, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams);
+		RenderData(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams);
 		~RenderData() = default;
 
 		/**
@@ -24,9 +24,13 @@ namespace Poly
 		 */
 		const Resource* operator[] (const std::string& resourceName) const;
 
+		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }
+
 	private:
 		friend class SyncPass;
+		friend class RenderGraphProgram;
 		Resource* GetResourceNonConst(const std::string& resourceName) const;
+		void SetRenderPassName(const std::string& renderPassName) { m_RenderPassName = renderPassName; }
 
 		Ref<ResourceCache> m_pResourceCache;
 		std::string m_RenderPassName = "";
