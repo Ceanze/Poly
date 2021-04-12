@@ -113,7 +113,7 @@ namespace Poly
 		POLY_CORE_WARN("[PassReflection]: Tried to set bindpoint of {}, but that IO does not exist with the given name!", name);
 	}
 
-	void PassReflection::SetSampler(const std::string& name, Sampler* pSampler)
+	void PassReflection::SetSampler(const std::string& name, Ref<Sampler> pSampler)
 	{
 		for (auto& existing : m_IOs)
 		{

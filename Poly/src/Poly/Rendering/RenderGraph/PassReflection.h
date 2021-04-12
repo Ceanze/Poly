@@ -30,7 +30,7 @@ namespace Poly
 		uint32				Height			= 0;
 		uint32				Set				= 0;
 		uint32				Binding			= 0;
-		Sampler*			pSampler		= nullptr;
+		Ref<Sampler>		pSampler		= nullptr;
 
 		bool operator== (const IOData& other) const { return Name == other.Name; }
 	};
@@ -94,7 +94,7 @@ namespace Poly
 		 * @param name - name of the resource - only resource name is required - not render pass name
 		 * @param pSampler - sampler to be set
 		 */
-		void SetSampler(const std::string& name, Sampler* pSampler);
+		void SetSampler(const std::string& name, Ref<Sampler> pSampler);
 
 		std::vector<IOData> GetIOData(FIOType IOType) const;
 		std::vector<IOData> GetAllIOs() const { return m_IOs; }
