@@ -26,7 +26,7 @@ namespace Poly
 		// Output
 		reflection.AddOutput("out");
 		reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
-		reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
+		reflection.SetFormat("out", EFormat::R8G8B8A8_UNORM);
 		reflection.SetTextureSize("out", 0, 0); // 0 is invalid - defaults to default (window size)
 
 		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("vert.glsl", FShaderStage::VERTEX));

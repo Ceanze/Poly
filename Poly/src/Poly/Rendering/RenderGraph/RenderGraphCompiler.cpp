@@ -175,7 +175,10 @@ namespace Poly
 					continue;
 
 				if (isMarkedOutput) // Create alias to backbuffer
+				{
 					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + output.Name, output);
+					passData.Reflection.SetFormat(output.Name, EFormat::B8G8R8A8_UNORM);
+				}
 
 				if (!BitsSet(output.IOType, FIOType::INPUT)) // Only register new resource if it wasn't an input (passthrough)
 					m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + output.Name, passID, output);
@@ -286,7 +289,11 @@ namespace Poly
 
 				// At this stage we can guarantee that the order of attachments are correct (should be given in the correct order at reflect)
 				if (passData.pPass->GetPassType() == Pass::Type::RENDER && output.TextureLayout != ETextureLayout::UNDEFINED)
+				{
+					// Assume the data will be cleared for now
 					static_cast<RenderPass*>(passData.pPass.get())->AddAttachment(output.Name, output.TextureLayout, index++, output.Format);
+					static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(output.Name, ETextureLayout::UNDEFINED);
+				}
 			}
 		}
 
@@ -402,7 +409,8 @@ namespace Poly
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
 
-							m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
+							// m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
+							m_pResourceCache->RegisterSyncResource(syncPass->GetName() + "." + dstPair.second, srcName);
 							brokenEdges.insert(edgeID);
 						}
 						else // Read after read
@@ -429,7 +437,8 @@ namespace Poly
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
 
-							m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
+							// m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
+							m_pResourceCache->RegisterSyncResource(syncPass->GetName() + "." + dstPair.second, srcName);
 							brokenEdges.insert(edgeID);
 						}
 						else // Read after read
