@@ -62,12 +62,32 @@ namespace Poly
 			{
 				uint32 index = m_NameToIndex[alias];
 				m_NameToIndex[name] = index;
+				m_Resources[index].IOInfo.Merge(iodata);
 				CalcLifetime(m_Resources[index].Lifetime, timepoint);
 			}
 			else
 			{
 				m_NameToExternalIndex[name] = m_NameToExternalIndex[alias];
 			}
+		}
+	}
+
+	void ResourceCache::RegisterSyncResource(const std::string& name, const std::string& alias)
+	{
+		// A sync resource is always an alias
+		if (!m_NameToIndex.contains(alias) && !m_NameToExternalIndex.contains(alias))
+		{
+			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", name, alias);
+			return;
+		}
+
+		if (m_NameToIndex.contains(alias))
+		{
+			m_NameToIndex[name] = m_NameToIndex[alias];
+		}
+		else
+		{
+			m_NameToExternalIndex[name] = m_NameToExternalIndex[alias];
 		}
 	}
 
@@ -112,7 +132,8 @@ namespace Poly
 
 				resourceData.pResource = Resource::Create(RenderAPI::CreateBuffer(&desc), resourceData.Name);
 			}
-			else if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT || bindPoint == FResourceBindPoint::DEPTH_STENCIL)
+			else if (BitsSet(bindPoint, FResourceBindPoint::COLOR_ATTACHMENT) || BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL)
+					|| BitsSet(bindPoint, FResourceBindPoint::SAMPLER) || BitsSet(bindPoint, FResourceBindPoint::SHADER_READ))
 			{
 				TextureDesc desc = {};
 				desc.Width			= resourceData.IOInfo.Width == 0 ? m_DefaultParams.TextureWidth : resourceData.IOInfo.Width;
@@ -122,7 +143,7 @@ namespace Poly
 				desc.MipLevels		= 1; // TODO: Add support for mips
 				desc.SampleCount	= 1;
 				desc.TextureDim		= ETextureDim::DIM_2D;
-				desc.TextureUsage	= bindPoint == FResourceBindPoint::COLOR_ATTACHMENT ? FTextureUsage::COLOR_ATTACHMENT : FTextureUsage::DEPTH_STENCIL_ATTACHMENT;
+				desc.TextureUsage	= ConvertResourceBindPointToTextureUsage(bindPoint);
 				desc.Format			= resourceData.IOInfo.Format;
 				Ref<Texture> pTexture = RenderAPI::CreateTexture(&desc);
 
@@ -130,7 +151,7 @@ namespace Poly
 				desc2.ArrayLayer		= 0;
 				desc2.ArrayLayerCount	= 1;
 				desc2.Format			= resourceData.IOInfo.Format;
-				desc2.ImageViewFlag		= bindPoint == FResourceBindPoint::COLOR_ATTACHMENT ? FImageViewFlag::COLOR : FImageViewFlag::DEPTH_STENCIL;
+				desc2.ImageViewFlag		= bindPoint == FResourceBindPoint::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
 				desc2.ImageViewType		= EImageViewType::TYPE_2D;
 				desc2.MipLevel			= 0;
 				desc2.MipLevelCount		= 1;

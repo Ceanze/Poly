@@ -33,6 +33,21 @@ namespace Poly
 		Ref<Sampler>		pSampler		= nullptr;
 
 		bool operator== (const IOData& other) const { return Name == other.Name; }
+
+		void Merge(const IOData& other)
+		{
+			if (Format != other.Format)
+			{
+				POLY_CORE_WARN("Cannot merge IOData of {} with {}, different formats!", Name, other.Name);
+				return;
+			}
+			if (Height != other.Height || Width != other.Width)
+			{
+				POLY_CORE_WARN("Cannot merge IOData of {} with {}, height  and/or width  does not match!", Name, other.Name);
+				return;
+			}
+			BindPoint |= other.BindPoint;
+		}
 	};
 
 	class PassReflection

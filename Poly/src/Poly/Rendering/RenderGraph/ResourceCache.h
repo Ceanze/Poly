@@ -43,6 +43,8 @@ namespace Poly
 		 */
 		void RegisterResource(const std::string& name, uint32 timepoint, IOData iodata, const std::string& alias = "");
 
+		void RegisterSyncResource(const std::string& name, const std::string& alias);
+
 		/**
 		 * Mark a resource as being the output of the graph - this will
 		 * make it and all aliases to it an alias to the backbuffer for each frame
