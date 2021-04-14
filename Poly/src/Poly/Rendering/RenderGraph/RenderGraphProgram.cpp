@@ -7,6 +7,7 @@
 #include "RenderGraph.h"
 #include "RenderContext.h"
 #include "ResourceCache.h"
+#include "RenderGraphTypes.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
@@ -38,6 +39,21 @@ namespace Poly
 
 		InitCommandBuffers();
 		InitPipelineLayouts();
+
+		// Update all resources in the beginning
+		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
+		{
+			if (pPass->GetPassType() == Pass::Type::SYNC)
+			{
+				passIndex++;
+				continue;
+			}
+
+			const auto& reflections = m_Reflections[passIndex].GetAllIOs();
+			for (const auto& reflection : reflections)
+				UpdateGraphResource(pPass->GetName() + "." + reflection.Name, nullptr);
+			passIndex++;
+		}
 	}
 
 	Ref<RenderGraphProgram> RenderGraphProgram::Create(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
@@ -116,38 +132,67 @@ namespace Poly
 		}
 	}
 
-	void RenderGraphProgram::UpdateExternalResource(const std::string& name, Ref<Resource> pResource)
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, Ref<Resource> pResource)
 	{
+		PassResourcePair passPair = GetPassResourcePair(name);
+
 		// Go through each pass and find where resource is being used
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
-			const auto& externalResources = pPass->GetExternalResources();
-			auto itr = std::find_if(externalResources.begin(), externalResources.end(), [name](const std::pair<std::string, std::string>& other){
-				return other.first == name;
-			});
-
-			// External resource is being used in pass, update corresponding descriptor
-			if (itr != externalResources.end())
+			if (pPass->GetPassType() == Pass::Type::SYNC || pPass->GetName() != passPair.first)
 			{
-				const IOData& inputRes = m_Reflections[passIndex].GetIOData(itr->second);
+				passIndex++;
+				continue;
+			}
 
-				const auto& sets = GetDescriptorSets(pPass, passIndex); // Creates set if it doesn't exist yet
+			bool external = false;
+			if (passPair.first.empty() || passPair.first == "$")
+			{
+				const auto& externalResources = pPass->GetExternalResources();
+				auto itr = std::find_if(externalResources.begin(), externalResources.end(), [passPair](const std::pair<std::string, std::string>& other){
+					return other.first == passPair.second;
+				});
+				if (itr != externalResources.end())
+					external = true;
+				else
+					continue;
+			}
+			else
+			{
+				const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT);
+				auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
+				if (itr == reflections.end())
+					continue;
+			}
 
-				Ref<DescriptorSet> pOldSet = sets[inputRes.Set]; // If crash here - check the sets bound to the pass as it should be too few if this happens
+			// Resource is being used in pass, update corresponding descriptor
+			const IOData& inputRes = m_Reflections[passIndex].GetIOData(passPair.second);
+			Ref<Resource> pActualRes = pResource;
+			if (!pActualRes)
+				pActualRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
 
-				Ref<DescriptorSet> pNewSet = RenderAPI::CreateDescriptorSetCopy(pOldSet);
-				m_DescriptorsToBeDestroyed[m_ImageIndex].push_back(pOldSet);
-				m_Descriptors[passIndex][inputRes.Set] = pNewSet;
+			if (!pActualRes)
+			{
+				POLY_CORE_ERROR("No resource was gotten from the cache!");
+				return;
+			}
 
-				if (pResource->IsBuffer())
-					pNewSet->UpdateBufferBinding(inputRes.Binding, pResource->GetAsBuffer(), 0, pResource->GetAsBuffer()->GetSize());
-				else if (pResource->IsTexture())
-				{
-					// Set sampler if it hasn't been set before from the reflection
-					if (!pResource->GetAsSampler())
-						pResource->SetSampler(inputRes.pSampler);
-					pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pResource->GetAsTextureView(), pResource->GetAsSampler());
-				}
+			const auto& sets = GetDescriptorSets(pPass, passIndex); // Creates set if it doesn't exist yet
+
+			Ref<DescriptorSet> pOldSet = sets[inputRes.Set]; // If crash here - check the sets bound to the pass as it should be too few if this happens
+
+			Ref<DescriptorSet> pNewSet = RenderAPI::CreateDescriptorSetCopy(pOldSet);
+			m_DescriptorsToBeDestroyed[m_ImageIndex].push_back(pOldSet);
+			m_Descriptors[passIndex][inputRes.Set] = pNewSet;
+
+			if (pActualRes->IsBuffer())
+				pNewSet->UpdateBufferBinding(inputRes.Binding, pActualRes->GetAsBuffer(), 0, pActualRes->GetAsBuffer()->GetSize());
+			else if (pActualRes->IsTexture())
+			{
+				// Set sampler if it hasn't been set before from the reflection
+				if (!pActualRes->GetAsSampler())
+					pActualRes->SetSampler(inputRes.pSampler);
+				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pActualRes->GetAsTextureView(), pActualRes->GetAsSampler());
 			}
 
 			passIndex++;

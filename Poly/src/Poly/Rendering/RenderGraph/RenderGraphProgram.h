@@ -30,7 +30,13 @@ namespace Poly
 
 		void Execute(uint32 imageIndex);
 
-		void UpdateExternalResource(const std::string& name, Ref<Resource> pResource);
+		/**
+		 * Updates a resource's descriptor - must be done when the resource has changed size or if
+		 * the name's resouces is a new resource
+		 * @param name - name of resource follow "renderPass.resource" or "$.resource" format, no prefix assumes external
+		 * @param pResource - resource to update with - nullptr if resource is same just updated
+		 */
+		void UpdateGraphResource(const std::string& name, Ref<Resource> pResource);
 
 		void SetBackbuffer(Ref<Resource> pResource);
 
