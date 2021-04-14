@@ -30,6 +30,7 @@ public:
 		m_pRenderer = Poly::Renderer::Create();
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::TestPass::Create();
+		Poly::Ref<Poly::Pass> pPass1 = Poly::TestPass::Create();
 
 		// External resources
 		Poly::Ref<Poly::Texture> pTexture = Poly::ResourceLoader::LoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
@@ -59,17 +60,20 @@ public:
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "testPass");
+		m_pGraph->AddPass(pPass1, "testPass1");
 		m_pGraph->AddLink("$.camera", "testPass.camera");
 		m_pGraph->AddLink("$.texture", "testPass.texture");
-		m_pGraph->MarkOutput("testPass.out");
+		m_pGraph->AddLink("$.camera", "testPass1.camera");
+		m_pGraph->AddLink("testPass.out", "testPass1.texture");
+		m_pGraph->MarkOutput("testPass1.out");
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
 
 		// Update resources to validate descriptors
 		// TODO: Do this automatically in the beginning of the program
-		m_pProgram->UpdateExternalResource("camera", pCamRes);
-		m_pProgram->UpdateExternalResource("texture", pTexRes);
+		m_pProgram->UpdateGraphResource("camera", pCamRes);
+		m_pProgram->UpdateGraphResource("texture", pTexRes);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
