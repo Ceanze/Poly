@@ -5,14 +5,17 @@
 
 namespace Poly
 {
+	struct ScissorDesc;
+	struct ViewportDesc;
+
 	class Buffer;
 	class Texture;
 	class Pipeline;
-	class RenderPass;
-	class DescriptorSet;
 	class Framebuffer;
 	class CommandPool;
 	class CommandQueue;
+	class DescriptorSet;
+	class GraphicsRenderPass;
 
 	// Command structs (for those who want to take in like 50 parameters)
 
@@ -31,6 +34,34 @@ namespace Poly
 		uint32			Width				= 0;
 		uint32			Height				= 0;
 		uint32			Depth				= 0;
+	};
+
+	struct BufferBarrier
+	{
+		FAccessFlag	SrcAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag	DstAccessFlag	= FAccessFlag::NONE;
+		uint32		SrcQueueIndex	= 0;
+		uint32		DstQueueIndex	= 0;
+		Buffer*		pBuffer			= nullptr;
+		uint32		Offset			= 0;
+	};
+
+	struct TextureBarrier
+	{
+		FAccessFlag		SrcAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag		DstAccessFlag	= FAccessFlag::NONE;
+		ETextureLayout	OldLayout		= ETextureLayout::UNDEFINED;
+		ETextureLayout	NewLayout		= ETextureLayout::UNDEFINED;
+		uint32			SrcQueueIndex	= 0;
+		uint32			DstQueueIndex	= 0;
+		Texture*		pTexture		= nullptr;
+		FImageViewFlag	AspectMask		= FImageViewFlag::NONE;
+	};
+
+	struct AccessBarrier
+	{
+		FAccessFlag		SrcAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag		DstAccessFlag	= FAccessFlag::NONE;
 	};
 
 	class CommandBuffer
@@ -59,7 +90,7 @@ namespace Poly
 		 * @param clearColors - Clear color of the render pass, each color requires a float4
 		 * @param clearColorCount - Amount of clear colors to use from clear colors
 		 */
-		virtual void BeginRenderPass(RenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) = 0;
+		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues) = 0;
 
 		/**
 		 * Bind a pipeline
@@ -83,6 +114,18 @@ namespace Poly
 		 * @param copyBufferDesc - Description of the copy details
 		 */
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
+
+		/**
+		 * Set dynamic viewport
+		 * @param viewport - viewport struct
+		 */
+		virtual void SetViewport(const ViewportDesc* pViewport) = 0;
+
+		/**
+		 * Set dynamic scissor rect
+		 * @param scissor - scissor struct
+		 */
+		virtual void SetScissor(const ScissorDesc* pScissor) = 0;
 
 		/**
 		 * Draw the the bound objects instanced
@@ -174,6 +217,14 @@ namespace Poly
 		virtual void PipelineBufferBarrier(Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag) = 0;
 
 		/**
+		 * Add multiple barriers of different types, for only one barrier of either buffer or texture see their respective functions
+		 * @param accessBarriers
+		 * @param bufferBarriers
+		 * @param textureBarriers
+		 */
+		virtual void PipelineBarrier(FPipelineStage srcStage, FPipelineStage dstStage, const std::vector<AccessBarrier>& accessBarriers, const std::vector<BufferBarrier>& bufferBarriers, const std::vector<TextureBarrier>& textureBarriers) = 0;
+
+		/**
 		 * End the render pass
 		 */
 		virtual void EndRenderPass() = 0;
@@ -182,6 +233,12 @@ namespace Poly
 		 * End the recording of commands
 		 */
 		virtual void End() = 0;
+
+		/**
+		 * Reset the command buffer - clears all commands
+		 * Note: Mustn't be in pending state
+		 */
+		virtual void Reset() = 0;
 
 		/**
 		 * @return Native handle to the API specific object

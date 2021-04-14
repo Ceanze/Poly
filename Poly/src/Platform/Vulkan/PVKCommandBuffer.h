@@ -17,13 +17,17 @@ namespace Poly
 
 		virtual void Begin(FCommandBufferFlag bufferFlag) override final;
 
-		virtual void BeginRenderPass(RenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, float* pClearColor, uint32 clearColorCount) override final;
+		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues) override final;
 
 		virtual void BindPipeline(Pipeline* pPipeline) override final;
 
 		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) override final;
 
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
+
+		virtual void SetViewport(const ViewportDesc* pViewport) override final;
+
+		virtual void SetScissor(const ScissorDesc* pScissor) override final;
 
 		virtual void DrawInstanced(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance) override final;
 
@@ -41,9 +45,13 @@ namespace Poly
 
 		virtual void PipelineBufferBarrier(Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag) override final;
 
+		virtual void PipelineBarrier(FPipelineStage srcStage, FPipelineStage dstStage, const std::vector<AccessBarrier>& accessBarriers, const std::vector<BufferBarrier>& bufferBarriers, const std::vector<TextureBarrier>& textureBarriers) override final;
+
 		virtual void EndRenderPass() override final;
 
 		virtual void End() override final;
+
+		virtual void Reset() override final;
 
 		/* End of commands */
 

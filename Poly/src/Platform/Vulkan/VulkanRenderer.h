@@ -33,22 +33,11 @@ namespace Poly
 		SwapChain* GetSwapChain() { return m_SwapChain.get(); }
 
 	private:
-		void CreateSyncObjects();
-
 		Window* m_pWindow = nullptr;
 
 		// General vulkan
 		Ref<SwapChain> m_SwapChain;
-		std::vector<CommandBuffer*> m_GraphicsBuffers; // Only for current frame
-		// uint32_t m_ImageIndex = 0;
-
-		// Sync
-		// std::vector<VkSemaphore> m_ImageAvailableSemaphores;
-		// std::vector<VkSemaphore> m_RenderFinishedSemaphores;
-		// std::vector<VkFence> m_InFlightFences;
-		// std::vector<VkFence> m_ImagesInFlight;
-		// size_t m_CurrentFrame = 0;
-		// const int MAX_FRAMES_IN_FLIGHT = 2;
+		std::vector<CommandBuffer*> m_GraphicsBuffers;
 
 		// Renderers
 		std::vector<IRenderer*> m_SubRenderers;

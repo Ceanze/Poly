@@ -11,13 +11,13 @@ namespace Poly
 	struct SamplerDesc;
 	struct TextureDesc;
 	struct SwapChainDesc;
-	struct RenderPassDesc;
 	struct FramebufferDesc;
 	struct TextureViewDesc;
 	struct CommandQueueDesc;
 	struct DescriptorSetDesc;
 	struct PipelineLayoutDesc;
 	struct GraphicsPipelineDesc;
+	struct GraphicsRenderPassDesc;
 
 	// Classes
 	class Fence;
@@ -28,7 +28,6 @@ namespace Poly
 	class Texture;
 	class Semaphore;
 	class SwapChain;
-	class RenderPass;
 	class Framebuffer;
 	class TextureView;
 	class CommandPool;
@@ -36,6 +35,7 @@ namespace Poly
 	class DescriptorSet;
 	class PipelineLayout;
 	class GraphicsPipeline;
+	class GraphicsRenderPass;
 
 	class GraphicsInstance
 	{
@@ -51,13 +51,15 @@ namespace Poly
 		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) = 0;
 		virtual Ref<Fence>				CreateFence(FFenceFlag flag) = 0;
 		virtual Ref<Semaphore>			CreateSemaphore() = 0;
-		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType) = 0;
+		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) = 0;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) = 0;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) = 0;
-		virtual Ref<RenderPass>			CreateRenderPass(const RenderPassDesc* pDesc) = 0;
+		virtual Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc) = 0;
 		virtual Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc) = 0;
 		virtual Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc) = 0;
 		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) = 0;
 		virtual Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex) = 0;
+
+		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) = 0;
 	};
 }

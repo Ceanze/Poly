@@ -9,7 +9,7 @@
 
 #include "Platform/API/Shader.h"
 #include "Platform/API/GraphicsPipeline.h"
-#include "Platform/API/RenderPass.h"
+#include "Platform/API/GraphicsRenderPass.h"
 #include "Platform/API/DescriptorSet.h"
 #include "Platform/API/PipelineLayout.h"
 #include "Platform/API/CommandPool.h"
@@ -20,6 +20,12 @@
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Sampler.h"
+
+// TEMP - TESTING OF RENDER GRAPH
+#include "Poly/Rendering/RenderGraph/RenderGraph.h"
+#include "Poly/Rendering/RenderGraph/Passes/TestPass.h"
+#include "Poly/Rendering/RenderGraph/Passes/TestPass1.h"
+
 namespace Poly
 {
 
@@ -41,7 +47,7 @@ namespace Poly
 		SetupPipeline();
 		SetupDescriptorSet();
 
-		m_CommandPool = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS);
+		m_CommandPool = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::NONE);
 
 		m_Framebuffers.resize(m_pSwapChain->GetBackbufferCount());
 		for (uint32 i = 0; i < m_pSwapChain->GetBackbufferCount(); i++)
@@ -50,13 +56,27 @@ namespace Poly
 			desc.Height			= m_pSwapChain->GetDesc().Height;
 			desc.Width			= m_pSwapChain->GetDesc().Width;
 			desc.pRenderPass	= m_RenderPass.get();
-			desc.pTextureView	= m_pSwapChain->GetTextureView(i);
+			desc.Attachments	= { m_pSwapChain->GetTextureView(i).get() };
 
 			m_Framebuffers[i] = RenderAPI::CreateFramebuffer(&desc);
 		}
 
 		SetupTestData();
 		CreateCommandBuffers();
+
+		// TEMP - TESTING OF RENDER GRAPH
+		Ref<RenderGraph> rg = RenderGraph::Create("Test graph");
+		auto pass0 = TestPass::Create();
+		auto pass1 = TestPass1::Create();
+
+		rg->AddPass(pass0, "0");
+		rg->AddPass(pass1, "1");
+
+		rg->AddLink("0.a", "1.a");
+
+		rg->MarkOutput("1.b");
+
+		rg->Compile();
 	}
 
 	void TestRenderer::BeginScene(uint32_t imageIndex)
@@ -81,12 +101,14 @@ namespace Poly
 		for (uint32_t i = 0; i < m_CommandBuffers.size(); i++) {
 			m_CommandBuffers[i] = m_CommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
-			float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+			std::vector<ClearValue> clearColor(1);
+			memset(clearColor.data(), 0, sizeof(ClearValue));
+			clearColor[0].Color.Float32[3] = 1.0f;
 
 			m_CommandBuffers[i]->Begin(FCommandBufferFlag::NONE);
-			m_CommandBuffers[i]->BeginRenderPass(m_RenderPass.get(), m_Framebuffers[i].get(), m_pSwapChain->GetDesc().Width, m_pSwapChain->GetDesc().Height, clearColor, 1);
+			m_CommandBuffers[i]->BeginRenderPass(m_RenderPass.get(), m_Framebuffers[i].get(), m_pSwapChain->GetDesc().Width, m_pSwapChain->GetDesc().Height, clearColor);
 			m_CommandBuffers[i]->BindPipeline(m_Pipeline.get());
-			m_CommandBuffers[i]->BindDescriptor(m_Pipeline.get(), m_DescriptorSets[i].get());
+			m_CommandBuffers[i]->BindDescriptor(m_Pipeline.get(), m_DescriptorSets[0].get());
 			m_CommandBuffers[i]->DrawInstanced(3, 1, 0, 0);
 			m_CommandBuffers[i]->EndRenderPass();
 			m_CommandBuffers[i]->End();
@@ -102,7 +124,7 @@ namespace Poly
 
 	void TestRenderer::SetupRenderPass()
 	{
-		RenderPassAttachmentDesc attachmentDesc = {};
+		GraphicsRenderPassAttachmentDesc attachmentDesc = {};
 		attachmentDesc.Format			= m_pSwapChain->GetDesc().Format;
 		attachmentDesc.SampleCount		= 1;
 		attachmentDesc.LoadOp			= ELoadOp::CLEAR;
@@ -112,14 +134,14 @@ namespace Poly
 		attachmentDesc.InitialLayout	= ETextureLayout::UNDEFINED;
 		attachmentDesc.FinalLayout		= ETextureLayout::PRESENT;
 
-		RenderPassSubpassAttachmentReference attachmentRef = {};
+		GraphicsRenderPassSubpassAttachmentReference attachmentRef = {};
 		attachmentRef.Index		= 0;
 		attachmentRef.Layout	= ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
 
-		RenderPassSubpassDesc subpassDesc = {};
+		GraphicsRenderPassSubpassDesc subpassDesc = {};
 		subpassDesc.ColorAttachmentsLayouts = { attachmentRef };
 
-		RenderPassSubpassDependencyDesc depDesc = {};
+		GraphicsRenderPassSubpassDependencyDesc depDesc = {};
 		depDesc.SrcSubpass		= EXTERNAL_SUBPASS;
 		depDesc.DstSubpass		= 0;
 		depDesc.SrcStageMask	= FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
@@ -127,12 +149,12 @@ namespace Poly
 		depDesc.DstStageMask	= FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
 		depDesc.DstAccessMask	= FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE;
 
-		RenderPassDesc renderPassDesc = {};
+		GraphicsRenderPassDesc renderPassDesc = {};
 		renderPassDesc.Attachments			= { attachmentDesc };
 		renderPassDesc.Subpasses			= { subpassDesc };
 		renderPassDesc.SubpassDependencies	= { depDesc };
 
-		m_RenderPass = RenderAPI::CreateRenderPass(&renderPassDesc);
+		m_RenderPass = RenderAPI::CreateGraphicsRenderPass(&renderPassDesc);
 	}
 
 	void TestRenderer::SetupPipelineLayout()
@@ -226,7 +248,7 @@ namespace Poly
 			.pTexture			= m_TestTexture.get(),
 			.ImageViewType		= EImageViewType::TYPE_2D,
 			.Format				= EFormat::R8G8B8A8_UNORM,
-			.ImageViewFlag		= FImageViewFlag::RENDER_TARGET,
+			.ImageViewFlag		= FImageViewFlag::COLOR,
 			.MipLevel			= 0,
 			.MipLevelCount		= 1,
 			.ArrayLayer			= 0,
@@ -244,7 +266,7 @@ namespace Poly
 		for (uint32 i = 0; i < m_DescriptorSets.size(); i++)
 		{
 			m_DescriptorSets[i]->UpdateBufferBinding(0, m_TestBuffer.get(), 0, m_TestBuffer->GetSize());
-			m_DescriptorSets[i]->UpdateTextureBinding(1, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, m_TestTextureView.get(), m_pTestSampler);
+			m_DescriptorSets[i]->UpdateTextureBinding(1, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, m_TestTextureView.get(), m_pTestSampler.get());
 		}
 	}
 

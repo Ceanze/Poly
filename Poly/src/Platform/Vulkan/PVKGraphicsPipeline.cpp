@@ -164,10 +164,10 @@ namespace Poly
 		colorBlending.blendConstants[3]	= pDesc->ColorBlendState.BlendConstants[3];
 
 		// Dynamic state
-		std::vector<VkDynamicState> dynamicStates = {
-			//VK_DYNAMIC_STATE_VIEWPORT,
-			//VK_DYNAMIC_STATE_LINE_WIDTH
-		};
+		std::vector<VkDynamicState> dynamicStates;
+		if (pDesc->Viewport.IsDynamic) dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+		if (pDesc->Scissor.IsDynamic) dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+		dynamicStates.shrink_to_fit();
 
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType				= VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

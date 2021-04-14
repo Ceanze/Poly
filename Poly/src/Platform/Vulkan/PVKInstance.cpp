@@ -140,12 +140,12 @@ namespace Poly
 		return pSemaphore;
 	}
 
-	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType)
+	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)
 	{
 		POLY_VALIDATE(queueType != FQueueType::NONE, "FQueueType cannot be NONE!");
 
 		Ref<PVKCommandPool> pCommandPool = CreateRef<PVKCommandPool>();
-		pCommandPool->Init(queueType);
+		pCommandPool->Init(queueType, flags);
 		return pCommandPool;
 	}
 
@@ -167,7 +167,7 @@ namespace Poly
 		return pShader;
 	}
 
-	Ref<RenderPass> PVKInstance::CreateRenderPass(const RenderPassDesc* pDesc)
+	Ref<GraphicsRenderPass> PVKInstance::CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc)
 	{
 		POLY_VALIDATE(pDesc, "RenderPassDesc cannot be nullptr!");
 
@@ -212,6 +212,37 @@ namespace Poly
 		return pShader;
 	}
 
+	Ref<DescriptorSet> PVKInstance::CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet)
+	{
+		Ref<PVKDescriptorSet> pNewSet = CreateRef<PVKDescriptorSet>();
+		PipelineLayout* pPipelineLayout = pSrcDescriptorSet->GetLayout();
+		uint32 setIndex = pSrcDescriptorSet->GetSetIndex();
+		pNewSet->Init(pPipelineLayout, setIndex);
+
+		VkCopyDescriptorSet copySetDesc = {};
+		copySetDesc.sType			= VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
+		copySetDesc.pNext			= nullptr;
+		copySetDesc.srcSet			= static_cast<PVKDescriptorSet*>(pSrcDescriptorSet.get())->GetNativeVK();
+		copySetDesc.srcArrayElement	= 0;
+		copySetDesc.dstSet			= pNewSet->GetNativeVK();
+		copySetDesc.dstArrayElement	= 0;
+		copySetDesc.descriptorCount	= 1; // TODO: Change this to allow for multiple counts
+
+		const auto& bindings = static_cast<PVKPipelineLayout*>(pPipelineLayout)->GetBindings(setIndex);
+		std::vector<VkCopyDescriptorSet> copies;
+		copies.reserve(bindings.size());
+		for (uint32 i = 0; i < bindings.size(); i++)
+		{
+			copySetDesc.srcBinding	= bindings[i].Binding;
+			copySetDesc.dstBinding	= bindings[i].Binding;
+			copies.push_back(copySetDesc);
+		}
+
+		vkUpdateDescriptorSets(s_Device, 0, nullptr, copies.size(), copies.data());
+
+		return pNewSet;
+	}
+
 
 	void PVKInstance::SetQueueCount(FQueueType queue, uint32_t count)
 	{
@@ -253,17 +284,17 @@ namespace Poly
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 		{
-			POLY_CORE_TRACE("{}", pCallbackData->pMessage);
+			POLY_CORE_TRACE("{}\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 		{
-			POLY_CORE_WARN("{}", pCallbackData->pMessage);
+			POLY_CORE_WARN("{}\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 		{
-			POLY_CORE_ERROR("{}", pCallbackData->pMessage);
+			POLY_CORE_ERROR("{}\n", pCallbackData->pMessage);
 			break;
 		}
 		// default:

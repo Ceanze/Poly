@@ -7,7 +7,6 @@ namespace Poly
 {
 	glm::dvec2 Input::s_MouseDelta = { 0.f, 0.f };
 	std::unordered_map<int, Input::KeyState> Input::s_Keys;
-	ENABLE_BITMASK_OPERATORS(Input::KeyState);
 
 	void Input::SetKeyPressed(int key)
 	{

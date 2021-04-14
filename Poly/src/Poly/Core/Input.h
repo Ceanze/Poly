@@ -42,4 +42,5 @@ namespace Poly
 		static std::unordered_map<int, KeyState> s_Keys;
 	};
 
+	ENABLE_BITMASK_OPERATORS(Input::KeyState);
 }

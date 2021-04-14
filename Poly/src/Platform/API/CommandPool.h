@@ -16,7 +16,7 @@ namespace Poly
 		 * Init the CommandPool object
 		 * @param queueType	Queue of which the CommandPool should be using and submit to
 		*/
-		virtual void Init(FQueueType queueType) = 0;
+		virtual void Init(FQueueType queueType, FCommandPoolFlags flags) = 0;
 
 		/**
 		 * Creates and allocates a command buffer belonging to the current pool

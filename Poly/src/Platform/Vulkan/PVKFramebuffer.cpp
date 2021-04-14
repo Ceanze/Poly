@@ -17,13 +17,16 @@ namespace Poly
 	{
 		p_FramebufferDesc = *pDesc;
 
-		VkImageView attachment = reinterpret_cast<PVKTextureView*>(pDesc->pTextureView)->GetNativeVK();
+		std::vector<VkImageView> imageViews;
+		imageViews.reserve(pDesc->Attachments.size());
+		for (const auto& attachment : pDesc->Attachments)
+			imageViews.push_back(reinterpret_cast<PVKTextureView*>(attachment)->GetNativeVK());
 
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType			= VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass		= reinterpret_cast<PVKRenderPass*>(pDesc->pRenderPass)->GetNativeVK();
-		framebufferInfo.attachmentCount	= 1;
-		framebufferInfo.pAttachments	= &attachment;
+		framebufferInfo.attachmentCount	= imageViews.size();
+		framebufferInfo.pAttachments	= imageViews.data();
 		framebufferInfo.width			= pDesc->Width;
 		framebufferInfo.height			= pDesc->Height;
 		framebufferInfo.layers			= 1;

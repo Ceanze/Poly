@@ -28,6 +28,9 @@ namespace Poly
 
 	void RenderAPI::Release()
 	{
+		m_pGraphicsQueue->Wait();
+		m_FramebufferCache.Reset();
+
 		if (m_pGraphicsInstance)
 		{
 			Sampler::CleanupDefaults();
@@ -101,9 +104,9 @@ namespace Poly
 		return m_pGraphicsInstance->CreateSemaphoreW();
 	}
 
-	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType)
+	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)
 	{
-		return m_pGraphicsInstance->CreateCommandPool(queueType);
+		return m_pGraphicsInstance->CreateCommandPool(queueType, flags);
 	}
 
 	Ref<Sampler> RenderAPI::CreateSampler(const SamplerDesc* pDesc)
@@ -116,9 +119,9 @@ namespace Poly
 		return m_pGraphicsInstance->CreateShader(pDesc);
 	}
 
-	Ref<RenderPass> RenderAPI::CreateRenderPass(const RenderPassDesc* pDesc)
+	Ref<GraphicsRenderPass> RenderAPI::CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc)
 	{
-		return m_pGraphicsInstance->CreateRenderPass(pDesc);
+		return m_pGraphicsInstance->CreateGraphicsRenderPass(pDesc);
 	}
 
 	Ref<GraphicsPipeline> RenderAPI::CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc)
@@ -139,6 +142,16 @@ namespace Poly
 	Ref<DescriptorSet> RenderAPI::CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex)
 	{
 		return m_pGraphicsInstance->CreateDescriptorSet(pLayout, setIndex);
+	}
+
+	Ref<DescriptorSet> RenderAPI::CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet)
+	{
+		return m_pGraphicsInstance->CreateDescriptorSetCopy(pSrcDescriptorSet);
+	}
+
+	Ref<Framebuffer> RenderAPI::GetFramebuffer(const std::vector<TextureView*>& attachments, TextureView* pDepthAttachment, GraphicsRenderPass* pPass, uint32 width, uint32 height)
+	{
+		return m_FramebufferCache.GetFramebuffer(attachments, pDepthAttachment, pPass, width, height);
 	}
 
 

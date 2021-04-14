@@ -143,9 +143,7 @@ namespace Poly
 	{
 		VkImageAspectFlags mask = 0;
 		FLAG_CHECK(imageViewFlag & FImageViewFlag::DEPTH_STENCIL,		mask |= VK_IMAGE_ASPECT_DEPTH_BIT);
-		FLAG_CHECK(imageViewFlag & FImageViewFlag::RENDER_TARGET,		mask |= VK_IMAGE_ASPECT_COLOR_BIT);
-		FLAG_CHECK(imageViewFlag & FImageViewFlag::SHADER_RESOURCE,		mask |= VK_IMAGE_ASPECT_COLOR_BIT);
-		FLAG_CHECK(imageViewFlag & FImageViewFlag::UNORDERED_ACCESS,	mask |= VK_IMAGE_ASPECT_COLOR_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::COLOR,				mask |= VK_IMAGE_ASPECT_COLOR_BIT);
 		return mask;
 	}
 
@@ -165,6 +163,13 @@ namespace Poly
 		FLAG_CHECK(pipelineStage & FPipelineStage::BOTTOM_OF_PIPE,			mask |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_GRAPHICS,			mask |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_COMMANDS,			mask |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+		return mask;
+	}
+
+	inline VkCommandPoolCreateFlags ConvertCommandPoolFlagsVK(FCommandPoolFlags flag)
+	{
+		VkCommandPoolCreateFlags mask = 0;
+		FLAG_CHECK(flag & FCommandPoolFlags::RESET_COMMAND_BUFFERS,	mask |= VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 		return mask;
 	}
 

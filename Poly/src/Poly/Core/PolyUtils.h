@@ -25,96 +25,20 @@
 template<typename Enum>
 struct EnableBitMaskOperators
 {
-    static const bool enable = false;
+	static const bool enable = false;
 };
 
 #define FLAG_CHECK(Enum, trueCase) if (EnumCheck(Enum)) trueCase
 
-template<typename Enum>
-inline bool EnumCheck(Enum e)
-{
-    return static_cast<std::underlying_type_t<Enum>>(e) > 0;
-}
+#define ENUM_CAST(e, t) static_cast<std::underlying_type_t<e>>(t)
 
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator |(Enum lhs, Enum rhs)
-{
-    using underlying = typename std::underlying_type<Enum>::type;
-    return static_cast<Enum> (
-        static_cast<underlying>(lhs) |
-        static_cast<underlying>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator &(Enum lhs, Enum rhs)
-{
-    return static_cast<Enum> (
-        static_cast<std::underlying_type_t<Enum>>(lhs)&
-        static_cast<std::underlying_type_t<Enum>>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator ^(Enum lhs, Enum rhs)
-{
-    return static_cast<Enum> (
-        static_cast<std::underlying_type_t<Enum>>(lhs) ^
-        static_cast<std::underlying_type_t<Enum>>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator ~(Enum rhs)
-{
-    return static_cast<Enum> (
-        ~static_cast<std::underlying_type_t<Enum>>(rhs)
-        );
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator |=(Enum & lhs, Enum rhs)
-{
-    lhs = static_cast<Enum> (
-        static_cast<std::underlying_type_t<Enum>>(lhs) |
-        static_cast<std::underlying_type_t<Enum>>(rhs)
-        );
-
-    return lhs;
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator &=(Enum & lhs, Enum rhs)
-{
-    lhs = static_cast<Enum> (
-        static_cast<std::underlying_type_t<Enum>>(lhs)&
-        static_cast<std::underlying_type_t<Enum>>(rhs)
-        );
-
-    return lhs;
-}
-
-template<typename Enum>
-typename std::enable_if<EnableBitMaskOperators<Enum>::enable, Enum>::type
-operator ^=(Enum & lhs, Enum rhs)
-{
-    lhs = static_cast<Enum> (
-        static_cast<std::underlying_type_t<Enum>>(lhs)^
-        static_cast<std::underlying_type_t<Enum>>(rhs)
-        );
-
-    return lhs;
-}
-
-#define ENABLE_BITMASK_OPERATORS(type)\
-template<>\
-struct EnableBitMaskOperators<type>\
-{\
-static const bool enable = true;\
-};
+#define ENABLE_BITMASK_OPERATORS(e)\
+	inline e operator |(e lhs, e rhs)		{ return static_cast<e>(ENUM_CAST(e, lhs) | ENUM_CAST(e, rhs)); } \
+	inline e& operator |=(e& lhs, e rhs)	{ lhs = lhs | rhs; return lhs; } \
+	inline e operator &(e lhs, e rhs)		{ return static_cast<e>(ENUM_CAST(e, lhs) & ENUM_CAST(e, rhs)); } \
+	inline e& operator &=(e& lhs, e rhs)	{ lhs = lhs & rhs; return lhs; } \
+	inline e operator ^(e lhs, e rhs)		{ return static_cast<e>(ENUM_CAST(e, lhs) ^ ENUM_CAST(e, rhs)); } \
+	inline e& operator ^=(e& lhs, e rhs)	{ lhs = lhs ^ rhs; return lhs; } \
+	inline e operator ~(e lhs)				{ return static_cast<e>(~ENUM_CAST(e, lhs)); } \
+	inline bool BitsSet(e val, e flag)		{ return ENUM_CAST(e, val & flag) > ENUM_CAST(e, 0); } \
+	inline bool EnumCheck(e val)			{ return ENUM_CAST(e, val) > 0; }

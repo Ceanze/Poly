@@ -11,6 +11,25 @@ namespace Poly
 {
 	const constexpr uint32 EXTERNAL_SUBPASS = ~0U;
 
+	union ClearColorValue
+	{
+		float	Float32[4];
+		int32_t	Int32[4];
+		uint32	Uint32[4];
+	};
+
+	struct ClearDepthStencilValue
+	{
+		float	Depth;
+		uint32	Stencil;
+	};
+
+	union ClearValue
+	{
+		ClearColorValue			Color;
+		ClearDepthStencilValue	DepthStencil;
+	};
+
 	enum class FShaderStage : uint32
 	{
 		NONE					= 0,
@@ -85,6 +104,25 @@ namespace Poly
 	};
 	ENABLE_BITMASK_OPERATORS(FTextureUsage);
 
+	enum class FResourceBindPoint
+	{
+		NONE				= 0,
+		VERTEX				= FLAG(1),
+		INDEX				= FLAG(2),
+		UNIFORM				= FLAG(3),
+		CONSTANT			= UNIFORM,
+		STORAGE				= FLAG(4),
+		UNORDERED_ACCESS	= STORAGE,
+		INDIRECT			= FLAG(5),
+		COLOR_ATTACHMENT	= FLAG(6),
+		RENDER_TARGET		= COLOR_ATTACHMENT,
+		DEPTH_STENCIL		= FLAG(7),
+		SHADER_READ			= FLAG(8),
+		SAMPLER				= SHADER_READ,
+		INPUT_ATTACHMENT	= FLAG(9)
+	};
+	ENABLE_BITMASK_OPERATORS(FResourceBindPoint); // TODO: Should this really be a flag?
+
 	enum class ETextureDim
 	{
 		NONE	= 0,
@@ -108,9 +146,8 @@ namespace Poly
 	enum class FImageViewFlag
 	{
 		NONE				= 0,
-		SHADER_RESOURCE		= FLAG(1),
-		RENDER_TARGET		= SHADER_RESOURCE,
-		UNORDERED_ACCESS	= SHADER_RESOURCE,
+		COLOR				= FLAG(1),
+		SHADER_RESOURCE		= COLOR,
 		DEPTH_STENCIL		= FLAG(2)
 	};
 	ENABLE_BITMASK_OPERATORS(FImageViewFlag);
@@ -143,6 +180,13 @@ namespace Poly
 		ALL_COMMANDS			= FLAG(13)
 	};
 	ENABLE_BITMASK_OPERATORS(FPipelineStage);
+
+	enum class FCommandPoolFlags
+	{
+		NONE					= 0,
+		RESET_COMMAND_BUFFERS	= FLAG(1)
+	};
+	ENABLE_BITMASK_OPERATORS(FCommandPoolFlags);
 
 	enum class ECommandBufferLevel
 	{
@@ -226,6 +270,15 @@ namespace Poly
 		INPUT_ATTACHMENT				= 11,
 		RENDER_TARGET					= INPUT_ATTACHMENT
 	};
+
+	inline EDescriptorType ConvertBindpointToDescriptorType(FResourceBindPoint bindpoint)
+	{
+		if (BitsSet(FResourceBindPoint::SAMPLER, bindpoint))			return EDescriptorType::COMBINED_IMAGE_SAMPLER;
+		if (BitsSet(FResourceBindPoint::STORAGE, bindpoint))			return EDescriptorType::STORAGE_BUFFER;
+		if (BitsSet(FResourceBindPoint::UNIFORM, bindpoint))			return EDescriptorType::UNIFORM_BUFFER;
+		if (BitsSet(FResourceBindPoint::INPUT_ATTACHMENT, bindpoint))	return EDescriptorType::INPUT_ATTACHMENT;
+		return EDescriptorType::NONE;
+	}
 
 	enum class ELoadOp
 	{

@@ -17,8 +17,8 @@ namespace Poly
 	{
 		for (uint32 i = 0; i < p_SwapchainDesc.BufferCount; i++)
 		{
-			delete m_TextureViews[i];
-			delete m_Textures[i];
+			m_TextureViews[i].reset();
+			m_Textures[i].reset();
 
 			delete m_ImagesInFlight[i];
 			delete m_RenderSemaphores[i];
@@ -48,7 +48,7 @@ namespace Poly
 
 	}
 
-	void PVKSwapChain::Present(std::vector<CommandBuffer*> commandBuffers, Semaphore* pWaitSemaphore)
+	void PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore)
 	{
 		m_ImagesInFlight[m_FrameIndex]->Reset();
 
@@ -228,20 +228,20 @@ namespace Poly
 			textureDesc.MemoryUsage		= EMemoryUsage::GPU_ONLY;
 			textureDesc.TextureDim		= ETextureDim::DIM_2D;
 			textureDesc.TextureUsage	= FTextureUsage::COLOR_ATTACHMENT;
-			m_Textures[i] = new PVKTexture();
+			m_Textures[i] = CreateRef<PVKTexture>();
 			m_Textures[i]->InitWithImage(&textureDesc, images[i]);
 
 			// Texture view
 			TextureViewDesc textureViewDesc = {};
 			textureViewDesc.Format			= p_SwapchainDesc.Format;
-			textureViewDesc.pTexture		= m_Textures[i];
+			textureViewDesc.pTexture		= m_Textures[i].get();
 			textureViewDesc.MipLevel		= 0;
 			textureViewDesc.MipLevelCount	= 1;
 			textureViewDesc.ArrayLayer		= 0;
 			textureViewDesc.ArrayLayerCount	= 1;
-			textureViewDesc.ImageViewFlag	= FImageViewFlag::RENDER_TARGET;
+			textureViewDesc.ImageViewFlag	= FImageViewFlag::COLOR;
 			textureViewDesc.ImageViewType	= EImageViewType::TYPE_2D;
-			m_TextureViews[i] = new PVKTextureView();
+			m_TextureViews[i] = CreateRef<PVKTextureView>();
 			m_TextureViews[i]->Init(&textureViewDesc);
 		}
 	}

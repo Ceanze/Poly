@@ -15,7 +15,7 @@ namespace Poly {
 
 	void Logger::init()
 	{
-		spdlog::set_pattern("%^[%T] %n: %v%$"); // Sets color and format of "[TIME] LOGGER: MSG"
+		spdlog::set_pattern("%^[%T] %n [%!]: %v%$"); // Sets color and format of "[TIME] LOGGER: MSG"
 
 		coreLogger = spdlog::stderr_color_mt("POLY");
 		coreLogger->set_level(spdlog::level::trace);

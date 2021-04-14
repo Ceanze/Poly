@@ -5,15 +5,15 @@
 
 namespace Poly
 {
-	class RenderPass;
 	class TextureView;
+	class GraphicsRenderPass;
 
 	struct FramebufferDesc
 	{
-		uint32			Width			= 0;
-		uint32			Height			= 0;
-		RenderPass*		pRenderPass		= nullptr;
-		TextureView*	pTextureView	= nullptr;
+		uint32						Width			= 0;
+		uint32						Height			= 0;
+		GraphicsRenderPass*			pRenderPass		= nullptr;
+		std::vector<TextureView*>	Attachments;
 	};
 
 	class Framebuffer
@@ -39,6 +39,16 @@ namespace Poly
 		{
 			return p_FramebufferDesc;
 		}
+
+		/**
+		 * @return width of framebuffer
+		 */
+		uint32 GetWidth() const { return p_FramebufferDesc.Width; }
+
+		/**
+		 * @return height of framebuffer
+		 */
+		uint32 GetHeight() const { return p_FramebufferDesc.Height; }
 
 	protected:
 		FramebufferDesc p_FramebufferDesc;

@@ -8,20 +8,20 @@
 namespace Poly
 {
 
-	class VulkanRenderer;
-	class SwapChain;
-	class GraphicsPipeline;
-	class PipelineLayout;
 	class Shader;
-	class RenderPass;
+	class Buffer;
+	class Sampler;
+	class Texture;
+	class SwapChain;
+	class TextureView;
 	class Framebuffer;
 	class CommandPool;
 	class CommandBuffer;
 	class DescriptorSet;
-	class Buffer;
-	class Texture;
-	class TextureView;
-	class Sampler;
+	class VulkanRenderer;
+	class PipelineLayout;
+	class GraphicsPipeline;
+	class GraphicsRenderPass;
 
 	class TestRenderer : public IRenderer
 	{
@@ -49,7 +49,7 @@ namespace Poly
 		Ref<GraphicsPipeline>	m_Pipeline;
 		Ref<Shader>				m_VertShader;
 		Ref<Shader>				m_FragShader;
-		Ref<RenderPass>			m_RenderPass;
+		Ref<GraphicsRenderPass>	m_RenderPass;
 		std::vector<Ref<Framebuffer>> m_Framebuffers;
 		Ref<CommandPool>		m_CommandPool;
 		std::vector<CommandBuffer*> m_CommandBuffers;
@@ -59,7 +59,7 @@ namespace Poly
 		Ref<Buffer>			m_TestBuffer;
 		Ref<TextureView>	m_TestTextureView;
 		Ref<Texture>		m_TestTexture;
-		Sampler*			m_pTestSampler = nullptr;
+		Ref<Sampler>		m_pTestSampler = nullptr;
 
 		Window*			m_pWindow = nullptr;
 	};
