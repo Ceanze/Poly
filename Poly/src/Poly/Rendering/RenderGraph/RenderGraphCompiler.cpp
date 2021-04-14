@@ -179,8 +179,7 @@ namespace Poly
 					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + output.Name, output);
 					passData.Reflection.SetFormat(output.Name, EFormat::B8G8R8A8_UNORM);
 				}
-
-				if (!BitsSet(output.IOType, FIOType::INPUT)) // Only register new resource if it wasn't an input (passthrough)
+				else if (!BitsSet(output.IOType, FIOType::INPUT)) // Only register new resource if it wasn't an input (passthrough)
 					m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + output.Name, passID, output);
 			}
 
