@@ -107,6 +107,23 @@ namespace Poly
 		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) = 0;
 
 		/**
+		 * Binds a vertex buffer
+		 * @param pBuffer - Vertex buffer to bind - must be created with vertex buffer flag
+		 * @param firstBinding - First vertex to bind
+		 * @param bindingCount - number of verticies
+		 * @param offset - Offset in buffer
+		 */
+		virtual void BindVertexBuffer(Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) = 0;
+
+		/**
+		 * Binds index buffer
+		 * @param pBuffer - index buffer to bind
+		 * @param offset - offset in index buffer
+		 * @param indexType - Type of index, either 16 or 32 bit
+		 */
+		virtual void BindIndexBuffer(Buffer* pBuffer, uint64 offset, EIndexType indexType) = 0;
+
+		/**
 		 * Copy buffer to a texture
 		 * @param pBuffer - Buffer to copy from
 		 * @param pTexture - Texture to copy to

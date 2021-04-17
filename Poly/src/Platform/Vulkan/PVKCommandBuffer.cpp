@@ -106,6 +106,20 @@ namespace Poly
 		}
 	}
 
+	void PVKCommandBuffer::BindVertexBuffer(Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset)
+	{
+		PVKBuffer* pPVKBuffer = static_cast<PVKBuffer*>(pBuffer);
+		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+		vkCmdBindVertexBuffers(m_Buffer, firstBinding, bindingCount, &vkBuffer, &offset);
+	}
+
+	void PVKCommandBuffer::BindIndexBuffer(Buffer* pBuffer, uint64 offset, EIndexType indexType)
+	{
+		PVKBuffer* pPVKBuffer = static_cast<PVKBuffer*>(pBuffer);
+		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+		vkCmdBindIndexBuffer(m_Buffer, vkBuffer, offset, ConvertIndexTypeVK(indexType));
+	}
+
 	void PVKCommandBuffer::CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
 	{
 		VkImageSubresourceLayers subresource = {};

@@ -478,4 +478,11 @@ namespace Poly
 		COMPUTE		= 2,
 		RAY_TRACING	= 3
 	};
+
+	enum class EIndexType
+	{
+		NONE	= 0,
+		UINT16	= 1,
+		UINT32	= 2
+	};
 }

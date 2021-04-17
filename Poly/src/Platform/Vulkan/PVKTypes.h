@@ -518,6 +518,16 @@ namespace Poly
 		}
 	}
 
+	inline VkIndexType ConvertIndexTypeVK(EIndexType indexType)
+	{
+		switch (indexType)
+		{
+			case EIndexType::UINT16:	return VK_INDEX_TYPE_UINT16;
+			case EIndexType::UINT32:	return VK_INDEX_TYPE_UINT32;
+			default:					return VK_INDEX_TYPE_UINT32;
+		}
+	}
+
 	enum class BufferType
 	{
 		SAMPLER					= 0,
