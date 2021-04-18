@@ -7,6 +7,8 @@ typedef uint64_t		uint64;
 typedef uint8_t			uint8;
 typedef unsigned char	byte;
 
+typedef uint32			PolyID;
+
 namespace Poly
 {
 	// Custom names for the unique_ptr and shared_ptr

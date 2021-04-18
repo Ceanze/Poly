@@ -28,6 +28,12 @@ namespace Poly
 
 		static Ref<Texture> LoadTexture(const std::string& path, EFormat format);
 
+		static PolyID LoadModel(const std::string& folderPath);
+
+		static PolyID LoadMesh(const std::string& path);
+
+		static PolyID LoadMaterial(const std::string& path);
+
 	private:
 		static bool s_GLSLInit;
 
