@@ -18,7 +18,7 @@ namespace Poly
 		if (it == m_MeshInstances.end())
 			POLY_CORE_WARN("Could not remove mesh instance with meshID {} and materialID {}, could not be found", meshInstance.MeshID, meshInstance.ModelID);
 
-		std::remove(m_MeshInstances.begin(), m_MeshInstances.end(), it);
+		m_MeshInstances.erase(it);
 	}
 
 

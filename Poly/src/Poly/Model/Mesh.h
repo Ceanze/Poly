@@ -36,7 +36,7 @@ namespace Poly
 
 	struct MeshInstance
 	{
-		PolyID	pMesh		= 0;
-		PolyID	pMaterial	= 0;
+		PolyID	MeshID		= 0;
+		PolyID	ModelID	= 0;
 	};
 }
