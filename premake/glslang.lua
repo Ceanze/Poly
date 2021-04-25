@@ -6,8 +6,8 @@ function generate_osdeplib(libpath)
 		filter "system:windows"
 			location (libpath .. "/glslang/OSDependent/Windows")
 
-			targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-			objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+			targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+			objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 			files
 			{
@@ -20,8 +20,8 @@ function generate_osdeplib(libpath)
 		filter "system:linux OR system:macosx"
 			location (libpath .. "/OSDependent/Unix")
 
-			targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-			objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+			targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+			objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 			files
 			{
@@ -61,8 +61,8 @@ function generate_glslanglib(libpath)
 		language "C++"
 		location (libpath .. "/glslang")
 
-		targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-		objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		files
 		{
@@ -82,8 +82,8 @@ function generate_glslanglib(libpath)
 		language "C++"
 		location (libpath .. "/glslang")
 
-		targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-		objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		includedirs
 		{
@@ -115,8 +115,8 @@ function generate_glslanglib(libpath)
 		language "C++"
 		location (libpath .. "/glslang")
 		
-		targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-		objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		includedirs
 		{
@@ -151,8 +151,8 @@ function generate_spirvlib(libpath)
 		language "C++"
 		location (libpath .. "/SPIRV")
 
-		targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-		objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		includedirs
 		{

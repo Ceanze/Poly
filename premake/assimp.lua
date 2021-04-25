@@ -43,8 +43,10 @@ project "assimp"
   cppdialect "C++17"
   location (_WORKING_DIR .. "/Poly/libs/assimp")
 
-  targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-  objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+--   targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+--   objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+    targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+    objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
   defines {
       -- "SWIG",

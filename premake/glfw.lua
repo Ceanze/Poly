@@ -5,8 +5,8 @@ project "GLFW"
 	language "C"
 	location (path)
 
-	targetdir (path .. "bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-	objdir (path .. "bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+    targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+    objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 	files
 	{
