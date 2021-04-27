@@ -32,8 +32,6 @@ namespace Poly
 
 		static PolyID LoadMesh(const std::string& path);
 
-		static PolyID LoadMaterial(const std::string& path);
-
 	private:
 		static bool s_GLSLInit;
 
