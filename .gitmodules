@@ -10,3 +10,6 @@
 [submodule "Poly/libs/glslang"]
 	path = Poly/libs/glslang
 	url = https://github.com/KhronosGroup/glslang.git
+[submodule "Poly/libs/assimp"]
+	path = Poly/libs/assimp
+	url = https://github.com/assimp/assimp.git

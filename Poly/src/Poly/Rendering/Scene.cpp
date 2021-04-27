@@ -14,7 +14,7 @@ namespace Poly
 		if (it == m_Models.end())
 			POLY_CORE_WARN("Cannot remove modelID {}, model could not be found", model);
 
-		std::remove(m_Models.begin(), m_Models.end(), it);
+		m_Models.erase(it);
 	}
 
 	void Scene::Draw()

@@ -34,13 +34,6 @@ namespace Poly
 		static PolyID LoadTexture(const std::string& path, EFormat format);
 
 		/**
-		 * Loads a model from file
-		 * @param path - path of model
-		 * @return PolyID of model
-		 */
-		static PolyID LoadModel(const std::string& path);
-
-		/**
 		 * Loads a mesh from file
 		 * @param path - path of mesh
 		 * @return PolyID of mesh
@@ -55,7 +48,6 @@ namespace Poly
 		static PolyID LoadMaterial(const std::string& path);
 
 		static Material*	GetMaterial(PolyID materialID);
-		static Model*		GetModel(PolyID modelID);
 		static Mesh*		GetMesh(PolyID meshID);
 		static Texture*		GetTexture(PolyID textureID);
 

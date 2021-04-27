@@ -33,10 +33,4 @@ namespace Poly
 		Ref<Buffer> m_pVertexBuffer	= nullptr;
 		Ref<Buffer> m_pIndexBuffer	= nullptr;
 	};
-
-	struct MeshInstance
-	{
-		PolyID	pMesh		= 0;
-		PolyID	pMaterial	= 0;
-	};
 }

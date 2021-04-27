@@ -30,21 +30,6 @@ namespace Poly
 		return id;
 	}
 
-	PolyID ResourceManager::LoadModel(const std::string& path)
-	{
-		if (m_PathToEntry.contains(path))
-		{
-			PolyIDEntry entry = m_PathToEntry[path];
-			if (entry.Type == ResourceType::MODEL)
-				return entry.ID;
-			else
-			{
-				POLY_CORE_WARN("Tried to load model with path {}, but path has been used before as a different type", path);
-				return UINT32_MAX;
-			}
-		}
-	}
-
 	PolyID ResourceManager::LoadMesh(const std::string& path)
 	{
 		if (m_PathToEntry.contains(path))
@@ -81,15 +66,6 @@ namespace Poly
 			return &m_Materials[materialID];
 
 		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range", materialID);
-		return nullptr;
-	}
-
-	Model* ResourceManager::GetModel(PolyID modelID)
-	{
-		if (modelID < m_Models.size())
-			return &m_Models[modelID];
-
-		POLY_CORE_WARN("Tried to get model with ID {}, but ID was out of range", modelID);
 		return nullptr;
 	}
 

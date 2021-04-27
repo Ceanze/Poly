@@ -60,6 +60,7 @@ namespace Poly
 		s_Semaphore.reset();
 	}
 
+
 	Ref<Shader> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
 	{
 		if (!s_GLSLInit)
