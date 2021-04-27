@@ -2,15 +2,19 @@
 A Vulkan Engine designed from scratch that is developed on by me on the freetime.
 
 ## Purpose
-The general purpose of this project is to learn even more about Vulkan and on how to structure a more advanced project. One of the main structure ideas is to make support for multiple graphics API:s, even if only vulkan will be used, the purpose of this is to have it be a bit more challenging.
+The general purpose of this project is as a learning exerice for Vulkan, render graph, and for a more advanced engine and project. An ideal goal would be able to create simple games with the engine and to allow for multiple graphics API:s, however these features are not the main focus.
+
+## Currently working on
+  - Render graph - currently working with multiple passes, automatic sync, and internal resource creation and handling
 
 ## Features (few for the moment)
   - Vulkan API rendering
   - GLSL online compiler
+  - Abstracted graphics layer
   
 ## Currently planned features
-  - Abstracted graphics layer for Vulkan with possible support for others (OpenGL, DirectX 11) in the future.
-  - Simple render graph implementation (for the moment only the bare minimum to allow synchronization is planned)
+  - SPIR-V reflection to automatically generate a more usable interaction with shaders to avoid knowing sets and bindings
+  - ImGui implementation with the render graph to allow for a more visual creation of it
   
 ## Code standard
 [Here](codestandard.md)
