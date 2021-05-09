@@ -23,7 +23,7 @@ namespace Poly
 	{
 		// Width, height and aspect mask is presumed to be the same values from the texture image
 		uint64			BufferOffset		= 0;
-		uint32			BufferRowLengh		= 0;
+		uint32			BufferRowLength		= 0;
 		uint32			BufferImageHeight	= 0;
 		uint32			MipLevel			= 0;
 		uint32			ArrayLayer			= 0;
@@ -131,6 +131,16 @@ namespace Poly
 		 * @param copyBufferDesc - Description of the copy details
 		 */
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
+
+		/**
+		 * Copy source buffer to destination buffer
+		 * @param pSrcBuffer - source buffer
+		 * @param pDstBuffer - destination buffer
+		 * @param size - size of copy area
+		 * @param srcOffset - offset in bytes of source buffer
+		 * @param dstOffset - offset in bytes of destination buffer
+		 */
+		virtual void CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
 
 		/**
 		 * Set dynamic viewport

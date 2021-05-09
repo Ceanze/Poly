@@ -29,6 +29,8 @@ namespace Poly
 
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
 
+		virtual void CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) override final;
+
 		virtual void SetViewport(const ViewportDesc* pViewport) override final;
 
 		virtual void SetScissor(const ScissorDesc* pScissor) override final;
