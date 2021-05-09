@@ -50,6 +50,12 @@ namespace Poly
 		virtual void Submit(CommandBuffer* pCommandBuffer, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence) = 0;
 
 		/**
+		 * Adds a wait semaphore that the next submit to this queue will wait for
+		 * @param pWaitSemaphore - Pointer to the semaphore to wait for
+		 */
+		virtual void AddWaitSemaphore(Semaphore* pWaitSemaphore) = 0;
+
+		/**
 		 * Waits for the queue to be idle
 		 */
 		virtual void Wait() = 0;

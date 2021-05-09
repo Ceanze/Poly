@@ -27,11 +27,7 @@ namespace Poly
 
 		virtual void Submit(CommandBuffer* pCommandBuffer, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence) override final;
 
-		/**
-		 * Adds a wait semaphore that the next submit to this queue will wait for
-		 * @param pWaitSemaphore - Pointer to the semaphore to wait for
-		 */
-		void AddWaitSemaphore(Semaphore* pWaitSemaphore);
+		virtual void AddWaitSemaphore(Semaphore* pWaitSemaphore) override final;
 
 		virtual void Wait() override final;
 
