@@ -1,15 +1,25 @@
 #include "polypch.h"
 #include "ResourceLoader.h"
+#include "ResourceManager.h"
 #include "Platform/API/Shader.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/Semaphore.h"
+#include "Platform/API/TextureView.h"
 #include "Platform/API/CommandPool.h"
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/CommandBuffer.h"
 #include "Poly/Core/RenderAPI.h"
 
+#include "Poly/Model/Mesh.h"
+#include "Poly/Model/Model.h"
+#include "Poly/Model/Material.h"
+
 #include "GLSLang.h"
+#include <assimp/mesh.h>
+#include <assimp/scene.h>
+#include <assimp/material.h>
+#include <assimp/Importer.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -265,6 +275,7 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(s_GraphicsCommandBuffer, s_Semaphore.get(), nullptr, nullptr);
 
 		// 8. Wait on both queues (or something better, this is the simple approach)
+		// TODO: Use semaphore here instead!
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 
@@ -273,4 +284,207 @@ namespace Poly
 		return texture;
 	}
 
+	Ref<Model> ResourceLoader::LoadModel(const std::string& path)
+	{
+		Assimp::Importer importer;
+		const aiScene* pScene = importer.ReadFile(path, 0);
+
+		if (!pScene)
+		{
+			POLY_CORE_WARN("Could not open mesh at path {}", path);
+			return nullptr;
+		}
+
+		Ref<Model> pModel = CreateRef<Model>();
+
+		ProcessNode(pScene->mRootNode, pScene, pModel.get());
+
+		return pModel;
+	}
+
+	Ref<Material> ResourceLoader::LoadMaterial(const std::string& path)
+	{
+		return nullptr;
+	}
+
+	void ResourceLoader::ProcessNode(aiNode *pNode, const aiScene *pScene, Model* pModel)
+	{
+		for (uint32 i = 0; i < pNode->mNumMeshes; i++)
+		{
+			aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
+			aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
+			Ref<Mesh> pPolyMesh = Mesh::Create();
+			PolyID materialID = 0;
+			ProcessMesh(pMesh, pScene, pPolyMesh.get());
+			ProcessMaterial(pMaterial, pScene, materialID);
+			pModel->AddMeshInstance({ pPolyMesh, materialID });
+		}
+
+		for (uint32 i = 0; i < pNode->mNumChildren; i++)
+		{
+			aiNode* child = pNode->mChildren[i];
+			ProcessNode(child, pScene, pModel);
+		}
+	}
+
+	void ResourceLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh)
+	{
+		std::vector<Vertex> vertices(pMesh->mNumVertices);
+		std::vector<uint32> indices(pMesh->mNumFaces);
+
+		for (uint32 i = 0; i < pMesh->mNumVertices; i++)
+		{
+			vertices[i].Position.x = pMesh->mVertices[i].x;
+			vertices[i].Position.y = pMesh->mVertices[i].y;
+			vertices[i].Position.z = pMesh->mVertices[i].z;
+
+			if (pMesh->HasNormals())
+			{
+				vertices[i].Normal.x = pMesh->mNormals[i].x;
+				vertices[i].Normal.y = pMesh->mNormals[i].y;
+				vertices[i].Normal.z = pMesh->mNormals[i].z;
+			}
+
+			// There can be different sets of texture coords - unsure of purpose - only use the first
+			if (pMesh->HasTextureCoords(0))
+			{
+				vertices[i].TexCoord.x = pMesh->mTextureCoords[0][i].x;
+				vertices[i].TexCoord.y = pMesh->mTextureCoords[0][i].y;
+			}
+
+			if (pMesh->HasTangentsAndBitangents())
+			{
+				vertices[i].Tangent.x = pMesh->mTangents[i].x;
+				vertices[i].Tangent.y = pMesh->mTangents[i].y;
+				vertices[i].Tangent.z = pMesh->mTangents[i].z;
+			}
+		}
+
+		for (uint32 i = 0; i < pMesh->mNumFaces; i++)
+		{
+			indices[i * 3 + 0] = pMesh->mFaces[i].mIndices[0];
+			indices[i * 3 + 1] = pMesh->mFaces[i].mIndices[1];
+			indices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
+		}
+
+		// Create and transfer data to buffers
+		// Vertices
+		BufferDesc desc = {};
+		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::VERTEX_BUFFER;
+		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
+		desc.Size			= sizeof(Vertex) * vertices.size();
+		Ref<Buffer> pVertexBuffer = RenderAPI::CreateBuffer(&desc);
+		TransferDataToGPU(vertices.data(), vertices.size(), sizeof(Vertex), pVertexBuffer);
+
+		// Indices
+		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
+		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
+		desc.Size			= sizeof(uint32) * indices.size();
+		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
+		TransferDataToGPU(indices.data(), indices.size(), sizeof(uint32), pIndexBuffer);
+
+		pPolyMesh->SetVertexBuffer(pVertexBuffer);
+		pPolyMesh->SetIndexBuffer(pIndexBuffer);
+	}
+
+	void ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID)
+	{
+		if (ResourceManager::IsResourceLoaded(pMaterial->GetName().C_Str()))
+		{
+			// Load material returns a loaded value if the material is already loaded
+			materialID = ResourceManager::LoadMaterial(pMaterial->GetName().C_Str());
+			return;
+		}
+
+		Ref<Material> pPolyMaterial = CreateRef<Material>();
+		bool hasTextures = false;
+
+		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+		{
+			aiString path;
+			pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+			PolyID id = ResourceManager::LoadTexture(path.C_Str(), EFormat::R8G8B8A8_UNORM);
+
+			TextureViewDesc desc = {};
+			desc.pTexture			= ResourceManager::GetTexture(id);
+			desc.ArrayLayer			= 0;
+			desc.ArrayLayerCount	= 1;
+			desc.MipLevel			= 0;
+			desc.MipLevelCount		= 1;
+			desc.ImageViewFlag		= FImageViewFlag::COLOR;
+			desc.ImageViewType		= EImageViewType::TYPE_2D;
+			desc.Format				= EFormat::R8G8B8A8_UNORM;
+
+			Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&desc);
+
+			pPolyMaterial->SetTexture(Material::Type::ALBEDO, desc.pTexture);
+			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, pTextureView);
+			hasTextures = true;
+		}
+
+		if (!hasTextures)
+		{
+			POLY_CORE_WARN("No valid textures were found for material {}!", pMaterial->GetName().C_Str());
+			return;
+		}
+
+		materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
+	}
+
+	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)
+	{
+		// Create transfer buffer
+		BufferDesc bufferDesc = {};
+		bufferDesc.BufferUsage	= FBufferUsage::TRANSFER_SRC;
+		bufferDesc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
+		bufferDesc.Size			= size;
+		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&bufferDesc);
+
+		// Map transfer buffer
+		void* buffMap = pBuffer->Map();
+		memcpy(buffMap, data, size * count);
+		pBuffer->Unmap();
+
+		// Copy over data from buffer to texture
+		s_TransferCommandPool->Reset();
+		s_TransferCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
+		s_TransferCommandBuffer->CopyBuffer(pBuffer.get(), pDestinationBuffer.get(), size, 0, 0);
+		s_TransferCommandBuffer->ReleaseBuffer(
+			pDestinationBuffer.get(),
+			FPipelineStage::TRANSFER,
+			FPipelineStage::TRANSFER,
+			FAccessFlag::TRANSFER_READ,
+			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
+		);
+		s_TransferCommandBuffer->End();
+
+		// Semaphore to make sure the transfer is done before acquire
+		s_Semaphore->ClearWaitStageMask();
+		s_Semaphore->AddWaitStageMask(FPipelineStage::VERTEX_SHADER);
+
+		// Submit to transfer queue
+		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(s_TransferCommandBuffer, nullptr, s_Semaphore.get(), nullptr);
+
+		// Acquire texture to graphics queue
+		s_GraphicsCommandPool->Reset();
+		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
+		s_TransferCommandBuffer->AcquireBuffer(
+			pDestinationBuffer.get(),
+			FPipelineStage::TRANSFER,
+			FPipelineStage::TRANSFER,
+			FAccessFlag::TRANSFER_READ,
+			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
+		);
+		s_GraphicsCommandBuffer->End();
+
+		// Submit to graphics queue
+		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(s_GraphicsCommandBuffer, s_Semaphore.get(), nullptr, nullptr);
+
+		// Wait on both queues (or something better, this is the simple approach)
+		// TODO: Use semaphore here instead!
+		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
+		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
+	}
 }

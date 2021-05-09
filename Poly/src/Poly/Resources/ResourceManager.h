@@ -38,7 +38,7 @@ namespace Poly
 		 * @param path - path of mesh
 		 * @return PolyID of mesh
 		 */
-		static PolyID LoadMesh(const std::string& path);
+		static PolyID LoadModel(const std::string& path);
 
 		/**
 		 * Loads a material from file
@@ -47,9 +47,15 @@ namespace Poly
 		 */
 		static PolyID LoadMaterial(const std::string& path);
 
-		static Material*	GetMaterial(PolyID materialID);
-		static Mesh*		GetMesh(PolyID meshID);
+		static Model*		GetModel(PolyID modelID);
 		static Texture*		GetTexture(PolyID textureID);
+		static Material*	GetMaterial(PolyID materialID);
+
+		inline static bool IsResourceLoaded(const std::string& path) { return m_PathToEntry.contains(path); }
+
+		static PolyID RegisterModel(const std::string& path, Ref<Model> pModel);
+		static PolyID RegisterTexture(const std::string& path, Ref<Texture> pTexture);
+		static PolyID RegisterMaterial(const std::string& path, Ref<Material> pMaterial);
 
 	private:
 		struct PolyIDEntry
@@ -59,9 +65,8 @@ namespace Poly
 		};
 
 		static std::vector<Ref<Texture>>	m_Textures;
-		static std::vector<Mesh>			m_Meshes;
-		static std::vector<Material>		m_Materials;
-		static std::vector<Model>			m_Models;
+		static std::vector<Ref<Model>>		m_Models;
+		static std::vector<Ref<Material>>	m_Materials;
 
 		static std::unordered_map<std::string, PolyIDEntry> m_PathToEntry;
 	};

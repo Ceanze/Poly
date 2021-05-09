@@ -5,10 +5,20 @@
 
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
+struct aiNode;
+struct aiMesh;
+struct aiScene;
+struct aiMaterial;
+
 namespace Poly
 {
+
+	class Mesh;
+	class Model;
 	class Shader;
+	class Buffer;
 	class Texture;
+	class Material;
 	class Semaphore;
 	class CommandPool;
 	class CommandBuffer;
@@ -28,11 +38,16 @@ namespace Poly
 
 		static Ref<Texture> LoadTexture(const std::string& path, EFormat format);
 
-		static PolyID LoadModel(const std::string& folderPath);
+		static Ref<Model> LoadModel(const std::string& path);
 
-		static PolyID LoadMesh(const std::string& path);
+		static Ref<Material> LoadMaterial(const std::string& path);
 
 	private:
+		static void ProcessNode(aiNode* pNode, const aiScene* pScene, Model* pModel);
+		static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh);
+		static void ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID);
+		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
+
 		static bool s_GLSLInit;
 
 		static Ref<CommandPool>		s_TransferCommandPool;
