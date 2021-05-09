@@ -8,21 +8,28 @@ namespace Poly
 	class Material
 	{
 	public:
+		enum class Type
+		{
+			NONE,
+			ALBEDO,
+			METALIC,
+			NORMAL
+		};
+
+	public:
 		Material() = default;
 		~Material() = default;
 
-		static Ref<Material> Create() { return CreateRef<Material>(); }
+		void SetTexture(Type type, Texture* pTexture) { m_Textures[type] = pTexture; }
 
-		void SetTexture(Ref<Texture> pTexture) { m_pTexture = pTexture; }
+		void SetTextureView(Type type, Ref<TextureView> pTextureView) { m_TextureViews[type] = pTextureView; }
 
-		void SetTextureView(Ref<TextureView> pTextureView) { m_pTextureView = pTextureView; }
+		const Texture* GetTexture(Type type) const { return m_Textures.at(type); }
 
-		const Texture* GetTexture() const { return m_pTexture.get(); }
-
-		const TextureView* GetTextureView() const { return m_pTextureView.get(); }
+		const TextureView* GetTextureView(Type type) const { return m_TextureViews.at(type).get(); }
 
 	private:
-		Ref<Texture> m_pTexture;
-		Ref<TextureView> m_pTextureView;
+		std::unordered_map<Type, Texture*> m_Textures;
+		std::unordered_map<Type, Ref<TextureView>> m_TextureViews;
 	};
 }

@@ -10,6 +10,8 @@ namespace Poly
 	struct Vertex
 	{
 		alignas(16)	glm::vec4	Position;
+		alignas(16)	glm::vec4	Normal;
+		alignas(16)	glm::vec4	Tangent;
 		alignas(16)	glm::vec2	TexCoord;
 	};
 
