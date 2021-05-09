@@ -16,15 +16,10 @@ class TestLayer : public Poly::Layer
 public:
 	TestLayer() 
 	{
-		// Poly::RendererAPI::Create(Poly::BackendAPI::VULKAN);
-		// Poly::RendererAPI::CreateRenderer(Poly::Renderer::TEST);
-		 pCamera = new Poly::Camera();
-		 pCamera->SetAspect(1280.f / 720.f);
-		 pCamera->SetMouseSense(3.f);
+		pCamera = new Poly::Camera();
+		pCamera->SetAspect(1280.f / 720.f);
+		pCamera->SetMouseSense(3.f);
 		
-		// Poly::RendererAPI::SetActiveCamera(pCamera);
-
-		// Poly::RendererAPI::Init(1280, 720);
 
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
