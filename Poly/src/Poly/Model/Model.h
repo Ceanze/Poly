@@ -10,6 +10,16 @@ namespace Poly
 		MeshInstance(Ref<Mesh> pMesh, PolyID materialID) : pMesh(pMesh), MaterialID(materialID) {}
 		Ref<Mesh>	pMesh;
 		PolyID		MaterialID;
+
+		bool operator==(const MeshInstance& other) const { return pMesh == other.pMesh && MaterialID == other.MaterialID; }
+	};
+
+	struct MeshInstanceKeyHasher
+	{
+		size_t operator()(const MeshInstance& key) const
+		{
+			return std::hash<Ref<Mesh>>()(key.pMesh) ^ (std::hash<PolyID>()(key.MaterialID) >> 1);
+		}
 	};
 
 	class Model
