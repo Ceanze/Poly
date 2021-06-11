@@ -14,9 +14,9 @@ namespace Poly
 	// Custom names for the unique_ptr and shared_ptr
 
 	template<typename T>
-	using Scope = std::unique_ptr<T>;
+	using Unique = std::unique_ptr<T>;
 	template<typename T, typename ... Args>
-	constexpr Scope<T> CreateScope(Args&& ... args)
+	constexpr Unique<T> CreateUnique(Args&& ... args)
 	{
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}
