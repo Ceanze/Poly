@@ -7,6 +7,7 @@
 namespace Poly
 {
 	class Pass;
+	class Scene;
 	class Resource;
 	class Framebuffer;
 	class RenderGraph;
@@ -40,6 +41,10 @@ namespace Poly
 
 		void SetBackbuffer(Ref<Resource> pResource);
 
+		void SetScene(const Ref<Scene>& pScene) { m_pScene = pScene; }
+
+		const Scene* GetScene() const { return m_pScene.get(); }
+
 	private:
 		friend class RenderGraphCompiler;
 
@@ -51,6 +56,9 @@ namespace Poly
 		Framebuffer* GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex);
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
 		const std::vector<Ref<DescriptorSet>>& GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex);
+
+		// General
+		Ref<Scene> m_pScene;
 
 		// Render Graph specific types
 		std::vector<Ref<Pass>>		m_Passes;

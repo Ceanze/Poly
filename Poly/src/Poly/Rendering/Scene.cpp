@@ -1,6 +1,10 @@
 #include "polypch.h"
 #include "Scene.h"
 
+#include "Poly/Rendering/RenderGraph/RenderContext.h"
+#include "Poly/Resources/ResourceManager.h"
+#include "Poly/Model/Model.h"
+
 namespace Poly
 {
 	void Scene::AddModel(PolyID model)
@@ -15,10 +19,5 @@ namespace Poly
 			POLY_CORE_WARN("Cannot remove modelID {}, model could not be found", model);
 
 		m_Models.erase(it);
-	}
-
-	void Scene::Draw()
-	{
-
 	}
 }

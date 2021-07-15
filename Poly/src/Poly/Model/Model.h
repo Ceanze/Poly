@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 namespace Poly
 {
 	class Mesh;
@@ -31,8 +33,10 @@ namespace Poly
 		void AddMeshInstance(MeshInstance meshInstance) { m_Meshes.push_back(meshInstance); }
 
 		const std::vector<MeshInstance> GetMeshInstances() const { return m_Meshes; }
+		glm::mat4& GetTransform() const { return m_Transform; }
 
 	private:
 		std::vector<MeshInstance>	m_Meshes;
+		glm::mat4					m_Transform;
 	};
 }

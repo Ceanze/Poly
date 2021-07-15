@@ -73,6 +73,7 @@ namespace Poly
 
 		Ref<RenderContext> renderContext = RenderContext::Create();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
+		renderData.SetScene(m_pScene.get());
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
 			// Set inital pass values

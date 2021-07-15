@@ -19,6 +19,4 @@ namespace Poly
 	{
 		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
 	}
-
-
 }
