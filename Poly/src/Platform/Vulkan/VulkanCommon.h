@@ -71,6 +71,9 @@ namespace Poly {
 			// If not requesting graphics queue, should return a queue without graphics support (to avoid non-unique queue)
 			else if ((desiredQueue) && (graphicsCheck == 0))
 				return { i, queueFamilies[i].queueCount };
+			// If no queue meets the critera of no-graphics and other desired queue - use the first available
+			else if (desiredQueue)
+				return { i, queueFamilies[i].queueCount };
 		}
 		POLY_VALIDATE(false, "Failed to find queue index for queue family {}!", queueFamily);
 		return {0, 0};
