@@ -113,7 +113,7 @@ namespace Poly
 		 * @param bindingCount - number of verticies
 		 * @param offset - Offset in buffer
 		 */
-		virtual void BindVertexBuffer(Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) = 0;
+		virtual void BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) = 0;
 
 		/**
 		 * Binds index buffer
@@ -121,7 +121,7 @@ namespace Poly
 		 * @param offset - offset in index buffer
 		 * @param indexType - Type of index, either 16 or 32 bit
 		 */
-		virtual void BindIndexBuffer(Buffer* pBuffer, uint64 offset, EIndexType indexType) = 0;
+		virtual void BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType) = 0;
 
 		/**
 		 * Copy buffer to a texture

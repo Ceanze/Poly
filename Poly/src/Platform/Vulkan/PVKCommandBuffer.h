@@ -23,9 +23,9 @@ namespace Poly
 
 		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) override final;
 
-		virtual void BindVertexBuffer(Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) override final;
+		virtual void BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) override final;
 
-		virtual void BindIndexBuffer(Buffer* pBuffer, uint64 offset, EIndexType indexType) override final;
+		virtual void BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType) override final;
 
 		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
 
