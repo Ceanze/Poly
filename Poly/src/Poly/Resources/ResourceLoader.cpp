@@ -383,8 +383,8 @@ namespace Poly
 		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
 		TransferDataToGPU(indices.data(), indices.size(), sizeof(uint32), pIndexBuffer);
 
-		pPolyMesh->SetVertexBuffer(pVertexBuffer);
-		pPolyMesh->SetIndexBuffer(pIndexBuffer);
+		pPolyMesh->SetVertexBuffer(pVertexBuffer, vertices.size());
+		pPolyMesh->SetIndexBuffer(pIndexBuffer, indices.size());
 	}
 
 	void ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID)
