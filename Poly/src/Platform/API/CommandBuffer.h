@@ -143,6 +143,16 @@ namespace Poly
 		virtual void CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
 
 		/**
+		 * Update device buffer with local data from host memory - Limited to 65536
+		 * Use staging buffer for larger amount of transfers
+		 * @param buffer - destination buffer on GPU
+		 * @param size - size of data in bytes - must be a multiple of 4
+		 * @param offset - offset of buffer to start updating - must be a multiple of 4
+		 * @param pData - data to use for the updating - must be atleast size bytes
+		 */
+		virtual void UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData) = 0;
+
+		/**
 		 * Set dynamic viewport
 		 * @param viewport - viewport struct
 		 */

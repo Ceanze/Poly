@@ -31,6 +31,8 @@ namespace Poly
 
 		virtual void CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) override final;
 
+		virtual void UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData) override final;
+
 		virtual void SetViewport(const ViewportDesc* pViewport) override final;
 
 		virtual void SetScissor(const ScissorDesc* pScissor) override final;

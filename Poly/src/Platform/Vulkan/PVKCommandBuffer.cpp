@@ -161,6 +161,14 @@ namespace Poly
 		);
 	}
 
+	void PVKCommandBuffer::UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData)
+	{
+		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
+		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+
+		vkCmdUpdateBuffer(m_Buffer, vkBuffer, offset, size, pData);
+	}
+
 	void PVKCommandBuffer::SetViewport(const ViewportDesc* pViewport)
 	{
 		// TODO: Allow for multiple viewports
