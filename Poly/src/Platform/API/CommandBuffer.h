@@ -104,7 +104,7 @@ namespace Poly
 		 * @param pDescriptor - Descriptor containing the sets
 		 * @param setIndex - Which set to bind
 		 */
-		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) = 0;
+		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor, uint32 dynamicOffsetCount = 0, const uint32* pDynamicOffsets = nullptr) = 0;
 
 		/**
 		 * Binds a vertex buffer

@@ -89,7 +89,7 @@ namespace Poly
 		}
 	}
 
-	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor)
+	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor, uint32 dynamicOffsetCount, const uint32* pDynamicOffsets)
 	{
 		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
 		{
@@ -101,8 +101,8 @@ namespace Poly
 				0,
 				1,
 				&descSet,
-				0,
-				nullptr);
+				dynamicOffsetCount,
+				pDynamicOffsets);
 		}
 	}
 

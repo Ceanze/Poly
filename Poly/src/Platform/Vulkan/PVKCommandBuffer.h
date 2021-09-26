@@ -21,7 +21,7 @@ namespace Poly
 
 		virtual void BindPipeline(Pipeline* pPipeline) override final;
 
-		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) override final;
+		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor, uint32 dynamicOffsetCount = 0, const uint32* pDynamicOffsets = nullptr) override final;
 
 		virtual void BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) override final;
 
