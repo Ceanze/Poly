@@ -9,6 +9,14 @@
 
 namespace Poly
 {
+	void ResourceManager::Release()
+	{
+		m_Models.clear();
+		m_Textures.clear();
+		m_Materials.clear();
+		m_PathToEntry.clear();
+	}
+
 	PolyID ResourceManager::LoadTexture(const std::string& path, EFormat format)
 	{
 		if (m_PathToEntry.contains(path))

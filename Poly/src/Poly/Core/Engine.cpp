@@ -8,6 +8,7 @@
 #include "Application.h"
 
 #include "Poly/Resources/ResourceLoader.h"
+#include "Poly/Resources/ResourceManager.h"
 
 #include <GLFW/glfw3.h>
 
@@ -55,6 +56,7 @@ namespace Poly
 	void Engine::Release()
 	{
 		ResourceLoader::Release();
+		ResourceManager::Release();
 
 		delete s_pWindow;
 
