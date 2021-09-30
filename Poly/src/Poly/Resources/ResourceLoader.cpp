@@ -330,7 +330,7 @@ namespace Poly
 	void ResourceLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh)
 	{
 		std::vector<Vertex> vertices(pMesh->mNumVertices);
-		std::vector<uint32> indices(pMesh->mNumFaces);
+		std::vector<uint32> indices(pMesh->mNumFaces * 3);
 
 		for (uint32 i = 0; i < pMesh->mNumVertices; i++)
 		{
@@ -469,7 +469,7 @@ namespace Poly
 		// Acquire texture to graphics queue
 		s_GraphicsCommandPool->Reset();
 		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
-		s_TransferCommandBuffer->AcquireBuffer(
+		s_GraphicsCommandBuffer->AcquireBuffer(
 			pDestinationBuffer.get(),
 			FPipelineStage::TRANSFER,
 			FPipelineStage::TRANSFER,
