@@ -105,7 +105,11 @@ namespace Poly
 		{
 			if (existing.Name == name)
 			{
-				existing.BindPoint = bindPoint;
+				if (BitsSet(bindPoint, FResourceBindPoint::SCENE_INSTANCE))
+					existing.BindPoint = FResourceBindPoint::SCENE_INSTANCE | FResourceBindPoint::UNIFORM;
+				else
+					existing.BindPoint = bindPoint;
+
 				return;
 			}
 		}
@@ -133,12 +137,12 @@ namespace Poly
 		POLY_CORE_WARN("[PassReflection]: Tried to set sampler of {}, but that IO does not exist with the given name!", name);
 	}
 
-	std::vector<IOData> PassReflection::GetIOData(FIOType IOType) const
+	std::vector<IOData> PassReflection::GetIOData(FIOType IOType, FResourceBindPoint excludeFlags) const
 	{
 		std::vector<IOData> data;
 		for (auto& IO : m_IOs)
 		{
-			if (BitsSet(IO.IOType, IOType))
+			if (BitsSet(IO.IOType, IOType) && !BitsSet(IO.BindPoint, excludeFlags))
 				data.push_back(IO);
 		}
 
