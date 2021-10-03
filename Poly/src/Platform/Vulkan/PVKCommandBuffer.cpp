@@ -98,7 +98,7 @@ namespace Poly
 				m_Buffer,
 				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
 				reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
-				0,
+				pDescriptor->GetSetIndex(),
 				1,
 				&descSet,
 				dynamicOffsetCount,
