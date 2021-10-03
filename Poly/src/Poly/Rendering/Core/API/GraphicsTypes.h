@@ -81,7 +81,11 @@ namespace Poly
 		UNDEFINED			= 0,
 		R8G8B8A8_UNORM		= 1,
 		B8G8R8A8_UNORM		= 2,	// Common for swap chain surface
-		D24_UNORM_S8_UINT	= 3		// Common for depth-stencil
+		D24_UNORM_S8_UINT	= 3,	// Common for depth-stencil
+		R32_SFLOAT			= 4,
+		R32G32_SFLOAT		= 5,
+		R32G32B32_SFLOAT	= 6,
+		R32G32B32A32_SFLOAT	= 7
 	};
 
 	enum class FTextureUsage : uint32
@@ -119,7 +123,8 @@ namespace Poly
 		DEPTH_STENCIL		= FLAG(7),
 		SHADER_READ			= FLAG(8),
 		SAMPLER				= SHADER_READ,
-		INPUT_ATTACHMENT	= FLAG(9)
+		INPUT_ATTACHMENT	= FLAG(9),
+		SCENE_INSTANCE		= FLAG(10),
 	};
 	ENABLE_BITMASK_OPERATORS(FResourceBindPoint); // TODO: Should this really be a flag?
 
