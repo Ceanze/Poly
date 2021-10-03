@@ -109,8 +109,8 @@ namespace Poly
 		/**
 		 * Binds a vertex buffer
 		 * @param pBuffer - Vertex buffer to bind - must be created with vertex buffer flag
-		 * @param firstBinding - First vertex to bind
-		 * @param bindingCount - number of verticies
+		 * @param firstBinding - First buffer to bind
+		 * @param bindingCount - number of buffers to bind
 		 * @param offset - Offset in buffer
 		 */
 		virtual void BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) = 0;
