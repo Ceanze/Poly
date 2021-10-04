@@ -115,13 +115,13 @@ namespace Poly
 		frontState.reference	= pDesc->DepthStencil.Front.Reference;
 
 		VkStencilOpState backState = {};
-		frontState.failOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.FailOp);
-		frontState.passOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.PassOp);
-		frontState.depthFailOp	= ConvertStencilOpVK(pDesc->DepthStencil.Back.DepthFailOp);
-		frontState.compareOp	= ConvertCompareOpVK(pDesc->DepthStencil.Back.CompareOp);
-		frontState.compareMask	= pDesc->DepthStencil.Back.CompareMask;
-		frontState.writeMask	= pDesc->DepthStencil.Back.WriteMask;
-		frontState.reference	= pDesc->DepthStencil.Back.Reference;
+		backState.failOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.FailOp);
+		backState.passOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.PassOp);
+		backState.depthFailOp	= ConvertStencilOpVK(pDesc->DepthStencil.Back.DepthFailOp);
+		backState.compareOp		= ConvertCompareOpVK(pDesc->DepthStencil.Back.CompareOp);
+		backState.compareMask	= pDesc->DepthStencil.Back.CompareMask;
+		backState.writeMask		= pDesc->DepthStencil.Back.WriteMask;
+		backState.reference		= pDesc->DepthStencil.Back.Reference;
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil = {};
 		depthStencil.sType					= VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
