@@ -29,6 +29,8 @@ namespace Poly
 
 		const Scene* GetScene() const { return m_pScene; }
 
+		void ExecuteScene(const RenderContext& context) const;
+
 	private:
 		friend class SyncPass;
 		friend class RenderGraphProgram;
