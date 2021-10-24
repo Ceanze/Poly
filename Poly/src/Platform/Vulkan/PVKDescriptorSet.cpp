@@ -25,12 +25,12 @@ namespace Poly
 		CreateDescriptorSet(m_pPipelineLayout);
 	}
 
-	void PVKDescriptorSet::UpdateBufferBinding(uint32 binding, Buffer* pBuffer, uint64 offset, uint64 range)
+	void PVKDescriptorSet::UpdateBufferBinding(uint32 binding, const Buffer* pBuffer, uint64 offset, uint64 range)
 	{
 		// Note: This implementation is far from optimal in terms of performance.
 
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer	= reinterpret_cast<PVKBuffer*>(pBuffer)->GetNativeVK();
+		bufferInfo.buffer	= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
 		bufferInfo.offset	= offset;
 		bufferInfo.range	= range;
 
