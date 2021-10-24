@@ -89,7 +89,7 @@ namespace Poly
 		}
 	}
 
-	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor)
+	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor, uint32 dynamicOffsetCount, const uint32* pDynamicOffsets)
 	{
 		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
 		{
@@ -98,24 +98,24 @@ namespace Poly
 				m_Buffer,
 				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
 				reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
-				0,
+				pDescriptor->GetSetIndex(),
 				1,
 				&descSet,
-				0,
-				nullptr);
+				dynamicOffsetCount,
+				pDynamicOffsets);
 		}
 	}
 
-	void PVKCommandBuffer::BindVertexBuffer(Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset)
+	void PVKCommandBuffer::BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset)
 	{
-		PVKBuffer* pPVKBuffer = static_cast<PVKBuffer*>(pBuffer);
+		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
 		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
 		vkCmdBindVertexBuffers(m_Buffer, firstBinding, bindingCount, &vkBuffer, &offset);
 	}
 
-	void PVKCommandBuffer::BindIndexBuffer(Buffer* pBuffer, uint64 offset, EIndexType indexType)
+	void PVKCommandBuffer::BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType)
 	{
-		PVKBuffer* pPVKBuffer = static_cast<PVKBuffer*>(pBuffer);
+		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
 		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
 		vkCmdBindIndexBuffer(m_Buffer, vkBuffer, offset, ConvertIndexTypeVK(indexType));
 	}
@@ -159,6 +159,14 @@ namespace Poly
 			1,
 			&copyDesc
 		);
+	}
+
+	void PVKCommandBuffer::UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData)
+	{
+		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
+		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+
+		vkCmdUpdateBuffer(m_Buffer, vkBuffer, offset, size, pData);
 	}
 
 	void PVKCommandBuffer::SetViewport(const ViewportDesc* pViewport)

@@ -104,16 +104,16 @@ namespace Poly
 		 * @param pDescriptor - Descriptor containing the sets
 		 * @param setIndex - Which set to bind
 		 */
-		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor) = 0;
+		virtual void BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor, uint32 dynamicOffsetCount = 0, const uint32* pDynamicOffsets = nullptr) = 0;
 
 		/**
 		 * Binds a vertex buffer
 		 * @param pBuffer - Vertex buffer to bind - must be created with vertex buffer flag
-		 * @param firstBinding - First vertex to bind
-		 * @param bindingCount - number of verticies
+		 * @param firstBinding - First buffer to bind
+		 * @param bindingCount - number of buffers to bind
 		 * @param offset - Offset in buffer
 		 */
-		virtual void BindVertexBuffer(Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) = 0;
+		virtual void BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset) = 0;
 
 		/**
 		 * Binds index buffer
@@ -121,7 +121,7 @@ namespace Poly
 		 * @param offset - offset in index buffer
 		 * @param indexType - Type of index, either 16 or 32 bit
 		 */
-		virtual void BindIndexBuffer(Buffer* pBuffer, uint64 offset, EIndexType indexType) = 0;
+		virtual void BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType) = 0;
 
 		/**
 		 * Copy buffer to a texture
@@ -141,6 +141,16 @@ namespace Poly
 		 * @param dstOffset - offset in bytes of destination buffer
 		 */
 		virtual void CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
+
+		/**
+		 * Update device buffer with local data from host memory - Limited to 65536
+		 * Use staging buffer for larger amount of transfers
+		 * @param buffer - destination buffer on GPU
+		 * @param size - size of data in bytes - must be a multiple of 4
+		 * @param offset - offset of buffer to start updating - must be a multiple of 4
+		 * @param pData - data to use for the updating - must be atleast size bytes
+		 */
+		virtual void UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData) = 0;
 
 		/**
 		 * Set dynamic viewport

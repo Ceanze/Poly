@@ -7,6 +7,7 @@
 namespace Poly
 {
 	class Pass;
+	class Scene;
 	class Resource;
 	class Framebuffer;
 	class RenderGraph;
@@ -14,6 +15,7 @@ namespace Poly
 	class DescriptorSet;
 	class CommandBuffer;
 	class ResourceCache;
+	class SceneRenderer;
 	class PipelineLayout;
 	class GraphicsPipeline;
 	class GraphicsRenderPass;
@@ -40,6 +42,10 @@ namespace Poly
 
 		void SetBackbuffer(Ref<Resource> pResource);
 
+		void SetScene(const Ref<Scene>& pScene);
+
+		const Scene* GetScene() const { return m_pScene.get(); }
+
 	private:
 		friend class RenderGraphCompiler;
 
@@ -51,6 +57,10 @@ namespace Poly
 		Framebuffer* GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex);
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
 		const std::vector<Ref<DescriptorSet>>& GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex);
+
+		// General
+		Ref<Scene> m_pScene;
+		Ref<SceneRenderer> m_pSceneRenderer;
 
 		// Render Graph specific types
 		std::vector<Ref<Pass>>		m_Passes;
@@ -69,5 +79,6 @@ namespace Poly
 		std::unordered_map<uint32, Ref<GraphicsPipeline>>			m_GraphicsPipelines; // key: passIndex
 		std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_Descriptors; // key: passIndex, index: set
 		std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_DescriptorsToBeDestroyed; // key: frameIndex
+		std::unordered_map<uint32, uint32>							m_InstanceSetIndices; // key: passIndex, index: instanceSetIndex
 	};
 }

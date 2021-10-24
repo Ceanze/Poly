@@ -3,6 +3,7 @@
 
 #pragma warning(push)
 #pragma warning( disable : 26439 26451 26495 26439 26451 26495 26812 6385)
+#define FMT_USE_USER_DEFINED_LITERALS 0
 #include "spdlog/spdlog.h"
 #pragma warning(pop)
 

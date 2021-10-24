@@ -22,32 +22,32 @@ namespace Poly
 		p_PipelineType = EPipelineType::GRAPHICS;
 
 		// Create vertex arrays
-		std::vector<VkVertexInputBindingDescription> vertexBinds;
+		VkVertexInputBindingDescription vertexBinding = {};
 		std::vector<VkVertexInputAttributeDescription> vertexAttribs;
-		vertexBinds.reserve(pDesc->VertexInputs.size());
 		vertexAttribs.reserve(pDesc->VertexInputs.size());
+
+		if (!pDesc->VertexInputs.empty())
+		{
+			vertexBinding.binding	= pDesc->VertexInputs[0].Binding;
+			vertexBinding.stride	= pDesc->VertexInputs[0].Stride;
+			vertexBinding.inputRate	= ConvertVertexInputRateVK(pDesc->VertexInputs[0].VertexInputRate);
+		}
 
 		for (auto& vertexInput : pDesc->VertexInputs)
 		{
-			VkVertexInputBindingDescription bindDesc = {};
-			bindDesc.binding	= vertexInput.Binding;
-			bindDesc.stride		= vertexInput.Stride;
-			bindDesc.inputRate	= ConvertVertexInputRateVK(vertexInput.VertexInputRate);
-
 			VkVertexInputAttributeDescription attribDesc = {};
 			attribDesc.binding	= vertexInput.Binding;
 			attribDesc.location	= vertexInput.Location;
 			attribDesc.format	= ConvertFormatVK(vertexInput.Format);
 			attribDesc.offset	= vertexInput.Offset;
 
-			vertexBinds.push_back(bindDesc);
 			vertexAttribs.push_back(attribDesc);
 		}
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType							= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.pVertexBindingDescriptions		= vertexBinds.data();
-		vertexInputInfo.vertexBindingDescriptionCount	= static_cast<uint32>(vertexBinds.size());
+		vertexInputInfo.pVertexBindingDescriptions		= vertexAttribs.empty() ? nullptr : &vertexBinding;
+		vertexInputInfo.vertexBindingDescriptionCount	= vertexAttribs.empty() ? 0 : 1;
 		vertexInputInfo.pVertexAttributeDescriptions	= vertexAttribs.data();
 		vertexInputInfo.vertexAttributeDescriptionCount	= static_cast<uint32>(vertexAttribs.size());
 		vertexInputInfo.flags							= 0;
@@ -115,13 +115,13 @@ namespace Poly
 		frontState.reference	= pDesc->DepthStencil.Front.Reference;
 
 		VkStencilOpState backState = {};
-		frontState.failOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.FailOp);
-		frontState.passOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.PassOp);
-		frontState.depthFailOp	= ConvertStencilOpVK(pDesc->DepthStencil.Back.DepthFailOp);
-		frontState.compareOp	= ConvertCompareOpVK(pDesc->DepthStencil.Back.CompareOp);
-		frontState.compareMask	= pDesc->DepthStencil.Back.CompareMask;
-		frontState.writeMask	= pDesc->DepthStencil.Back.WriteMask;
-		frontState.reference	= pDesc->DepthStencil.Back.Reference;
+		backState.failOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.FailOp);
+		backState.passOp		= ConvertStencilOpVK(pDesc->DepthStencil.Back.PassOp);
+		backState.depthFailOp	= ConvertStencilOpVK(pDesc->DepthStencil.Back.DepthFailOp);
+		backState.compareOp		= ConvertCompareOpVK(pDesc->DepthStencil.Back.CompareOp);
+		backState.compareMask	= pDesc->DepthStencil.Back.CompareMask;
+		backState.writeMask		= pDesc->DepthStencil.Back.WriteMask;
+		backState.reference		= pDesc->DepthStencil.Back.Reference;
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil = {};
 		depthStencil.sType					= VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;

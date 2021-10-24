@@ -61,6 +61,10 @@ namespace Poly {
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
+		// Backup queue if no unique desired queue was found
+		std::pair<uint32_t, uint32_t> backupQueue;
+		bool backupQueueSet = false;
+
 		for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilies.size()); i++) {
 
 			VkQueueFlags desiredQueue = queueFamilies[i].queueFlags & queueFamily;
@@ -71,7 +75,14 @@ namespace Poly {
 			// If not requesting graphics queue, should return a queue without graphics support (to avoid non-unique queue)
 			else if ((desiredQueue) && (graphicsCheck == 0))
 				return { i, queueFamilies[i].queueCount };
+			// If no queue meets the critera of no-graphics and other desired queue - use the first available
+			else if (desiredQueue && !backupQueueSet)
+				backupQueue = { i, queueFamilies[i].queueCount };
 		}
+
+		if (backupQueueSet)
+			return backupQueue;
+
 		POLY_VALIDATE(false, "Failed to find queue index for queue family {}!", queueFamily);
 		return {0, 0};
 	}

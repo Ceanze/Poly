@@ -115,7 +115,7 @@ namespace Poly
 
 		for (const auto& passData : m_OrderedPasses)
 		{
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::SCENE_INSTANCE);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (uint32 i = 0; i < inputs.size(); i++)
@@ -163,7 +163,7 @@ namespace Poly
 			auto& passData = m_OrderedPasses[passID];
 
 			// Register outputs
-			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT);
+			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::SCENE_INSTANCE);
 			for (auto& output : outputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + output.Name;
@@ -184,7 +184,7 @@ namespace Poly
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::SCENE_INSTANCE);
 			for (auto& input : inputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + input.Name;
@@ -263,7 +263,7 @@ namespace Poly
 		for (const auto& passData : m_OrderedPasses)
 		{
 			// Create invalidates for inputs
-			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT);
+			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
 			for (const auto& input : inputs)
 			{
 				HalfBarrier barrier = {};
@@ -275,7 +275,7 @@ namespace Poly
 			}
 
 			// Create flushes for output. Save as attachments
-			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT);
+			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::NONE);
 			uint32 index = 0;
 			for (const auto& output : outputs)
 			{

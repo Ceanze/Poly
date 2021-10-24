@@ -111,7 +111,7 @@ namespace Poly
 		 */
 		void SetSampler(const std::string& name, Ref<Sampler> pSampler);
 
-		std::vector<IOData> GetIOData(FIOType IOType) const;
+		std::vector<IOData> GetIOData(FIOType IOType, FResourceBindPoint excludeFlags) const;
 		std::vector<IOData> GetAllIOs() const { return m_IOs; }
 		const IOData& GetIOData(const std::string& resName) const;
 

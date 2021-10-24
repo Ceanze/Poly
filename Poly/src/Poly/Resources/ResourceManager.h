@@ -25,6 +25,8 @@ namespace Poly
 		ResourceManager() = default;
 		~ResourceManager() = default;
 
+		static void Release();
+
 		/**
 		 * Loads a texture from file and stages it to the GPU
 		 * @param path - path of texture

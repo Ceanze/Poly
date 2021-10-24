@@ -8,6 +8,7 @@
 #include "Application.h"
 
 #include "Poly/Resources/ResourceLoader.h"
+#include "Poly/Resources/ResourceManager.h"
 
 #include <GLFW/glfw3.h>
 
@@ -49,12 +50,15 @@ namespace Poly
 				timeCollector -= fixedTime;
 				pApp->FixedUpdate(dt);
 			}
+
+			timer.Tick();
 		}
 	}
 
 	void Engine::Release()
 	{
 		ResourceLoader::Release();
+		ResourceManager::Release();
 
 		delete s_pWindow;
 

@@ -28,7 +28,7 @@ namespace Poly
 		 * @param offset - Offset for the region in the buffer
 		 * @param range - Range for the buffer to update
 		 */
-		virtual void UpdateBufferBinding(uint32 binding, Buffer* pBuffer, uint64 offset, uint64 range) = 0;
+		virtual void UpdateBufferBinding(uint32 binding, const Buffer* pBuffer, uint64 offset, uint64 range) = 0;
 
 		/**
 		 * Updates the texture binding for this set

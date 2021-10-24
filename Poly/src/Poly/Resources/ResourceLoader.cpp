@@ -330,7 +330,7 @@ namespace Poly
 	void ResourceLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh)
 	{
 		std::vector<Vertex> vertices(pMesh->mNumVertices);
-		std::vector<uint32> indices(pMesh->mNumFaces);
+		std::vector<uint32> indices(pMesh->mNumFaces * 3);
 
 		for (uint32 i = 0; i < pMesh->mNumVertices; i++)
 		{
@@ -370,21 +370,21 @@ namespace Poly
 		// Create and transfer data to buffers
 		// Vertices
 		BufferDesc desc = {};
-		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::VERTEX_BUFFER;
+		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::STORAGE_BUFFER;
 		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
 		desc.Size			= sizeof(Vertex) * vertices.size();
 		Ref<Buffer> pVertexBuffer = RenderAPI::CreateBuffer(&desc);
-		TransferDataToGPU(vertices.data(), vertices.size(), sizeof(Vertex), pVertexBuffer);
+		TransferDataToGPU(vertices.data(), desc.Size, sizeof(Vertex), pVertexBuffer);
 
 		// Indices
 		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
 		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
 		desc.Size			= sizeof(uint32) * indices.size();
 		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
-		TransferDataToGPU(indices.data(), indices.size(), sizeof(uint32), pIndexBuffer);
+		TransferDataToGPU(indices.data(), desc.Size, sizeof(uint32), pIndexBuffer);
 
-		pPolyMesh->SetVertexBuffer(pVertexBuffer);
-		pPolyMesh->SetIndexBuffer(pIndexBuffer);
+		pPolyMesh->SetVertexBuffer(pVertexBuffer, vertices.size());
+		pPolyMesh->SetIndexBuffer(pIndexBuffer, indices.size());
 	}
 
 	void ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID)
@@ -442,7 +442,7 @@ namespace Poly
 
 		// Map transfer buffer
 		void* buffMap = pBuffer->Map();
-		memcpy(buffMap, data, size * count);
+		memcpy(buffMap, data, size);
 		pBuffer->Unmap();
 
 		// Copy over data from buffer to texture
@@ -469,7 +469,7 @@ namespace Poly
 		// Acquire texture to graphics queue
 		s_GraphicsCommandPool->Reset();
 		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
-		s_TransferCommandBuffer->AcquireBuffer(
+		s_GraphicsCommandBuffer->AcquireBuffer(
 			pDestinationBuffer.get(),
 			FPipelineStage::TRANSFER,
 			FPipelineStage::TRANSFER,

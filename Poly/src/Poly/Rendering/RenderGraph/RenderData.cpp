@@ -1,6 +1,8 @@
 #include "polypch.h"
+#include "Poly/Rendering/Scene.h"
 #include "RenderData.h"
 #include "ResourceCache.h"
+#include "Poly/Rendering/SceneRenderer.h"
 
 namespace Poly
 {
@@ -10,6 +12,11 @@ namespace Poly
 		m_DefaultParams		= defaultParams;
 	}
 	
+	void RenderData::ExecuteScene(const RenderContext& context) const
+	{
+		m_pSceneRenderer->Render(context);
+	}
+
 	Resource* RenderData::GetResourceNonConst(const std::string& resourceName) const
 	{
 		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
@@ -19,6 +26,4 @@ namespace Poly
 	{
 		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
 	}
-
-
 }

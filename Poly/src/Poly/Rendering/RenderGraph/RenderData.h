@@ -5,6 +5,7 @@
 namespace Poly
 {
 	class Resource;
+	class SceneRenderer;
 	class ResourceCache;
 
 	/**
@@ -26,14 +27,20 @@ namespace Poly
 
 		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }
 
+		const SceneRenderer* GetSceneRenderer() const { return m_pSceneRenderer; }
+
+		void ExecuteScene(const RenderContext& context) const;
+
 	private:
 		friend class SyncPass;
 		friend class RenderGraphProgram;
 		Resource* GetResourceNonConst(const std::string& resourceName) const;
 		void SetRenderPassName(const std::string& renderPassName) { m_RenderPassName = renderPassName; }
+		void SetSceneRenderer(SceneRenderer* pSceneRenderer) { m_pSceneRenderer = pSceneRenderer; }
 
 		Ref<ResourceCache> m_pResourceCache;
 		std::string m_RenderPassName = "";
 		RenderGraphDefaultParams m_DefaultParams = {};
+		SceneRenderer* m_pSceneRenderer = nullptr;
 	};
 }

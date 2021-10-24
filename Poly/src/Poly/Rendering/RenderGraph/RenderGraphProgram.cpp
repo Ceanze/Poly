@@ -7,7 +7,9 @@
 #include "RenderGraph.h"
 #include "RenderContext.h"
 #include "ResourceCache.h"
+#include "Poly/Model/Mesh.h"
 #include "RenderGraphTypes.h"
+#include "Poly/Rendering/Scene.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
@@ -20,6 +22,7 @@
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/GraphicsRenderPass.h"
 
+#include "Poly/Rendering/SceneRenderer.h"
 namespace Poly
 {
 	RenderGraphProgram::RenderGraphProgram(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
@@ -36,6 +39,8 @@ namespace Poly
 			if (!m_Reflections.contains(i))
 				m_Reflections[i] = m_Passes[i]->Reflect();
 		}
+
+		m_pSceneRenderer = SceneRenderer::Create();
 
 		InitCommandBuffers();
 		InitPipelineLayouts();
@@ -73,11 +78,23 @@ namespace Poly
 
 		Ref<RenderContext> renderContext = RenderContext::Create();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
+		renderContext->SetImageIndex(m_ImageIndex);
+		renderData.SetSceneRenderer(m_pSceneRenderer.get());
+		// m_pScene->SetFrameIndex(m_ImageIndex);
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
 			// Set inital pass values
 			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
 			renderContext->SetCommandBuffer(currentCommandBuffer);
+			renderContext->SetActivePassIndex(passIndex);
+			if (m_InstanceSetIndices.contains(passIndex))
+			{
+				renderContext->SetInstanceData(m_InstanceSetIndices[passIndex], m_PipelineLayouts[passIndex].get());
+
+				// Update scene before start recording
+				// m_pScene->Update(*renderContext);
+				m_pSceneRenderer->Update(m_InstanceSetIndices[passIndex], m_ImageIndex, passIndex, m_PipelineLayouts[passIndex].get());
+			}
 			renderData.SetRenderPassName(pPass->GetName());
 
 			// Begin recording
@@ -110,6 +127,8 @@ namespace Poly
 				const std::vector<Ref<DescriptorSet>>& sets = GetDescriptorSets(pPass, passIndex);
 				for (const auto& set : sets)
 					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, set.get());
+
+				renderContext->SetActivePipeline(pGraphicsPipeline);
 
 				// The pass handles the draw command and any additional data before that
 				pPass->Execute(*renderContext, renderData);
@@ -159,7 +178,7 @@ namespace Poly
 			}
 			else
 			{
-				const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT);
+				const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::SCENE_INSTANCE);
 				auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
 				if (itr == reflections.end())
 					continue;
@@ -204,6 +223,12 @@ namespace Poly
 		m_pResourceCache->SetBackbuffer(pResource);
 	}
 
+	void RenderGraphProgram::SetScene(const Ref<Scene>& pScene)
+	{
+		m_pScene = pScene;
+		m_pSceneRenderer->SetScene(pScene);
+	}
+
 	void RenderGraphProgram::AddPass(Ref<Pass> pPass)
 	{
 		m_Passes.push_back(pPass);
@@ -230,14 +255,14 @@ namespace Poly
 		{
 			if (m_Passes[i]->GetPassType() != Pass::Type::SYNC)
 			{
-				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT);
+				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
 				std::unordered_map<uint32, DescriptorSetLayout> sets;
 				for (const auto& input : inputs)
 				{
 					DescriptorSetBinding binding = {};
 					binding.Binding			= input.Binding;
 					binding.DescriptorCount	= 1;
-					binding.DescriptorType	= ConvertBindpointToDescriptorType(input.BindPoint);
+					binding.DescriptorType	= BitsSet(input.BindPoint, FResourceBindPoint::SCENE_INSTANCE) ? EDescriptorType::STORAGE_BUFFER : ConvertBindpointToDescriptorType(input.BindPoint);
 					binding.ShaderStage		= FShaderStage::VERTEX | FShaderStage::FRAGMENT;
 					binding.pSampler		= input.pSampler.get();
 					sets[input.Set].DescriptorSetBindings.push_back(binding);
@@ -365,6 +390,8 @@ namespace Poly
 		assembly.RestartPrimitive	= false;
 		assembly.Topology			= ETopology::TRIANGLE_LIST;
 
+		std::vector<VertexInput> vertexInputs;
+
 		ViewportDesc viewport = {};
 		viewport.IsDynamic = true;
 		// viewport.Width		= static_cast<float>(m_Framebuffers[passIndex]->GetWidth());
@@ -392,6 +419,7 @@ namespace Poly
 		colorBlend.ColorBlendAttachments	= { colorBlendAttachment };
 
 		GraphicsPipelineDesc desc = {};
+		// desc.VertexInputs		= Vertex::GetInputInfo();
 		desc.InputAssembly		= assembly;
 		desc.Viewport			= viewport;
 		desc.Scissor			= scissor;
@@ -413,10 +441,15 @@ namespace Poly
 			return m_Descriptors[passIndex];
 
 		// Collect the sets from the reflection
-		const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT);
+		const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
 		std::unordered_set<uint32> setIndicies;
 		for (const auto& input : inputs)
-			setIndicies.insert(input.Set);
+		{
+			if (BitsSet(input.BindPoint, FResourceBindPoint::SCENE_INSTANCE))
+				m_InstanceSetIndices[passIndex] = input.Set;
+			else
+				setIndicies.insert(input.Set);
+		}
 
 		//for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
 		//{
