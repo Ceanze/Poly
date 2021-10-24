@@ -50,6 +50,8 @@ namespace Poly
 				timeCollector -= fixedTime;
 				pApp->FixedUpdate(dt);
 			}
+
+			timer.Tick();
 		}
 	}
 
