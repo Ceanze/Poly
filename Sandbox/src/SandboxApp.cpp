@@ -1,4 +1,5 @@
 #include "Poly.h"
+#include "Poly/Rendering/Scene.h"
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
@@ -10,6 +11,7 @@
 #include "Platform/API/Texture.h"
 #include "Platform/API/Buffer.h"
 #include "Poly/Resources/ResourceLoader.h"
+#include "Poly/Resources/ResourceManager.h"
 
 class TestLayer : public Poly::Layer
 {
@@ -55,12 +57,12 @@ public:
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "testPass");
-		m_pGraph->AddPass(pPass1, "testPass1");
+		// m_pGraph->AddPass(pPass1, "testPass1");
 		m_pGraph->AddLink("$.camera", "testPass.camera");
 		m_pGraph->AddLink("$.texture", "testPass.texture");
-		m_pGraph->AddLink("$.camera", "testPass1.camera");
-		m_pGraph->AddLink("testPass.out", "testPass1.texture");
-		m_pGraph->MarkOutput("testPass1.out");
+		// m_pGraph->AddLink("$.camera", "testPass1.camera");
+		// m_pGraph->AddLink("testPass.out", "testPass1.texture");
+		m_pGraph->MarkOutput("testPass.out");
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
@@ -69,6 +71,16 @@ public:
 		// TODO: Do this automatically in the beginning of the program
 		m_pProgram->UpdateGraphResource("camera", pCamRes);
 		m_pProgram->UpdateGraphResource("texture", pTexRes);
+
+		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
+		m_pProgram->SetScene(pScene);
+
+		auto pModel = Poly::ResourceLoader::LoadModel("../assets/models/triangle.obj");
+		auto pModelCube = Poly::ResourceLoader::LoadModel("../assets/models/cube.obj");
+		PolyID modelID = Poly::ResourceManager::RegisterModel("../assets/model/triangle.obj", pModel);
+		PolyID modelIDCube = Poly::ResourceManager::RegisterModel("../assets/model/cube.obj", pModelCube);
+		pScene->AddModel(modelID);
+		pScene->AddModel(modelIDCube);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
@@ -80,8 +92,6 @@ public:
 		pCamera->Update(dt);
 		glm::mat4 camMatrix = pCamera->GetMatrix();
 		m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4));
-		// Poly::RendererAPI::BeginScene();
-		// Poly::RendererAPI::EndScene();
 		m_pRenderer->Render();
 	};
 

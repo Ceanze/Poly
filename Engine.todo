@@ -37,3 +37,6 @@ Goals:
 General:
 	- Fix the GraphicsPipeline to allow empty descs in GraphicsPipelineDesc (maybe allows this already?)
 	- Remove all warnings
+
+TODO:
+	- Fix instance buffer for models (transform matrix) - includes fixing the passReflection SCENE_INSTANCE binding

@@ -370,18 +370,18 @@ namespace Poly
 		// Create and transfer data to buffers
 		// Vertices
 		BufferDesc desc = {};
-		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::VERTEX_BUFFER;
+		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::STORAGE_BUFFER;
 		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
 		desc.Size			= sizeof(Vertex) * vertices.size();
 		Ref<Buffer> pVertexBuffer = RenderAPI::CreateBuffer(&desc);
-		TransferDataToGPU(vertices.data(), vertices.size(), sizeof(Vertex), pVertexBuffer);
+		TransferDataToGPU(vertices.data(), desc.Size, sizeof(Vertex), pVertexBuffer);
 
 		// Indices
 		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
 		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
 		desc.Size			= sizeof(uint32) * indices.size();
 		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
-		TransferDataToGPU(indices.data(), indices.size(), sizeof(uint32), pIndexBuffer);
+		TransferDataToGPU(indices.data(), desc.Size, sizeof(uint32), pIndexBuffer);
 
 		pPolyMesh->SetVertexBuffer(pVertexBuffer, vertices.size());
 		pPolyMesh->SetIndexBuffer(pIndexBuffer, indices.size());
@@ -442,7 +442,7 @@ namespace Poly
 
 		// Map transfer buffer
 		void* buffMap = pBuffer->Map();
-		memcpy(buffMap, data, size * count);
+		memcpy(buffMap, data, size);
 		pBuffer->Unmap();
 
 		// Copy over data from buffer to texture

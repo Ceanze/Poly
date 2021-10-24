@@ -2,6 +2,7 @@
 #include "Poly/Rendering/Scene.h"
 #include "RenderData.h"
 #include "ResourceCache.h"
+#include "Poly/Rendering/SceneRenderer.h"
 
 namespace Poly
 {
@@ -13,7 +14,7 @@ namespace Poly
 	
 	void RenderData::ExecuteScene(const RenderContext& context) const
 	{
-		m_pScene->Execute(context);
+		m_pSceneRenderer->Render(context);
 	}
 
 	Resource* RenderData::GetResourceNonConst(const std::string& resourceName) const
