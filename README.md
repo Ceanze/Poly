@@ -1,5 +1,5 @@
 # Poly
-A Vulkan Engine designed from scratch that is developed on by me on the freetime.
+A Vulkan Engine designed from scratch that is developed by me in my spare time.
 
 ## Purpose
 The general purpose of this project is as a learning exerice for Vulkan, render graph, and for a more advanced engine and project. An ideal goal would be able to create simple games with the engine and to allow for multiple graphics API:s, however these features are not the main focus.
