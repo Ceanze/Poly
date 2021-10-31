@@ -178,7 +178,7 @@ namespace Poly
 			}
 			else
 			{
-				const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::SCENE_INSTANCE);
+				const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
 				auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
 				if (itr == reflections.end())
 					continue;
@@ -251,6 +251,15 @@ namespace Poly
 
 	void RenderGraphProgram::InitPipelineLayouts()
 	{
+		auto SelectDescriptorType = [](FResourceBindPoint input){
+			if (BitsSet(input, FResourceBindPoint::SCENE_INSTANCE))
+				return EDescriptorType::UNIFORM_BUFFER;
+			else if (BitsSet(input, FResourceBindPoint::SCENE_VERTEX))
+				return EDescriptorType::STORAGE_BUFFER;
+			else
+				return ConvertBindpointToDescriptorType(input);
+		};
+
 		for (uint32 i = 0; i < m_Reflections.size(); i++)
 		{
 			if (m_Passes[i]->GetPassType() != Pass::Type::SYNC)
@@ -262,7 +271,7 @@ namespace Poly
 					DescriptorSetBinding binding = {};
 					binding.Binding			= input.Binding;
 					binding.DescriptorCount	= 1;
-					binding.DescriptorType	= BitsSet(input.BindPoint, FResourceBindPoint::SCENE_INSTANCE) ? EDescriptorType::STORAGE_BUFFER : ConvertBindpointToDescriptorType(input.BindPoint);
+					binding.DescriptorType	= SelectDescriptorType(input.BindPoint);
 					binding.ShaderStage		= FShaderStage::VERTEX | FShaderStage::FRAGMENT;
 					binding.pSampler		= input.pSampler.get();
 					sets[input.Set].DescriptorSetBindings.push_back(binding);
@@ -445,7 +454,7 @@ namespace Poly
 		std::unordered_set<uint32> setIndicies;
 		for (const auto& input : inputs)
 		{
-			if (BitsSet(input.BindPoint, FResourceBindPoint::SCENE_INSTANCE))
+			if (BitsSet(input.BindPoint, FResourceBindPoint::ALL_SCENES))
 				m_InstanceSetIndices[passIndex] = input.Set;
 			else
 				setIndicies.insert(input.Set);

@@ -63,14 +63,6 @@ namespace Poly
 			// Fill uniform buffer
 			Buffer* pStagingBuffer = GetStagingBuffer(instanceCount, context.GetPassIndex());
 
-			// För nästa gång:
-			// * Planera en övergång till SSBO istället för att debugga VBO:en
-			// 		- En idé är att ha descriptors i RenderGraphProgram som vanligt för automatisering och ha instance buffern i scene
-			//		- Kan göra som Herman hade - skicka in descriptorseten till scene, men låt RenderGraphProgram hantera dem :)
-			//		- För att göra det schmut så kan ju en INSTANCE binding i reflection skapa både Instance och Vertex descriptors
-			// PROBLEM
-			//	* En SSBO per unik mesh kräver dock en descriptor per sådan mesh...
-
 			// Draw
 			if (!drawObject.second.pDescriptorSet)
 			{

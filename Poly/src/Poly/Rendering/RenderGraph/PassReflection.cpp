@@ -32,6 +32,17 @@ namespace Poly
 		AddIO(data);
 	}
 
+	void PassReflection::AddInternalInput(const std::string& name, uint32 set, uint32 binding, FResourceBindPoint bindPoint)
+	{
+		IOData data = {};
+		data.Name		= name;
+		data.IOType		= FIOType::INPUT;
+		data.BindPoint	= bindPoint;
+		data.Set		= set;
+		data.Binding	= binding;
+		AddIO(data);
+	}
+
 	void PassReflection::SetFormat(const std::string& name, EFormat format)
 	{
 		for (auto& existing : m_IOs)
@@ -105,10 +116,10 @@ namespace Poly
 		{
 			if (existing.Name == name)
 			{
-				if (BitsSet(bindPoint, FResourceBindPoint::SCENE_INSTANCE))
-					existing.BindPoint = FResourceBindPoint::SCENE_INSTANCE | FResourceBindPoint::STORAGE;
-				else
-					existing.BindPoint = bindPoint;
+				// if (BitsSet(bindPoint, FResourceBindPoint::SCENE_INSTANCE))
+				// 	existing.BindPoint = FResourceBindPoint::SCENE_INSTANCE | FResourceBindPoint::STORAGE;
+				// else
+				existing.BindPoint = bindPoint;
 
 				return;
 			}

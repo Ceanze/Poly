@@ -10,13 +10,8 @@ namespace Poly
 {
 	void SceneRenderer::Update(uint32 setIndex, uint32 imageIndex, uint32 passIndex, PipelineLayout* pPipelineLayout) 
 	{
-		// Get models
-		// Order if necessary (should probably be done already)
-		// Update descriptors
-
-		// Assume ordered right now
+		m_DrawObjects.clear();
 		m_pScene->OrderModels(m_DrawObjects);
-
 
 		// Update descriptors
 		FramePassKey framePassKey = {imageIndex, passIndex};
@@ -48,7 +43,6 @@ namespace Poly
 			Ref<Mesh> pMesh = drawObject.second.UniqueMeshInstance.pMesh;
 			const Buffer* pVertexBuffer = pMesh->GetVertexBuffer();
 			const Buffer* pIndexBuffer = pMesh->GetIndexBuffer();
-			// commandBuffer->BindVertexBuffer(pVertexBuffer, 0, 1, 0);
 			commandBuffer->BindIndexBuffer(pIndexBuffer, 0, EIndexType::UINT32);
 
 			commandBuffer->DrawIndexedInstanced(pMesh->GetIndexCount(), instanceCount, 0, 0, 0);

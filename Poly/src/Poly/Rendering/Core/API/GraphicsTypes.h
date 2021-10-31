@@ -125,6 +125,8 @@ namespace Poly
 		SAMPLER				= SHADER_READ,
 		INPUT_ATTACHMENT	= FLAG(9),
 		SCENE_INSTANCE		= FLAG(10),
+		SCENE_VERTEX		= FLAG(11),
+		ALL_SCENES			= FLAG(10) | FLAG(11),
 	};
 	ENABLE_BITMASK_OPERATORS(FResourceBindPoint); // TODO: Should this really be a flag?
 

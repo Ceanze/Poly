@@ -59,6 +59,8 @@ namespace Poly
 		/**
 		 * Adds an input to the render pass
 		 * @param name - name of resource, only resource name is required - not render pass name
+		 * @param set - the set of the resource to use in the shader
+		 * @param binding - the binding of the set to use in the shader
 		 */
 		void AddInput(const std::string& name, uint32 set, uint32 binding);
 
@@ -74,6 +76,16 @@ namespace Poly
 		 * @param name - name of resource, only resource name is required - not render pass name
 		 */
 		void AddPassThrough(const std::string& name);
+
+		/**
+		 * Adds an internal input used for internal types of the render graph, e.g. scene instance and vertex
+		 * @param name - name of binding - only provides debugging
+		 * @param set - the set of the resource to be used in the shader
+		 * @param binding - the binding of the resource to be used in the shader
+		 * @param bindPoing - the type of input to bind, only a few selected are allowed for internal input, these are:
+		 * 						FResourceBindPoint::SCENE_VERTEX and FResourceBindPoint::SCENE_INSTANCE
+		 */
+		void AddInternalInput(const std::string& name, uint32 set, uint32 binding, FResourceBindPoint bindPoint);
 
 		/**
 		 * Sets the format of the resource, only necessary when creating a new output in a pass and it's a texture
