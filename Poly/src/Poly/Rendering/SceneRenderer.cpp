@@ -5,19 +5,21 @@
 #include "Platform/API/Buffer.h"
 #include "Platform/API/DescriptorSet.h"
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
+#include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 
 namespace Poly
 {
-	void SceneRenderer::Update(uint32 setIndex, uint32 imageIndex, uint32 passIndex, PipelineLayout* pPipelineLayout) 
+	void SceneRenderer::Update(const std::vector<SceneBinding>& sceneBindings, uint32 imageIndex, uint32 passIndex, PipelineLayout* pPipelineLayout)
 	{
 		m_DrawObjects.clear();
 		m_pScene->OrderModels(m_DrawObjects);
 
 		// Update descriptors
 		FramePassKey framePassKey = {imageIndex, passIndex};
+		auto sceneBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
 		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
 		{
-			drawObjectPair.second.pDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex++, setIndex, pPipelineLayout);
+			drawObjectPair.second.pDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex++, sceneBinding->SetIndex, pPipelineLayout);
 
 			const Buffer* pVertexBuffer = drawObjectPair.second.UniqueMeshInstance.pMesh->GetVertexBuffer();
 			drawObjectPair.second.pDescriptorSet->UpdateBufferBinding(0, pVertexBuffer, 0, pVertexBuffer->GetSize());

@@ -20,6 +20,13 @@ namespace Poly
 	class GraphicsPipeline;
 	class GraphicsRenderPass;
 
+	struct SceneBinding
+	{
+		FResourceBindPoint Type = FResourceBindPoint::NONE;
+		uint32 SetIndex = 0;
+		uint32 Binding	= 0;
+	};
+
 	class RenderGraphProgram
 	{
 	public:
@@ -79,6 +86,6 @@ namespace Poly
 		std::unordered_map<uint32, Ref<GraphicsPipeline>>			m_GraphicsPipelines; // key: passIndex
 		std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_Descriptors; // key: passIndex, index: set
 		std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_DescriptorsToBeDestroyed; // key: frameIndex
-		std::unordered_map<uint32, uint32>							m_InstanceSetIndices; // key: passIndex, index: instanceSetIndex
+		std::unordered_map<uint32, std::vector<SceneBinding>>		m_SceneBindings; // key: passIndex, index: instanceSetIndex
 	};
 }

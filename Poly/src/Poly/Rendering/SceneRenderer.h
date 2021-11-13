@@ -3,6 +3,8 @@
 
 namespace Poly
 {
+	struct SceneBinding;
+
 	class Scene;
 	class CommandBuffer;
 	class DescriptorSet;
@@ -16,7 +18,7 @@ namespace Poly
 
 		void SetScene(Ref<Scene> pScene) { m_pScene = pScene; }
 
-		void Update(uint32 setIndex, uint32 imageIndex, uint32 passIndex, PipelineLayout* pPipelineLayout);
+		void Update(const std::vector<SceneBinding>& sceneBindings, uint32 imageIndex, uint32 passIndex, PipelineLayout* pPipelineLayout);
 
 		void Render(const RenderContext& context);
 

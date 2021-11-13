@@ -87,13 +87,11 @@ namespace Poly
 			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
 			renderContext->SetCommandBuffer(currentCommandBuffer);
 			renderContext->SetActivePassIndex(passIndex);
-			if (m_InstanceSetIndices.contains(passIndex))
+			if (m_SceneBindings.contains(passIndex))
 			{
-				renderContext->SetInstanceData(m_InstanceSetIndices[passIndex], m_PipelineLayouts[passIndex].get());
-
 				// Update scene before start recording
 				// m_pScene->Update(*renderContext);
-				m_pSceneRenderer->Update(m_InstanceSetIndices[passIndex], m_ImageIndex, passIndex, m_PipelineLayouts[passIndex].get());
+				m_pSceneRenderer->Update(m_SceneBindings[passIndex], m_ImageIndex, passIndex, m_PipelineLayouts[passIndex].get());
 			}
 			renderData.SetRenderPassName(pPass->GetName());
 
@@ -455,7 +453,14 @@ namespace Poly
 		for (const auto& input : inputs)
 		{
 			if (BitsSet(input.BindPoint, FResourceBindPoint::ALL_SCENES))
-				m_InstanceSetIndices[passIndex] = input.Set;
+			{
+				// m_InstanceSetIndices[passIndex] = input.Set;
+				m_SceneBindings[passIndex].push_back({
+					.Type		= input.BindPoint,
+					.SetIndex	= input.Set,
+					.Binding	= input.Binding
+				});
+			}
 			else
 				setIndicies.insert(input.Set);
 		}
