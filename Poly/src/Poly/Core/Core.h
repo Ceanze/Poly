@@ -8,6 +8,7 @@ typedef uint8_t			uint8;
 typedef unsigned char	byte;
 
 typedef uint32			PolyID;
+constexpr PolyID POLY_ID_UNKNOWN = UINT32_MAX;
 
 namespace Poly
 {

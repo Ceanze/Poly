@@ -10,7 +10,6 @@
 #include "Platform/API/TextureView.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/Buffer.h"
-#include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/ResourceManager.h"
 
 class TestLayer : public Poly::Layer
@@ -30,18 +29,7 @@ public:
 		Poly::Ref<Poly::Pass> pPass1 = Poly::TestPass::Create();
 
 		// External resources
-		Poly::Ref<Poly::Texture> pTexture = Poly::ResourceLoader::LoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
-		Poly::TextureViewDesc textureViewDesc = {
-			.pTexture			= pTexture.get(),
-			.ImageViewType		= Poly::EImageViewType::TYPE_2D,
-			.Format				= Poly::EFormat::R8G8B8A8_UNORM,
-			.ImageViewFlag		= Poly::FImageViewFlag::COLOR,
-			.MipLevel			= 0,
-			.MipLevelCount		= 1,
-			.ArrayLayer			= 0,
-			.ArrayLayerCount	= 1,
-		};
-		Poly::Ref<Poly::TextureView> pTextureView = Poly::RenderAPI::CreateTextureView(&textureViewDesc);
+		PolyID textureID = Poly::ResourceManager::LoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
 
 		Poly::BufferDesc bufferDesc = {
 			.Size			= sizeof(glm::mat4),
@@ -50,8 +38,9 @@ public:
 		};
 		m_pCambuffer = Poly::RenderAPI::CreateBuffer(&bufferDesc);
 
+		Poly::ManagedTexture managedTexture = Poly::ResourceManager::GetManagedTexture(textureID);
 		Poly::Ref<Poly::Resource> pCamRes = Poly::Resource::Create(m_pCambuffer, "camera");
-		Poly::Ref<Poly::Resource> pTexRes = Poly::Resource::Create(pTexture, pTextureView, "texture");
+		Poly::Ref<Poly::Resource> pTexRes = Poly::Resource::Create(managedTexture.pTexture, managedTexture.pTextureView, "texture");
 		m_pGraph->AddExternalResource("camera", pCamRes);
 		m_pGraph->AddExternalResource("texture", pTexRes);
 
@@ -75,11 +64,7 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		auto pModel = Poly::ResourceLoader::LoadModel("../assets/models/triangle.obj");
-		auto pModelCube = Poly::ResourceLoader::LoadModel("../assets/models/cube.obj");
-		PolyID modelID = Poly::ResourceManager::RegisterModel("../assets/model/triangle.obj", pModel);
-		PolyID modelIDCube = Poly::ResourceManager::RegisterModel("../assets/model/cube.obj", pModelCube);
-		pScene->AddModel(modelID);
+		PolyID modelIDCube = Poly::ResourceManager::LoadModel("../assets/models/cube2.obj");
 		pScene->AddModel(modelIDCube);
 
 		// Set active render graph program

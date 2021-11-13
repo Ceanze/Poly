@@ -22,14 +22,14 @@ namespace Poly
 
 		void SetTexture(Type type, Texture* pTexture) { m_Textures[type] = pTexture; }
 
-		void SetTextureView(Type type, Ref<TextureView> pTextureView) { m_TextureViews[type] = pTextureView; }
+		void SetTextureView(Type type, TextureView* pTextureView) { m_TextureViews[type] = pTextureView; }
 
 		const Texture* GetTexture(Type type) const { return m_Textures.at(type); }
 
-		const TextureView* GetTextureView(Type type) const { return m_TextureViews.at(type).get(); }
+		const TextureView* GetTextureView(Type type) const { return m_TextureViews.at(type); }
 
 	private:
 		std::unordered_map<Type, Texture*> m_Textures;
-		std::unordered_map<Type, Ref<TextureView>> m_TextureViews;
+		std::unordered_map<Type, TextureView*> m_TextureViews;
 	};
 }

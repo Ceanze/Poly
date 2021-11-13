@@ -405,22 +405,11 @@ namespace Poly
 		{
 			aiString path;
 			pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-			PolyID id = ResourceManager::LoadTexture(path.C_Str(), EFormat::R8G8B8A8_UNORM);
+			PolyID id = ResourceManager::LoadTexture("textures/" + std::string(path.C_Str()), EFormat::R8G8B8A8_UNORM);
 
-			TextureViewDesc desc = {};
-			desc.pTexture			= ResourceManager::GetTexture(id);
-			desc.ArrayLayer			= 0;
-			desc.ArrayLayerCount	= 1;
-			desc.MipLevel			= 0;
-			desc.MipLevelCount		= 1;
-			desc.ImageViewFlag		= FImageViewFlag::COLOR;
-			desc.ImageViewType		= EImageViewType::TYPE_2D;
-			desc.Format				= EFormat::R8G8B8A8_UNORM;
-
-			Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&desc);
-
-			pPolyMaterial->SetTexture(Material::Type::ALBEDO, desc.pTexture);
-			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, pTextureView);
+			ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
+			pPolyMaterial->SetTexture(Material::Type::ALBEDO, managedTexture.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, managedTexture.pTextureView.get());
 			hasTextures = true;
 		}
 

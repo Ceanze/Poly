@@ -8,6 +8,13 @@ namespace Poly
 	class Model;
 	class Texture;
 	class Material;
+	class TextureView;
+
+	struct ManagedTexture
+	{
+		Ref<Texture>		pTexture		= nullptr;
+		Ref<TextureView>	pTextureView	= nullptr;
+	};
 
 	class ResourceManager
 	{
@@ -49,14 +56,16 @@ namespace Poly
 		 */
 		static PolyID LoadMaterial(const std::string& path);
 
-		static Model*		GetModel(PolyID modelID);
-		static Texture*		GetTexture(PolyID textureID);
-		static Material*	GetMaterial(PolyID materialID);
+		static Model*			GetModel(PolyID modelID);
+		static Texture*			GetTexture(PolyID textureID);
+		static TextureView*		GetTextureView(PolyID textureViewID);
+		static ManagedTexture	GetManagedTexture(PolyID polyTextureID);
+		static Material*		GetMaterial(PolyID materialID);
 
 		inline static bool IsResourceLoaded(const std::string& path) { return m_PathToEntry.contains(path); }
 
 		static PolyID RegisterModel(const std::string& path, Ref<Model> pModel);
-		static PolyID RegisterTexture(const std::string& path, Ref<Texture> pTexture);
+		static PolyID RegisterPolyTexture(const std::string& path, Ref<Texture> pTexture, Ref<TextureView> pTextureView);
 		static PolyID RegisterMaterial(const std::string& path, Ref<Material> pMaterial);
 
 	private:
@@ -66,7 +75,7 @@ namespace Poly
 			ResourceType	Type	= ResourceType::NONE;
 		};
 
-		static std::vector<Ref<Texture>>	m_Textures;
+		static std::vector<ManagedTexture>		m_Textures;
 		static std::vector<Ref<Model>>		m_Models;
 		static std::vector<Ref<Material>>	m_Materials;
 
