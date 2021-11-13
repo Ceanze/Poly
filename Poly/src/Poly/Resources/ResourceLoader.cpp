@@ -20,6 +20,7 @@
 #include <assimp/scene.h>
 #include <assimp/material.h>
 #include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -287,7 +288,8 @@ namespace Poly
 	Ref<Model> ResourceLoader::LoadModel(const std::string& path)
 	{
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(path, 0);
+		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
+
 
 		if (!pScene)
 		{

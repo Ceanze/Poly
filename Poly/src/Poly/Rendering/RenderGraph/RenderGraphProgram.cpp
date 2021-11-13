@@ -413,7 +413,7 @@ namespace Poly
 		raster.DepthClampEnable		= false;
 		raster.DiscardEnable		= false;
 		raster.PolygonMode			= EPolygonMode::FILL;
-		raster.CullMode				= ECullMode::NONE;
+		raster.CullMode				= ECullMode::BACK;
 		raster.ClockwiseFrontFace	= false;
 		raster.DepthBiasEnable		= false;
 
