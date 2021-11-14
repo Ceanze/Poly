@@ -14,18 +14,9 @@ namespace Poly
 		MeshInstance			UniqueMeshInstance;
 		std::vector<glm::mat4>	Matrices;
 		Ref<Buffer>				pInstanceBuffer;
-		Ref<DescriptorSet>		pDescriptorSet;
+		Ref<DescriptorSet>		pVertexDescriptorSet;
+		Ref<DescriptorSet>		pTextureDescriptorSet;
 	};
-
-
-	struct FramePassHasher
-	{
-		size_t operator()(const std::pair<uint32, uint32>& other) const
-		{
-			return (static_cast<uint64>(other.first) << 32) | static_cast<uint64>(other.second);
-		}
-	};
-
 
 	class Scene
 	{

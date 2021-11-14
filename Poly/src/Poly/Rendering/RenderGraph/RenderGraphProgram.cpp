@@ -254,6 +254,8 @@ namespace Poly
 				return EDescriptorType::UNIFORM_BUFFER;
 			else if (BitsSet(input, FResourceBindPoint::SCENE_VERTEX))
 				return EDescriptorType::STORAGE_BUFFER;
+			else if (BitsSet(input, FResourceBindPoint::SCENE_TEXTURE))
+				return EDescriptorType::COMBINED_IMAGE_SAMPLER;
 			else
 				return ConvertBindpointToDescriptorType(input);
 		};

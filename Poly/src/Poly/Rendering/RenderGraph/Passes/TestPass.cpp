@@ -18,10 +18,7 @@ namespace Poly
 		reflection.AddInternalInput("vertices", 1, 0, FResourceBindPoint::SCENE_VERTEX);
 
 		// Fragment shader input
-		reflection.AddInput("texture", 0, 1);
-		reflection.SetBindPoint("texture", FResourceBindPoint::SAMPLER);
-		reflection.SetSampler("texture", Sampler::GetDefaultLinearSampler());
-		reflection.SetFormat("texture", EFormat::R8G8B8A8_UNORM);
+		reflection.AddInternalInput("textures", 2, 0, FResourceBindPoint::SCENE_TEXTURE);
 
 		// Output
 		reflection.AddOutput("out");
@@ -37,8 +34,6 @@ namespace Poly
 
 	void TestPass::Execute(const RenderContext& context, const RenderData& renderData)
 	{
-		// context.GetCommandBuffer()->DrawInstanced(3, 1, 0, 0);
-
 		renderData.ExecuteScene(context);
 	}
 }

@@ -3,9 +3,12 @@
 #include "Poly/Model/Mesh.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
+#include "Platform/API/Texture.h"
+#include "Platform/API/Sampler.h"
 #include "Platform/API/DescriptorSet.h"
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
+#include "Poly/Resources/ResourceManager.h"
 
 namespace Poly
 {
@@ -15,14 +18,26 @@ namespace Poly
 		m_pScene->OrderModels(m_DrawObjects);
 
 		// Update descriptors
-		FramePassKey framePassKey = {imageIndex, passIndex};
-		auto sceneBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
+		auto vertexBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
+		auto textureBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_TEXTURE; });
 		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
 		{
-			drawObjectPair.second.pDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex++, sceneBinding->SetIndex, pPipelineLayout);
+			if (vertexBinding != sceneBindings.end())
+			{
+				FramePassKey framePassKey = {imageIndex, passIndex, ResourceKey::VERTEX};
+				drawObjectPair.second.pVertexDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex++, vertexBinding->SetIndex, pPipelineLayout);
+				const Buffer* pVertexBuffer = drawObjectPair.second.UniqueMeshInstance.pMesh->GetVertexBuffer();
+				drawObjectPair.second.pVertexDescriptorSet->UpdateBufferBinding(vertexBinding->Binding, pVertexBuffer, 0, pVertexBuffer->GetSize());
+			}
 
-			const Buffer* pVertexBuffer = drawObjectPair.second.UniqueMeshInstance.pMesh->GetVertexBuffer();
-			drawObjectPair.second.pDescriptorSet->UpdateBufferBinding(0, pVertexBuffer, 0, pVertexBuffer->GetSize());
+			if (textureBinding != sceneBindings.end())
+			{
+				FramePassKey framePassKey = {imageIndex, passIndex, ResourceKey::TEXTURE};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex++, textureBinding->SetIndex, pPipelineLayout);
+				TextureView* pTextureView = ResourceManager::GetTextureView(drawObjectPair.second.UniqueMeshInstance.MaterialID);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(textureBinding->Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+			}
+
 		}
 	}
 
@@ -39,8 +54,10 @@ namespace Poly
 			// Buffer* pStagingBuffer = GetStagingBuffer(instanceCount, context.GetPassIndex());
 
 			// Draw
-
-			commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pDescriptorSet.get());
+			if (drawObject.second.pVertexDescriptorSet)
+				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pVertexDescriptorSet.get());
+			if (drawObject.second.pTextureDescriptorSet)
+				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pTextureDescriptorSet.get());
 
 			Ref<Mesh> pMesh = drawObject.second.UniqueMeshInstance.pMesh;
 			const Buffer* pVertexBuffer = pMesh->GetVertexBuffer();
