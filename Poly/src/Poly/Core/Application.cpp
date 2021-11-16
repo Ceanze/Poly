@@ -2,7 +2,6 @@
 #include "Application.h"
 #include "Poly/Events/EventBus.h"
 #include "Window.h"
-#include "RendererAPI.h"
 
 #include <GLFW/glfw3.h>
 

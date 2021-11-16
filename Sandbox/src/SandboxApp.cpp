@@ -20,7 +20,6 @@ public:
 		pCamera = new Poly::Camera();
 		pCamera->SetAspect(1280.f / 720.f);
 		pCamera->SetMouseSense(3.f);
-		
 
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
@@ -95,7 +94,7 @@ public:
 
 	~Sandbox()
 	{
-		// Poly::RendererAPI::Shutdown();
+
 	}
 };
 
