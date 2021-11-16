@@ -101,13 +101,16 @@ namespace Poly
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
 			{
+				RenderPass*			pRenderPass = static_cast<RenderPass*>(pPass.get());
 				GraphicsRenderPass*	pGraphicsRenderPass = GetGraphicsRenderPass(pPass, passIndex);
 				GraphicsPipeline*	pGraphicsPipeline = GetGraphicsPipeline(pPass, passIndex);
 				Framebuffer*		pFramebuffer = GetFramebuffer(pPass, passIndex);
-				std::vector<ClearValue> clearValues(static_cast<RenderPass*>(pPass.get())->GetAttachments().size());
-				memset(clearValues.data(), 0, sizeof(ClearValue) * clearValues.size());
-				for (auto& clearValue : clearValues)
-					clearValue.Color.Float32[3] = 1.0f;
+
+				std::vector<ClearValue> clearValues(pRenderPass->GetAttachments().size());
+				for (uint32 i = 0; i < clearValues.size() - pRenderPass->GetDepthStenctilUse() ? 1 : 0; i++)
+					clearValues[i].Color.Float32[3] = 1.0f;
+				if (pRenderPass->GetDepthStenctilUse())
+					clearValues.back().DepthStencil.Depth = 1.0f;
 
 				currentCommandBuffer->BeginRenderPass(pGraphicsRenderPass, pFramebuffer, pFramebuffer->GetWidth(), pFramebuffer->GetHeight(), clearValues);
 				currentCommandBuffer->BindPipeline(pGraphicsPipeline);
@@ -304,27 +307,37 @@ namespace Poly
 		std::vector<GraphicsRenderPassSubpassAttachmentReference> colorRefs;
 		attachmentDescs.reserve(attachments.size());
 		colorRefs.reserve(attachments.size());
+		GraphicsRenderPassSubpassAttachmentReference depthStencilAttachment = {};
 		for (auto& attachmentPair : attachments)
 		{
 			GraphicsRenderPassAttachmentDesc attachmentDesc = {};
 			attachmentDesc.Format			= attachmentPair.second.Format;
 			attachmentDesc.SampleCount		= 1;
 			attachmentDesc.LoadOp			= attachmentPair.second.InitalLayout == ETextureLayout::UNDEFINED ? ELoadOp::CLEAR : ELoadOp::LOAD;
-			attachmentDesc.StoreOp			= EStoreOp::STORE;
+			attachmentDesc.StoreOp			= attachmentPair.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? EStoreOp::DONT_CARE : EStoreOp::STORE;
 			attachmentDesc.StencilLoadOp	= ELoadOp::DONT_CARE;
 			attachmentDesc.StencilStoreOp	= EStoreOp::DONT_CARE;
 			attachmentDesc.InitialLayout	= attachmentPair.second.InitalLayout;
 			attachmentDesc.FinalLayout		= attachmentPair.second.FinalLayout;
 			attachmentDescs.push_back(attachmentDesc);
 
-			GraphicsRenderPassSubpassAttachmentReference attachmentRef = {};
-			attachmentRef.Index		= attachmentPair.second.Index;
-			attachmentRef.Layout	= attachmentPair.second.UsedLayout;
-			colorRefs.push_back(attachmentRef);
+			if (attachmentPair.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			{
+				depthStencilAttachment.Index	= attachmentPair.second.Index;
+				depthStencilAttachment.Layout	= attachmentPair.second.UsedLayout;
+			}
+			else
+			{
+				GraphicsRenderPassSubpassAttachmentReference attachmentRef = {};
+				attachmentRef.Index		= attachmentPair.second.Index;
+				attachmentRef.Layout	= attachmentPair.second.UsedLayout;
+				colorRefs.push_back(attachmentRef);
+			}
 		}
 
 		GraphicsRenderPassSubpassDesc subpassDesc = {};
 		subpassDesc.ColorAttachmentsLayouts = colorRefs;
+		subpassDesc.DepthStencilAttachmentLayout = depthStencilAttachment;
 
 		GraphicsRenderPassSubpassDependencyDesc depDesc = {};
 		depDesc.SrcSubpass		= EXTERNAL_SUBPASS;
@@ -377,7 +390,7 @@ namespace Poly
 			}
 
 			if (a.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-				pDepthAttachment == res->GetAsTextureView();
+				pDepthAttachment = res->GetAsTextureView();
 			else
 				attachments.push_back(res->GetAsTextureView());
 		}
@@ -427,13 +440,27 @@ namespace Poly
 		colorBlend.LogicOpEnable			= false;
 		colorBlend.ColorBlendAttachments	= { colorBlendAttachment };
 
+		DepthStencilDesc depthStencil = {};
+		if (static_cast<RenderPass*>(pPass.get())->GetDepthStenctilUse())
+		{
+			depthStencil.DepthTestEnable		= true;
+			depthStencil.DepthWriteEnable		= true;
+			depthStencil.DepthCompareOp			= ECompareOp::LESS_OR_EQUAL;
+			// depthStencil.DepthBoundsTestEnable	= false;
+			// depthStencil.MinDepthBounds			= 0.0f;
+			// depthStencil.MaxDepthBounds			= 1.0f;
+			depthStencil.StencilTestEnable		= false; // TODO: Allow stencil part to be used by the user in future
+			// depthStencil.Front;
+			// depthStencil.Back;
+		}
+
 		GraphicsPipelineDesc desc = {};
-		// desc.VertexInputs		= Vertex::GetInputInfo();
 		desc.InputAssembly		= assembly;
 		desc.Viewport			= viewport;
 		desc.Scissor			= scissor;
 		desc.Rasterization		= raster;
 		desc.ColorBlendState	= colorBlend;
+		desc.DepthStencil		= depthStencil;
 		desc.pPipelineLayout	= m_PipelineLayouts[passIndex].get();
 		desc.pRenderPass		= m_GraphicsRenderPasses[passIndex].get();
 		desc.pVertexShader		= pPass->GetShader(FShaderStage::VERTEX).get();

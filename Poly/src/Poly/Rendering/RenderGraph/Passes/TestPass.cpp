@@ -26,6 +26,10 @@ namespace Poly
 		reflection.SetFormat("out", EFormat::R8G8B8A8_UNORM);
 		reflection.SetTextureSize("out", 0, 0); // 0 is invalid - defaults to default (window size)
 
+		reflection.AddOutput("depth");
+		reflection.SetBindPoint("depth", FResourceBindPoint::DEPTH_STENCIL);
+		reflection.SetFormat("depth", EFormat::D24_UNORM_S8_UINT);
+
 		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("vert.glsl", FShaderStage::VERTEX));
 		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("frag.glsl", FShaderStage::FRAGMENT));
 

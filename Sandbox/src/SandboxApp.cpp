@@ -55,7 +55,9 @@ public:
 		m_pProgram->SetScene(pScene);
 
 		PolyID modelIDCube = Poly::ResourceManager::LoadModel("../assets/models/cube2.obj");
+		PolyID modelIDTri = Poly::ResourceManager::LoadModel("../assets/models/triangle.obj");
 		pScene->AddModel(modelIDCube);
+		pScene->AddModel(modelIDTri);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);

@@ -52,7 +52,7 @@ namespace Poly
 		VkRenderPassBeginInfo renderPassInfo = {};
 
 		std::vector<VkClearValue> vkClearValues(clearValues.size());
-		memcpy(vkClearValues.data(), clearValues.data(), sizeof(ClearValue));
+		memcpy(vkClearValues.data(), clearValues.data(), sizeof(ClearValue) * clearValues.size());
 
 		//VkClearColorValue clearColorValue = {};
 		//clearColorValue.float32[0] = 0.0f;

@@ -1,7 +1,6 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragUV;
 
 struct Vertex
@@ -24,6 +23,5 @@ layout(set = 1, binding = 0) buffer Vertices
 
 void main() {
     gl_Position = camera * vec4(vertex[gl_VertexIndex].Position.xyz, 1.0);
-    fragColor = vec3(1.0, 0.0, 0.0);
     fragUV = vertex[gl_VertexIndex].TexCoord.xy;
 }

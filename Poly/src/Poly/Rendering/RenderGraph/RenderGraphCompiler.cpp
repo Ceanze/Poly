@@ -171,8 +171,12 @@ namespace Poly
 				// Check if resource is being used, as the graph allows outputs to be non-linked, go to next output if not used
 				bool isMarkedOutput = IsResourceGraphOutput(passData.NodeIndex, output.Name);
 				bool isUsed = IsResourceUsed(passData.NodeIndex, output.Name);
-				if (!isUsed && !isMarkedOutput)
+				bool isDepthStencil = BitsSet(FResourceBindPoint::DEPTH_STENCIL, output.BindPoint);
+				if (!isUsed && !isMarkedOutput && !isDepthStencil)
 					continue;
+
+				if (isDepthStencil)
+					static_cast<RenderPass*>(passData.pPass.get())->SetDepthStenctilUse(true);
 
 				if (isMarkedOutput) // Create alias to backbuffer
 				{

@@ -58,10 +58,14 @@ namespace Poly
 		void SetAttachmentFormat(const std::string& name, EFormat format) { p_Attachments[name].Format = format; }
 		const std::unordered_map<std::string, RenderPassAttachment>& GetAttachments() const { return p_Attachments; };
 
+		void SetDepthStenctilUse(bool isUsingDepthStenctil) { p_usesDepthStencil = isUsingDepthStenctil; }
+		bool GetDepthStenctilUse() const { return p_usesDepthStencil; }
+
 	protected:
 		friend class RenderGraph;
 
 		std::unordered_map<std::string, RenderPassAttachment> p_Attachments;
+		bool p_usesDepthStencil = false;
 
 		// TODO: If/when scenes are added make it a member variable of the renderpass (Ref<Scene>)
 	};
