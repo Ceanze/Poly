@@ -94,7 +94,7 @@ project "assimp"
       "ASSIMP_BUILD_NO_XGL_IMPORTER",
       "ASSIMP_BUILD_NO_FBX_IMPORTER",
       "ASSIMP_BUILD_NO_ASSBIN_IMPORTER",
-      "ASSIMP_BUILD_NO_GLTF_IMPORTER",
+    --   "ASSIMP_BUILD_NO_GLTF_IMPORTER",
       "ASSIMP_BUILD_NO_C4D_IMPORTER",
       "ASSIMP_BUILD_NO_3MF_IMPORTER",
       "ASSIMP_BUILD_NO_X3D_IMPORTER",
@@ -131,6 +131,7 @@ project "assimp"
       "ASSIMP_BUILD_NO_DEBONE_PROCESS",
       "ASSIMP_BUILD_NO_EMBEDTEXTURES_PROCESS",
       "ASSIMP_BUILD_NO_GLOBALSCALE_PROCESS",
+      "RAPIDJSON_HAS_STDSTRING=1"
   }
 
   files {
@@ -173,14 +174,18 @@ project "assimp"
 
 	  -- Custom
 	  "%{prj.location}/code/AssetLib/Obj/**",
+	  "%{prj.location}/code/AssetLib/glTF/**",
+	  "%{prj.location}/code/AssetLib/glTF2/**",
   }
 
   includedirs {
       "%{prj.location}",
       "%{prj.location}/include",
       "%{prj.location}/code",
+      "%{prj.location}/contrib",
       "%{prj.location}/contrib/irrXML",
       "%{prj.location}/contrib/zlib",
+      "%{prj.location}/contrib/pugixml/src",
       "%{prj.location}/contrib/rapidjson/include",
   }
 

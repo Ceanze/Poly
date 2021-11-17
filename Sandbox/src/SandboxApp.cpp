@@ -55,8 +55,10 @@ public:
 
 		PolyID modelIDCube = Poly::ResourceManager::LoadModel("../assets/models/cube2.obj");
 		PolyID modelIDTri = Poly::ResourceManager::LoadModel("../assets/models/triangle.obj");
+		PolyID modelIDTree = Poly::ResourceManager::LoadModel("../assets/models/tree.glb");
 		pScene->AddModel(modelIDCube);
 		pScene->AddModel(modelIDTri);
+		pScene->AddModel(modelIDTree);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
@@ -64,7 +66,6 @@ public:
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
-		//POLY_INFO("Testlayer update!");
 		pCamera->Update(dt);
 		glm::mat4 camMatrix = pCamera->GetMatrix();
 		m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4));
