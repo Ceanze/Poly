@@ -47,6 +47,7 @@ namespace Poly
 		static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh);
 		static void ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID);
 		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
+		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
 
 		static bool s_GLSLInit;
 

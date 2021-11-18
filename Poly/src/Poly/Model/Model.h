@@ -7,35 +7,19 @@ namespace Poly
 	class Mesh;
 	struct MeshInstance;
 
-	// namespace Internal { size_t MeshInstanceHasher(const MeshInstance& key); }
 
 	struct MeshInstance
 	{
 		MeshInstance() = default;
-		MeshInstance(Ref<Mesh> pMesh, PolyID materialID) : pMesh(pMesh), MaterialID(materialID) {}
+		MeshInstance(Ref<Mesh> pMesh, PolyID materialID, glm::mat4 transform) : pMesh(pMesh), MaterialID(materialID), Transform(transform) {}
 		Ref<Mesh>	pMesh;
 		PolyID		MaterialID;
+		glm::mat4	Transform; // TEMP: Workaround until a ECS system which handles this seperate
 
-		bool operator==(const MeshInstance& other) const { return pMesh == other.pMesh && MaterialID == other.MaterialID; }
+		bool operator==(const MeshInstance& other) const { return pMesh == other.pMesh && MaterialID == other.MaterialID && Transform == other.Transform; }
 
 		size_t GetUniqueHash() const { return std::hash<Ref<Mesh>>()(pMesh) ^ (std::hash<PolyID>()(MaterialID) >> 1); }
 	};
-
-	// struct MeshInstanceKeyHasher
-	// {
-	// 	size_t operator()(const MeshInstance& key) const
-	// 	{
-	// 		return Internal::MeshInstanceHasher(key);
-	// 	}
-	// };
-
-	// namespace Internal
-	// {
-	// 	size_t MeshInstanceHasher(const MeshInstance& key)
-	// 	{
-	// 		return std::hash<Ref<Mesh>>()(key.pMesh) ^ (std::hash<PolyID>()(key.MaterialID) >> 1);
-	// 	}
-	// }
 
 	class Model
 	{

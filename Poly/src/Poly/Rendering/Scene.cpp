@@ -38,7 +38,7 @@ namespace Poly
 				if(!drawObjects.contains(hash))
 				{
 					drawObjects[hash].UniqueMeshInstance = meshInstance;
-					drawObjects[hash].Matrices.push_back(model->GetTransform()); /** TODO: Multiply with the mesh matrix aswell when added **/
+					drawObjects[hash].Matrices.push_back(model->GetTransform() * meshInstance.Transform); /** TODO: Multiply with the mesh matrix aswell when added **/
 				}
 				else
 				{

@@ -313,13 +313,14 @@ namespace Poly
 	{
 		for (uint32 i = 0; i < pNode->mNumMeshes; i++)
 		{
+
 			aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
 			aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 			Ref<Mesh> pPolyMesh = Mesh::Create();
 			PolyID materialID = 0;
 			ProcessMesh(pMesh, pScene, pPolyMesh.get());
 			ProcessMaterial(pMaterial, pScene, materialID);
-			pModel->AddMeshInstance({ pPolyMesh, materialID });
+			pModel->AddMeshInstance({ pPolyMesh, materialID, ConvertAiMatToGLM(&pNode->mTransformation) });
 		}
 
 		for (uint32 i = 0; i < pNode->mNumChildren; i++)
@@ -477,5 +478,14 @@ namespace Poly
 		// TODO: Use semaphore here instead!
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
+	}
+
+	glm::mat4 ResourceLoader::ConvertAiMatToGLM(const void* pMat)
+	{
+		const aiMatrix4x4* mat = (aiMatrix4x4*)pMat;
+		return glm::mat4(	mat->a1, mat->b1, mat->c1, mat->d1,
+							mat->a2, mat->b2, mat->c2, mat->d2,
+							mat->a3, mat->b3, mat->c3, mat->d3,
+							mat->a4, mat->b4, mat->c4, mat->d4);
 	}
 }
