@@ -35,7 +35,7 @@ namespace Poly
 		 * @param data	pointer to data being copied over
 		 * @param size	size in bytes of data being copied
 		 */
-		virtual void TransferData(const void* data, const size_t size) = 0;
+		virtual void TransferData(const void* data, const size_t size, const size_t offset) = 0;
 
 		/**
 		 * Unmap buffer. Previous mapped pointer becomes invalid

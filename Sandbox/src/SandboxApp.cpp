@@ -68,7 +68,7 @@ public:
 	{
 		pCamera->Update(dt);
 		glm::mat4 camMatrix = pCamera->GetMatrix();
-		m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4));
+		m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4), 0);
 		m_pRenderer->Render();
 	};
 

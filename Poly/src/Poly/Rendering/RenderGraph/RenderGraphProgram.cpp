@@ -87,17 +87,15 @@ namespace Poly
 			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
 			renderContext->SetCommandBuffer(currentCommandBuffer);
 			renderContext->SetActivePassIndex(passIndex);
-			if (m_SceneBindings.contains(passIndex))
-			{
-				// Update scene before start recording
-				// m_pScene->Update(*renderContext);
-				m_pSceneRenderer->Update(m_SceneBindings[passIndex], m_ImageIndex, passIndex, m_PipelineLayouts[passIndex].get());
-			}
 			renderData.SetRenderPassName(pPass->GetName());
 
 			// Begin recording
-			// currentCommandBuffer->Reset();
 			currentCommandBuffer->Begin(FCommandBufferFlag::NONE);
+
+			if (m_SceneBindings.contains(passIndex))
+			{
+				m_pSceneRenderer->Update(*renderContext, m_SceneBindings[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
+			}
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
 			{
@@ -254,7 +252,7 @@ namespace Poly
 	{
 		auto SelectDescriptorType = [](FResourceBindPoint input){
 			if (BitsSet(input, FResourceBindPoint::SCENE_INSTANCE))
-				return EDescriptorType::UNIFORM_BUFFER;
+				return EDescriptorType::STORAGE_BUFFER;
 			else if (BitsSet(input, FResourceBindPoint::SCENE_VERTEX))
 				return EDescriptorType::STORAGE_BUFFER;
 			else if (BitsSet(input, FResourceBindPoint::SCENE_TEXTURE))

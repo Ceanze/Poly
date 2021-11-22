@@ -17,7 +17,7 @@ namespace Poly
 		virtual void Init(const BufferDesc* pDesc) override final;
 
 		virtual void* Map() override final;
-		virtual void TransferData(const void* data, const size_t size) override final;
+		virtual void TransferData(const void* data, const size_t size, const size_t offset) override final;
 		virtual void Unmap() override final;
 
 		virtual uint64 GetSize()		const override final;

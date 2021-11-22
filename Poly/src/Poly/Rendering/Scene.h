@@ -13,7 +13,7 @@ namespace Poly
 	{
 		MeshInstance			UniqueMeshInstance;
 		std::vector<glm::mat4>	Matrices;
-		Ref<Buffer>				pInstanceBuffer;
+		Ref<DescriptorSet>		pInstanceDescriptorSet;
 		Ref<DescriptorSet>		pVertexDescriptorSet;
 		Ref<DescriptorSet>		pTextureDescriptorSet;
 	};
@@ -40,8 +40,8 @@ namespace Poly
 		friend class SceneRenderer; // TEMP
 
 		void	OrderModels(std::unordered_map<size_t, DrawObject>& drawObjects);
-		uint32	GetMatrixCount(const std::unordered_map<size_t, DrawObject>& drawObjects);
-		uint32	GetMatrixCount();
+		uint32	GetTotalMatrixCount(const std::unordered_map<size_t, DrawObject>& drawObjects);
+		uint32	GetTotalMatrixCount();
 
 		std::vector<PolyID>						m_Models;
 	};

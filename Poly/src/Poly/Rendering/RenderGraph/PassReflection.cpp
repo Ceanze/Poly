@@ -116,9 +116,6 @@ namespace Poly
 		{
 			if (existing.Name == name)
 			{
-				// if (BitsSet(bindPoint, FResourceBindPoint::SCENE_INSTANCE))
-				// 	existing.BindPoint = FResourceBindPoint::SCENE_INSTANCE | FResourceBindPoint::STORAGE;
-				// else
 				existing.BindPoint = bindPoint;
 
 				return;

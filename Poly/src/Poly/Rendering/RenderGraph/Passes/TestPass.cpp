@@ -16,6 +16,7 @@ namespace Poly
 		reflection.SetBindPoint("camera", FResourceBindPoint::UNIFORM);
 
 		reflection.AddInternalInput("vertices", 1, 0, FResourceBindPoint::SCENE_VERTEX);
+		reflection.AddInternalInput("instanceBuffer", 1, 1, FResourceBindPoint::SCENE_INSTANCE);
 
 		// Fragment shader input
 		reflection.AddInternalInput("textures", 2, 0, FResourceBindPoint::SCENE_TEXTURE);

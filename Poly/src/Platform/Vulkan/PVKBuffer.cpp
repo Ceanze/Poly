@@ -39,10 +39,10 @@ namespace Poly
 		return m_MappedPtr;
 	}
 
-	void PVKBuffer::TransferData(const void* data, const size_t size)
+	void PVKBuffer::TransferData(const void* data, const size_t size, const size_t offset)
 	{
 		void* ptr = Map();
-		memcpy(ptr, data, size);
+		memcpy((byte*)ptr + offset, data, size);
 		Unmap();
 	}
 

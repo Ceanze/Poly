@@ -25,6 +25,10 @@ namespace Poly
 		m_Models.erase(it);
 	}
 
+
+
+	// TODO: Move these functions to scenerenderer
+
 	void Scene::OrderModels(std::unordered_map<size_t, DrawObject>& drawObjects)
 	{
 		for (auto modelID : m_Models)
@@ -48,7 +52,7 @@ namespace Poly
 		}
 	}
 
-	uint32 Scene::GetMatrixCount(const std::unordered_map<size_t, DrawObject>& drawObjects)
+	uint32 Scene::GetTotalMatrixCount(const std::unordered_map<size_t, DrawObject>& drawObjects)
 	{
 		uint32 count = 0;
 		for (auto& drawObject : drawObjects)
@@ -56,7 +60,7 @@ namespace Poly
 		return count;
 	}
 
-	uint32 Scene::GetMatrixCount()
+	uint32 Scene::GetTotalMatrixCount()
 	{
 		uint32 count = 0;
 		for (auto modelID : m_Models)
