@@ -11,6 +11,11 @@
 
 namespace Poly
 {
+	void ResourceManager::Init()
+	{
+		RegisterDefaultMaterial();
+	}
+
 	void ResourceManager::Release()
 	{
 		m_Models.clear();
@@ -194,6 +199,37 @@ namespace Poly
 		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range", materialID);
 		return nullptr;
 	}
+
+	void ResourceManager::RegisterDefaultMaterial()
+	{
+		Ref<Material> pMaterial = CreateRef<Material>();
+
+		m_Materials.push_back(pMaterial);
+
+		uint32 width	= 1;
+		uint32 height	= 1;
+		uint32 channels	= 4;
+		byte data[4] = { 255, 255, 255, 255 };
+		Ref<Texture> pTexture = ResourceLoader::LoadTextureFromMemory(&data, width, height, channels, EFormat::R8G8B8A8_UNORM);
+
+		Poly::TextureViewDesc textureViewDesc = {
+			.pTexture			= pTexture.get(),
+			.ImageViewType		= Poly::EImageViewType::TYPE_2D,
+			.Format				= EFormat::R8G8B8A8_UNORM,
+			.ImageViewFlag		= Poly::FImageViewFlag::COLOR,
+			.MipLevel			= 0,
+			.MipLevelCount		= 1,
+			.ArrayLayer			= 0,
+			.ArrayLayerCount	= 1,
+		};
+		Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&textureViewDesc);
+
+		m_Textures.push_back({pTexture, pTextureView});
+
+		pMaterial->SetTexture(Material::Type::ALBEDO, pTexture.get());
+		pMaterial->SetTextureView(Material::Type::ALBEDO, pTextureView.get());
+	}
+
 
 	std::vector<ManagedTexture>	ResourceManager::m_Textures;
 	std::vector<Ref<Model>>		ResourceManager::m_Models;

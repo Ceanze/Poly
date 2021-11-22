@@ -185,10 +185,19 @@ namespace Poly
 			POLY_VALIDATE(false, "Failed to load image {}", path);
 		}
 
+		Ref<Texture> pTexture = LoadTextureFromMemory(data, texWidth, texHeight, channels, format);
+
+		stbi_image_free(data);
+
+		return pTexture;
+	}
+
+	Ref<Texture> ResourceLoader::LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format)
+	{
 		// Create texture
 		TextureDesc textureDesc = {};
-		textureDesc.Width			= texWidth;
-		textureDesc.Height			= texHeight;
+		textureDesc.Width			= width;
+		textureDesc.Height			= height;
 		textureDesc.Depth			= 1;
 		textureDesc.MemoryUsage		= EMemoryUsage::GPU_ONLY;
 		textureDesc.SampleCount		= 1;
@@ -197,19 +206,19 @@ namespace Poly
 		textureDesc.TextureDim		= ETextureDim::DIM_2D;
 		textureDesc.TextureUsage	= FTextureUsage::TRANSFER_DST | FTextureUsage::TRANSFER_SRC | FTextureUsage::SAMPLED;
 		textureDesc.Format			= format;
-		Ref<Texture> texture = RenderAPI::CreateTexture(&textureDesc);
+		Ref<Texture> pTexture = RenderAPI::CreateTexture(&textureDesc);
 
 		// Create transfer buffer
 		BufferDesc bufferDesc = {};
 		bufferDesc.BufferUsage	= FBufferUsage::TRANSFER_SRC;
 		bufferDesc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
-		bufferDesc.Size			= texWidth * texHeight * channels;
-		Ref<Buffer> buffer = RenderAPI::CreateBuffer(&bufferDesc);
+		bufferDesc.Size			= width * height * channels;
+		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&bufferDesc);
 
 		// Map transfer buffer
-		void* buffMap = buffer->Map();
-		memcpy(buffMap, data, texWidth * texHeight * channels);
-		buffer->Unmap();
+		void* buffMap = pBuffer->Map();
+		memcpy(buffMap, data, width * height * channels);
+		pBuffer->Unmap();
 
 		// Copy over data from buffer to texture
 		s_TransferCommandPool->Reset();
@@ -217,7 +226,7 @@ namespace Poly
 
 		// 1. A newly created texture is created with the layout "UNDEFINED". This needs to be transfered to TRANSFER_DST before transfer
 		s_TransferCommandBuffer->PipelineTextureBarrier(
-			texture.get(),
+			pTexture.get(),
 			FPipelineStage::TOP_OF_PIPE,
 			FPipelineStage::TRANSFER,
 			FAccessFlag::NONE,
@@ -228,17 +237,17 @@ namespace Poly
 
 		// 2. When in correct layout, record transfer command
 		CopyBufferDesc copyDesc = {};
-		copyDesc.Width		= texWidth;
-		copyDesc.Height		= texHeight;
+		copyDesc.Width		= width;
+		copyDesc.Height		= height;
 		copyDesc.Depth		= 1;
 		copyDesc.ArrayCount	= 1;
 		copyDesc.ArrayLayer	= 0;
 		copyDesc.MipLevel	= 0;
-		s_TransferCommandBuffer->CopyBufferToTexture(buffer.get(), texture.get(), ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
+		s_TransferCommandBuffer->CopyBufferToTexture(pBuffer.get(), pTexture.get(), ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
 
 		// 3. Release texture from transfer queue
 		s_TransferCommandBuffer->ReleaseTexture(
-			texture.get(),
+			pTexture.get(),
 			FPipelineStage::TRANSFER,
 			FPipelineStage::TRANSFER,
 			FAccessFlag::TRANSFER_READ,
@@ -261,7 +270,7 @@ namespace Poly
 		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 
 		s_GraphicsCommandBuffer->AcquireTexture(
-			texture.get(),
+			pTexture.get(),
 			FPipelineStage::TRANSFER,
 			FPipelineStage::TRANSFER,
 			FAccessFlag::TRANSFER_READ,
@@ -280,10 +289,9 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 
-		stbi_image_free(data);
-
-		return texture;
+		return pTexture;
 	}
+
 
 	Ref<Model> ResourceLoader::LoadModel(const std::string& path)
 	{
@@ -416,11 +424,13 @@ namespace Poly
 
 		if (!hasTextures)
 		{
-			POLY_CORE_WARN("No valid textures were found for material {}!", pMaterial->GetName().C_Str());
-			return;
+			// POLY_CORE_WARN("No valid textures were found for material {}!", pMaterial->GetName().C_Str());
+			materialID = ResourceManager::DEFAULT_MATERIAL_ID;
 		}
-
-		materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
+		else
+		{
+			materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
+		}
 	}
 
 	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)

@@ -28,6 +28,5 @@ layout(set = 1, binding = 1) buffer Transforms
 
 void main() {
     gl_Position = camera * transform[gl_InstanceIndex] * vec4(vertex[gl_VertexIndex].Position.xyz, 1.0);
-    // gl_Position = camera * vec4(vertex[gl_VertexIndex].Position.xyz, 1.0);
     fragUV = vertex[gl_VertexIndex].TexCoord.xy;
 }

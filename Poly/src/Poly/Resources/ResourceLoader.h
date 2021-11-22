@@ -38,6 +38,8 @@ namespace Poly
 
 		static Ref<Texture> LoadTexture(const std::string& path, EFormat format);
 
+		static Ref<Texture> LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format);
+
 		static Ref<Model> LoadModel(const std::string& path);
 
 		static Ref<Material> LoadMaterial(const std::string& path);

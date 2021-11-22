@@ -25,6 +25,7 @@ namespace Poly
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, s_pWindow);
 
 		ResourceLoader::Init();
+		ResourceManager::Init();
 	}
 
 	void Engine::Run(Application* pApp)

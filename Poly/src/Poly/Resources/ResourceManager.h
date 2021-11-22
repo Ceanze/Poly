@@ -29,9 +29,14 @@ namespace Poly
 		};
 
 	public:
+		static const PolyID DEFAULT_MATERIAL_ID = 0;
+		static const PolyID DEFAULT_TEXTURE_ID = 0;
+
+	public:
 		ResourceManager() = default;
 		~ResourceManager() = default;
 
+		static void Init();
 		static void Release();
 
 		/**
@@ -69,13 +74,15 @@ namespace Poly
 		static PolyID RegisterMaterial(const std::string& path, Ref<Material> pMaterial);
 
 	private:
+		static void RegisterDefaultMaterial();
+
 		struct PolyIDEntry
 		{
 			PolyID			ID		= 0;
 			ResourceType	Type	= ResourceType::NONE;
 		};
 
-		static std::vector<ManagedTexture>		m_Textures;
+		static std::vector<ManagedTexture>	m_Textures;
 		static std::vector<Ref<Model>>		m_Models;
 		static std::vector<Ref<Material>>	m_Materials;
 
