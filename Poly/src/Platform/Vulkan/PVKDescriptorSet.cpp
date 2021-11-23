@@ -49,11 +49,11 @@ namespace Poly
 		vkUpdateDescriptorSets(PVKInstance::GetDevice(), 1, &writeInfo, 0, nullptr);
 	}
 
-	void PVKDescriptorSet::UpdateTextureBinding(uint32 binding, ETextureLayout layout, TextureView* pTextureView, Sampler* pSampler)
+	void PVKDescriptorSet::UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler)
 	{
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.sampler		= reinterpret_cast<PVKSampler*>(pSampler)->GetNativeVK();
-		imageInfo.imageView		= reinterpret_cast<PVKTextureView*>(pTextureView)->GetNativeVK();
+		imageInfo.imageView		= reinterpret_cast<const PVKTextureView*>(pTextureView)->GetNativeVK();
 		imageInfo.imageLayout	= ConvertTextureLayoutVK(layout);
 
 		VkWriteDescriptorSet writeInfo = {};

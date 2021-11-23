@@ -5,6 +5,7 @@
 namespace Poly
 {
 	class Buffer;
+	class Material;
 	class RenderContext;
 	class DescriptorSet;
 	class PipelineLayout;
@@ -16,6 +17,8 @@ namespace Poly
 		Ref<DescriptorSet>		pInstanceDescriptorSet;
 		Ref<DescriptorSet>		pVertexDescriptorSet;
 		Ref<DescriptorSet>		pTextureDescriptorSet;
+		Ref<DescriptorSet>		pMaterialDescriptorSet;
+		Material*				pMaterial;
 	};
 
 	class Scene
@@ -46,16 +49,3 @@ namespace Poly
 		std::vector<PolyID>						m_Models;
 	};
 }
-
-// Step 1: Find all unique pairs of mesh and material (aka. unique mesh instance)
-// Step 2: For each unique pair create a vector or similar to contain their respective data (transform matrices)
-// Step 3: For all models save the matrix in the corresponding vector or create a new vector if a new unique pair (see step 2)
-// Step 4: With all unique pairs of mesh and material - do an instanced draw with the corresponding matrices vector
-
-// This means that the shader to be used needs to take in the following:
-//	- Vertices (in form of Vertex buffer)
-//	- Indices (in form of Index Buffer)
-//	- Model Matrices (in form of uniform buffer)
-//	- (Texture sampler)
-
-// See TestPass.cpp::Execute on how the call to scene::draw could look like

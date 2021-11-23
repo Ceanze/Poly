@@ -48,13 +48,15 @@ namespace Poly
 
 	private:
 		Ref<DescriptorSet> GetDescriptor(FramePassKey framePassKey, uint32 drawObjectIndex, uint32 setIndex, PipelineLayout* pPipelineLayout);
-		void UpdateBuffers(uint64 size);
+		void UpdateInstanceBuffers(uint64 size);
+		void UpdateMaterialBuffers(uint64 size);
 
 		Ref<Scene> m_pScene;
-		uint32 m_MaxInstanceSize = 0;
 
 		Ref<Buffer> m_pInstanceBuffer;
 		Ref<Buffer> m_pStagingBuffer;
+		Ref<Buffer> m_pMaterialBuffer;
+		Ref<Buffer> m_pMaterialStagingBuffer;
 
 		std::unordered_map<FramePassKey, std::vector<Ref<DescriptorSet>>, FramePassHasher> m_Descriptors;
 		std::unordered_map<size_t, DrawObject> m_DrawObjects;

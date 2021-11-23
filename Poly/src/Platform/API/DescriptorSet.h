@@ -37,7 +37,7 @@ namespace Poly
 		 * @param pTextureView - The texture view to update
 		 * @param pSampler - Sampler for the texture
 		 */
-		virtual void UpdateTextureBinding(uint32 binding, ETextureLayout layout, TextureView* pTextureView, Sampler* pSampler) = 0;
+		virtual void UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler) = 0;
 
 		/**
 		 * @return Native handle to the API specific object

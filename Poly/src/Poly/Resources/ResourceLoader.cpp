@@ -21,6 +21,7 @@
 #include <assimp/material.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <assimp/pbrmaterial.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -410,6 +411,9 @@ namespace Poly
 		Ref<Material> pPolyMaterial = CreateRef<Material>();
 		bool hasTextures = false;
 
+		for (int i = 0; i < pMaterial->mNumProperties; i++)
+			aiMaterialProperty* pProperty = pMaterial->mProperties[i];
+
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
 			aiString path;
@@ -422,15 +426,48 @@ namespace Poly
 			hasTextures = true;
 		}
 
+		if (!hasTextures && pMaterial->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
+		{
+			aiString path;
+			pMaterial->GetTexture(aiTextureType_BASE_COLOR, 0, &path);
+			PolyID id = ResourceManager::LoadTexture("textures/" + std::string(path.C_Str()), EFormat::R8G8B8A8_UNORM);
+
+			ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
+			pPolyMaterial->SetTexture(Material::Type::ALBEDO, managedTexture.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, managedTexture.pTextureView.get());
+			hasTextures = true;
+		}
+
+		aiColor4D baseColor;
+		MaterialValues materialValues = {};
+		if (!hasTextures && aiGetMaterialColor(pMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, &baseColor) == AI_SUCCESS)
+		{
+			materialValues.Albedo.r = baseColor.r;
+			materialValues.Albedo.g = baseColor.g;
+			materialValues.Albedo.b = baseColor.b;
+			materialValues.Albedo.a = baseColor.a;
+			pPolyMaterial->SetMaterialValues(materialValues);
+
+			pPolyMaterial->SetTexture(Material::Type::ALBEDO, ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID).pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID).pTextureView.get());
+
+			hasTextures = true;
+		}
+
+		//aiColor4D diffuse;
+		//if (aiGetMaterialColor(pMaterial, AI_MATKEY_COLOR_DIFFUSE, &diffuse) == AI_SUCCESS)
+		//{
+		//	materialValues.Albedo.r = diffuse.r;
+		//	materialValues.Albedo.g = diffuse.g;
+		//	materialValues.Albedo.b = diffuse.b;
+		//	materialValues.Albedo.a = diffuse.a;
+		//	pPolyMaterial->SetMaterialValues(materialValues);
+		//}
+
 		if (!hasTextures)
-		{
-			// POLY_CORE_WARN("No valid textures were found for material {}!", pMaterial->GetName().C_Str());
 			materialID = ResourceManager::DEFAULT_MATERIAL_ID;
-		}
 		else
-		{
 			materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
-		}
 	}
 
 	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)

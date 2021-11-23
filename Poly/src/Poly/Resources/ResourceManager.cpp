@@ -182,7 +182,7 @@ namespace Poly
 		return nullptr;
 	}
 
-	ManagedTexture	ResourceManager::GetManagedTexture(PolyID polyTextureID)
+	ManagedTexture ResourceManager::GetManagedTexture(PolyID polyTextureID)
 	{
 		if (polyTextureID < m_Textures.size())
 			return m_Textures[polyTextureID];
@@ -196,8 +196,8 @@ namespace Poly
 		if (materialID < m_Materials.size())
 			return m_Materials[materialID].get();
 
-		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range", materialID);
-		return nullptr;
+		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range, returning default material", materialID);
+		return m_Materials[DEFAULT_MATERIAL_ID].get();
 	}
 
 	void ResourceManager::RegisterDefaultMaterial()
@@ -228,6 +228,9 @@ namespace Poly
 
 		pMaterial->SetTexture(Material::Type::ALBEDO, pTexture.get());
 		pMaterial->SetTextureView(Material::Type::ALBEDO, pTextureView.get());
+
+		MaterialValues matVals = {};
+		pMaterial->SetMaterialValues(matVals);
 	}
 
 

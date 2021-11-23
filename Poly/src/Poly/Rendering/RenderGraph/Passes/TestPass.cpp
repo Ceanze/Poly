@@ -20,6 +20,7 @@ namespace Poly
 
 		// Fragment shader input
 		reflection.AddInternalInput("textures", 2, 0, FResourceBindPoint::SCENE_TEXTURE);
+		reflection.AddInternalInput("materials", 2, 1, FResourceBindPoint::SCENE_MATERIAL);
 
 		// Output
 		reflection.AddOutput("out");

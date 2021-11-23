@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 
 #include "Poly/Model/Mesh.h"
+#include "Poly/Model/Material.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
@@ -19,18 +20,20 @@ namespace Poly
 		m_DrawObjects.clear();
 		m_pScene->OrderModels(m_DrawObjects);
 
-		m_MaxInstanceSize = 0;
-		uint64 totalSize = 0;
-
 		auto vertexBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
 		auto textureBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_TEXTURE; });
 		auto instanceBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_INSTANCE; });
+		auto materialBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_MATERIAL; });
 
-		bool hasInstanceBuffer = instanceBinding != sceneBindings.end();
-		if (hasInstanceBuffer)
+		bool hasInstanceBuffer	= instanceBinding != sceneBindings.end();
+		bool hasMaterial		= materialBinding != sceneBindings.end();
+		if (hasInstanceBuffer || hasMaterial)
 		{
-			uint64 bufferSize = m_pScene->GetTotalMatrixCount(m_DrawObjects) * sizeof(glm::mat4);
-			UpdateBuffers(bufferSize);
+			uint32 totalInstanceCount = m_pScene->GetTotalMatrixCount(m_DrawObjects);
+			if (hasInstanceBuffer)
+				UpdateInstanceBuffers(totalInstanceCount * sizeof(glm::mat4));
+			if (hasMaterial)
+				UpdateMaterialBuffers(totalInstanceCount * sizeof(MaterialValues));
 		}
 
 		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
@@ -49,7 +52,7 @@ namespace Poly
 			{
 				FramePassKey framePassKey = {imageIndex, passIndex, textureBinding->SetIndex};
 				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, textureBinding->SetIndex, pPipelineLayout);
-				TextureView* pTextureView = ResourceManager::GetTextureView(drawObjectPair.second.UniqueMeshInstance.MaterialID);
+				const TextureView* pTextureView = ResourceManager::GetMaterial(drawObjectPair.second.UniqueMeshInstance.MaterialID)->GetTextureView(Material::Type::ALBEDO);
 				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(textureBinding->Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
 			}
 
@@ -58,14 +61,23 @@ namespace Poly
 			{
 				FramePassKey framePassKey = {imageIndex, passIndex, instanceBinding->SetIndex};
 				uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
+				uint64 offset = size * drawObjectIndex;
 				drawObjectPair.second.pInstanceDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, instanceBinding->SetIndex, pPipelineLayout);
-				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(instanceBinding->Binding, m_pInstanceBuffer.get(), totalSize, size);
+				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(instanceBinding->Binding, m_pInstanceBuffer.get(), offset, size);
 
-				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, totalSize);
-				totalSize += size;
+				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, offset);
+			}
 
-				if (size > m_MaxInstanceSize)
-					m_MaxInstanceSize = size;
+			// SCENE_MATERIAL
+			if (hasMaterial)
+			{
+				FramePassKey framePassKey = {imageIndex, passIndex, materialBinding->SetIndex};
+				uint64 size = sizeof(MaterialValues);
+				uint64 offset = size * drawObjectIndex;
+				drawObjectPair.second.pMaterialDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, materialBinding->SetIndex, pPipelineLayout);
+				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(materialBinding->Binding, m_pMaterialBuffer.get(), offset, size);
+
+				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.pMaterial->GetMaterialValues(), size, offset);
 			}
 
 			drawObjectIndex++;
@@ -73,6 +85,8 @@ namespace Poly
 
 		if (hasInstanceBuffer)
 			context.GetCommandBuffer()->CopyBuffer(m_pStagingBuffer.get(), m_pInstanceBuffer.get(), m_pStagingBuffer->GetSize(), 0, 0);
+		if (hasMaterial)
+			context.GetCommandBuffer()->CopyBuffer(m_pMaterialStagingBuffer.get(), m_pMaterialBuffer.get(), m_pMaterialStagingBuffer->GetSize(), 0, 0);
 	}
 
 	void SceneRenderer::Render(const RenderContext& context)
@@ -92,6 +106,8 @@ namespace Poly
 				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pTextureDescriptorSet.get());
 			if (drawObject.second.pInstanceDescriptorSet)
 				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pInstanceDescriptorSet.get());
+			if (drawObject.second.pMaterialDescriptorSet)
+				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pMaterialDescriptorSet.get());
 
 			Ref<Mesh> pMesh = drawObject.second.UniqueMeshInstance.pMesh;
 			const Buffer* pIndexBuffer = pMesh->GetIndexBuffer();
@@ -112,7 +128,7 @@ namespace Poly
 		return m_Descriptors[framePassKey].back();
 	}
 
-	void SceneRenderer::UpdateBuffers(uint64 size)
+	void SceneRenderer::UpdateInstanceBuffers(uint64 size)
 	{
 		if (size == 0)
 		{
@@ -134,6 +150,31 @@ namespace Poly
 			desc.BufferUsage	= FBufferUsage::STORAGE_BUFFER | FBufferUsage::TRANSFER_DST;
 			desc.MemUsage		= EMemoryUsage::GPU_ONLY;
 			m_pInstanceBuffer = RenderAPI::CreateBuffer(&desc);
+		}
+	}
+
+	void SceneRenderer::UpdateMaterialBuffers(uint64 size)
+	{
+		if (size == 0)
+		{
+			POLY_CORE_WARN("UpdateBuffers was called with a size of 0, this should probably not be done, ignoring");
+			return;
+		}
+
+		if (!m_pMaterialStagingBuffer || m_pMaterialStagingBuffer->GetSize() < size)
+		{
+			m_pMaterialStagingBuffer.reset();
+			m_pMaterialBuffer.reset();
+
+			BufferDesc desc = {};
+			desc.BufferUsage	= FBufferUsage::STORAGE_BUFFER | FBufferUsage::TRANSFER_SRC;
+			desc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
+			desc.Size			= size;
+			m_pMaterialStagingBuffer = RenderAPI::CreateBuffer(&desc);
+
+			desc.BufferUsage	= FBufferUsage::STORAGE_BUFFER | FBufferUsage::TRANSFER_DST;
+			desc.MemUsage		= EMemoryUsage::GPU_ONLY;
+			m_pMaterialBuffer = RenderAPI::CreateBuffer(&desc);
 		}
 	}
 }
