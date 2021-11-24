@@ -409,65 +409,100 @@ namespace Poly
 		}
 
 		Ref<Material> pPolyMaterial = CreateRef<Material>();
-		bool hasTextures = false;
-
-		for (int i = 0; i < pMaterial->mNumProperties; i++)
-			aiMaterialProperty* pProperty = pMaterial->mProperties[i];
-
-		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-		{
-			aiString path;
-			pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-			PolyID id = ResourceManager::LoadTexture("textures/" + std::string(path.C_Str()), EFormat::R8G8B8A8_UNORM);
-
-			ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
-			pPolyMaterial->SetTexture(Material::Type::ALBEDO, managedTexture.pTexture.get());
-			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, managedTexture.pTextureView.get());
-			hasTextures = true;
-		}
-
-		if (!hasTextures && pMaterial->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
-		{
-			aiString path;
-			pMaterial->GetTexture(aiTextureType_BASE_COLOR, 0, &path);
-			PolyID id = ResourceManager::LoadTexture("textures/" + std::string(path.C_Str()), EFormat::R8G8B8A8_UNORM);
-
-			ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
-			pPolyMaterial->SetTexture(Material::Type::ALBEDO, managedTexture.pTexture.get());
-			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, managedTexture.pTextureView.get());
-			hasTextures = true;
-		}
-
-		aiColor4D baseColor;
 		MaterialValues materialValues = {};
-		if (!hasTextures && aiGetMaterialColor(pMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, &baseColor) == AI_SUCCESS)
+
+		// Constants
+		// Metallic
+		ai_real metallic = 0.0f;
+		if (pMaterial->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == aiReturn_SUCCESS)
 		{
-			materialValues.Albedo.r = baseColor.r;
-			materialValues.Albedo.g = baseColor.g;
-			materialValues.Albedo.b = baseColor.b;
-			materialValues.Albedo.a = baseColor.a;
-			pPolyMaterial->SetMaterialValues(materialValues);
-
-			pPolyMaterial->SetTexture(Material::Type::ALBEDO, ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID).pTexture.get());
-			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID).pTextureView.get());
-
-			hasTextures = true;
+			materialValues.Metallic = metallic;
 		}
 
-		//aiColor4D diffuse;
-		//if (aiGetMaterialColor(pMaterial, AI_MATKEY_COLOR_DIFFUSE, &diffuse) == AI_SUCCESS)
-		//{
-		//	materialValues.Albedo.r = diffuse.r;
-		//	materialValues.Albedo.g = diffuse.g;
-		//	materialValues.Albedo.b = diffuse.b;
-		//	materialValues.Albedo.a = diffuse.a;
-		//	pPolyMaterial->SetMaterialValues(materialValues);
-		//}
+		// Roughness
+		ai_real roughness = 0.0f;
+		if (pMaterial->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == aiReturn_SUCCESS)
+		{
+			materialValues.Roughness = roughness;
+		}
 
-		if (!hasTextures)
-			materialID = ResourceManager::DEFAULT_MATERIAL_ID;
+		// Albedo
+		aiColor4D diffuse;
+		if (pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == aiReturn_SUCCESS)
+		{
+			materialValues.Albedo.r = diffuse.r;
+			materialValues.Albedo.g = diffuse.g;
+			materialValues.Albedo.b = diffuse.b;
+			materialValues.Albedo.a = diffuse.a;
+		}
+
+		// Textures
+		// Albedo
+		if (pMaterial->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_BASE_COLOR, 0, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 1)
+			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 1, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 0, pPolyMaterial);
 		else
-			materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
+		{
+			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			pPolyMaterial->SetTexture(Material::Type::ALBEDO, mt.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, mt.pTextureView.get());
+		}
+
+		// Normal
+		if (pMaterial->GetTextureCount(aiTextureType_NORMAL_CAMERA) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_NORMAL_CAMERA, 0, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_NORMALS) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_NORMALS, 0, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_HEIGHT) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_HEIGHT, 0, pPolyMaterial);
+		else
+		{
+			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			pPolyMaterial->SetTexture(Material::Type::NORMAL, mt.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::NORMAL, mt.pTextureView.get());
+		}
+
+		// Ambient Occlusion
+		if (pMaterial->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT_OCCLUSION, 0, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_AMBIENT) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT, 0, pPolyMaterial);
+		else
+		{
+			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			pPolyMaterial->SetTexture(Material::Type::AMBIENT_OCCLUSION, mt.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::AMBIENT_OCCLUSION, mt.pTextureView.get());
+		}
+
+		// Metallic
+		if (pMaterial->GetTextureCount(aiTextureType_METALNESS) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_METALNESS, 0, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_REFLECTION) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_REFLECTION, 0, pPolyMaterial);
+		else
+		{
+			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			pPolyMaterial->SetTexture(Material::Type::METALIC, mt.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::METALIC, mt.pTextureView.get());
+		}
+
+		// Roughness
+		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, 0, pPolyMaterial);
+		else if (pMaterial->GetTextureCount(aiTextureType_SHININESS) > 0)
+			LoadAssimpMaterial(pMaterial, aiTextureType_SHININESS, 0, pPolyMaterial);
+		else
+		{
+			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			pPolyMaterial->SetTexture(Material::Type::ROUGHNESS, mt.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::ROUGHNESS, mt.pTextureView.get());
+		}
+
+		pPolyMaterial->SetMaterialValues(materialValues);
+		materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
 	}
 
 	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)
@@ -534,5 +569,40 @@ namespace Poly
 							mat->a2, mat->b2, mat->c2, mat->d2,
 							mat->a3, mat->b3, mat->c3, mat->d3,
 							mat->a4, mat->b4, mat->c4, mat->d4);
+	}
+
+	void ResourceLoader::LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial)
+	{
+		aiString path;
+		pMaterial->GetTexture(aiTextureType_DIFFUSE, index, &path);
+		PolyID id = ResourceManager::LoadTexture("textures/" + std::string(path.C_Str()), EFormat::R8G8B8A8_UNORM);
+
+		ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
+		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
+		pPolyMaterial->SetTextureView(ConvertTextureType(type), managedTexture.pTextureView.get());
+	}
+
+	Material::Type ResourceLoader::ConvertTextureType(aiTextureType aiType)
+	{
+		switch (aiType)
+		{
+			case aiTextureType_BASE_COLOR:			return Material::Type::ALBEDO;
+			case aiTextureType_DIFFUSE:				return Material::Type::ALBEDO;
+
+			case aiTextureType_NORMAL_CAMERA:		return Material::Type::NORMAL;
+			case aiTextureType_NORMALS:				return Material::Type::NORMAL;
+			case aiTextureType_HEIGHT:				return Material::Type::NORMAL;
+
+			case aiTextureType_AMBIENT_OCCLUSION:	return Material::Type::AMBIENT_OCCLUSION;
+			case aiTextureType_AMBIENT:				return Material::Type::AMBIENT_OCCLUSION;
+
+			case aiTextureType_METALNESS:			return Material::Type::METALIC;
+			case aiTextureType_REFLECTION:			return Material::Type::METALIC;
+
+			case aiTextureType_DIFFUSE_ROUGHNESS:	return Material::Type::ROUGHNESS;
+			case aiTextureType_SHININESS:			return Material::Type::ROUGHNESS;
+
+			default:								return Material::Type::NONE;
+		}
 	}
 }

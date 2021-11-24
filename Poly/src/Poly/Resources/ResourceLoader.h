@@ -4,11 +4,14 @@
 #include <string>
 
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Poly/Model/Material.h"
 
 struct aiNode;
 struct aiMesh;
 struct aiScene;
 struct aiMaterial;
+
+enum aiTextureType;
 
 namespace Poly
 {
@@ -18,7 +21,6 @@ namespace Poly
 	class Shader;
 	class Buffer;
 	class Texture;
-	class Material;
 	class Semaphore;
 	class CommandPool;
 	class CommandBuffer;
@@ -50,6 +52,8 @@ namespace Poly
 		static void ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID);
 		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
 		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
+		static void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial);
+		static Material::Type ConvertTextureType(aiTextureType aiType);
 
 		static bool s_GLSLInit;
 

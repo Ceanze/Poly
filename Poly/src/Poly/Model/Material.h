@@ -22,7 +22,9 @@ namespace Poly
 			NONE,
 			ALBEDO,
 			METALIC,
-			NORMAL
+			NORMAL,
+			ROUGHNESS,
+			AMBIENT_OCCLUSION
 		};
 
 	public:
