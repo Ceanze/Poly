@@ -110,7 +110,7 @@ project "Poly"
 		"%{prj.name}/libs/spdlog/include",
 		"%{prj.name}/libs/glfw/include",
 		"%{prj.name}/libs/glm",
-		"%{prj.name}/libs/VMA/src",
+		"%{prj.name}/libs/VMA/include",
 		"%{prj.name}/libs/stb_image",
 		"%{prj.name}/libs/glslang",
 		"%{prj.name}/libs/assimp/include",
