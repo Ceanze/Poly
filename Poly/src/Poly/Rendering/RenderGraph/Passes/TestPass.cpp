@@ -19,8 +19,8 @@ namespace Poly
 		reflection.AddInternalInput("instanceBuffer", 1, 1, FResourceBindPoint::SCENE_INSTANCE);
 
 		// Fragment shader input
-		reflection.AddInternalInput("textures", 2, 0, FResourceBindPoint::SCENE_TEXTURE);
-		reflection.AddInternalInput("materials", 2, 1, FResourceBindPoint::SCENE_MATERIAL);
+		reflection.AddInternalInput("materials", 2, 0, FResourceBindPoint::SCENE_MATERIAL);
+		reflection.AddInternalInput("textures", 2, 1, FResourceBindPoint::SCENE_TEXTURES); // SCENE_TEXTURE must be the last bound to a set - due to it using multiple bindings
 
 		// Output
 		reflection.AddOutput("out");

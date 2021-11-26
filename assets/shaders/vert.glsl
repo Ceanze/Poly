@@ -37,7 +37,7 @@ layout(set = 1, binding = 1) buffer Transforms
     mat4 transform[];
 };
 
-layout(set = 2, binding = 1) buffer MaterialProperties
+layout(set = 2, binding = 0) buffer MaterialProperties
 {
 	MaterialValues material[];
 };

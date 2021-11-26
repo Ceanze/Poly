@@ -21,7 +21,7 @@ namespace Poly
 		m_pScene->OrderModels(m_DrawObjects);
 
 		auto vertexBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
-		auto textureBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_TEXTURE; });
+		auto textureBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_TEXTURES; });
 		auto instanceBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_INSTANCE; });
 		auto materialBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_MATERIAL; });
 
@@ -52,8 +52,16 @@ namespace Poly
 			{
 				FramePassKey framePassKey = {imageIndex, passIndex, textureBinding->SetIndex};
 				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, textureBinding->SetIndex, pPipelineLayout);
-				const TextureView* pTextureView = ResourceManager::GetMaterial(drawObjectPair.second.UniqueMeshInstance.MaterialID)->GetTextureView(Material::Type::ALBEDO);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(textureBinding->Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+
+				for (uint32 i = 1; auto& binding : sceneBindings)
+				{
+					if (binding.Type == FResourceBindPoint::SCENE_TEXTURES)
+					{
+						// TODO: Make this more generic instead of relying on a specific order decided by enum
+						const TextureView* pTextureView = ResourceManager::GetMaterial(drawObjectPair.second.UniqueMeshInstance.MaterialID)->GetTextureView(Material::Type(i++));
+						drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(binding.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+					}
+				}
 			}
 
 			// SCENE_INSTANCE
