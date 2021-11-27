@@ -44,15 +44,17 @@ namespace Poly
 
 		static Ref<Model> LoadModel(const std::string& path);
 
+		// static Ref<Mesh> LoadMesh(const std::string& path);
+
 		static Ref<Material> LoadMaterial(const std::string& path);
 
 	private:
-		static void ProcessNode(aiNode* pNode, const aiScene* pScene, Model* pModel);
+		static void ProcessNode(aiNode* pNode, const aiScene* pScene, Model* pModel, const std::string& folder);
 		static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh);
-		static void ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID);
+		static void ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID, const std::string& folder);
 		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
 		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
-		static void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial);
+		static void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial, const std::string& folder);
 		static Material::Type ConvertTextureType(aiTextureType aiType);
 
 		static bool s_GLSLInit;

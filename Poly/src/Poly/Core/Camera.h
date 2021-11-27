@@ -37,7 +37,7 @@ namespace Poly
 		float m_Pitch	= 0.f;
 
 		float m_ZNear			= 0.01f;
-		float m_ZFar			= 100.f;
+		float m_ZFar			= 1000.f;
 		float m_FOV				= 45.f;
 		float m_MouseSense		= 2.f;
 		float m_Aspect			= 1;

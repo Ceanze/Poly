@@ -163,7 +163,7 @@ namespace Poly
 
 		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, 0);
 		if (!data)
-			POLY_CORE_ERROR("Failed to load image {}", path);
+			POLY_CORE_ERROR("Failed to load image {}", realPath);
 
 		std::vector<byte> image(texWidth * texHeight * channels);
 		memcpy(image.data(), data, texWidth * texHeight * channels);
@@ -173,18 +173,16 @@ namespace Poly
 
 	Ref<Texture> ResourceLoader::LoadTexture(const std::string& path, EFormat format)
 	{
-		std::string realPath = ASSETS_PATH + path;
+		std::string realPath = path;
 
 		// Load image
 		int texWidth	= 0;
 		int texHeight	= 0;
 		int channels	= 0;
 
-		byte* data = stbi_load(realPath.c_str(), &texWidth, &texHeight, &channels, 0);
+		byte* data = stbi_load(realPath.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
 		if (!data)
-		{
-			POLY_VALIDATE(false, "Failed to load image {}", path);
-		}
+			POLY_VALIDATE(false, "Failed to load image {}", realPath);
 
 		Ref<Texture> pTexture = LoadTextureFromMemory(data, texWidth, texHeight, channels, format);
 
@@ -209,16 +207,19 @@ namespace Poly
 		textureDesc.Format			= format;
 		Ref<Texture> pTexture = RenderAPI::CreateTexture(&textureDesc);
 
+		// TODO: Channels or format should be checked to get the correct size instead of hardcoding to four
+		// The value instead of channels should be the stride for the texture, which needs to be a factor of two
+
 		// Create transfer buffer
 		BufferDesc bufferDesc = {};
 		bufferDesc.BufferUsage	= FBufferUsage::TRANSFER_SRC;
 		bufferDesc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
-		bufferDesc.Size			= width * height * channels;
+		bufferDesc.Size			= width * height * 4;
 		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&bufferDesc);
 
 		// Map transfer buffer
 		void* buffMap = pBuffer->Map();
-		memcpy(buffMap, data, width * height * channels);
+		memcpy(buffMap, data, width * height * 4);
 		pBuffer->Unmap();
 
 		// Copy over data from buffer to texture
@@ -298,7 +299,9 @@ namespace Poly
 	{
 		Assimp::Importer importer;
 		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
-
+		
+		size_t slashPos = path.find_last_of("/\\");
+		std::string folder = path.substr(0, slashPos + 1);
 
 		if (!pScene)
 		{
@@ -308,34 +311,38 @@ namespace Poly
 
 		Ref<Model> pModel = CreateRef<Model>();
 
-		ProcessNode(pScene->mRootNode, pScene, pModel.get());
+		ProcessNode(pScene->mRootNode, pScene, pModel.get(), folder);
 
 		return pModel;
 	}
+
+	// Ref<Mesh> ResourceLoader::LoadMesh(const std::string& path)
+	// {
+
+	// }
 
 	Ref<Material> ResourceLoader::LoadMaterial(const std::string& path)
 	{
 		return nullptr;
 	}
 
-	void ResourceLoader::ProcessNode(aiNode *pNode, const aiScene *pScene, Model* pModel)
+	void ResourceLoader::ProcessNode(aiNode *pNode, const aiScene *pScene, Model* pModel, const std::string& folder)
 	{
 		for (uint32 i = 0; i < pNode->mNumMeshes; i++)
 		{
-
 			aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
 			aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 			Ref<Mesh> pPolyMesh = Mesh::Create();
-			PolyID materialID = 0;
+			PolyID materialID = i; // MaterialID is used as part of the name if no name is given, it is set to correct in ProcessMaterial
 			ProcessMesh(pMesh, pScene, pPolyMesh.get());
-			ProcessMaterial(pMaterial, pScene, materialID);
+			ProcessMaterial(pMaterial, pScene, materialID, folder);
 			pModel->AddMeshInstance({ pPolyMesh, materialID, ConvertAiMatToGLM(&pNode->mTransformation) });
 		}
 
 		for (uint32 i = 0; i < pNode->mNumChildren; i++)
 		{
 			aiNode* child = pNode->mChildren[i];
-			ProcessNode(child, pScene, pModel);
+			ProcessNode(child, pScene, pModel, folder);
 		}
 	}
 
@@ -399,12 +406,18 @@ namespace Poly
 		pPolyMesh->SetIndexBuffer(pIndexBuffer, indices.size());
 	}
 
-	void ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID)
+	void ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID, const std::string& folder)
 	{
-		if (ResourceManager::IsResourceLoaded(pMaterial->GetName().C_Str()))
+		std::string name = pMaterial->GetName().C_Str();
+		if (name.empty())
+		{
+			name = folder + pScene->mName.C_Str() + std::to_string(materialID);
+		}
+
+		if (ResourceManager::IsResourceLoaded(name))
 		{
 			// Load material returns a loaded value if the material is already loaded
-			materialID = ResourceManager::LoadMaterial(pMaterial->GetName().C_Str());
+			materialID = ResourceManager::GetPolyIDFromPath(name);
 			return;
 		}
 
@@ -439,11 +452,11 @@ namespace Poly
 		// Textures
 		// Albedo
 		if (pMaterial->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_BASE_COLOR, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_BASE_COLOR, 0, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 1)
-			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 1, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 1, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 0, pPolyMaterial, folder);
 		else
 		{
 			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
@@ -453,11 +466,11 @@ namespace Poly
 
 		// Normal
 		if (pMaterial->GetTextureCount(aiTextureType_NORMAL_CAMERA) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_NORMAL_CAMERA, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_NORMAL_CAMERA, 0, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_NORMALS) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_NORMALS, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_NORMALS, 0, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_HEIGHT) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_HEIGHT, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_HEIGHT, 0, pPolyMaterial, folder);
 		else
 		{
 			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
@@ -467,9 +480,9 @@ namespace Poly
 
 		// Ambient Occlusion
 		if (pMaterial->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT_OCCLUSION, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT_OCCLUSION, 0, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_AMBIENT) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT, 0, pPolyMaterial, folder);
 		else
 		{
 			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
@@ -479,9 +492,9 @@ namespace Poly
 
 		// Metallic
 		if (pMaterial->GetTextureCount(aiTextureType_METALNESS) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_METALNESS, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_METALNESS, 0, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_REFLECTION) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_REFLECTION, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_REFLECTION, 0, pPolyMaterial, folder);
 		else
 		{
 			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
@@ -491,9 +504,9 @@ namespace Poly
 
 		// Roughness
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, 0, pPolyMaterial, folder);
 		else if (pMaterial->GetTextureCount(aiTextureType_SHININESS) > 0)
-			LoadAssimpMaterial(pMaterial, aiTextureType_SHININESS, 0, pPolyMaterial);
+			LoadAssimpMaterial(pMaterial, aiTextureType_SHININESS, 0, pPolyMaterial, folder);
 		else
 		{
 			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
@@ -502,7 +515,7 @@ namespace Poly
 		}
 
 		pPolyMaterial->SetMaterialValues(materialValues);
-		materialID = ResourceManager::RegisterMaterial(pMaterial->GetName().C_Str(), pPolyMaterial);
+		materialID = ResourceManager::RegisterMaterial(name, pPolyMaterial);
 	}
 
 	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)
@@ -571,11 +584,14 @@ namespace Poly
 							mat->a4, mat->b4, mat->c4, mat->d4);
 	}
 
-	void ResourceLoader::LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial)
+	void ResourceLoader::LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial, const std::string& folder)
 	{
 		aiString path;
-		pMaterial->GetTexture(aiTextureType_DIFFUSE, index, &path);
-		PolyID id = ResourceManager::LoadTexture("textures/" + std::string(path.C_Str()), EFormat::R8G8B8A8_UNORM);
+		if (pMaterial->GetTexture(aiTextureType_DIFFUSE, index, &path) != AI_SUCCESS)
+		{
+			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
+		}
+		PolyID id = ResourceManager::LoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
 
 		ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
 		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());

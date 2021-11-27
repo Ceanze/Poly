@@ -36,6 +36,8 @@ namespace Poly
 				UpdateMaterialBuffers(totalInstanceCount * sizeof(MaterialValues));
 		}
 
+		uint64 instanceOffset = 0;
+		uint64 materialOffset = 0;
 		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
 		{
 			// SCENE_VERTEX
@@ -69,11 +71,12 @@ namespace Poly
 			{
 				FramePassKey framePassKey = {imageIndex, passIndex, instanceBinding->SetIndex};
 				uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
-				uint64 offset = size * drawObjectIndex;
 				drawObjectPair.second.pInstanceDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, instanceBinding->SetIndex, pPipelineLayout);
-				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(instanceBinding->Binding, m_pInstanceBuffer.get(), offset, size);
+				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(instanceBinding->Binding, m_pInstanceBuffer.get(), instanceOffset, size);
 
-				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, offset);
+				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, instanceOffset);
+
+				instanceOffset += size;
 			}
 
 			// SCENE_MATERIAL
@@ -81,11 +84,12 @@ namespace Poly
 			{
 				FramePassKey framePassKey = {imageIndex, passIndex, materialBinding->SetIndex};
 				uint64 size = sizeof(MaterialValues);
-				uint64 offset = size * drawObjectIndex;
 				drawObjectPair.second.pMaterialDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, materialBinding->SetIndex, pPipelineLayout);
-				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(materialBinding->Binding, m_pMaterialBuffer.get(), offset, size);
+				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(materialBinding->Binding, m_pMaterialBuffer.get(), materialOffset, size);
 
-				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.pMaterial->GetMaterialValues(), size, offset);
+				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.pMaterial->GetMaterialValues(), size, materialOffset);
+
+				materialOffset += size;
 			}
 
 			drawObjectIndex++;
@@ -107,15 +111,19 @@ namespace Poly
 			uint32 instanceCount = drawObject.second.Matrices.size();
 
 			// Draw
-			// TODO: Bind specific sets, not specific pointers to sets
-			if (drawObject.second.pVertexDescriptorSet)
-				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pVertexDescriptorSet.get());
-			if (drawObject.second.pTextureDescriptorSet)
-				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pTextureDescriptorSet.get());
-			if (drawObject.second.pInstanceDescriptorSet)
-				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pInstanceDescriptorSet.get());
-			if (drawObject.second.pMaterialDescriptorSet)
-				commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pMaterialDescriptorSet.get());
+			std::set<DescriptorSet*> sets = { drawObject.second.pVertexDescriptorSet.get(), drawObject.second.pTextureDescriptorSet.get(),
+											  drawObject.second.pInstanceDescriptorSet.get(), drawObject.second.pMaterialDescriptorSet.get()};
+			// if (drawObject.second.pVertexDescriptorSet)
+			// 	commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pVertexDescriptorSet.get());
+			// if (drawObject.second.pTextureDescriptorSet)
+			// 	commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pTextureDescriptorSet.get());
+			// if (drawObject.second.pInstanceDescriptorSet)
+			// 	commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pInstanceDescriptorSet.get());
+			// if (drawObject.second.pMaterialDescriptorSet)
+			// 	commandBuffer->BindDescriptor(context.GetActivePipeline(), drawObject.second.pMaterialDescriptorSet.get());
+			for (auto& set : sets)
+				commandBuffer->BindDescriptor(context.GetActivePipeline(), set);
+
 
 			Ref<Mesh> pMesh = drawObject.second.UniqueMeshInstance.pMesh;
 			const Buffer* pIndexBuffer = pMesh->GetIndexBuffer();

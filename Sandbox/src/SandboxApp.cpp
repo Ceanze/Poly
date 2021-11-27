@@ -19,7 +19,9 @@ public:
 	{
 		pCamera = new Poly::Camera();
 		pCamera->SetAspect(1280.f / 720.f);
-		pCamera->SetMouseSense(3.f);
+		pCamera->SetMouseSense(2.f);
+		pCamera->SetMovementSpeed(3.f);
+		pCamera->SetSprintSpeed(6.f);
 
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
@@ -53,12 +55,16 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		PolyID modelIDCube = Poly::ResourceManager::LoadModel("../assets/models/cube2.obj");
-		PolyID modelIDTri = Poly::ResourceManager::LoadModel("../assets/models/triangle.obj");
-		PolyID modelIDTree = Poly::ResourceManager::LoadModel("../assets/models/tree.glb");
-		pScene->AddModel(modelIDCube);
-		pScene->AddModel(modelIDTri);
-		pScene->AddModel(modelIDTree);
+		// PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
+		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/sponza.obj");
+		PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
+		// PolyID cube1 = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
+		pScene->AddModel(sponza);
+		pScene->AddModel(cube);
+		// pScene->AddModel(cube1);
+
+		// Scale the giant sponza
+		// Poly::ResourceManager::GetModel(sponza)->SetScale(0.05f);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);

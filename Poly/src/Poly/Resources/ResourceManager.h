@@ -48,11 +48,19 @@ namespace Poly
 		static PolyID LoadTexture(const std::string& path, EFormat format);
 
 		/**
-		 * Loads a mesh from file
+		 * Loads a model from file
+		 * NOTE: This is only used when not having ECS
+		 * @param path - path of model
+		 * @return PolyID of model
+		 */
+		static PolyID LoadModel(const std::string& path);
+
+		/**
+		 * Loads a mesh from a path
 		 * @param path - path of mesh
 		 * @return PolyID of mesh
 		 */
-		static PolyID LoadModel(const std::string& path);
+		// static PolyID LoadMesh(const std::string& path);
 
 		/**
 		 * Loads a material from file
@@ -68,6 +76,7 @@ namespace Poly
 		static Material*		GetMaterial(PolyID materialID);
 
 		inline static bool IsResourceLoaded(const std::string& path) { return m_PathToEntry.contains(path); }
+		static PolyID GetPolyIDFromPath(const std::string& path);
 
 		static PolyID RegisterModel(const std::string& path, Ref<Model> pModel);
 		static PolyID RegisterPolyTexture(const std::string& path, Ref<Texture> pTexture, Ref<TextureView> pTextureView);
@@ -84,6 +93,7 @@ namespace Poly
 
 		static std::vector<ManagedTexture>	m_Textures;
 		static std::vector<Ref<Model>>		m_Models;
+		static std::vector<Ref<Mesh>>		m_Meshes;
 		static std::vector<Ref<Material>>	m_Materials;
 
 		static std::unordered_map<std::string, PolyIDEntry> m_PathToEntry;

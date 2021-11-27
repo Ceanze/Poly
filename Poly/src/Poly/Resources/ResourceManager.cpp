@@ -68,7 +68,7 @@ namespace Poly
 				return entry.ID;
 			else
 			{
-				POLY_CORE_WARN("Tried to load mesh with path {}, but path has been used before as a different type", path);
+				POLY_CORE_WARN("Tried to load model with path {}, but path has been used before as a different type", path);
 				return POLY_ID_UNKNOWN;
 			}
 		}
@@ -79,6 +79,27 @@ namespace Poly
 		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MODEL };
 		return id;
 	}
+
+	// PolyID ResourceManager::LoadMesh(const std::string& path)
+	// {
+	// 	if (m_PathToEntry.contains(path))
+	// 	{
+	// 		PolyIDEntry entry = m_PathToEntry[path];
+	// 		if (entry.Type == ResourceType::MESH)
+	// 			return entry.ID;
+	// 		else
+	// 		{
+	// 			POLY_CORE_WARN("Tried to load mesh with path {}, but path has been used before as a different type", path);
+	// 			return POLY_ID_UNKNOWN;
+	// 		}
+	// 	}
+
+	// 	Ref<Mesh> pMesh = ResourceLoader::LoadMesh(path);
+	// 	PolyID id = m_Meshes.size();
+	// 	m_Meshes.push_back(pMesh);
+	// 	m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MESH };
+	// 	return id;
+	// }
 
 	PolyID ResourceManager::LoadMaterial(const std::string& path)
 	{
@@ -99,6 +120,17 @@ namespace Poly
 		m_Materials.push_back(pMaterial);
 		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MATERIAL };
 		return id;
+	}
+
+	PolyID ResourceManager::GetPolyIDFromPath(const std::string& path)
+	{
+		if (IsResourceLoaded(path))
+			return m_PathToEntry[path].ID;
+		else
+		{
+			POLY_CORE_WARN("Tried to get a PolyID from path '{}' when no resource was loaded with that path", path);
+			return POLY_ID_UNKNOWN;
+		}
 	}
 
 	PolyID ResourceManager::RegisterModel(const std::string& path, Ref<Model> pModel)
@@ -142,6 +174,12 @@ namespace Poly
 		if (m_PathToEntry.contains(path))
 		{
 			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
+			return POLY_ID_UNKNOWN;
+		}
+
+		if (!pMaterial)
+		{
+			POLY_CORE_WARN("Can't register a null material! Path: {}", path);
 			return POLY_ID_UNKNOWN;
 		}
 
@@ -236,6 +274,7 @@ namespace Poly
 
 	std::vector<ManagedTexture>	ResourceManager::m_Textures;
 	std::vector<Ref<Model>>		ResourceManager::m_Models;
+	std::vector<Ref<Mesh>>		ResourceManager::m_Meshes;
 	std::vector<Ref<Material>>	ResourceManager::m_Materials;
 
 	std::unordered_map<std::string, ResourceManager::PolyIDEntry> ResourceManager::m_PathToEntry;

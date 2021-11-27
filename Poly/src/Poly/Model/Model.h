@@ -32,6 +32,9 @@ namespace Poly
 		const std::vector<MeshInstance>& GetMeshInstances() const { return m_Meshes; }
 		const glm::mat4& GetTransform() const { return m_Transform; }
 
+		void SetScale(float scale) { m_Transform = glm::scale(m_Transform, {scale, scale, scale}); }
+		void SetPosition(glm::vec3 pos) { glm::mat4 m = glm::translate(glm::mat4(1), pos); m_Transform *= m; }
+
 	private:
 		std::vector<MeshInstance>	m_Meshes;
 		glm::mat4					m_Transform;
