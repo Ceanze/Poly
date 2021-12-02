@@ -112,7 +112,7 @@ namespace Poly
 		vkCmdBindIndexBuffer(m_Buffer, vkBuffer, offset, ConvertIndexTypeVK(indexType));
 	}
 
-	void PVKCommandBuffer::CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
+	void PVKCommandBuffer::CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
 	{
 		VkImageSubresourceLayers subresource = {};
 		subresource.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
@@ -130,14 +130,14 @@ namespace Poly
 
 		vkCmdCopyBufferToImage(
 			m_Buffer,
-			reinterpret_cast<PVKBuffer*>(pBuffer)->GetNativeVK(),
-			reinterpret_cast<PVKTexture*>(pTexture)->GetNativeVK(),
+			reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK(),
+			reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK(),
 			ConvertTextureLayoutVK(layout),
 			1,
 			&copyDesc);
 	}
 
-	void PVKCommandBuffer::CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset)
+	void PVKCommandBuffer::CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset)
 	{
 		VkBufferCopy copyDesc = {};
 		copyDesc.size		= size;
@@ -146,8 +146,8 @@ namespace Poly
 
 		vkCmdCopyBuffer(
 			m_Buffer,
-			reinterpret_cast<PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
-			reinterpret_cast<PVKBuffer*>(pDstBuffer)->GetNativeVK(),
+			reinterpret_cast<const PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
+			reinterpret_cast<const PVKBuffer*>(pDstBuffer)->GetNativeVK(),
 			1,
 			&copyDesc
 		);
@@ -199,7 +199,7 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::AcquireBuffer(
-		Buffer* pBuffer,
+		const Buffer* pBuffer,
 		FPipelineStage srcStage,
 		FPipelineStage dstStage,
 		FAccessFlag dstAccessMask,
@@ -213,7 +213,7 @@ namespace Poly
 		barrier.dstAccessMask		= ConvertAccessFlagVK(dstAccessMask);
 		barrier.srcQueueFamilyIndex	= srcQueueIndex;
 		barrier.dstQueueFamilyIndex = dstQueueIndex;
-		barrier.buffer				= reinterpret_cast<PVKBuffer*>(pBuffer)->GetNativeVK();
+		barrier.buffer				= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
 		barrier.offset				= 0;
 		barrier.size				= pBuffer->GetSize();
 
@@ -231,7 +231,7 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::ReleaseBuffer(
-		Buffer* pBuffer,
+		const Buffer* pBuffer,
 		FPipelineStage srcStage,
 		FPipelineStage dstStage,
 		FAccessFlag srcAccessMask,
@@ -245,7 +245,7 @@ namespace Poly
 		barrier.dstAccessMask		= 0;
 		barrier.srcQueueFamilyIndex	= srcQueueIndex;
 		barrier.dstQueueFamilyIndex = dstQueueIndex;
-		barrier.buffer				= reinterpret_cast<PVKBuffer*>(pBuffer)->GetNativeVK();
+		barrier.buffer				= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
 		barrier.offset				= 0;
 		barrier.size				= pBuffer->GetSize();
 
@@ -263,7 +263,7 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::AcquireTexture(
-		Texture* pTexture,
+		const Texture* pTexture,
 		FPipelineStage srcStage,
 		FPipelineStage dstStage,
 		FAccessFlag dstAccessMask,
@@ -288,7 +288,7 @@ namespace Poly
 		barrier.newLayout			= ConvertTextureLayoutVK(newLayout);
 		barrier.srcQueueFamilyIndex	= srcQueueIndex;
 		barrier.dstQueueFamilyIndex	= dstQueueIndex;
-		barrier.image				= reinterpret_cast<PVKTexture*>(pTexture)->GetNativeVK();
+		barrier.image				= reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
 		barrier.subresourceRange	= range;
 
 		vkCmdPipelineBarrier(
@@ -305,7 +305,7 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::ReleaseTexture(
-		Texture* pTexture,
+		const Texture* pTexture,
 		FPipelineStage srcStage,
 		FPipelineStage dstStage,
 		FAccessFlag srcAccessMask,
@@ -330,7 +330,7 @@ namespace Poly
 		barrier.newLayout			= ConvertTextureLayoutVK(newLayout);
 		barrier.srcQueueFamilyIndex	= srcQueueIndex;
 		barrier.dstQueueFamilyIndex	= dstQueueIndex;
-		barrier.image				= reinterpret_cast<PVKTexture*>(pTexture)->GetNativeVK();
+		barrier.image				= reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
 		barrier.subresourceRange	= range;
 
 		vkCmdPipelineBarrier(
@@ -347,7 +347,7 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::PipelineTextureBarrier(
-		Texture* pTexture,
+		const Texture* pTexture,
 		FPipelineStage srcStage,
 		FPipelineStage dstStage,
 		FAccessFlag srcAccessFlag,
@@ -372,7 +372,7 @@ namespace Poly
 		barrier.newLayout			= ConvertTextureLayoutVK(newLayout);
 		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.image				= reinterpret_cast<PVKTexture*>(pTexture)->GetNativeVK();
+		barrier.image				= reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
 		barrier.subresourceRange	= range;
 
 		vkCmdPipelineBarrier(
@@ -389,7 +389,7 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::PipelineBufferBarrier(
-		Buffer* pBuffer,
+		const Buffer* pBuffer,
 		FPipelineStage srcStage,
 		FPipelineStage dstStage,
 		FAccessFlag srcAccessFlag,
@@ -402,7 +402,7 @@ namespace Poly
 		barrier.dstAccessMask		= ConvertAccessFlagVK(dstAccessFlag);
 		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.buffer				= reinterpret_cast<PVKBuffer*>(pBuffer)->GetNativeVK();
+		barrier.buffer				= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
 		barrier.offset				= 0;
 		barrier.size				= pBuffer->GetSize();
 

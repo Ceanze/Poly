@@ -28,7 +28,7 @@ namespace Poly
 		uint32 GetHeight() const { return p_TextureDesc.Height; }
 		VkFormat GetFormatVK() const { return ConvertFormatVK(p_TextureDesc.Format); }
 
-		VkImage GetNativeVK() { return m_Image; }
+		VkImage GetNativeVK() const { return m_Image; }
 		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Image); }
 
 	private:

@@ -130,7 +130,7 @@ namespace Poly
 		 * @param layout - Layout of destination texture
 		 * @param copyBufferDesc - Description of the copy details
 		 */
-		virtual void CopyBufferToTexture(Buffer* pBuffer, Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
+		virtual void CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
 
 		/**
 		 * Copy source buffer to destination buffer
@@ -140,7 +140,7 @@ namespace Poly
 		 * @param srcOffset - offset in bytes of source buffer
 		 * @param dstOffset - offset in bytes of destination buffer
 		 */
-		virtual void CopyBuffer(Buffer* pSrcBuffer, Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
+		virtual void CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
 
 		/**
 		 * Update device buffer with local data from host memory - Limited to 65536
@@ -192,7 +192,7 @@ namespace Poly
 		 * @param srcQueueIndex - Queue that released the buffer (must match ReleaseBuffer)
 		 * @param dstQueueIndex - Queue that will acuiqre the buffer (must match ReleaseBuffer)
 		 */
-		virtual void AcquireBuffer(Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag dstAccessMask, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
+		virtual void AcquireBuffer(const Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag dstAccessMask, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
 
 		/**
 		 * Release buffer ownership - NOTE: Must match with a AcquireBuffer with the necessary parameters
@@ -203,7 +203,7 @@ namespace Poly
 		 * @param srcQueueIndex - Queue that will release the buffer (must match AcquireBuffer)
 		 * @param dstQueueIndex - Queue that will acuiqre the buffer (must match AcquireBuffer)
 		 */
-		virtual void ReleaseBuffer(Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessMask, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
+		virtual void ReleaseBuffer(const Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessMask, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
 
 		/**
 		 * Acquire texture ownership - NOTE: Must match with a ReleaseTexture with the necessary parameters
@@ -216,7 +216,7 @@ namespace Poly
 		 * @param srcQueueIndex - Queue that released the texture (must match ReleaseTexture)
 		 * @param dstQueueIndex - Queue that will acuiqre the texture (must match ReleaseTexture)
 		 */
-		virtual void AcquireTexture(Texture* pTexture, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag dstAccessMask, ETextureLayout oldLayout, ETextureLayout newLayout, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
+		virtual void AcquireTexture(const Texture* pTexture, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag dstAccessMask, ETextureLayout oldLayout, ETextureLayout newLayout, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
 
 		/**
 		 * Release texture ownership - NOTE: Must match with a AcquireTexture with the necessary parameters
@@ -229,7 +229,7 @@ namespace Poly
 		 * @param srcQueueIndex - Queue that will release the texture (must match AcquireTexture)
 		 * @param dstQueueIndex - Queue that will acuiqre the texture (must match AcquireTexture)
 		 */
-		virtual void ReleaseTexture(Texture* pTexture, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessMask, ETextureLayout oldLayout, ETextureLayout newLayout, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
+		virtual void ReleaseTexture(const Texture* pTexture, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessMask, ETextureLayout oldLayout, ETextureLayout newLayout, uint32 srcQueueIndex, uint32 dstQueueIndex) = 0;
 
 		/**
 		 * Add a pipeline texture memory barrier. This function does not transfer between queues, see AcquireTexture and ReleaseTexture for that
@@ -241,7 +241,7 @@ namespace Poly
 		 * @param oldLayout - Old layout of the texture - keep same if no layout is required
 		 * @param newLayout - New layout of the texture - keep same if no layout is required
 		 */
-		virtual void PipelineTextureBarrier(Texture* pTexture, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag, ETextureLayout oldLayout, ETextureLayout newLayout) = 0;
+		virtual void PipelineTextureBarrier(const Texture* pTexture, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag, ETextureLayout oldLayout, ETextureLayout newLayout) = 0;
 
 		/**
 		 * Add a pipeline buffer memory barrier. This function does not transfer between queues, see AcquireBuffer and ReleaseBuffer for that
@@ -251,7 +251,7 @@ namespace Poly
 		 * @param srcAccessMask - Last point before barrier the buffer will be accessed
 		 * @param dstAccessMask - First point after barrier the buffer will be accessed
 		 */
-		virtual void PipelineBufferBarrier(Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag) = 0;
+		virtual void PipelineBufferBarrier(const Buffer* pBuffer, FPipelineStage srcStage, FPipelineStage dstStage, FAccessFlag srcAccessFlag, FAccessFlag dstAccessFlag) = 0;
 
 		/**
 		 * Add multiple barriers of different types, for only one barrier of either buffer or texture see their respective functions
