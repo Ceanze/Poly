@@ -14,7 +14,7 @@ namespace Poly
 
 		// If no dot was found - then only a pass name was given
 		if (pos == std::string::npos)
-			return { name, "" };
+			return { "", name };
 
 		return { name.substr(0, pos), name.substr(pos + 1) };
 	}

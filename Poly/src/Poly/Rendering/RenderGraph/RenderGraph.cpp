@@ -1,12 +1,14 @@
 #include "polypch.h"
-#include "RenderGraph.h"
 #include "RenderPass.h"
-#include "Poly/Core/Utils/DirectedGraph.h"
-#include "RenderGraphCompiler.h"
-#include "RenderGraphProgram.h"
+#include "RenderGraph.h"
 #include "Poly/Core/Window.h"
+#include "RenderGraphProgram.h"
+#include "RenderGraphCompiler.h"
 #include "Poly/Core/RenderAPI.h"
+#include "Platform/API/Buffer.h"
 #include "Platform/API/Sampler.h"
+#include "Poly/Core/Utils/DirectedGraph.h"
+#include "Poly/Rendering/RenderGraph/Resource.h"
 
 namespace Poly
 {
@@ -168,6 +170,29 @@ namespace Poly
 		m_ExternalResources[name] = pResource;
 
 		return true;
+	}
+
+	bool RenderGraph::AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data)
+	{
+		if (m_ExternalResources.contains(name))
+		{
+			POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
+			return false;
+		}
+
+		BufferDesc desc = {};
+		desc.Size			= size;
+		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
+		desc.BufferUsage	= bufferUsage | FBufferUsage::COPY_DST;
+		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
+
+		Ref<Resource> pResource = Resource::Create(pBuffer, name);
+
+		m_ExternalResources[name] = pResource;
+
+		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
+		if (data)
+			POLY_CORE_INFO("AddExternalResource does not currently support instant data transfer");
 	}
 
 	bool RenderGraph::RemoveExternalResource(const std::string& name)

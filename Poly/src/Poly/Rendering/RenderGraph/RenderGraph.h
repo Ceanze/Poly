@@ -97,6 +97,17 @@ namespace Poly
 		bool AddExternalResource(const std::string& name, Ref<Resource> pResource);
 
 		/**
+		 * Add a global input resource node to the graph. This resource will be in the global space
+		 * which means it will use the $ prefix, i.e. resource name will become $.resource
+		 * @param name - Resource name without any prefix - prefix is automatically added
+		 * @param size - Size of the buffer that will be used for this resource
+		 * @param bufferUsage - Type of buffer
+		 * @param data - (Optional) pointer to data if transfer to buffer should be done at creation of buffer
+		 * @return true if resource could be added sucessfully and potentially have data transfered to it
+		 */
+		bool AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data = nullptr);
+
+		/**
 		 * Removes a previously added external resource
 		 * @param name - Name of resource to remove
 		 * @return true if resource could be removed successfully

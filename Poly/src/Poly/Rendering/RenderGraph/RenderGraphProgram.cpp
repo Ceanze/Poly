@@ -9,9 +9,9 @@
 #include "ResourceCache.h"
 #include "Poly/Model/Mesh.h"
 #include "RenderGraphTypes.h"
-#include "Poly/Rendering/Scene.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Buffer.h"
+#include "Poly/Rendering/Scene.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/CommandPool.h"
 #include "Platform/API/Framebuffer.h"
@@ -21,6 +21,7 @@
 #include "Platform/API/PipelineLayout.h"
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/GraphicsRenderPass.h"
+#include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
 #include "Poly/Rendering/SceneRenderer.h"
 namespace Poly
@@ -59,6 +60,8 @@ namespace Poly
 				UpdateGraphResource(pPass->GetName() + "." + reflection.Name, nullptr);
 			passIndex++;
 		}
+
+		m_pStagingBufferCache = StagingBufferCache::Create();
 	}
 
 	Ref<RenderGraphProgram> RenderGraphProgram::Create(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
@@ -91,6 +94,10 @@ namespace Poly
 
 			// Begin recording
 			currentCommandBuffer->Begin(FCommandBufferFlag::NONE);
+
+			// Transfer staging buffer data
+			// TODO: This should probably be done on the Transfer queue asyncronously
+			m_pStagingBufferCache->SubmitQueuedBuffers(currentCommandBuffer);
 
 			if (m_SceneBindings.contains(passIndex))
 			{
@@ -148,6 +155,8 @@ namespace Poly
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(currentCommandBuffer, nullptr, nullptr, nullptr);
 			passIndex++;
 		}
+
+		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
 	void RenderGraphProgram::UpdateGraphResource(const std::string& name, Ref<Resource> pResource)
@@ -155,33 +164,37 @@ namespace Poly
 		PassResourcePair passPair = GetPassResourcePair(name);
 
 		// Go through each pass and find where resource is being used
-		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
+		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
 		{
+			auto& pPass = m_Passes[passIndex];
+
 			if (pPass->GetPassType() == Pass::Type::SYNC || pPass->GetName() != passPair.first)
 			{
-				passIndex++;
 				continue;
 			}
 
-			bool external = false;
-			if (passPair.first.empty() || passPair.first == "$")
-			{
-				const auto& externalResources = pPass->GetExternalResources();
-				auto itr = std::find_if(externalResources.begin(), externalResources.end(), [passPair](const std::pair<std::string, std::string>& other){
-					return other.first == passPair.second;
-				});
-				if (itr != externalResources.end())
-					external = true;
-				else
-					continue;
-			}
-			else
-			{
-				const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
-				auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
-				if (itr == reflections.end())
-					continue;
-			}
+			// Check if pass has the requested resource, continue if not
+			// bool external = false;
+			// if (passPair.first.empty() || passPair.first == "$")
+			// {
+			// 	const auto& externalResources = pPass->GetExternalResources();
+			// 	auto itr = std::find_if(externalResources.begin(), externalResources.end(), [passPair](const std::pair<std::string, std::string>& other){
+			// 		return other.first == passPair.second;
+			// 	});
+			// 	if (itr != externalResources.end())
+			// 		external = true;
+			// 	else
+			// 		continue;
+			// }
+			// else
+			// {
+			// 	const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			// 	auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
+			// 	if (itr == reflections.end())
+			// 		continue;
+			// }
+			if (!HasPassResource(passPair, pPass, passIndex))
+				continue;
 
 			// Resource is being used in pass, update corresponding descriptor
 			const IOData& inputRes = m_Reflections[passIndex].GetIOData(passPair.second);
@@ -212,9 +225,18 @@ namespace Poly
 					pActualRes->SetSampler(inputRes.pSampler);
 				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pActualRes->GetAsTextureView(), pActualRes->GetAsSampler());
 			}
-
-			passIndex++;
 		}
+	}
+	
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data) 
+	{
+		PassResourcePair passPair = GetPassResourcePair(name);
+		Ref<Resource> pRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
+
+		if (!pRes)
+			return;
+
+		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, data);
 	}
 
 	void RenderGraphProgram::SetBackbuffer(Ref<Resource> pResource)
@@ -502,5 +524,28 @@ namespace Poly
 		//}
 
 		return m_Descriptors[passIndex];
+	}
+	
+	bool RenderGraphProgram::HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex) 
+	{
+		if (passPair.first.empty() || passPair.first == "$")
+		{
+			const auto& externalResources = pPass->GetExternalResources();
+			auto itr = std::find_if(externalResources.begin(), externalResources.end(), [passPair](const std::pair<std::string, std::string>& other){
+				return other.first == passPair.second;
+			});
+
+			if (itr == externalResources.end())
+				return false;
+			return false;
+		}
+		else
+		{
+			const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
+			if (itr == reflections.end())
+				return false;
+			return true;
+		}
 	}
 }

@@ -19,6 +19,7 @@ namespace Poly
 	class PipelineLayout;
 	class GraphicsPipeline;
 	class GraphicsRenderPass;
+	class StagingBufferCache;
 
 	struct SceneBinding
 	{
@@ -47,6 +48,15 @@ namespace Poly
 		 */
 		void UpdateGraphResource(const std::string& name, Ref<Resource> pResource);
 
+		/**
+		 * Updates a resource's descriptor - must be done when the resource has changed size or if
+		 * the name's resouces is a new resource
+		 * @param name - name of resource follow "renderPass.resource" or "$.resource" format, no prefix assumes external
+		 * @param size - size of the data to update with
+		 * @param data - pointer to the new data
+		 */
+		void UpdateGraphResource(const std::string& name, uint64 size, const void* data);
+
 		void SetBackbuffer(Ref<Resource> pResource);
 
 		void SetScene(const Ref<Scene>& pScene);
@@ -65,9 +75,12 @@ namespace Poly
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
 		const std::vector<Ref<DescriptorSet>>& GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex);
 
+		bool HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex);
+
 		// General
 		Ref<Scene> m_pScene;
 		Ref<SceneRenderer> m_pSceneRenderer;
+		Ref<StagingBufferCache> m_pStagingBufferCache;
 
 		// Render Graph specific types
 		std::vector<Ref<Pass>>		m_Passes;
