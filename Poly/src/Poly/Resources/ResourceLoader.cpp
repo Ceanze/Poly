@@ -298,7 +298,7 @@ namespace Poly
 	Ref<Model> ResourceLoader::LoadModel(const std::string& path)
 	{
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
+		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_FlipUVs);
 		
 		size_t slashPos = path.find_last_of("/\\");
 		std::string folder = path.substr(0, slashPos + 1);
