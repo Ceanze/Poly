@@ -22,6 +22,8 @@ namespace Poly
 		{
 			pCommandBuffer->CopyBuffer(bufferPair.pStagingBuffer.get(), bufferPair.pDstBuffer, bufferPair.pDstBuffer->GetSize(), 0, 0);
 		}
+
+		m_QueuedBuffers.clear();
 	}
 	
 	void StagingBufferCache::Update(uint32 imageIndex) 
@@ -31,9 +33,18 @@ namespace Poly
 		auto& buffersInUse = m_Buffers[m_ImageIndex][State::IN_USE];
 		auto& buffersFree = m_Buffers[m_ImageIndex][State::FREE];
 
-		// Delete old buffers
-		const uint32 lifetime = BUFFER_LIFETIME;
-		std::remove_if(buffersFree.begin(), buffersFree.end(), [lifetime](const LifetimeBuffer& lb) { return lb.Age > lifetime; });
+		// Delete old & update age of young buffers
+		auto it = buffersFree.begin();
+		while (it != buffersFree.end())
+		{
+			if (it->Age > BUFFER_LIFETIME)
+				it = buffersFree.erase(it);
+			else
+			{
+				it->Age++;
+				it++;
+			}
+		}
 
 		// Mark IN_USE buffers FREE
 		buffersFree.insert(buffersFree.end(), buffersInUse.begin(), buffersInUse.end());
@@ -45,7 +56,7 @@ namespace Poly
 		auto& buffers = m_Buffers[m_ImageIndex][State::FREE];
 
 		// Find fitting buffer
-		auto bufferItr = std::find_if(buffers.begin(), buffers.end(), [size](const LifetimeBuffer& lb) { return size < lb.pBuffer->GetSize(); });
+		auto bufferItr = std::find_if(buffers.begin(), buffers.end(), [size](const LifetimeBuffer& lb) { return size <= lb.pBuffer->GetSize(); });
 
 		// No free buffer which suits the requirements
 		if (bufferItr == buffers.end())

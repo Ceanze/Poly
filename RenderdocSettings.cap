@@ -5,7 +5,7 @@
         "commandLine": "",
         "environment": [
         ],
-        "executable": "D:\\dev\\Poly\\bin\\Debug-windows-x86_64\\Sandbox\\Sandbox.exe",
+        "executable": "E:\\dev\\Poly\\bin\\Debug-windows-x86_64\\Sandbox\\Sandbox.exe",
         "inject": false,
         "numQueuedFrames": 0,
         "options": {
@@ -22,6 +22,6 @@
             "verifyBufferAccess": false
         },
         "queuedFrameCap": 0,
-        "workingDir": "D:/dev/Poly/Sandbox"
+        "workingDir": "E:/dev/Poly/Sandbox"
     }
 }
