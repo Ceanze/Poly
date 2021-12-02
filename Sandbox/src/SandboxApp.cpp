@@ -29,15 +29,6 @@ public:
 		Poly::Ref<Poly::Pass> pPass = Poly::TestPass::Create();
 
 		// External resources
-		// Poly::BufferDesc bufferDesc = {
-		// 	.Size			= sizeof(glm::mat4),
-		// 	.MemUsage		= Poly::EMemoryUsage::CPU_GPU_MAPPABLE,
-		// 	.BufferUsage	= Poly::FBufferUsage::UNIFORM_BUFFER
-		// };
-		// m_pCambuffer = Poly::RenderAPI::CreateBuffer(&bufferDesc);
-
-		// Poly::Ref<Poly::Resource> pCamRes = Poly::Resource::Create(m_pCambuffer, "camera");
-		// m_pGraph->AddExternalResource("camera", pCamRes);
 		m_pGraph->AddExternalResource("camera", sizeof(glm::mat4), Poly::FBufferUsage::UNIFORM_BUFFER);
 
 		// Passes and links
@@ -47,10 +38,6 @@ public:
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
-
-		// Update resources to validate descriptors
-		// TODO: Do this automatically in the beginning of the program
-		m_pProgram->UpdateGraphResource("camera", nullptr);
 
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
@@ -63,9 +50,6 @@ public:
 		pScene->AddModel(cube);
 		// pScene->AddModel(cube1);
 
-		// Scale the giant sponza
-		// Poly::ResourceManager::GetModel(sponza)->SetScale(0.05f);
-
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
 	};
@@ -74,8 +58,7 @@ public:
 	{
 		pCamera->Update(dt);
 		glm::mat4 camMatrix = pCamera->GetMatrix();
-		//m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4), 0);
-		m_pProgram->UpdateGraphResource("camera", sizeof(glm::mat4), &camMatrix);
+		 m_pProgram->UpdateGraphResource("camera", sizeof(glm::mat4), &camMatrix);
 		m_pRenderer->Render();
 	};
 

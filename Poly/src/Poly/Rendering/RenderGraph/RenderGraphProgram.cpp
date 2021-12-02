@@ -174,25 +174,6 @@ namespace Poly
 			}
 
 			// Check if pass has the requested resource, continue if not
-			// bool external = false;
-			// if (passPair.first.empty() || passPair.first == "$")
-			// {
-			// 	const auto& externalResources = pPass->GetExternalResources();
-			// 	auto itr = std::find_if(externalResources.begin(), externalResources.end(), [passPair](const std::pair<std::string, std::string>& other){
-			// 		return other.first == passPair.second;
-			// 	});
-			// 	if (itr != externalResources.end())
-			// 		external = true;
-			// 	else
-			// 		continue;
-			// }
-			// else
-			// {
-			// 	const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
-			// 	auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
-			// 	if (itr == reflections.end())
-			// 		continue;
-			// }
 			if (!HasPassResource(passPair, pPass, passIndex))
 				continue;
 
