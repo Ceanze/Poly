@@ -27,18 +27,18 @@ public:
 		m_pRenderer = Poly::Renderer::Create();
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::TestPass::Create();
-		Poly::Ref<Poly::Pass> pPass1 = Poly::TestPass::Create();
 
 		// External resources
-		Poly::BufferDesc bufferDesc = {
-			.Size			= sizeof(glm::mat4),
-			.MemUsage		= Poly::EMemoryUsage::CPU_GPU_MAPPABLE,
-			.BufferUsage	= Poly::FBufferUsage::UNIFORM_BUFFER
-		};
-		m_pCambuffer = Poly::RenderAPI::CreateBuffer(&bufferDesc);
+		// Poly::BufferDesc bufferDesc = {
+		// 	.Size			= sizeof(glm::mat4),
+		// 	.MemUsage		= Poly::EMemoryUsage::CPU_GPU_MAPPABLE,
+		// 	.BufferUsage	= Poly::FBufferUsage::UNIFORM_BUFFER
+		// };
+		// m_pCambuffer = Poly::RenderAPI::CreateBuffer(&bufferDesc);
 
-		Poly::Ref<Poly::Resource> pCamRes = Poly::Resource::Create(m_pCambuffer, "camera");
-		m_pGraph->AddExternalResource("camera", pCamRes);
+		// Poly::Ref<Poly::Resource> pCamRes = Poly::Resource::Create(m_pCambuffer, "camera");
+		// m_pGraph->AddExternalResource("camera", pCamRes);
+		m_pGraph->AddExternalResource("camera", sizeof(glm::mat4), Poly::FBufferUsage::UNIFORM_BUFFER);
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "testPass");
@@ -50,13 +50,13 @@ public:
 
 		// Update resources to validate descriptors
 		// TODO: Do this automatically in the beginning of the program
-		m_pProgram->UpdateGraphResource("camera", pCamRes);
+		m_pProgram->UpdateGraphResource("camera", nullptr);
 
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
 		// PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
-		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/sponza.obj");
+		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF-Binary/Sponza.glb");
 		PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
 		// PolyID cube1 = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
 		pScene->AddModel(sponza);
@@ -74,7 +74,8 @@ public:
 	{
 		pCamera->Update(dt);
 		glm::mat4 camMatrix = pCamera->GetMatrix();
-		m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4), 0);
+		//m_pCambuffer->TransferData(&camMatrix, sizeof(glm::mat4), 0);
+		m_pProgram->UpdateGraphResource("camera", sizeof(glm::mat4), &camMatrix);
 		m_pRenderer->Render();
 	};
 
