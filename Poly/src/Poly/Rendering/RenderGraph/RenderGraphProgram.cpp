@@ -218,6 +218,7 @@ namespace Poly
 			return;
 
 		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, data);
+		UpdateGraphResource(name, pRes);
 	}
 
 	void RenderGraphProgram::SetBackbuffer(Ref<Resource> pResource)

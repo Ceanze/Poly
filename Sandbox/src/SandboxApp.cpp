@@ -5,6 +5,7 @@
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Rendering/RenderGraph/Passes/TestPass.h"
+#include "Poly/Rendering/RenderGraph/Passes/PBRPass.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
 #include "Platform/API/TextureView.h"
@@ -15,6 +16,24 @@
 class TestLayer : public Poly::Layer
 {
 public:
+	struct CameraBuffer
+	{
+		glm::mat4 Mat;
+		glm::vec4 Pos;
+	};
+
+	struct PointLight
+	{
+		glm::vec4 Color = {5.0, 0.0, 0.0, 1.0};
+		glm::vec4 Position = {0.0, 1.0, 0.0, 1.0};
+	};
+
+	struct LightBuffer
+	{
+		glm::vec4 LightCount = {1.0, 0.0, 0.0, 0.0};
+		PointLight PointLight = {};
+	};
+
 	TestLayer() 
 	{
 		pCamera = new Poly::Camera();
@@ -26,28 +45,33 @@ public:
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
-		Poly::Ref<Poly::Pass> pPass = Poly::TestPass::Create();
+		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 
 		// External resources
-		m_pGraph->AddExternalResource("camera", sizeof(glm::mat4), Poly::FBufferUsage::UNIFORM_BUFFER);
+		m_pGraph->AddExternalResource("camera", sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
+		m_pGraph->AddExternalResource("lights", sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
 
 		// Passes and links
-		m_pGraph->AddPass(pPass, "testPass");
-		m_pGraph->AddLink("$.camera", "testPass.camera");
-		m_pGraph->MarkOutput("testPass.out");
+		m_pGraph->AddPass(pPass, "pbrPass");
+		m_pGraph->AddLink("$.camera", "pbrPass.camera");
+		m_pGraph->AddLink("$.lights", "pbrPass.lights");
+		m_pGraph->MarkOutput("pbrPass.out");
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
+
+		LightBuffer data = {};
+		m_pProgram->UpdateGraphResource("lights", sizeof(LightBuffer), &data);
 
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
 		// PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
 		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF-Binary/Sponza.glb");
-		PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
+		//PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
 		// PolyID cube1 = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
 		pScene->AddModel(sponza);
-		pScene->AddModel(cube);
+		//pScene->AddModel(cube);
 		// pScene->AddModel(cube1);
 
 		// Set active render graph program
@@ -57,9 +81,9 @@ public:
 	void OnUpdate(Poly::Timestamp dt) override
 	{
 		pCamera->Update(dt);
-		glm::mat4 camMatrix = pCamera->GetMatrix();
-		 m_pProgram->UpdateGraphResource("camera", sizeof(glm::mat4), &camMatrix);
-		m_pRenderer->Render();
+		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
+		m_pProgram->UpdateGraphResource("camera", sizeof(CameraBuffer), &data);
+		m_pRenderer->Render();		
 	};
 
 	void OnDetach() override

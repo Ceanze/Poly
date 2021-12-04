@@ -356,12 +356,14 @@ namespace Poly
 			vertices[i].Position.x = pMesh->mVertices[i].x;
 			vertices[i].Position.y = pMesh->mVertices[i].y;
 			vertices[i].Position.z = pMesh->mVertices[i].z;
+			vertices[i].Position.w = 0.0f;
 
 			if (pMesh->HasNormals())
 			{
 				vertices[i].Normal.x = pMesh->mNormals[i].x;
 				vertices[i].Normal.y = pMesh->mNormals[i].y;
 				vertices[i].Normal.z = pMesh->mNormals[i].z;
+				vertices[i].Normal.w = 0.0f;
 			}
 
 			// There can be different sets of texture coords - unsure of purpose - only use the first
@@ -376,6 +378,7 @@ namespace Poly
 				vertices[i].Tangent.x = pMesh->mTangents[i].x;
 				vertices[i].Tangent.y = pMesh->mTangents[i].y;
 				vertices[i].Tangent.z = pMesh->mTangents[i].z;
+				vertices[i].Tangent.w = 0.0f;
 			}
 		}
 
@@ -587,7 +590,7 @@ namespace Poly
 	void ResourceLoader::LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial, const std::string& folder)
 	{
 		aiString path;
-		if (pMaterial->GetTexture(aiTextureType_DIFFUSE, index, &path) != AI_SUCCESS)
+		if (pMaterial->GetTexture(type, index, &path) != AI_SUCCESS)
 		{
 			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
 		}
