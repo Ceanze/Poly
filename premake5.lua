@@ -114,6 +114,7 @@ project "Poly"
 		"%{prj.name}/libs/stb_image",
 		"%{prj.name}/libs/glslang",
 		"%{prj.name}/libs/assimp/include",
+		"%{prj.name}/libs/imgui",
 	}
 
 	forceincludes

@@ -13,3 +13,6 @@
 [submodule "Poly/libs/assimp"]
 	path = Poly/libs/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "Poly/libs/imgui"]
+	path = Poly/libs/imgui
+	url = https://github.com/ocornut/imgui
