@@ -45,7 +45,7 @@ namespace Poly
 		// This is a temporary measure until either reflection or a render graph editor is fixed
 		if (BitsSet(bindPoint, FResourceBindPoint::SCENE_TEXTURES))
 		{
-			for (uint32 i = 0; i < 5; i++)
+			for (uint32 i = 0; i < 6; i++)
 			{
 				data.Name = name + std::to_string(i);
 				data.Binding = binding + i;

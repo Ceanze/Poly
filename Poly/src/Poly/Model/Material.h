@@ -11,7 +11,7 @@ namespace Poly
 		float		AO			= 1.0;
 		float		Metallic	= 1.0;
 		float		Roughness	= 1.0;
-		float		_UNUSED		= 0.0;
+		float		IsCombined	= 0.0;
 	};
 
 	class Material
@@ -24,7 +24,8 @@ namespace Poly
 			METALIC,
 			NORMAL,
 			ROUGHNESS,
-			AMBIENT_OCCLUSION
+			AMBIENT_OCCLUSION,
+			COMBINED
 		};
 
 	public:
@@ -37,11 +38,15 @@ namespace Poly
 
 		void SetMaterialValues(MaterialValues materialValues) { m_MaterialValues = materialValues; }
 
+		void SetUsesCombinedPBRMaterial(bool isCombined) { m_MaterialValues.IsCombined = 1.0 ? isCombined : 0.0; }
+
 		const Texture* GetTexture(Type type) const { return m_Textures.at(type); }
 
 		const TextureView* GetTextureView(Type type) const { return m_TextureViews.at(type); }
 
 		const MaterialValues* GetMaterialValues() const { return &m_MaterialValues; }
+
+		bool UsesCombinedPBRMaterial() const { return m_MaterialValues.IsCombined; }
 
 	private:
 		std::unordered_map<Type, Texture*> m_Textures;

@@ -24,8 +24,8 @@ public:
 
 	struct PointLight
 	{
-		glm::vec4 Color = {5.0, 0.0, 0.0, 1.0};
-		glm::vec4 Position = {0.0, 1.0, 0.0, 1.0};
+		glm::vec4 Color = {1.0, 1.0, 1.0, 1.0};
+		glm::vec4 Position = {0.0, 1.0, -1.0, 1.0};
 	};
 
 	struct LightBuffer
@@ -39,8 +39,8 @@ public:
 		pCamera = new Poly::Camera();
 		pCamera->SetAspect(1280.f / 720.f);
 		pCamera->SetMouseSense(2.f);
-		pCamera->SetMovementSpeed(3.f);
-		pCamera->SetSprintSpeed(6.f);
+		pCamera->SetMovementSpeed(1.f);
+		pCamera->SetSprintSpeed(5.f);
 
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
@@ -66,13 +66,13 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		// PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
-		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF-Binary/Sponza.glb");
+		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
+		//PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF-Binary/Sponza.glb");
 		//PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
-		// PolyID cube1 = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
+		//PolyID helmet = Poly::ResourceManager::LoadModel("../assets/models/FlightHelmet/FlightHelmet.gltf");
 		pScene->AddModel(sponza);
 		//pScene->AddModel(cube);
-		// pScene->AddModel(cube1);
+		//pScene->AddModel(helmet);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);

@@ -20,7 +20,7 @@ struct MaterialValues
 	float	AO;
 	float	Metallic;
 	float	Roughness;
-	float	_UNUSED;
+	float	IsCombined;
 };
 
 struct PointLight
@@ -39,6 +39,7 @@ layout(set = 2, binding = 2) uniform sampler2D metallicTex;
 layout(set = 2, binding = 3) uniform sampler2D normalTex;
 layout(set = 2, binding = 4) uniform sampler2D roughnessTex;
 layout(set = 2, binding = 5) uniform sampler2D aoTex;
+layout(set = 2, binding = 6) uniform sampler2D combinedTex;
 
 vec3 GenerateNormal(in mat3 TBN)
 {
@@ -92,9 +93,18 @@ void main()
 	vec3 albedo		= (material[in_MaterialIndex].Albedo * texture(albedoTex, in_TexCoord)).rgb;
 	vec3 normal		= GenerateNormal(in_TBN);
 	vec3 viewDir	= normalize(camPos.xyz - in_WorldPos);
+
 	float metallic	= material[in_MaterialIndex].Metallic	* texture(metallicTex, in_TexCoord).r;
 	float roughness	= material[in_MaterialIndex].Roughness	* texture(roughnessTex, in_TexCoord).r;
 	float ao		= material[in_MaterialIndex].AO			* texture(aoTex, in_TexCoord).r;
+
+	if (material[in_MaterialIndex].IsCombined > 0.5f)
+	{
+		vec3 tex	= texture(combinedTex, in_TexCoord).rgb;
+		ao			= material[in_MaterialIndex].AO			* tex.r;
+		roughness	= material[in_MaterialIndex].Roughness	* tex.g;
+		metallic	= material[in_MaterialIndex].Metallic	* tex.b;
+	}
 
 	// Loop over the point lights
 	vec3 Lo = vec3(0.0f);

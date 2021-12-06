@@ -427,6 +427,12 @@ namespace Poly
 		Ref<Material> pPolyMaterial = CreateRef<Material>();
 		MaterialValues materialValues = {};
 
+		// POLY_CORE_TRACE("Material: ", pMaterial->GetName().C_Str());
+		// for (int i = 0; i < pMaterial->mNumProperties; i++)
+		// {
+		// 	POLY_CORE_TRACE("\t{}", pMaterial->mProperties[i]->mKey.C_Str());
+		// }
+
 		// Constants
 		// Metallic
 		ai_real metallic = 0.0f;
@@ -515,6 +521,19 @@ namespace Poly
 			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::ROUGHNESS, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::ROUGHNESS, mt.pTextureView.get());
+		}
+
+		// Combined occlusion metallic roughness
+		if (pMaterial->GetTextureCount(aiTextureType_UNKNOWN) > 0)
+		{
+			LoadAssimpMaterial(pMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, pPolyMaterial, folder);
+			materialValues.IsCombined = 1.0;
+		}
+		else
+		{
+			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			pPolyMaterial->SetTexture(Material::Type::COMBINED, mt.pTexture.get());
+			pPolyMaterial->SetTextureView(Material::Type::COMBINED, mt.pTextureView.get());
 		}
 
 		pPolyMaterial->SetMaterialValues(materialValues);
@@ -620,6 +639,8 @@ namespace Poly
 
 			case aiTextureType_DIFFUSE_ROUGHNESS:	return Material::Type::ROUGHNESS;
 			case aiTextureType_SHININESS:			return Material::Type::ROUGHNESS;
+
+			case aiTextureType_UNKNOWN:				return Material::Type::COMBINED;
 
 			default:								return Material::Type::NONE;
 		}
