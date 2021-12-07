@@ -115,7 +115,7 @@ namespace Poly
 
 		for (const auto& passData : m_OrderedPasses)
 		{
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (uint32 i = 0; i < inputs.size(); i++)
@@ -183,12 +183,12 @@ namespace Poly
 					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + output.Name, output);
 					passData.Reflection.SetFormat(output.Name, EFormat::B8G8R8A8_UNORM);
 				}
-				else if (!BitsSet(output.IOType, FIOType::INPUT)) // Only register new resource if it wasn't an input (passthrough)
+				else if (!BitsSet(output.IOType, FIOType::INPUT) && !BitsSet(output.BindPoint, FResourceBindPoint::INTERNAL_USE)) // Only register new resource if it wasn't an input (passthrough)
 					m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + output.Name, passID, output);
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
 			for (auto& input : inputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + input.Name;
@@ -267,7 +267,7 @@ namespace Poly
 		for (const auto& passData : m_OrderedPasses)
 		{
 			// Create invalidates for inputs
-			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
+			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::INTERNAL_USE);
 			for (const auto& input : inputs)
 			{
 				HalfBarrier barrier = {};
@@ -279,7 +279,7 @@ namespace Poly
 			}
 
 			// Create flushes for output. Save as attachments
-			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::NONE);
+			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::INTERNAL_USE);
 			uint32 index = 0;
 			for (const auto& output : outputs)
 			{

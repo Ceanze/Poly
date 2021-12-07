@@ -32,8 +32,9 @@ namespace Poly
 		AddIO(data);
 	}
 
-	void PassReflection::AddInternalInput(const std::string& name, uint32 set, uint32 binding, FResourceBindPoint bindPoint)
+	void PassReflection::AddSpecialInput(const std::string& name, uint32 set, uint32 binding, ESpecialInput input)
 	{
+		FResourceBindPoint bindPoint = GetResourceBindPoint(input);
 		IOData data = {};
 		data.Name		= name;
 		data.IOType		= FIOType::INPUT;
@@ -196,4 +197,17 @@ namespace Poly
 
 		m_IOs.push_back(io);
 	}
+
+	FResourceBindPoint PassReflection::GetResourceBindPoint(ESpecialInput input)
+	{
+		switch (input)
+		{
+			case ESpecialInput::SCENE_INSTANCE:	return FResourceBindPoint::SCENE_INSTANCE;
+			case ESpecialInput::SCENE_MATERIAL:	return FResourceBindPoint::SCENE_MATERIAL;
+			case ESpecialInput::SCENE_TEXTURES:	return FResourceBindPoint::SCENE_TEXTURES;
+			case ESpecialInput::SCENE_VERTEX:	return FResourceBindPoint::SCENE_VERTEX;
+			default:							return FResourceBindPoint::NONE;
+		}
+	}
+
 }

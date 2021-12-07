@@ -271,7 +271,8 @@ namespace Poly
 		{
 			if (m_Passes[i]->GetPassType() != Pass::Type::SYNC)
 			{
-				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
+				// Note that the layout creates the bindings for internal types as well for ease of use
+				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
 				std::unordered_map<uint32, DescriptorSetLayout> sets;
 				for (const auto& input : inputs)
 				{
@@ -481,7 +482,8 @@ namespace Poly
 			return m_Descriptors[passIndex];
 
 		// Collect the sets from the reflection
-		const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
+		// Note that descriptors for internal types are also created for ease of use
+		const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
 		std::unordered_set<uint32> setIndicies;
 		for (const auto& input : inputs)
 		{
@@ -523,7 +525,7 @@ namespace Poly
 		}
 		else
 		{
-			const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
 			auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
 			if (itr == reflections.end())
 				return false;

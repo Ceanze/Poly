@@ -11,6 +11,15 @@ namespace Poly
 
 	class Sampler;
 
+	enum class ESpecialInput
+	{
+		NONE			= 0,
+		SCENE_INSTANCE	= 1,
+		SCENE_VERTEX	= 2,
+		SCENE_TEXTURES	= 3,
+		SCENE_MATERIAL	= 4,
+	};
+
 	enum class FIOType
 	{
 		UNKNOWN			= 0,
@@ -78,14 +87,13 @@ namespace Poly
 		void AddPassThrough(const std::string& name);
 
 		/**
-		 * Adds an internal input used for internal types of the render graph, e.g. scene instance and vertex
+		 * Adds an special input used for internal types of the render graph, e.g. scene instance and vertex
 		 * @param name - name of binding - only provides debugging
 		 * @param set - the set of the resource to be used in the shader
 		 * @param binding - the binding of the resource to be used in the shader
-		 * @param bindPoing - the type of input to bind, only a few selected are allowed for internal input, these are:
-		 * 						FResourceBindPoint::SCENE_VERTEX and FResourceBindPoint::SCENE_INSTANCE
+		 * @param bindPoint - the type of bindPoint to be used
 		 */
-		void AddInternalInput(const std::string& name, uint32 set, uint32 binding, FResourceBindPoint bindPoint);
+		void AddSpecialInput(const std::string& name, uint32 set, uint32 binding, ESpecialInput bindPoint);
 
 		/**
 		 * Sets the format of the resource, only necessary when creating a new output in a pass and it's a texture
@@ -129,6 +137,7 @@ namespace Poly
 
 	private:
 		void AddIO(IOData io);
+		FResourceBindPoint GetResourceBindPoint(ESpecialInput input);
 
 		std::vector<IOData> m_IOs;
 	};
