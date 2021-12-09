@@ -59,6 +59,14 @@ namespace Poly
 		}
 	};
 
+	struct PushConstantData
+	{
+		std::string		Name		= "";
+		uint64			Size		= 0;
+		uint64			Offset		= 0;
+		FShaderStage	ShaderStage	= FShaderStage::NONE;
+	};
+
 	class PassReflection
 	{
 	public:
@@ -94,6 +102,16 @@ namespace Poly
 		 * @param bindPoint - the type of bindPoint to be used
 		 */
 		void AddSpecialInput(const std::string& name, uint32 set, uint32 binding, ESpecialInput bindPoint);
+
+		/**
+		 * Adds a push constant range to the pass. The data can currently only be sent from Execute() in the pass, not externally.
+		 * NOTE: Push constants have a small total buffer size, check GPU support for min max size
+		 * @param name - Name for this push constant range - used primararly for debugging
+		 * @param shaderStage - Shader stage where the push constant can be used, may be multiple
+		 * @param size - Size of the supplied range
+		 * @param offset - Offset for the range
+		 */
+		void AddPushConstant(const std::string& name, FShaderStage shaderStage, uint64 size, uint64 offset);
 
 		/**
 		 * Sets the format of the resource, only necessary when creating a new output in a pass and it's a texture
@@ -135,10 +153,13 @@ namespace Poly
 		std::vector<IOData> GetAllIOs() const { return m_IOs; }
 		const IOData& GetIOData(const std::string& resName) const;
 
+		const std::vector<PushConstantData>& GetPushConstants() const { return m_PushConstants; }
+
 	private:
 		void AddIO(IOData io);
 		FResourceBindPoint GetResourceBindPoint(ESpecialInput input);
 
 		std::vector<IOData> m_IOs;
+		std::vector<PushConstantData> m_PushConstants;
 	};
 }

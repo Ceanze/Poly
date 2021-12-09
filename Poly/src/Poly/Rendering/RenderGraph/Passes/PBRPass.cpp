@@ -17,9 +17,6 @@ namespace Poly
 		reflection.AddInput("lights", 0, 1);
 		reflection.SetBindPoint("lights", FResourceBindPoint::STORAGE);
 
-		reflection.AddInput("test", 0, 2);
-		reflection.SetBindPoint("test", FResourceBindPoint::UNIFORM | FResourceBindPoint::INTERNAL_USE);
-
 		reflection.AddSpecialInput("vertices", 1, 0, ESpecialInput::SCENE_VERTEX);
 		reflection.AddSpecialInput("instanceBuffer", 1, 1, ESpecialInput::SCENE_INSTANCE);
 

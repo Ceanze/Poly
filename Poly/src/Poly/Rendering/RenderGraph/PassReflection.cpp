@@ -58,6 +58,24 @@ namespace Poly
 
 	}
 
+	void PassReflection::AddPushConstant(const std::string& name, FShaderStage shaderStage, uint64 size, uint64 offset)
+	{
+		PushConstantData data = {};
+		data.Name			= name;
+		data.Size			= size;
+		data.Offset			= offset;
+		data.ShaderStage	= shaderStage;
+
+		auto pos = std::find_if(m_PushConstants.begin(), m_PushConstants.end(), [data](const PushConstantData& in) { return in.Offset == data.Offset || in.Name == data.Name; });
+		if (pos != m_PushConstants.end())
+		{
+			POLY_CORE_WARN("PushConstant '{}' has already been added with the same name or offset of {}", name, offset);
+			return;
+		}
+
+		m_PushConstants.push_back(data);
+	}
+
 	void PassReflection::SetFormat(const std::string& name, EFormat format)
 	{
 		for (auto& existing : m_IOs)

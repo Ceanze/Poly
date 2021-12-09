@@ -15,6 +15,7 @@ namespace Poly
 	class CommandPool;
 	class CommandQueue;
 	class DescriptorSet;
+	class PipelineLayout;
 	class GraphicsRenderPass;
 
 	// Command structs (for those who want to take in like 50 parameters)
@@ -122,6 +123,16 @@ namespace Poly
 		 * @param indexType - Type of index, either 16 or 32 bit
 		 */
 		virtual void BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType) = 0;
+
+		/**
+		 * Update push constants
+		 * @param pPipelineLayout - Layout which contains the to-be-updated push constant
+		 * @param shaderStage - The shader stage in which the push constants are used
+		 * @param offset - Starting offset
+		 * @param size - Size of the data to update with
+		 * @param data - ponter to the new data
+		 */
+		virtual void UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint64 offset, uint64 size, const void* data) = 0;
 
 		/**
 		 * Copy buffer to a texture
