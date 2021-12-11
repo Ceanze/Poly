@@ -11,7 +11,7 @@ namespace Poly
 	{
 		Ref<Buffer> pStagingBuffer = GetStagingBuffer(size);
 
-		pStagingBuffer->TransferData(data, size, offset);
+		pStagingBuffer->TransferData(data, size, 0);
 
 		m_QueuedBuffers.push_back({ pStagingBuffer, pDstBuffer, offset, size });
 	}
