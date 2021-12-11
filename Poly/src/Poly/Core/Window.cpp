@@ -22,7 +22,7 @@ namespace Poly {
 
 		// Disable window resize until vulkan renderer can handle it
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		
+
 		m_pWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 		if (!m_pWindow) {
 			glfwTerminate();
@@ -96,6 +96,7 @@ namespace Poly {
 			glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			Input::SetMouseDelta(0.0, 0.0);
 		}
+		Input::SetMousePosition(x, y);
 	}
 
 }

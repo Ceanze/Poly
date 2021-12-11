@@ -26,6 +26,7 @@ namespace Poly
 		static void SetKeyPressed(int key);
 		static void SetKeyReleased(int key);
 		static void SetMouseDelta(double x, double y);
+		static void SetMousePosition(double x, double y);
 
 		static bool IsKeyPressed(int key);
 		static bool IsKeyReleased(int key);
@@ -33,12 +34,14 @@ namespace Poly
 		static bool IsKey(int key, KeyState keyState);
 		static KeyState GetKeyState(int key);
 		static glm::vec2 GetMouseDelta();
+		static glm::vec2 GetMousePosition();
 
 		// Sets all keys to released, removes toggles and resets mouse delta
 		static void Reset();
 
 	private:
 		static glm::dvec2 s_MouseDelta;
+		static glm::dvec2 s_MousePos;
 		static std::unordered_map<int, KeyState> s_Keys;
 	};
 

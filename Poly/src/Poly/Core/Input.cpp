@@ -6,6 +6,7 @@
 namespace Poly
 {
 	glm::dvec2 Input::s_MouseDelta = { 0.f, 0.f };
+	glm::dvec2 Input::s_MousePos = { 0.f, 0.f };
 	std::unordered_map<int, Input::KeyState> Input::s_Keys;
 
 	void Input::SetKeyPressed(int key)
@@ -35,6 +36,12 @@ namespace Poly
 	{
 		s_MouseDelta.x = x;
 		s_MouseDelta.y = y;
+	}
+
+	void Input::SetMousePosition(double x, double y)
+	{
+		s_MousePos.x = x;
+		s_MousePos.y = y;
 	}
 
 	bool Input::IsKeyPressed(int key)
@@ -75,6 +82,11 @@ namespace Poly
 		glm::vec2 md(s_MouseDelta);
 		s_MouseDelta = { 0.f, 0.f };
 		return md;
+	}
+
+	glm::vec2 Input::GetMousePosition()
+	{
+		return s_MousePos;
 	}
 
 	void Input::Reset()

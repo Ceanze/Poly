@@ -164,7 +164,7 @@ namespace Poly
 		{
 			if (existing.Name == name)
 			{
-				if (existing.BindPoint == FResourceBindPoint::SAMPLER)
+				if (BitsSet(existing.BindPoint, FResourceBindPoint::SAMPLER))
 				{
 					existing.pSampler = pSampler;
 					return;

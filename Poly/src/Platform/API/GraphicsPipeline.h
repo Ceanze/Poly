@@ -110,7 +110,7 @@ namespace Poly
 		float									BlendConstants[4];
 	};
 
-	struct GraphicsPipelineDesc
+	struct GraphicsPipelineDesc : public PipelineDesc
 	{
 		std::vector<VertexInput> VertexInputs;
 		InputAssemblyDesc	InputAssembly	= {};

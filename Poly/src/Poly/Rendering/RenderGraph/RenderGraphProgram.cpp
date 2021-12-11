@@ -90,10 +90,15 @@ namespace Poly
 			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
 			renderContext->SetCommandBuffer(currentCommandBuffer);
 			renderContext->SetActivePassIndex(passIndex);
+			renderContext->SetActivePipelineLayout(m_PipelineLayouts[passIndex].get());
+			renderContext->SetRenderGraphProgram(this);
 			renderData.SetRenderPassName(pPass->GetName());
 
 			// Begin recording
 			currentCommandBuffer->Begin(FCommandBufferFlag::NONE);
+
+			// Update current pass before executing it
+			pPass->Update(*renderContext);
 
 			// Transfer staging buffer data
 			// TODO: This should probably be done on the Transfer queue asyncronously
@@ -179,7 +184,13 @@ namespace Poly
 
 			// Resource is being used in pass, update corresponding descriptor
 			const IOData& inputRes = m_Reflections[passIndex].GetIOData(passPair.second);
+			if (BitsSet(inputRes.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
+				continue;
+
 			Ref<Resource> pActualRes = pResource;
+			if (!pActualRes && BitsSet(inputRes.BindPoint, FResourceBindPoint::INTERNAL_USE))
+				return;
+
 			if (!pActualRes)
 				pActualRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
 
@@ -208,8 +219,8 @@ namespace Poly
 			}
 		}
 	}
-	
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data) 
+
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data)
 	{
 		PassResourcePair passPair = GetPassResourcePair(name);
 		Ref<Resource> pRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
@@ -217,7 +228,7 @@ namespace Poly
 		if (!pRes)
 			return;
 
-		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, data);
+		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, 0, data);
 		UpdateGraphResource(name, pRes);
 	}
 
@@ -273,9 +284,12 @@ namespace Poly
 			{
 				// Note that the layout creates the bindings for internal types as well for ease of use
 				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
+				const auto pushConstants = m_Reflections[i].GetPushConstants();
 				std::unordered_map<uint32, DescriptorSetLayout> sets;
 				for (const auto& input : inputs)
 				{
+					if (BitsSet(input.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
+						continue;
 					DescriptorSetBinding binding = {};
 					binding.Binding			= input.Binding;
 					binding.DescriptorCount	= 1;
@@ -285,7 +299,19 @@ namespace Poly
 					sets[input.Set].DescriptorSetBindings.push_back(binding);
 				}
 
+				std::vector<PushConstantRange> ranges;
+				ranges.reserve(pushConstants.size());
+				for (const auto& pushConstant : pushConstants)
+				{
+					PushConstantRange range;
+					range.Size			= pushConstant.Size;
+					range.Offset		= pushConstant.Offset;
+					range.ShaderStage	= pushConstant.ShaderStage;
+					ranges.push_back(range);
+				}
+
 				PipelineLayoutDesc desc = {};
+				desc.PushConstantRanges = ranges;
 				for (const auto& set : sets)
 					desc.DescriptorSetLayouts.push_back(set.second);
 
@@ -417,8 +443,6 @@ namespace Poly
 		assembly.RestartPrimitive	= false;
 		assembly.Topology			= ETopology::TRIANGLE_LIST;
 
-		std::vector<VertexInput> vertexInputs;
-
 		ViewportDesc viewport = {};
 		viewport.IsDynamic = true;
 		// viewport.Width		= static_cast<float>(m_Framebuffers[passIndex]->GetWidth());
@@ -460,12 +484,26 @@ namespace Poly
 		}
 
 		GraphicsPipelineDesc desc = {};
-		desc.InputAssembly		= assembly;
-		desc.Viewport			= viewport;
-		desc.Scissor			= scissor;
-		desc.Rasterization		= raster;
-		desc.ColorBlendState	= colorBlend;
-		desc.DepthStencil		= depthStencil;
+		GraphicsPipelineDesc* pPipelineDesc = static_cast<GraphicsPipelineDesc*>(pPass->GetCustomPipelineDesc());
+		if (pPipelineDesc)
+		{
+			desc.VertexInputs		= pPipelineDesc->VertexInputs;
+			desc.InputAssembly		= pPipelineDesc->InputAssembly;
+			desc.Viewport			= pPipelineDesc->Viewport;
+			desc.Scissor			= pPipelineDesc->Scissor;
+			desc.Rasterization		= pPipelineDesc->Rasterization;
+			desc.ColorBlendState	= pPipelineDesc->ColorBlendState;
+			desc.DepthStencil		= pPipelineDesc->DepthStencil;
+		}
+		else
+		{
+			desc.InputAssembly		= assembly;
+			desc.Viewport			= viewport;
+			desc.Scissor			= scissor;
+			desc.Rasterization		= raster;
+			desc.ColorBlendState	= colorBlend;
+			desc.DepthStencil		= depthStencil;
+		}
 		desc.pPipelineLayout	= m_PipelineLayouts[passIndex].get();
 		desc.pRenderPass		= m_GraphicsRenderPasses[passIndex].get();
 		desc.pVertexShader		= pPass->GetShader(FShaderStage::VERTEX).get();
@@ -509,8 +547,8 @@ namespace Poly
 
 		return m_Descriptors[passIndex];
 	}
-	
-	bool RenderGraphProgram::HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex) 
+
+	bool RenderGraphProgram::HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex)
 	{
 		if (passPair.first.empty() || passPair.first == "$")
 		{
@@ -525,7 +563,7 @@ namespace Poly
 		}
 		else
 		{
-			const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
+			const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
 			auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
 			if (itr == reflections.end())
 				return false;

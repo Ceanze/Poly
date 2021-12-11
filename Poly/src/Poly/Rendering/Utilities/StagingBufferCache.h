@@ -15,22 +15,22 @@ namespace Poly
 
 		/**
 		 * Queue a staging buffer to transfer data to a GPU buffer
-		 * 
+		 *
 		 * @param pStagingBuffer - staging buffer gotten from GetStagingBuffer
 		 */
-		void QueueTransfer(const Buffer* pDstBuffer, uint64 size, const void* data);
+		void QueueTransfer(const Buffer* pDstBuffer, uint64 size, uint64 offset, const void* data);
 
 		/**
 		 * Submit the transfer of the queued buffers - will submit all at once
 		 * which might be unoptimized depending on when they are used
-		 * 
+		 *
 		 * @param pCommandBuffer - CommandBuffer to record the transfer on
 		 */
 		void SubmitQueuedBuffers(CommandBuffer* pCommandBuffer);
 
 		/**
 		 * Update the cache to handle deletion of no longer used buffers
-		 * 
+		 *
 		 * @param imageIndex
 		 */
 		void Update(uint32 imageIndex);
@@ -47,6 +47,8 @@ namespace Poly
 		{
 			Ref<Buffer> pStagingBuffer;
 			const Buffer* pDstBuffer;
+			uint64 Offset;
+			uint64 Size;
 		};
 
 		struct LifetimeBuffer

@@ -5,9 +5,12 @@
 
 namespace Poly
 {
+	struct PipelineDesc;
+
 	class Shader;
-	class RenderContext;
 	class RenderData;
+	class RenderContext;
+	class RenderGraphProgram;
 
 	class Pass
 	{
@@ -26,18 +29,27 @@ namespace Poly
 
 		/**
 		 * Informs the RenderGraph about the inputs and outputs of the RenderPass
+		 * Called once during re/compilation of the render graph
 		 * @return A PassReflection created for this render pass
 		 */
 		virtual PassReflection Reflect() = 0;
 
 		/**
-		 * Execute the Pass
+		 * OPTIONAL
+		 * Update the pass, called once per frame before Execute()
+		 * Use this to update internal pass resources before Execute()
+		 */
+		virtual void Update(const RenderContext& context) {};
+
+		/**
+		 * Execute the Pass, called once per frame after Update()
 		 */
 		virtual void Execute(const RenderContext& context, const RenderData& renderData) = 0;
 
 		/**
 		 * OPTIONAL
 		 * Compile or recompile the Pass
+		 * Called once during re/compilation of the render graph
 		 */
 		virtual void Compile() {};
 
@@ -69,6 +81,30 @@ namespace Poly
 		 */
 		Ref<Shader> GetShader(FShaderStage shaderStage) const { return p_ShaderStages.at(shaderStage); }
 
+		//--------------------------------------------
+		// Custom graphics types for advanced usages |
+		//--------------------------------------------
+
+		/**
+		 * @return true if the Pass uses any custom graphics types
+		 */
+		bool UsesCustomTypes() const { return p_pPipelineDesc != nullptr; }
+
+		/**
+		 * Get the custom pipeline desc, nullptr if it is not being used
+		 *
+		 * @return custom pipeline desc pointer
+		 */
+		PipelineDesc* GetCustomPipelineDesc() const { return p_pPipelineDesc.get(); }
+
+	protected:
+		/**
+		 * Sets the custom pipeline desc to be used instead of the generated pipeline desc
+		 *
+		 * @param pPipeline
+		 */
+		void SetCustomPipelineDesc(Ref<PipelineDesc> pPipelineDesc) { p_pPipelineDesc = pPipelineDesc; }
+
 	protected:
 		friend class RenderGraph;
 		std::string	p_Name	= "";
@@ -77,5 +113,8 @@ namespace Poly
 
 		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
 		std::vector<std::pair<std::string, std::string>> p_ExternalResources;
+
+		// Variables for custom usage of passes
+		Ref<PipelineDesc> p_pPipelineDesc = nullptr;
 	};
 }
