@@ -93,8 +93,8 @@ public:
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.MousePos = ImVec2(Poly::Input::GetMousePosition().x, Poly::Input::GetMousePosition().y);
-		io.MouseDown[0] = Poly::Input::IsKeyPressed(70);
-		io.MouseDown[0] = Poly::Input::IsKeyPressed(71);
+		io.MouseDown[0] = Poly::Input::IsKeyPressed(Poly::KeyCode(Poly::EKey::MOUSE_LEFT));
+		io.MouseDown[1] = Poly::Input::IsKeyPressed(Poly::KeyCode(Poly::EKey::MOUSE_RIGHT));
 
 		ImGui::NewFrame();
 

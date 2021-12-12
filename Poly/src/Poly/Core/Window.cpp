@@ -2,14 +2,13 @@
 #include "Window.h"
 #include "Poly/Events/EventBus.h"
 #include "Poly/Core/Input/Input.h"
+#include "Platform/GLFW/GLFWTypes.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-namespace Poly {
-
-	bool Window::s_Open = false;
-
+namespace Poly
+{
 	Window::Window(int width, int height, const std::string& title)
 		: m_Width(width), m_Height(height), m_Title(title)
 	{
@@ -30,7 +29,6 @@ namespace Poly {
 		}
 
 		glfwMakeContextCurrent(m_pWindow);
-		s_Open = true;
 
 		// Set callbacks
 		glfwSetWindowCloseCallback(m_pWindow, CloseWindowCallback);
@@ -60,11 +58,6 @@ namespace Poly {
 		return m_pWindow;
 	}
 
-	bool Window::IsOpen()
-	{
-		return false;
-	}
-
 	void Window::CloseWindowCallback(GLFWwindow* pWindow)
 	{
 		CloseWindowEvent e = {};
@@ -73,19 +66,21 @@ namespace Poly {
 
 	void Window::KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods)
 	{
-		if (key == GLFW_KEY_ESCAPE)
-			s_Open = false;
-
+		EKey polyKey = ConvertToPolyKey(key);
+		FKeyModifier polyMod = ConvertToPolyModifier(mods);
+		KeyCode keyCode(polyKey, polyMod);
 		if (action == GLFW_PRESS)
-			Input::SetKeyPressed(key);
+			Input::SetKeyPressed(keyCode);
 		else if (action == GLFW_RELEASE)
-			Input::SetKeyReleased(key);
+			Input::SetKeyReleased(keyCode);
 	}
 
 	void Window::MouseMoveCallback(GLFWwindow* pWindow, double x, double y)
 	{
+		// TODO: This function should only update the necessary values!
+
 		// Only record mouse movement when toggled
-		if (Input::IsKeyToggled(GLFW_KEY_C)) {
+		if (Input::IsKeyToggled(KeyCode(EKey::C))) {
 			int width, height;
 			glfwGetWindowSize(pWindow, &width, &height);
 			glfwSetCursorPos(pWindow, (double)width * 0.5, (double)height * 0.5);
@@ -102,6 +97,12 @@ namespace Poly {
 
 	void Window::MouseButtonCallback(GLFWwindow* pWindow, int button, int action, int mods)
 	{
+		EKey polyKey = ConvertToPolyKey(button);
+		FKeyModifier polyMod = ConvertToPolyModifier(mods);
+		KeyCode keyCode(polyKey, polyMod);
+		if (action == GLFW_PRESS)
+			Input::SetKeyPressed(keyCode);
+		else if (action == GLFW_RELEASE)
+			Input::SetKeyReleased(keyCode);
 	}
-
 }

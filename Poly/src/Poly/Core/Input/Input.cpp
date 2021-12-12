@@ -7,26 +7,26 @@ namespace Poly
 {
 	glm::dvec2 Input::s_MouseDelta = { 0.f, 0.f };
 	glm::dvec2 Input::s_MousePos = { 0.f, 0.f };
-	std::unordered_map<int, Input::KeyState> Input::s_Keys;
+	std::unordered_map<KeyCode, Input::FKeyState> Input::s_Keys;
 
-	void Input::SetKeyPressed(int key)
+	void Input::SetKeyPressed(KeyCode keyCode)
 	{
-		if (!s_Keys.contains(key))
-			s_Keys[key] = KeyState::PRESSED | KeyState::TOGGLED;
+		if (!s_Keys.contains(keyCode))
+			s_Keys[keyCode] = FKeyState::PRESSED | FKeyState::TOGGLED;
 		else {
-			s_Keys[key] |= KeyState::PRESSED;
-			s_Keys[key] &= ~KeyState::RELEASED;
-			s_Keys[key] ^= KeyState::TOGGLED;
+			s_Keys[keyCode] |= FKeyState::PRESSED;
+			s_Keys[keyCode] &= ~FKeyState::RELEASED;
+			s_Keys[keyCode] ^= FKeyState::TOGGLED;
 		}
 	}
 
-	void Input::SetKeyReleased(int key)
+	void Input::SetKeyReleased(KeyCode keyCode)
 	{
-		if (!s_Keys.contains(key))
-			s_Keys[key] = KeyState::RELEASED;
+		if (!s_Keys.contains(keyCode))
+			s_Keys[keyCode] = FKeyState::RELEASED;
 		else {
-			s_Keys[key] |= KeyState::RELEASED;
-			s_Keys[key] &= ~KeyState::PRESSED;
+			s_Keys[keyCode] |= FKeyState::RELEASED;
+			s_Keys[keyCode] &= ~FKeyState::PRESSED;
 		}
 	}
 
@@ -42,35 +42,35 @@ namespace Poly
 		s_MousePos.y = y;
 	}
 
-	bool Input::IsKeyPressed(int key)
+	bool Input::IsKeyPressed(KeyCode keyCode)
 	{
-		return IsKey(key, KeyState::PRESSED);
+		return IsKey(keyCode, FKeyState::PRESSED);
 	}
 
-	bool Input::IsKeyReleased(int key)
+	bool Input::IsKeyReleased(KeyCode keyCode)
 	{
-		return IsKey(key, KeyState::RELEASED);
+		return IsKey(keyCode, FKeyState::RELEASED);
 	}
 
-	bool Input::IsKeyToggled(int key)
+	bool Input::IsKeyToggled(KeyCode keyCode)
 	{
-		return IsKey(key, KeyState::TOGGLED);
+		return IsKey(keyCode, FKeyState::TOGGLED);
 	}
 
-	bool Input::IsKey(int key, KeyState keyState)
+	bool Input::IsKey(KeyCode keyCode, FKeyState keyState)
 	{
-		if (!s_Keys.contains(key))
+		if (!s_Keys.contains(keyCode))
 			return false;
 		else
-			return (s_Keys[key] & keyState) == keyState;
+			return (s_Keys[keyCode] & keyState) == keyState;
 	}
 
-	Input::KeyState Input::GetKeyState(int key)
+	Input::FKeyState Input::GetKeyState(KeyCode keyCode)
 	{
-		if (!s_Keys.contains(key))
-			return KeyState::NONE;
+		if (!s_Keys.contains(keyCode))
+			return FKeyState::NONE;
 		else
-			return s_Keys[key];
+			return s_Keys[keyCode];
 	}
 
 	glm::vec2 Input::GetMouseDelta()
@@ -89,7 +89,7 @@ namespace Poly
 	{
 		s_MouseDelta = { 0.f, 0.f };
 		for (auto& key : s_Keys)
-			key.second = KeyState::NONE;
+			key.second = FKeyState::NONE;
 	}
 
 }

@@ -157,7 +157,7 @@ namespace Poly
 		}
 	}
 
-	inline FKeyModifier ConvertToPolyModifer(int GLFWModifer)
+	inline FKeyModifier ConvertToPolyModifier(int GLFWModifer)
 	{
 		FKeyModifier mask = FKeyModifier::NONE;
 		if (GLFWModifer & GLFW_MOD_SHIFT > 0)		mask |= FKeyModifier::SHIFT;
