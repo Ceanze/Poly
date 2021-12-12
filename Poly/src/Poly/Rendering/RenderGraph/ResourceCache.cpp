@@ -19,7 +19,7 @@ namespace Poly
 	{
 		return CreateRef<ResourceCache>(defaultParams);
 	}
-	
+
 	void ResourceCache::RegisterExternalResource(const std::string& name, Ref<Resource> pResource)
 	{
 		if (m_NameToExternalIndex.contains(name))
@@ -93,15 +93,16 @@ namespace Poly
 
 	void ResourceCache::MarkOutput(const std::string& name, IOData iodata)
 	{
-		auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.Name == name; });
-		if (itr == m_Resources.end()) // Register resource if it hasn't been that already
+		// auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.Name == name; });
+		if (!m_NameToIndex.contains(name)) // Register resource if it hasn't been that already
 		{
 			RegisterResource(name, 0, iodata);
 			m_Resources.back().IsOutput = true;
 		}
 		else
 		{
-			itr->IsOutput = true;
+			m_Resources[m_NameToIndex[name]].IsOutput = true;
+			// itr->IsOutput = true;
 		}
 
 	}

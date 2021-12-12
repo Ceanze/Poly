@@ -7,6 +7,7 @@
 #include "ResourceCache.h"
 #include "RenderGraphProgram.h"
 #include "Poly/Core/Utils/DirectedGraphHelper.h"
+#include <ranges>
 
 namespace Poly
 {
@@ -115,7 +116,7 @@ namespace Poly
 
 		for (const auto& passData : m_OrderedPasses)
 		{
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (uint32 i = 0; i < inputs.size(); i++)
@@ -178,17 +179,17 @@ namespace Poly
 				if (isDepthStencil)
 					static_cast<RenderPass*>(passData.pPass.get())->SetDepthStenctilUse(true);
 
-				if (isMarkedOutput) // Create alias to backbuffer
+				if (isMarkedOutput && !BitsSet(output.IOType, FIOType::INPUT)) // Create alias to backbuffer
 				{
 					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + output.Name, output);
 					passData.Reflection.SetFormat(output.Name, EFormat::B8G8R8A8_UNORM);
 				}
-				else if (!BitsSet(output.IOType, FIOType::INPUT)) // Only register new resource if it wasn't an input (passthrough)
+				else if (!BitsSet(output.IOType, FIOType::INPUT) && !BitsSet(output.BindPoint, FResourceBindPoint::INTERNAL_USE)) // Only register new resource if it wasn't an input (passthrough)
 					m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + output.Name, passID, output);
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
 			for (auto& input : inputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + input.Name;
@@ -226,6 +227,12 @@ namespace Poly
 				}
 
 				m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + input.Name, passID, input, alias);
+
+				if (IsResourceGraphOutput(passData.NodeIndex, input.Name))
+				{
+					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + input.Name, input);
+					passData.Reflection.SetFormat(input.Name, EFormat::B8G8R8A8_UNORM);
+				}
 			}
 		}
 
@@ -267,11 +274,11 @@ namespace Poly
 		for (const auto& passData : m_OrderedPasses)
 		{
 			// Create invalidates for inputs
-			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
+			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::INTERNAL_USE);
 			for (const auto& input : inputs)
 			{
 				HalfBarrier barrier = {};
-				barrier.AccessMask		= GetAccessFlag(input.BindPoint);
+				barrier.AccessMask		= GetAccessFlag(input.BindPoint, true);
 				barrier.PipelineStage	= GetPipelineStage(input.BindPoint);
 				barrier.TextureLayout	= input.TextureLayout;
 				barrier.Name			= input.Name;
@@ -279,12 +286,12 @@ namespace Poly
 			}
 
 			// Create flushes for output. Save as attachments
-			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::NONE);
+			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::INTERNAL_USE);
 			uint32 index = 0;
 			for (const auto& output : outputs)
 			{
 				HalfBarrier barrier = {};
-				barrier.AccessMask		= GetAccessFlag(output.BindPoint);
+				barrier.AccessMask		= GetAccessFlag(output.BindPoint, false);
 				barrier.PipelineStage	= GetPipelineStage(output.BindPoint);
 				barrier.TextureLayout	= output.TextureLayout;
 				barrier.Name			= output.Name;
@@ -407,7 +414,7 @@ namespace Poly
 							data.SrcLayout			= srcItr->TextureLayout;
 							data.DstLayout			= dstItr->TextureLayout;
 							data.SrcAccessFlag		= srcItr->AccessMask;
-							data.DstAccessFlag		= dstItr->AccessMask; // TODO: Check if a READ or WRITE (for i.e. depth or color attachemnt) needs to be added
+							data.DstAccessFlag		= dstItr->AccessMask; // TODO: Check if a READ or WRITE (for i.e. depth or color attachemnt) needs to be added (might be fixed now)
 							data.SrcPipelineStage	= srcItr->PipelineStage;
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
@@ -415,6 +422,8 @@ namespace Poly
 							// m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
 							m_pResourceCache->RegisterSyncResource(syncPass->GetName() + "." + dstPair.second, srcName);
 							brokenEdges.insert(edgeID);
+
+							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(dstItr->Name, srcItr->TextureLayout);
 						}
 						else // Read after read
 						{
@@ -467,8 +476,33 @@ namespace Poly
 		{
 			auto itr = m_pRenderGraph->m_Outputs.begin();
 			auto lastPassItr = std::find_if(m_OrderedPasses.begin(), m_OrderedPasses.end(), [&](const PassData& pd) { return pd.NodeIndex == itr->NodeID; });
-			static_cast<RenderPass*>(lastPassItr->pPass.get())->SetAttachmentInital(itr->ResourceName, ETextureLayout::UNDEFINED);
 			static_cast<RenderPass*>(lastPassItr->pPass.get())->SetAttachmentFinal(itr->ResourceName, ETextureLayout::PRESENT);
+
+			// Find the first use of the backbufer and set that inital attachment to UNDEFINED to clear it
+			// TODO: Should probably traverse the graph to find the origin of the backbuffer usage instead
+			// of going though attachments with COLOR_ATTACHMENT_OPTIMAL set
+			bool set = false;
+			for (const auto& passData : m_OrderedPasses)
+			{
+				if (passData.pPass->GetPassType() == Pass::Type::RENDER)
+				{
+					RenderPass* pPass = static_cast<RenderPass*>(passData.pPass.get());
+					const auto& attachmentMap = pPass->GetAttachments();
+					for (const auto& pair : attachmentMap)
+					{
+						if (pair.second.UsedLayout == ETextureLayout::COLOR_ATTACHMENT_OPTIMAL)
+						{
+							pPass->SetAttachmentInital(pair.first, ETextureLayout::UNDEFINED);
+							set = true;
+							break;
+						}
+
+					}
+					if (set)
+						break;
+				}
+			}
+			//static_cast<RenderPass*>(lastPassItr->pPass.get())->SetAttachmentInital(itr->ResourceName, ETextureLayout::UNDEFINED);
 		}
 		else
 		{
@@ -604,18 +638,18 @@ namespace Poly
 		return false;
 	}
 
-	FAccessFlag RenderGraphCompiler::GetAccessFlag(FResourceBindPoint bindPoint)
+	FAccessFlag RenderGraphCompiler::GetAccessFlag(FResourceBindPoint bindPoint, bool isInput)
 	{
 		if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT)
-			return FAccessFlag::COLOR_ATTACHMENT_WRITE;
+			return isInput ? FAccessFlag::COLOR_ATTACHMENT_READ : FAccessFlag::COLOR_ATTACHMENT_WRITE;
 		if (bindPoint == FResourceBindPoint::DEPTH_STENCIL)
-			return FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE;
+			return isInput ? FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ : FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE;
 		if (bindPoint == FResourceBindPoint::UNIFORM)
 			return FAccessFlag::UNIFORM_READ;
 		if (bindPoint == FResourceBindPoint::SAMPLER)
 			return FAccessFlag::SHADER_READ;
 		if (bindPoint == FResourceBindPoint::STORAGE)
-			return FAccessFlag::SHADER_READ | FAccessFlag::SHADER_WRITE; // TODO: Make this not be both READ and WRITE
+			return isInput ? FAccessFlag::SHADER_READ : FAccessFlag::SHADER_WRITE; // TODO: Make this not be both READ and WRITE
 		if (bindPoint == FResourceBindPoint::VERTEX)
 			return FAccessFlag::VERTEX_ATTRIBUTE_READ;
 		if (bindPoint == FResourceBindPoint::INDEX)

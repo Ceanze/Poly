@@ -9,6 +9,8 @@
 
 namespace Poly
 {
+	struct PipelineDesc {};
+
 	class Pipeline
 	{
 	public:

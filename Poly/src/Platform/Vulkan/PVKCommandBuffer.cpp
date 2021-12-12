@@ -112,6 +112,12 @@ namespace Poly
 		vkCmdBindIndexBuffer(m_Buffer, vkBuffer, offset, ConvertIndexTypeVK(indexType));
 	}
 
+	void PVKCommandBuffer::UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint64 offset, uint64 size, const void* data)
+	{
+		VkPipelineLayout layout = static_cast<const PVKPipelineLayout*>(pPipelineLayout)->GetNativeVK();
+		vkCmdPushConstants(m_Buffer, layout, ConvertShaderStageVK(shaderStage), offset, size, data);
+	}
+
 	void PVKCommandBuffer::CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
 	{
 		VkImageSubresourceLayers subresource = {};

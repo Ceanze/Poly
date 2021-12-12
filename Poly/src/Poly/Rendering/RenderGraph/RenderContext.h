@@ -33,6 +33,7 @@ namespace Poly
 		friend class RenderGraphProgram;
 		void SetCommandBuffer(CommandBuffer* pCommandBuffer);
 		void SetActivePipeline(Pipeline* pPipeline) { m_pPipeline = pPipeline; }
+		void SetActivePipelineLayout(PipelineLayout* pLayout) { m_pPipelineLayout = pLayout; }
 		void SetActivePassIndex(uint32 passIndex) { m_PassIndex = passIndex; }
 		void SetImageIndex(uint32 imageIndex) { m_ImageIndex = imageIndex; }
 		void SetRenderGraphProgram(RenderGraphProgram* pRenderGraphProgram) { m_pRenderGraphProgram = pRenderGraphProgram; }

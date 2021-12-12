@@ -1,7 +1,7 @@
 #include "polypch.h"
 #include "Camera.h"
 
-#include "Input.h"
+#include "input/Input.h"
 #include <GLFW/glfw3.h>
 
 namespace Poly
@@ -33,20 +33,20 @@ namespace Poly
 		m_Pitch += mouseDelta.y * dtSeconds * m_MouseSense;
 
 		float extraSpeed = 0.0f;
-		if (Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+		if (Input::IsKeyPressed(KeyCode(EKey::LSHIFT)))
 			extraSpeed = m_SprintSpeed;
 
-		if (Input::IsKeyPressed(GLFW_KEY_W))
+		if (Input::IsKeyPressed(KeyCode(EKey::W)))
 			m_Pos += m_Forward * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(GLFW_KEY_S))
+		if (Input::IsKeyPressed(KeyCode(EKey::S)))
 			m_Pos -= m_Forward * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(GLFW_KEY_A))
+		if (Input::IsKeyPressed(KeyCode(EKey::A)))
 			m_Pos += m_Right * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(GLFW_KEY_D))
+		if (Input::IsKeyPressed(KeyCode(EKey::D)))
 			m_Pos -= m_Right * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(GLFW_KEY_SPACE))
+		if (Input::IsKeyPressed(KeyCode(EKey::SPACE)))
 			m_Pos += m_GlobalUp * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
+		if (Input::IsKeyPressed(KeyCode(EKey::LCTRL)))
 			m_Pos -= m_GlobalUp * dtSeconds * (m_MovementSpeed + extraSpeed);
 
 		UpdateView();

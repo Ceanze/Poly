@@ -6,27 +6,27 @@
 #include "Poly/Core/RenderAPI.h"
 
 namespace Poly
-{	
-	void StagingBufferCache::QueueTransfer(const Buffer* pDstBuffer, uint64 size, const void* data) 
+{
+	void StagingBufferCache::QueueTransfer(const Buffer* pDstBuffer, uint64 size, uint64 offset, const void* data)
 	{
 		Ref<Buffer> pStagingBuffer = GetStagingBuffer(size);
 
 		pStagingBuffer->TransferData(data, size, 0);
 
-		m_QueuedBuffers.push_back({ pStagingBuffer, pDstBuffer });
+		m_QueuedBuffers.push_back({ pStagingBuffer, pDstBuffer, offset, size });
 	}
-	
-	void StagingBufferCache::SubmitQueuedBuffers(CommandBuffer* pCommandBuffer) 
+
+	void StagingBufferCache::SubmitQueuedBuffers(CommandBuffer* pCommandBuffer)
 	{
 		for (auto& bufferPair : m_QueuedBuffers)
 		{
-			pCommandBuffer->CopyBuffer(bufferPair.pStagingBuffer.get(), bufferPair.pDstBuffer, bufferPair.pDstBuffer->GetSize(), 0, 0);
+			pCommandBuffer->CopyBuffer(bufferPair.pStagingBuffer.get(), bufferPair.pDstBuffer, bufferPair.Size, 0, bufferPair.Offset);
 		}
 
 		m_QueuedBuffers.clear();
 	}
-	
-	void StagingBufferCache::Update(uint32 imageIndex) 
+
+	void StagingBufferCache::Update(uint32 imageIndex)
 	{
 		m_ImageIndex = imageIndex;
 
@@ -51,7 +51,7 @@ namespace Poly
 		buffersInUse.clear();
 	}
 
-	Ref<Buffer> StagingBufferCache::GetStagingBuffer(uint64 size) 
+	Ref<Buffer> StagingBufferCache::GetStagingBuffer(uint64 size)
 	{
 		auto& buffers = m_Buffers[m_ImageIndex][State::FREE];
 

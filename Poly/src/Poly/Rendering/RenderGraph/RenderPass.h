@@ -29,18 +29,27 @@ namespace Poly
 
 		/**
 		 * Informs the RenderGraph about the inputs and outputs of the RenderPass
+		 * Called once during re/compilation of the render graph
 		 * @return A PassReflection created for this render pass
 		 */
 		virtual PassReflection Reflect() = 0;
 
 		/**
-		 * Execute the RenderPass
+		 * OPTIONAL
+		 * Update the pass, called once per frame before Execute()
+		 * Use this to update internal pass resources before Execute()
+		 */
+		virtual void Update(const RenderContext& context) {};
+
+		/**
+		 * Execute the Pass, called once per frame after Update()
 		 */
 		virtual void Execute(const RenderContext& context, const RenderData& renderData) = 0;
 
 		/**
 		 * OPTIONAL
-		 * Compile or recompile the RenderPass
+		 * Compile or recompile the Pass
+		 * Called once during re/compilation of the render graph
 		 */
 		virtual void Compile() {};
 
@@ -66,7 +75,5 @@ namespace Poly
 
 		std::unordered_map<std::string, RenderPassAttachment> p_Attachments;
 		bool p_usesDepthStencil = false;
-
-		// TODO: If/when scenes are added make it a member variable of the renderpass (Ref<Scene>)
 	};
 }

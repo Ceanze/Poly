@@ -32,8 +32,9 @@ namespace Poly
 		AddIO(data);
 	}
 
-	void PassReflection::AddInternalInput(const std::string& name, uint32 set, uint32 binding, FResourceBindPoint bindPoint)
+	void PassReflection::AddSpecialInput(const std::string& name, uint32 set, uint32 binding, ESpecialInput input)
 	{
+		FResourceBindPoint bindPoint = GetResourceBindPoint(input);
 		IOData data = {};
 		data.Name		= name;
 		data.IOType		= FIOType::INPUT;
@@ -55,6 +56,24 @@ namespace Poly
 		else
 			AddIO(data);
 
+	}
+
+	void PassReflection::AddPushConstant(const std::string& name, FShaderStage shaderStage, uint64 size, uint64 offset)
+	{
+		PushConstantData data = {};
+		data.Name			= name;
+		data.Size			= size;
+		data.Offset			= offset;
+		data.ShaderStage	= shaderStage;
+
+		auto pos = std::find_if(m_PushConstants.begin(), m_PushConstants.end(), [data](const PushConstantData& in) { return in.Offset == data.Offset || in.Name == data.Name; });
+		if (pos != m_PushConstants.end())
+		{
+			POLY_CORE_WARN("PushConstant '{}' has already been added with the same name or offset of {}", name, offset);
+			return;
+		}
+
+		m_PushConstants.push_back(data);
 	}
 
 	void PassReflection::SetFormat(const std::string& name, EFormat format)
@@ -145,7 +164,7 @@ namespace Poly
 		{
 			if (existing.Name == name)
 			{
-				if (existing.BindPoint == FResourceBindPoint::SAMPLER)
+				if (BitsSet(existing.BindPoint, FResourceBindPoint::SAMPLER))
 				{
 					existing.pSampler = pSampler;
 					return;
@@ -196,4 +215,17 @@ namespace Poly
 
 		m_IOs.push_back(io);
 	}
+
+	FResourceBindPoint PassReflection::GetResourceBindPoint(ESpecialInput input)
+	{
+		switch (input)
+		{
+			case ESpecialInput::SCENE_INSTANCE:	return FResourceBindPoint::SCENE_INSTANCE;
+			case ESpecialInput::SCENE_MATERIAL:	return FResourceBindPoint::SCENE_MATERIAL;
+			case ESpecialInput::SCENE_TEXTURES:	return FResourceBindPoint::SCENE_TEXTURES;
+			case ESpecialInput::SCENE_VERTEX:	return FResourceBindPoint::SCENE_VERTEX;
+			default:							return FResourceBindPoint::NONE;
+		}
+	}
+
 }

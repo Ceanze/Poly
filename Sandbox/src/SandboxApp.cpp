@@ -4,7 +4,7 @@
 #include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
-#include "Poly/Rendering/RenderGraph/Passes/TestPass.h"
+#include "Poly/Rendering/RenderGraph/Passes/ImGuiPass.h"
 #include "Poly/Rendering/RenderGraph/Passes/PBRPass.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
@@ -12,6 +12,9 @@
 #include "Platform/API/Texture.h"
 #include "Platform/API/Buffer.h"
 #include "Poly/Resources/ResourceManager.h"
+
+#include <imgui/imgui.h>
+#include "Poly/Core/Input/Input.h"
 
 class TestLayer : public Poly::Layer
 {
@@ -34,7 +37,7 @@ public:
 		PointLight PointLight = {};
 	};
 
-	TestLayer() 
+	TestLayer()
 	{
 		pCamera = new Poly::Camera();
 		pCamera->SetAspect(1280.f / 720.f);
@@ -46,6 +49,7 @@ public:
 		m_pRenderer = Poly::Renderer::Create();
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
+		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
 
 		// External resources
 		m_pGraph->AddExternalResource("camera", sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
@@ -55,7 +59,10 @@ public:
 		m_pGraph->AddPass(pPass, "pbrPass");
 		m_pGraph->AddLink("$.camera", "pbrPass.camera");
 		m_pGraph->AddLink("$.lights", "pbrPass.lights");
-		m_pGraph->MarkOutput("pbrPass.out");
+
+		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
+		m_pGraph->AddLink("pbrPass.out", "ImGuiPass.out");
+		m_pGraph->MarkOutput("ImGuiPass.out");
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
@@ -76,14 +83,27 @@ public:
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
+
+
+		// TODO REMOVE - NOT HAVE IT HERE
+		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
 	};
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
+		ImGuiIO& io = ImGui::GetIO();
+		io.MousePos = ImVec2(Poly::Input::GetMousePosition().x, Poly::Input::GetMousePosition().y);
+		io.MouseDown[0] = Poly::Input::IsKeyPressed(Poly::KeyCode(Poly::EKey::MOUSE_LEFT));
+		io.MouseDown[1] = Poly::Input::IsKeyPressed(Poly::KeyCode(Poly::EKey::MOUSE_RIGHT));
+
+		ImGui::NewFrame();
+
+		ImGui::ShowDemoWindow();
+
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
 		m_pProgram->UpdateGraphResource("camera", sizeof(CameraBuffer), &data);
-		m_pRenderer->Render();		
+		m_pRenderer->Render();
 	};
 
 	void OnDetach() override

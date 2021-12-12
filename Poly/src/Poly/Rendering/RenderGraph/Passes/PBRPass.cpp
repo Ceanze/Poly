@@ -17,17 +17,17 @@ namespace Poly
 		reflection.AddInput("lights", 0, 1);
 		reflection.SetBindPoint("lights", FResourceBindPoint::STORAGE);
 
-		reflection.AddInternalInput("vertices", 1, 0, FResourceBindPoint::SCENE_VERTEX);
-		reflection.AddInternalInput("instanceBuffer", 1, 1, FResourceBindPoint::SCENE_INSTANCE);
+		reflection.AddSpecialInput("vertices", 1, 0, ESpecialInput::SCENE_VERTEX);
+		reflection.AddSpecialInput("instanceBuffer", 1, 1, ESpecialInput::SCENE_INSTANCE);
 
 		// Fragment shader input
-		reflection.AddInternalInput("materials", 2, 0, FResourceBindPoint::SCENE_MATERIAL);
-		reflection.AddInternalInput("textures", 2, 1, FResourceBindPoint::SCENE_TEXTURES); // SCENE_TEXTURE must be the last bound to a set - due to it using multiple bindings
+		reflection.AddSpecialInput("materials", 2, 0, ESpecialInput::SCENE_MATERIAL);
+		reflection.AddSpecialInput("textures", 2, 1, ESpecialInput::SCENE_TEXTURES); // SCENE_TEXTURE must be the last bound to a set - due to it using multiple bindings
 
 		// Output
 		reflection.AddOutput("out");
 		reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
-		reflection.SetFormat("out", EFormat::R8G8B8A8_UNORM);
+		reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
 		reflection.SetTextureSize("out", 0, 0); // 0 is invalid - defaults to default (window size)
 
 		reflection.AddOutput("depth");
