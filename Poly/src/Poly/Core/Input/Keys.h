@@ -94,7 +94,7 @@ namespace Poly
 		NUM_LOCK		= 81,
 		BACKSPACE		= 82,
 		ENTER			= 83,
-		DELETE			= 84,
+		DEL				= 84,
 		LEFT			= 85,
 		RIGHT			= 86,
 		UP				= 87,
@@ -112,13 +112,13 @@ namespace Poly
 		PERIOD			= 99, // .
 		MINUS			= 100, // -
 		SLASH			= 101, // /
-		SEMI_COLON		= 102, // ;
+		SEMICOLON		= 102, // ;
 		EQUAL			= 103, // =
 		LBRACKET		= 104, // [
 		RBRACKET		= 105, // ]
 		BACKSLASH		= 106, // \
 
-		// Mouse
+		// -------------- Mouse -------------
 		MOUSE_1			= 110,
 		MOUSE_2			= 111,
 		MOUSE_3			= 112,
@@ -131,7 +131,7 @@ namespace Poly
 		MOUSE_RIGHT		= MOUSE_2,
 		MOUSE_MIDDLE	= MOUSE_3,
 
-		// Gamepad
+		// -------------- Gamepad -------------
 		GAMEPAD_LEFT_DPAD		= 120,
 		GAMEPAD_RIGHT_DPAD		= 121,
 		GAMEPAD_UP_DPAD			= 122,
