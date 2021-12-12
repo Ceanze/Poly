@@ -1,7 +1,7 @@
 #include "polypch.h"
 #include "Camera.h"
 
-#include "Input.h"
+#include "input/Input.h"
 #include <GLFW/glfw3.h>
 
 namespace Poly

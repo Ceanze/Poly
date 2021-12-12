@@ -18,7 +18,7 @@ namespace Poly {
 		unsigned GetHeight() const;
 
 		GLFWwindow* GetNative() const;
-		
+
 		static bool IsOpen();
 
 	private:
@@ -32,5 +32,6 @@ namespace Poly {
 		static void CloseWindowCallback(GLFWwindow* pWindow);
 		static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods);
 		static void MouseMoveCallback(GLFWwindow* pWindow, double x, double y);
+		static void MouseButtonCallback(GLFWwindow* pWindow, int button, int action, int mods);
 	};
 }

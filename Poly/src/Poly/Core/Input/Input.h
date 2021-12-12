@@ -8,7 +8,6 @@
 
 namespace Poly
 {
-
 	class Input
 	{
 	public:

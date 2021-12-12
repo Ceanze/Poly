@@ -1,7 +1,7 @@
 #include "polypch.h"
 #include "Input.h"
 
-#include "PolyUtils.h"
+#include "Poly/Core/PolyUtils.h"
 
 namespace Poly
 {
@@ -11,8 +11,7 @@ namespace Poly
 
 	void Input::SetKeyPressed(int key)
 	{
-		auto keyIt = s_Keys.find(key);
-		if (keyIt == s_Keys.end())
+		if (!s_Keys.contains(key))
 			s_Keys[key] = KeyState::PRESSED | KeyState::TOGGLED;
 		else {
 			s_Keys[key] |= KeyState::PRESSED;
@@ -23,8 +22,7 @@ namespace Poly
 
 	void Input::SetKeyReleased(int key)
 	{
-		auto keyIt = s_Keys.find(key);
-		if (keyIt == s_Keys.end())
+		if (!s_Keys.contains(key))
 			s_Keys[key] = KeyState::RELEASED;
 		else {
 			s_Keys[key] |= KeyState::RELEASED;
@@ -61,8 +59,7 @@ namespace Poly
 
 	bool Input::IsKey(int key, KeyState keyState)
 	{
-		auto keyIt = s_Keys.find(key);
-		if (keyIt == s_Keys.end())
+		if (!s_Keys.contains(key))
 			return false;
 		else
 			return (s_Keys[key] & keyState) == keyState;
@@ -70,8 +67,7 @@ namespace Poly
 
 	Input::KeyState Input::GetKeyState(int key)
 	{
-		auto keyIt = s_Keys.find(key);
-		if (keyIt == s_Keys.end())
+		if (!s_Keys.contains(key))
 			return KeyState::NONE;
 		else
 			return s_Keys[key];

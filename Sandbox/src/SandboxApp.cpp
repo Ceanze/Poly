@@ -14,7 +14,7 @@
 #include "Poly/Resources/ResourceManager.h"
 
 #include <imgui/imgui.h>
-#include "Poly/Core/Input.h"
+#include "Poly/Core/Input/Input.h"
 
 class TestLayer : public Poly::Layer
 {

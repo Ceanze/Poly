@@ -1,7 +1,7 @@
 #include "polypch.h"
 #include "Window.h"
 #include "Poly/Events/EventBus.h"
-#include "Poly/Core/Input.h"
+#include "Poly/Core/Input/Input.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -36,6 +36,7 @@ namespace Poly {
 		glfwSetWindowCloseCallback(m_pWindow, CloseWindowCallback);
 		glfwSetKeyCallback(m_pWindow, KeyCallback);
 		glfwSetCursorPosCallback(m_pWindow, MouseMoveCallback);
+		glfwSetMouseButtonCallback(m_pWindow, MouseButtonCallback);
 	}
 
 	Window::~Window()
@@ -97,6 +98,10 @@ namespace Poly {
 			Input::SetMouseDelta(0.0, 0.0);
 		}
 		Input::SetMousePosition(x, y);
+	}
+
+	void Window::MouseButtonCallback(GLFWwindow* pWindow, int button, int action, int mods)
+	{
 	}
 
 }
