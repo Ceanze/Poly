@@ -357,3 +357,4 @@ bin-int/
 *.vcxproj
 *.filters
 *.sln
+imgui.ini
