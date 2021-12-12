@@ -169,10 +169,6 @@ namespace Poly
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + output.Name;
 
-				// PROBLEM: The out (swapchain) image is created as a new image for all passes before the final which is marked as output.
-				// Possible solution: Deduce beforehand which resources (outputs in passes) are connected to the output (by going backwards in the graph)
-				// and make all of them alias to the actual output which is marked
-
 				// Check if resource is being used, as the graph allows outputs to be non-linked, go to next output if not used
 				bool isMarkedOutput = IsResourceGraphOutput(passData.NodeIndex, output.Name);
 				bool isUsed = IsResourceUsed(passData.NodeIndex, output.Name);

@@ -51,8 +51,3 @@ namespace Poly
 		std::unordered_map<uint32, std::vector<Ref<Buffer>>> m_BuffersToBeDestroyed;
 	};
 }
-
-// Nästa steg:
-// * Gör det som behövs för imgui i detta pass (och märk att det fattas saker, typ som PushConstant support)
-// * Börja förslagsvis med att göra en custom pipelinedesc
-// * Sedan push constant support
