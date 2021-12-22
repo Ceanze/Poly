@@ -16,6 +16,8 @@
 #include <imgui/imgui.h>
 #include "Poly/Core/Input/Input.h"
 
+#include "Poly/ECS/ECS.h"
+
 class TestLayer : public Poly::Layer
 {
 public:
@@ -73,17 +75,28 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
+		//PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
 		//PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF-Binary/Sponza.glb");
 		//PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
 		//PolyID helmet = Poly::ResourceManager::LoadModel("../assets/models/FlightHelmet/FlightHelmet.gltf");
-		pScene->AddModel(sponza);
+		//pScene->AddModel(sponza);
 		//pScene->AddModel(cube);
 		//pScene->AddModel(helmet);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
 
+		Poly::Entity entity = m_Registry.CreateEntity();
+
+		entity.AddComponent<LightBuffer>();
+
+		POLY_CORE_TRACE("Has component: {}", entity.HasComponent<LightBuffer>() ? "yes" : "no");
+
+		entity.RemoveComponent<LightBuffer>();
+
+		m_Registry.DestroyEntity(entity);
+
+		entity.AddComponent<LightBuffer>(); // Succeds here even when it shouldn't - no check if the entity is valid or is being made
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
@@ -117,6 +130,8 @@ private:
 	Poly::Ref<Poly::Renderer> m_pRenderer = nullptr;
 	Poly::Ref<Poly::RenderGraph> m_pGraph = nullptr;
 	Poly::Ref<Poly::RenderGraphProgram> m_pProgram = nullptr;
+
+	Poly::EntityRegistry m_Registry;
 };
 
 class Sandbox : public Poly::Application
