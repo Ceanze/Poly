@@ -74,7 +74,6 @@ public:
 		m_pProgram->SetScene(pScene);
 
 		PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF/Sponza.gltf");
-		//PolyID sponza = Poly::ResourceManager::LoadModel("../assets/models/sponza/glTF-Binary/Sponza.glb");
 		//PolyID cube = Poly::ResourceManager::LoadModel("../assets/models/Cube/Cube.gltf");
 		//PolyID helmet = Poly::ResourceManager::LoadModel("../assets/models/FlightHelmet/FlightHelmet.gltf");
 		pScene->AddModel(sponza);
