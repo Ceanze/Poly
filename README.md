@@ -5,7 +5,8 @@ A Vulkan Engine designed from scratch that is developed by me in my spare time.
 The general purpose of this project is as a learning exerice for Vulkan, render graph, and for a more advanced engine and project. An ideal goal would be able to create simple games with the engine and to allow for multiple graphics API:s, however these features are not the main focus.
 
 ## Currently working on
-  - Entity Component System & general fixes/cleanup
+  - Implementing Entt & scene simplification
+  - Reflection of SPIR-V shaders for automatic render graph input resources handling
 
 ## Features (few for the moment)
   - Vulkan API rendering
