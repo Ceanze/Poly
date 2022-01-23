@@ -155,7 +155,8 @@ project "Sandbox"
 		"Poly/libs/spdlog/include",
 		"Poly/libs/glm",
 		"Poly/src",
-		"Poly/libs"
+		"Poly/libs",
+		"Poly/libs/entt/src"
 	}
 
 	links
