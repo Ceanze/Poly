@@ -56,13 +56,6 @@ namespace Poly
 		static PolyID LoadModel(const std::string& path);
 
 		/**
-		 * Loads a mesh from a path
-		 * @param path - path of mesh
-		 * @return PolyID of mesh
-		 */
-		// static PolyID LoadMesh(const std::string& path);
-
-		/**
 		 * Loads a material from file
 		 * @param path - path of material
 		 * @return PolyID of material

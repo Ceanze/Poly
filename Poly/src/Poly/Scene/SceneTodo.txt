@@ -1,0 +1,44 @@
+Terminology:
+	- Prefab: A saved (on file) hierarchy of entites. Could be seen as a "small scene".
+		- Prefabs can be instanciated, which basically loads that hierarchy into the current scene.
+	- Model: A collection of meshes
+	- Mesh: A renderable set of vertices, has a material. Is a type of component
+	- Resource: A "physical" resource that can be loaded. Models, textures. Synonym to Assets.
+
+TODO:
+	- Add LoadModel(path, entity) function, should load and register model normally and then create the entity hierarchy with the loaded model
+	- Update scene to create entites with specific components (transform, tag, (Id))
+	- Define a clear root for the scene, probably with a clear "SetRoot(Entity)" function which saves the Entity as a member variable in the scene for easy access (and sets the root when m_Registry is empty)
+	- Update scene renderer to use the entity scene (probably still use a similar system with DrawObjects, atleast for now)
+
+
+// Load a single mesh to the scene
+{
+	Scene pScene = Scene::Create();
+
+	Entity entity = pScene->CreateEntity(); // Places the entity as the last child in the scene hierarchy (with a transform component)
+
+	PolyID modelID = ResourceManager::LoadModel("path/to/model");
+	Model* pModel = ResourceManager::GetModel(modelID);
+
+	entity.AddComponent<MeshComponent>(pModel->GetMeshInstances()[0]);
+}
+
+// Load a model to the scene
+{
+	Scene pScene = Scene::Create();
+
+	Entity entity = pScene->CreateEntity();
+
+	PolyID modelID = ResourceManager::LoadModel("path/to/model", entity); // Creates the necessary mesh and transform components with the entity scene
+}
+
+// Load a static model to the scene (not a priority)
+{
+	Scene pScene = Scene::Create();
+
+	Entity entity = pScene->CreateEntity();
+
+	// A static model flattens the hierarchy to only be one entity. This disable per-mesh editing
+	PolyID modelID = ResourceManager::LoadStaticModel("path/to/model", entity); // Creates the necessary mesh and transform components with the entity scene
+}

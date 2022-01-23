@@ -1,6 +1,7 @@
 #include "polypch.h"
 #include "ResourceManager.h"
 
+#include "IOManager.h"
 #include "ResourceLoader.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
@@ -26,19 +27,20 @@ namespace Poly
 
 	PolyID ResourceManager::LoadTexture(const std::string& path, EFormat format)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (m_PathToEntry.contains(relativePath))
 		{
-			PolyIDEntry entry = m_PathToEntry[path];
+			PolyIDEntry entry = m_PathToEntry[relativePath];
 			if (entry.Type == ResourceType::TEXTURE)
 				return entry.ID;
 			else
 			{
-				POLY_CORE_WARN("Tried to load texture with path {}, but path has been used before as a different type", path);
+				POLY_CORE_WARN("Tried to load texture with path {}, but path has been used before as a different type", relativePath);
 				return POLY_ID_UNKNOWN;
 			}
 		}
 
-		Ref<Texture> pTex = ResourceLoader::LoadTexture(path, format);
+		Ref<Texture> pTex = ResourceLoader::LoadTexture(relativePath, format);
 
 		// TODO: Grab necessary data from texture
 		Poly::TextureViewDesc textureViewDesc = {
@@ -55,89 +57,72 @@ namespace Poly
 
 		PolyID id = m_Textures.size();
 		m_Textures.push_back({ .pTexture = pTex, .pTextureView = pTextureView });
-		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::TEXTURE };
+		m_PathToEntry[relativePath] = { .ID = id, .Type = ResourceType::TEXTURE };
 		return id;
 	}
 
 	PolyID ResourceManager::LoadModel(const std::string& path)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (m_PathToEntry.contains(relativePath))
 		{
-			PolyIDEntry entry = m_PathToEntry[path];
+			PolyIDEntry entry = m_PathToEntry[relativePath];
 			if (entry.Type == ResourceType::MODEL)
 				return entry.ID;
 			else
 			{
-				POLY_CORE_WARN("Tried to load model with path {}, but path has been used before as a different type", path);
+				POLY_CORE_WARN("Tried to load model with path {}, but path has been used before as a different type", relativePath);
 				return POLY_ID_UNKNOWN;
 			}
 		}
 
-		Ref<Model> pModel = ResourceLoader::LoadModel(path);
+		Ref<Model> pModel = ResourceLoader::LoadModel(relativePath);
 		PolyID id = m_Models.size();
 		m_Models.push_back(pModel);
-		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MODEL };
+		m_PathToEntry[relativePath] = { .ID = id, .Type = ResourceType::MODEL };
 		return id;
 	}
 
-	// PolyID ResourceManager::LoadMesh(const std::string& path)
-	// {
-	// 	if (m_PathToEntry.contains(path))
-	// 	{
-	// 		PolyIDEntry entry = m_PathToEntry[path];
-	// 		if (entry.Type == ResourceType::MESH)
-	// 			return entry.ID;
-	// 		else
-	// 		{
-	// 			POLY_CORE_WARN("Tried to load mesh with path {}, but path has been used before as a different type", path);
-	// 			return POLY_ID_UNKNOWN;
-	// 		}
-	// 	}
-
-	// 	Ref<Mesh> pMesh = ResourceLoader::LoadMesh(path);
-	// 	PolyID id = m_Meshes.size();
-	// 	m_Meshes.push_back(pMesh);
-	// 	m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MESH };
-	// 	return id;
-	// }
-
 	PolyID ResourceManager::LoadMaterial(const std::string& path)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (m_PathToEntry.contains(relativePath))
 		{
-			PolyIDEntry entry = m_PathToEntry[path];
+			PolyIDEntry entry = m_PathToEntry[relativePath];
 			if (entry.Type == ResourceType::MATERIAL)
 				return entry.ID;
 			else
 			{
-				POLY_CORE_WARN("Tried to load material with path {}, but path has been used before as a different type", path);
+				POLY_CORE_WARN("Tried to load material with path {}, but path has been used before as a different type", relativePath);
 				return POLY_ID_UNKNOWN;
 			}
 		}
 
-		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(path);
+		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(relativePath);
 		PolyID id = m_Materials.size();
 		m_Materials.push_back(pMaterial);
-		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MATERIAL };
+		m_PathToEntry[relativePath] = { .ID = id, .Type = ResourceType::MATERIAL };
 		return id;
 	}
 
 	PolyID ResourceManager::GetPolyIDFromPath(const std::string& path)
 	{
-		if (IsResourceLoaded(path))
-			return m_PathToEntry[path].ID;
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (IsResourceLoaded(relativePath))
+			return m_PathToEntry[relativePath].ID;
 		else
 		{
-			POLY_CORE_WARN("Tried to get a PolyID from path '{}' when no resource was loaded with that path", path);
+			POLY_CORE_WARN("Tried to get a PolyID from path '{}' when no resource was loaded with that path", relativePath);
 			return POLY_ID_UNKNOWN;
 		}
 	}
 
 	PolyID ResourceManager::RegisterModel(const std::string& path, Ref<Model> pModel)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (m_PathToEntry.contains(relativePath))
 		{
-			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
+			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", relativePath, m_PathToEntry[relativePath].ID, m_PathToEntry[relativePath].Type);
 			return POLY_ID_UNKNOWN;
 		}
 
@@ -146,16 +131,17 @@ namespace Poly
 		entry.ID	= m_Models.size();
 
 		m_Models.push_back(pModel);
-		m_PathToEntry[path] = entry;
+		m_PathToEntry[relativePath] = entry;
 
 		return entry.ID;
 	}
 
 	PolyID ResourceManager::RegisterPolyTexture(const std::string& path, Ref<Texture> pTexture, Ref<TextureView> pTextureView)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (m_PathToEntry.contains(relativePath))
 		{
-			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
+			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", relativePath, m_PathToEntry[relativePath].ID, m_PathToEntry[relativePath].Type);
 			return POLY_ID_UNKNOWN;
 		}
 
@@ -164,22 +150,23 @@ namespace Poly
 		entry.ID	= m_Textures.size();
 
 		m_Textures.push_back({ .pTexture = pTexture, .pTextureView = pTextureView });
-		m_PathToEntry[path] = entry;
+		m_PathToEntry[relativePath] = entry;
 
 		return entry.ID;
 	}
 
 	PolyID ResourceManager::RegisterMaterial(const std::string& path, Ref<Material> pMaterial)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		if (m_PathToEntry.contains(relativePath))
 		{
-			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
+			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", relativePath, m_PathToEntry[relativePath].ID, m_PathToEntry[relativePath].Type);
 			return POLY_ID_UNKNOWN;
 		}
 
 		if (!pMaterial)
 		{
-			POLY_CORE_WARN("Can't register a null material! Path: {}", path);
+			POLY_CORE_WARN("Can't register a null material! Path: {}", relativePath);
 			return POLY_ID_UNKNOWN;
 		}
 
@@ -188,7 +175,7 @@ namespace Poly
 		entry.ID	= m_Materials.size();
 
 		m_Materials.push_back(pMaterial);
-		m_PathToEntry[path] = entry;
+		m_PathToEntry[relativePath] = entry;
 
 		return entry.ID;
 	}

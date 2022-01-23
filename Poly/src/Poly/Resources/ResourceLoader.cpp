@@ -1,4 +1,5 @@
 #include "polypch.h"
+#include "IOManager.h"
 #include "ResourceLoader.h"
 #include "ResourceManager.h"
 #include "Platform/API/Shader.h"
@@ -34,9 +35,6 @@ namespace Poly
 	Ref<CommandPool>	ResourceLoader::s_GraphicsCommandPool	= nullptr;
 	CommandBuffer*		ResourceLoader::s_GraphicsCommandBuffer	= nullptr;
 	Ref<Semaphore>		ResourceLoader::s_Semaphore				= nullptr;
-
-	constexpr const char* SHADER_PATH = "../assets/shaders/";
-	constexpr const char* ASSETS_PATH = "../assets/";
 
 	void ResourceLoader::Init()
 	{
@@ -75,6 +73,7 @@ namespace Poly
 
 	Ref<Shader> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
 	{
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
 		if (!s_GLSLInit)
 		{
 			POLY_CORE_ERROR("[ResourceLoader]: Failed to load shader, GLSL is not correctly initilized!");
@@ -83,15 +82,11 @@ namespace Poly
 
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
-		std::string realPath = SHADER_PATH + path;
-
-		// Extract folder and filename
-		size_t slashPos = realPath.find_last_of("/\\");
-		std::string folder = realPath.substr(0, slashPos);
-		std::string filename = realPath.substr(slashPos + 1);
+		std::string folder = IOManager::GetFolderFromPath(relativePath);
+		std::string filename = IOManager::GetFilenameFromPath(relativePath);
 
 		// Load and transfer content to string
-		std::ifstream file(realPath);
+		std::ifstream file(relativePath);
 
 		POLY_VALIDATE(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
 
@@ -155,15 +150,13 @@ namespace Poly
 
 	std::vector<byte> ResourceLoader::LoadRawImage(const std::string& path)
 	{
-		std::string realPath = ASSETS_PATH + path;
-
 		int texWidth	= 0;
 		int texHeight	= 0;
 		int channels	= 0;
 
 		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, 0);
 		if (!data)
-			POLY_CORE_ERROR("Failed to load image {}", realPath);
+			POLY_CORE_ERROR("Failed to load image {}", path);
 
 		std::vector<byte> image(texWidth * texHeight * channels);
 		memcpy(image.data(), data, texWidth * texHeight * channels);
@@ -173,16 +166,14 @@ namespace Poly
 
 	Ref<Texture> ResourceLoader::LoadTexture(const std::string& path, EFormat format)
 	{
-		std::string realPath = path;
-
 		// Load image
 		int texWidth	= 0;
 		int texHeight	= 0;
 		int channels	= 0;
 
-		byte* data = stbi_load(realPath.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
+		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
 		if (!data)
-			POLY_VALIDATE(false, "Failed to load image {}", realPath);
+			POLY_VALIDATE(false, "Failed to load image {}", path);
 
 		Ref<Texture> pTexture = LoadTextureFromMemory(data, texWidth, texHeight, channels, format);
 
@@ -299,9 +290,8 @@ namespace Poly
 	{
 		Assimp::Importer importer;
 		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-		
-		size_t slashPos = path.find_last_of("/\\");
-		std::string folder = path.substr(0, slashPos + 1);
+
+		std::string folder = IOManager::GetFolderFromPath(path);
 
 		if (!pScene)
 		{
@@ -315,11 +305,6 @@ namespace Poly
 
 		return pModel;
 	}
-
-	// Ref<Mesh> ResourceLoader::LoadMesh(const std::string& path)
-	// {
-
-	// }
 
 	Ref<Material> ResourceLoader::LoadMaterial(const std::string& path)
 	{

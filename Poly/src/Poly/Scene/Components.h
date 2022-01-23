@@ -25,7 +25,7 @@ namespace Poly
 
 	struct MeshComponent
 	{
-		Ref<Poly> pMesh;
+		Ref<Mesh> pMesh;
 		PolyID MaterialID;
 	};
 }

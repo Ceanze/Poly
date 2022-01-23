@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Scene.h"
-#include "SceneComponents.h"
+#include "Components.h"
 
 namespace Poly
 {

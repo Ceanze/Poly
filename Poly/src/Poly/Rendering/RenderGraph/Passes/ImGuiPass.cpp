@@ -45,8 +45,8 @@ namespace Poly
 		reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
 		reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
 
-		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("imgui/ui.vert", FShaderStage::VERTEX));
-		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("imgui/ui.frag", FShaderStage::FRAGMENT));
+		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("shaders/imgui/ui.vert", FShaderStage::VERTEX));
+		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("shaders/imgui/ui.frag", FShaderStage::FRAGMENT));
 
 		return reflection;
 	}

@@ -44,8 +44,6 @@ namespace Poly
 
 		static Ref<Model> LoadModel(const std::string& path);
 
-		// static Ref<Mesh> LoadMesh(const std::string& path);
-
 		static Ref<Material> LoadMaterial(const std::string& path);
 
 	private:
