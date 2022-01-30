@@ -28,6 +28,10 @@ function generate_imgui()
 	include("premake/imgui.lua")
 end
 
+function generate_yamlcpp()
+	include("premake/yaml-cpp.lua")
+end
+
 vkPath = get_vk_sdk_path()
 
 workspace "Poly"
@@ -71,6 +75,7 @@ generate_glfw()
 generate_glslang()
 generate_assimp()
 generate_imgui()
+generate_yamlcpp()
 
 -- Include all src files in the project
 function srcFiles()
@@ -107,7 +112,8 @@ project "Poly"
 		"glfw",
 		"glslang",
 		"SPIRV",
-		"imgui"
+		"imgui",
+		"yaml-cpp"
 	}
 
 	includedirs
@@ -122,6 +128,7 @@ project "Poly"
 		"%{prj.name}/libs/assimp/include",
 		"%{prj.name}/libs/imgui",
 		"%{prj.name}/libs/entt/src",
+		"%{prj.name}/libs/yaml-cpp/include",
 	}
 
 	forceincludes
