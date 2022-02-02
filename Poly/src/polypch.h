@@ -26,3 +26,4 @@
 #include "Poly/Core/Logger.h"
 #include "Poly/Core/PolyUtils.h"
 #include "Poly/Core/Core.h"
+#include "Poly/Core/PolyID.h"
