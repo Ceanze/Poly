@@ -23,7 +23,7 @@ project "yaml-cpp"
 	filter "system:windows"
 		systemversion "latest"
 		cppdialect "C++17"
-		staticruntime "on"
+		staticruntime "off"
 
 	filter "configurations:Debug"
 		runtime "Debug"

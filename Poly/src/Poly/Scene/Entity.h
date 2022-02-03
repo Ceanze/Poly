@@ -28,17 +28,19 @@ namespace Poly
 			return GetParent().m_Entity != entt::null;
 		}
 
+		Scene* GetScene() const { return m_pScene; }
+
 		template <typename Component>
 		bool HasComponent()
 		{
-			m_pScene->m_Registry.any_of<Component>(m_Entity);
+			return m_pScene->m_Registry.any_of<Component>(m_Entity);
 		}
 
 		template <typename Component, typename... Args>
 		Component& AddComponent(Args&&... args)
 		{
-			POLY_VALIDATE(HasComponent<Component>(), "Cannot add component, entity {} already has it", m_Entity);
-			m_pScene->m_Registry.emplace<Component>(m_Entity, std::forward<Args>(args)...);
+			POLY_VALIDATE(!HasComponent<Component>(), "Cannot add component, entity {} already has it", m_Entity);
+			return m_pScene->m_Registry.emplace<Component>(m_Entity, std::forward<Args>(args)...);
 		}
 
 		template <typename Component>

@@ -1,5 +1,6 @@
 #include "Poly.h"
-#include "Poly/Rendering/Scene.h"
+#include "Poly/Scene/Scene.h"
+#include "Poly/Scene/Entity.h"
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
@@ -70,19 +71,21 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource("lights", sizeof(LightBuffer), &data);
 
-		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
+		Poly::Ref<Poly::Scene> pScene = Poly::CreateRef<Poly::Scene>(); //Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		PolyID sponza = Poly::ResourceManager::LoadModel("models/sponza/glTF/Sponza.gltf");
+		//PolyID sponza = Poly::ResourceManager::LoadModel("models/sponza/glTF/Sponza.gltf");
 		//PolyID cube = Poly::ResourceManager::LoadModel("models/Cube/Cube.gltf");
 		//PolyID helmet = Poly::ResourceManager::LoadModel("models/FlightHelmet/FlightHelmet.gltf");
-		pScene->AddModel(sponza);
+		//pScene->AddModel(sponza);
 		//pScene->AddModel(cube);
 		//pScene->AddModel(helmet);
+		Poly::Entity cubeEntity = pScene->CreateEntity();
+		Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
+		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
-
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
