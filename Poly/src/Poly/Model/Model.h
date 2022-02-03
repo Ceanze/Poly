@@ -5,20 +5,19 @@
 namespace Poly
 {
 	class Mesh;
+	class Material;
 	struct MeshInstance;
-
 
 	struct MeshInstance
 	{
 		MeshInstance() = default;
-		MeshInstance(Ref<Mesh> pMesh, PolyID materialID, glm::mat4 transform) : pMesh(pMesh), MaterialID(materialID), Transform(transform) {}
-		Ref<Mesh>	pMesh;
-		PolyID		MaterialID;
-		glm::mat4	Transform; // TEMP: Workaround until a ECS system which handles this seperate
+		MeshInstance(Ref<Mesh> pMesh, Ref<Material> pMaterial) : pMesh(pMesh), pMaterial(pMaterial) {}
+		Ref<Mesh>		pMesh;
+		Ref<Material>	pMaterial;
 
-		bool operator==(const MeshInstance& other) const { return pMesh == other.pMesh && MaterialID == other.MaterialID && Transform == other.Transform; }
+		bool operator==(const MeshInstance& other) const { return pMesh == other.pMesh && pMaterial == other.pMaterial; }
 
-		size_t GetUniqueHash() const { return std::hash<Ref<Mesh>>()(pMesh) ^ (std::hash<PolyID>()(MaterialID) >> 1); }
+		size_t GetUniqueHash() const { return std::hash<Ref<Mesh>>()(pMesh) ^ std::hash<Ref<Material>>()(pMaterial); }
 	};
 
 	class Model
@@ -27,16 +26,26 @@ namespace Poly
 		Model() = default;
 		~Model() = default;
 
-		void AddMeshInstance(MeshInstance meshInstance) { m_Meshes.push_back(meshInstance); }
+		static Ref<Model> Create() { return CreateRef<Model>(); }
 
-		const std::vector<MeshInstance>& GetMeshInstances() const { return m_Meshes; }
-		const glm::mat4& GetTransform() const { return m_Transform; }
+		void AddMeshInstance(MeshInstance meshInstance) { m_MeshInstances.push_back(meshInstance); }
 
-		void SetScale(float scale) { m_Transform = glm::scale(m_Transform, {scale, scale, scale}); }
-		void SetPosition(glm::vec3 pos) { glm::mat4 m = glm::translate(glm::mat4(1), pos); m_Transform *= m; }
+		const std::vector<MeshInstance>& GetMeshInstances() const { return m_MeshInstances; }
+
+		uint32 GetMeshInstanceCount() const { return m_MeshInstances.size(); }
+
+		MeshInstance GetMeshInstance(uint32 meshIndex) const { return m_MeshInstances[meshIndex]; }
+
+		Mesh* GetMesh(uint32 meshIndex) const { return m_MeshInstances[meshIndex].pMesh.get(); }
+
+		Material* GetMaterial(uint32 meshIndex) const { return m_MeshInstances[meshIndex].pMaterial.get(); }
 
 	private:
-		std::vector<MeshInstance>	m_Meshes;
-		glm::mat4					m_Transform;
+		friend class ResourceManager;
+		void SetModelID(PolyID modelID) { m_ModelID = modelID; }
+
+		std::vector<MeshInstance> m_MeshInstances;
+
+		PolyID m_ModelID;
 	};
 }

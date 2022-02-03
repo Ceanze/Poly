@@ -5,6 +5,7 @@
 
 namespace Poly
 {
+	class Model;
 	class Buffer;
 	class Material;
 
@@ -52,10 +53,10 @@ namespace Poly
 	class Mesh
 	{
 	public:
-		Mesh() = default;
+		Mesh(Model* pModel, uint32 meshIndex) : m_pModel(pModel), m_MeshIndex(meshIndex) {}
 		~Mesh() = default;
 
-		static Ref<Mesh> Create() { return CreateRef<Mesh>(); };
+		static Ref<Mesh> Create(Model* pModel, uint32 meshIndex) { return CreateRef<Mesh>(pModel, meshIndex); }
 
 		void SetVertexBuffer(Ref<Buffer> pBuffer, uint32 vertexCount) { m_pVertexBuffer = pBuffer; m_VertexCount = vertexCount; }
 
@@ -69,10 +70,17 @@ namespace Poly
 
 		uint32 GetIndexCount() const { return m_IndexCount; }
 
+		uint32 GetMeshIndex() const { return m_MeshIndex; }
+
+		Model* GetModel() const { return m_pModel; }
+
 	private:
 		Ref<Buffer> m_pVertexBuffer	= nullptr;
 		Ref<Buffer> m_pIndexBuffer	= nullptr;
 		uint32		m_VertexCount	= 0;
 		uint32		m_IndexCount	= 0;
+
+		Model* m_pModel;
+		uint32 m_MeshIndex;
 	};
 }
