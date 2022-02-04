@@ -72,7 +72,7 @@ namespace Poly
 
 		std::unordered_map<FramePassKey, std::vector<Ref<DescriptorSet>>, FramePassHasher> m_Descriptors;
 		std::unordered_map<size_t, DrawObject> m_DrawObjects;
-		uint32 m_TotalInstanceCount = 0;
+		uint32 m_TotalMeshCount = 0;
 	};
 
 }

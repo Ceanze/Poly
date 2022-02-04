@@ -109,11 +109,6 @@ namespace Poly
 		static bool IsResourceLoaded(PolyID id);
 		static PolyID GetPolyIDFromPath(const std::string& path);
 
-		// static PolyID RegisterModel(const std::string& path, Ref<Model> pModel);
-		// static PolyID RegisterMesh(const std::string& path, Ref<Mesh> pMesh);
-		// static PolyID RegisterPolyTexture(const std::string& path, Ref<Texture> pTexture, Ref<TextureView> pTextureView);
-		// static PolyID RegisterMaterial(const std::string& path, Ref<Material> pMaterial);
-
 	private:
 		static void RegisterDefaults();
 		static void RegisterDefaultMaterial();

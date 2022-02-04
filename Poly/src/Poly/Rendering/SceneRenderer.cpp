@@ -18,7 +18,6 @@ namespace Poly
 		uint32 passIndex = context.GetPassIndex();
 
 		m_DrawObjects.clear();
-		// m_pScene->OrderModels(m_DrawObjects);
 		OrderModels();
 
 		auto vertexBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
@@ -30,12 +29,10 @@ namespace Poly
 		bool hasMaterial		= materialBinding != sceneBindings.end();
 		if (hasInstanceBuffer || hasMaterial)
 		{
-			// uint32 totalInstanceCount = m_pScene->GetTotalMatrixCount(m_DrawObjects);
-			//uint32 totalInstanceCount = 0;
 			if (hasInstanceBuffer)
-				UpdateInstanceBuffers(m_TotalInstanceCount * sizeof(glm::mat4));
+				UpdateInstanceBuffers(m_TotalMeshCount * sizeof(glm::mat4));
 			if (hasMaterial)
-				UpdateMaterialBuffers(m_TotalInstanceCount * sizeof(MaterialValues));
+				UpdateMaterialBuffers(m_TotalMeshCount * sizeof(MaterialValues));
 		}
 
 		uint64 instanceOffset = 0;
@@ -190,34 +187,12 @@ namespace Poly
 
 	void SceneRenderer::OrderModels()
 	{
-		// for (auto modelID : m_Models)
-		// {
-		// 	Model* model = ResourceManager::GetModel(modelID);
-		// 	auto& meshInstances = model->GetMeshInstances();
-		// 	for (auto& meshInstance : meshInstances)
-		// 	{
-		// 		size_t hash = meshInstance.GetUniqueHash();
-
-		// 		if(!drawObjects.contains(hash))
-		// 		{
-		// 			drawObjects[hash].UniqueMeshInstance = meshInstance;
-		// 			drawObjects[hash].Matrices.push_back(model->GetTransform() * meshInstance.Transform);
-		// 			drawObjects[hash].pMaterial = ResourceManager::GetMaterial(meshInstance.MaterialID);
-		// 		}
-		// 		else
-		// 		{
-		// 			drawObjects[hash].Matrices.push_back(model->GetTransform() * meshInstance.Transform);
-		// 			drawObjects[hash].pMaterial = ResourceManager::GetMaterial(meshInstance.MaterialID);
-		// 		}
-		// 	}
-		// }
-
 		// TODO: Think of the order things are drawn, in a scene hierarchy the root should be drawn first (probably?)
 		// TODO: The transforms need to be applied in the correct order when having a deeper hierarchy in order for the transforms to be correct
 		// TODO: The transform from assimp is per pNode, not per pMesh, fix resource loader storage of the
 		//		 transforms and also handle that here
 		auto view = m_pScene->m_Registry.view<MeshComponent, TransformComponent>();
-		m_TotalInstanceCount = 0;
+		m_TotalMeshCount = 0;
 		for (auto [entity, meshComp, transform] : view.each())
 		{
 			auto meshInstance = meshComp.pModel->GetMeshInstance(meshComp.MeshIndex);
@@ -226,7 +201,7 @@ namespace Poly
 
 			m_DrawObjects[hash].UniqueMeshInstance = meshInstance;
 			m_DrawObjects[hash].Matrices.push_back(transform.GetTransform());
-			m_TotalInstanceCount++;
+			m_TotalMeshCount++;
 		}
 	}
 }

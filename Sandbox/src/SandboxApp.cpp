@@ -74,12 +74,6 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::CreateRef<Poly::Scene>(); //Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		//PolyID sponza = Poly::ResourceManager::LoadModel("models/sponza/glTF/Sponza.gltf");
-		//PolyID cube = Poly::ResourceManager::LoadModel("models/Cube/Cube.gltf");
-		//PolyID helmet = Poly::ResourceManager::LoadModel("models/FlightHelmet/FlightHelmet.gltf");
-		//pScene->AddModel(sponza);
-		//pScene->AddModel(cube);
-		//pScene->AddModel(helmet);
 		Poly::Entity cubeEntity = pScene->CreateEntity();
 		Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
 		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
