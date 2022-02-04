@@ -18,7 +18,7 @@ namespace Poly
 		uint32 passIndex = context.GetPassIndex();
 
 		m_DrawObjects.clear();
-		m_pScene->OrderModels(m_DrawObjects);
+		OrderModels();
 
 		auto vertexBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
 		auto textureBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_TEXTURES; });
@@ -29,11 +29,10 @@ namespace Poly
 		bool hasMaterial		= materialBinding != sceneBindings.end();
 		if (hasInstanceBuffer || hasMaterial)
 		{
-			uint32 totalInstanceCount = m_pScene->GetTotalMatrixCount(m_DrawObjects);
 			if (hasInstanceBuffer)
-				UpdateInstanceBuffers(totalInstanceCount * sizeof(glm::mat4));
+				UpdateInstanceBuffers(m_TotalMeshCount * sizeof(glm::mat4));
 			if (hasMaterial)
-				UpdateMaterialBuffers(totalInstanceCount * sizeof(MaterialValues));
+				UpdateMaterialBuffers(m_TotalMeshCount * sizeof(MaterialValues));
 		}
 
 		uint64 instanceOffset = 0;
@@ -60,7 +59,7 @@ namespace Poly
 					if (binding.Type == FResourceBindPoint::SCENE_TEXTURES)
 					{
 						// TODO: Make this more generic instead of relying on a specific order decided by enum
-						const TextureView* pTextureView = ResourceManager::GetMaterial(drawObjectPair.second.UniqueMeshInstance.MaterialID)->GetTextureView(Material::Type(i++));
+						const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type(i++));
 						drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(binding.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
 					}
 				}
@@ -87,7 +86,7 @@ namespace Poly
 				drawObjectPair.second.pMaterialDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, materialBinding->SetIndex, pPipelineLayout);
 				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(materialBinding->Binding, m_pMaterialBuffer.get(), materialOffset, size);
 
-				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.pMaterial->GetMaterialValues(), size, materialOffset);
+				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.UniqueMeshInstance.pMaterial->GetMaterialValues(), size, materialOffset);
 
 				materialOffset += size;
 			}
@@ -183,6 +182,26 @@ namespace Poly
 			desc.BufferUsage	= FBufferUsage::STORAGE_BUFFER | FBufferUsage::TRANSFER_DST;
 			desc.MemUsage		= EMemoryUsage::GPU_ONLY;
 			m_pMaterialBuffer = RenderAPI::CreateBuffer(&desc);
+		}
+	}
+
+	void SceneRenderer::OrderModels()
+	{
+		// TODO: Think of the order things are drawn, in a scene hierarchy the root should be drawn first (probably?)
+		// TODO: The transforms need to be applied in the correct order when having a deeper hierarchy in order for the transforms to be correct
+		// TODO: The transform from assimp is per pNode, not per pMesh, fix resource loader storage of the
+		//		 transforms and also handle that here
+		auto view = m_pScene->m_Registry.view<MeshComponent, TransformComponent>();
+		m_TotalMeshCount = 0;
+		for (auto [entity, meshComp, transform] : view.each())
+		{
+			auto meshInstance = meshComp.pModel->GetMeshInstance(meshComp.MeshIndex);
+
+			size_t hash = meshInstance.GetUniqueHash();
+
+			m_DrawObjects[hash].UniqueMeshInstance = meshInstance;
+			m_DrawObjects[hash].Matrices.push_back(transform.GetTransform());
+			m_TotalMeshCount++;
 		}
 	}
 }

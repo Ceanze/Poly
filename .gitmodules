@@ -16,3 +16,9 @@
 [submodule "Poly/libs/imgui"]
 	path = Poly/libs/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "Poly/libs/entt"]
+	path = Poly/libs/entt
+	url = https://github.com/skypjack/entt
+[submodule ".\\Poly\\libs\\yaml-cpp"]
+	path = .\\Poly\\libs\\yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

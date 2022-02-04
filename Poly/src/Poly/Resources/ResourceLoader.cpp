@@ -1,4 +1,5 @@
 #include "polypch.h"
+#include "IOManager.h"
 #include "ResourceLoader.h"
 #include "ResourceManager.h"
 #include "Platform/API/Shader.h"
@@ -23,6 +24,9 @@
 #include <assimp/postprocess.h>
 #include <assimp/pbrmaterial.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -34,9 +38,6 @@ namespace Poly
 	Ref<CommandPool>	ResourceLoader::s_GraphicsCommandPool	= nullptr;
 	CommandBuffer*		ResourceLoader::s_GraphicsCommandBuffer	= nullptr;
 	Ref<Semaphore>		ResourceLoader::s_Semaphore				= nullptr;
-
-	constexpr const char* SHADER_PATH = "../assets/shaders/";
-	constexpr const char* ASSETS_PATH = "../assets/";
 
 	void ResourceLoader::Init()
 	{
@@ -75,6 +76,7 @@ namespace Poly
 
 	Ref<Shader> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
 	{
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
 		if (!s_GLSLInit)
 		{
 			POLY_CORE_ERROR("[ResourceLoader]: Failed to load shader, GLSL is not correctly initilized!");
@@ -83,15 +85,11 @@ namespace Poly
 
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
-		std::string realPath = SHADER_PATH + path;
-
-		// Extract folder and filename
-		size_t slashPos = realPath.find_last_of("/\\");
-		std::string folder = realPath.substr(0, slashPos);
-		std::string filename = realPath.substr(slashPos + 1);
+		std::string folder = IOManager::GetFolderFromPath(relativePath);
+		std::string filename = IOManager::GetFilenameFromPath(relativePath);
 
 		// Load and transfer content to string
-		std::ifstream file(realPath);
+		std::ifstream file(relativePath);
 
 		POLY_VALIDATE(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
 
@@ -152,18 +150,15 @@ namespace Poly
 		return polyShader;
 	}
 
-
 	std::vector<byte> ResourceLoader::LoadRawImage(const std::string& path)
 	{
-		std::string realPath = ASSETS_PATH + path;
-
 		int texWidth	= 0;
 		int texHeight	= 0;
 		int channels	= 0;
 
 		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, 0);
 		if (!data)
-			POLY_CORE_ERROR("Failed to load image {}", realPath);
+			POLY_CORE_ERROR("Failed to load image {}", path);
 
 		std::vector<byte> image(texWidth * texHeight * channels);
 		memcpy(image.data(), data, texWidth * texHeight * channels);
@@ -173,16 +168,14 @@ namespace Poly
 
 	Ref<Texture> ResourceLoader::LoadTexture(const std::string& path, EFormat format)
 	{
-		std::string realPath = path;
-
 		// Load image
 		int texWidth	= 0;
 		int texHeight	= 0;
 		int channels	= 0;
 
-		byte* data = stbi_load(realPath.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
+		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
 		if (!data)
-			POLY_VALIDATE(false, "Failed to load image {}", realPath);
+			POLY_VALIDATE(false, "Failed to load image {}", path);
 
 		Ref<Texture> pTexture = LoadTextureFromMemory(data, texWidth, texHeight, channels, format);
 
@@ -294,14 +287,15 @@ namespace Poly
 		return pTexture;
 	}
 
-
-	Ref<Model> ResourceLoader::LoadModel(const std::string& path)
+	Ref<Model> ResourceLoader::LoadModel(const std::string& path, Entity root)
 	{
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-		
-		size_t slashPos = path.find_last_of("/\\");
-		std::string folder = path.substr(0, slashPos + 1);
+		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices
+														| aiProcess_Triangulate
+														| aiProcess_FlipUVs
+														| aiProcess_CalcTangentSpace);
+
+		std::string folder = IOManager::GetFolderFromPath(path);
 
 		if (!pScene)
 		{
@@ -309,45 +303,58 @@ namespace Poly
 			return nullptr;
 		}
 
-		Ref<Model> pModel = CreateRef<Model>();
+		Ref<Model> pModel = Model::Create();
 
-		ProcessNode(pScene->mRootNode, pScene, pModel.get(), folder);
+		ProcessNode(pScene->mRootNode, pScene, folder, pModel.get(), root);
 
 		return pModel;
 	}
-
-	// Ref<Mesh> ResourceLoader::LoadMesh(const std::string& path)
-	// {
-
-	// }
 
 	Ref<Material> ResourceLoader::LoadMaterial(const std::string& path)
 	{
 		return nullptr;
 	}
 
-	void ResourceLoader::ProcessNode(aiNode *pNode, const aiScene *pScene, Model* pModel, const std::string& folder)
+	void ResourceLoader::ProcessNode(aiNode *pNode, const aiScene *pScene, const std::string& folder, Model* pModel, Entity parent)
 	{
 		for (uint32 i = 0; i < pNode->mNumMeshes; i++)
 		{
+			uint32 index = pModel->GetMeshInstanceCount();
 			aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
 			aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
-			Ref<Mesh> pPolyMesh = Mesh::Create();
-			PolyID materialID = i; // MaterialID is used as part of the name if no name is given, it is set to correct in ProcessMaterial
-			ProcessMesh(pMesh, pScene, pPolyMesh.get());
-			ProcessMaterial(pMaterial, pScene, materialID, folder);
-			pModel->AddMeshInstance({ pPolyMesh, materialID, ConvertAiMatToGLM(&pNode->mTransformation) });
+			Ref<Mesh> pPolyMesh = ProcessMesh(pMesh, pScene, pModel, index);
+			Ref<Material> pPolyMaterial = ProcessMaterial(pMaterial, pScene, pModel, index, folder);
+			pModel->AddMeshInstance({ pPolyMesh, pPolyMaterial });
+
+			Entity child = parent.GetScene()->CreateEntity();
+			child.SetParent(parent);
+			child.AddComponent<MeshComponent>(pModel, index);
+			TransformComponent& transformComp = child.GetComponent<TransformComponent>();
+
+			glm::mat4 transform = ConvertAiMatToGLM(&pNode->mTransformation);
+			glm::vec3 scale, translation, skew;
+			glm::vec4 perspective;
+			glm::quat orientation;
+			glm::decompose(transform, scale, orientation, translation, skew, perspective);
+
+			transformComp.Translation = translation;
+			transformComp.Orientation = orientation;
+			transformComp.Scale = scale;
 		}
 
 		for (uint32 i = 0; i < pNode->mNumChildren; i++)
 		{
 			aiNode* child = pNode->mChildren[i];
-			ProcessNode(child, pScene, pModel, folder);
+			Entity childEntity = parent.GetScene()->CreateEntity();
+			childEntity.SetParent(parent);
+			ProcessNode(child, pScene, folder, pModel, childEntity);
 		}
 	}
 
-	void ResourceLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh)
+	Ref<Mesh> ResourceLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index)
 	{
+		Ref<Mesh> pPolyMesh = Mesh::Create(pModel, index);
+
 		std::vector<Vertex> vertices(pMesh->mNumVertices);
 		std::vector<uint32> indices(pMesh->mNumFaces * 3);
 
@@ -407,31 +414,14 @@ namespace Poly
 
 		pPolyMesh->SetVertexBuffer(pVertexBuffer, vertices.size());
 		pPolyMesh->SetIndexBuffer(pIndexBuffer, indices.size());
+
+		return pPolyMesh;
 	}
 
-	void ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID, const std::string& folder)
+	Ref<Material> ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder)
 	{
-		std::string name = pMaterial->GetName().C_Str();
-		if (name.empty())
-		{
-			name = folder + pScene->mName.C_Str() + std::to_string(materialID);
-		}
-
-		if (ResourceManager::IsResourceLoaded(name))
-		{
-			// Load material returns a loaded value if the material is already loaded
-			materialID = ResourceManager::GetPolyIDFromPath(name);
-			return;
-		}
-
-		Ref<Material> pPolyMaterial = CreateRef<Material>();
+		Ref<Material> pPolyMaterial = Material::Create(pModel, index);
 		MaterialValues materialValues = {};
-
-		// POLY_CORE_TRACE("Material: ", pMaterial->GetName().C_Str());
-		// for (int i = 0; i < pMaterial->mNumProperties; i++)
-		// {
-		// 	POLY_CORE_TRACE("\t{}", pMaterial->mProperties[i]->mKey.C_Str());
-		// }
 
 		// Constants
 		// Metallic
@@ -537,7 +527,7 @@ namespace Poly
 		}
 
 		pPolyMaterial->SetMaterialValues(materialValues);
-		materialID = ResourceManager::RegisterMaterial(name, pPolyMaterial);
+		return pPolyMaterial;
 	}
 
 	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)
@@ -612,8 +602,9 @@ namespace Poly
 		if (pMaterial->GetTexture(type, index, &path) != AI_SUCCESS)
 		{
 			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
+			return;
 		}
-		PolyID id = ResourceManager::LoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
+		PolyID id = ResourceManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
 
 		ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
 		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());

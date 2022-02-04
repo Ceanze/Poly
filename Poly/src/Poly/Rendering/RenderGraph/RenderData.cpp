@@ -1,8 +1,9 @@
 #include "polypch.h"
-#include "Poly/Rendering/Scene.h"
+#include "Poly/Scene/Scene.h"
 #include "RenderData.h"
 #include "ResourceCache.h"
 #include "Poly/Rendering/SceneRenderer.h"
+#include "Poly/Rendering/RenderGraph/RenderContext.h"
 
 namespace Poly
 {

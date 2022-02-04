@@ -2,6 +2,7 @@
 
 namespace Poly
 {
+	class Model;
 	class Texture;
 	class TextureView;
 
@@ -29,8 +30,15 @@ namespace Poly
 		};
 
 	public:
-		Material() = default;
+		Material() : m_pModel(nullptr), m_MeshIndex(0) {}
+
+		Material(Model* pModel, uint32 meshIndex) : m_pModel(pModel), m_MeshIndex(meshIndex) {}
+
 		~Material() = default;
+
+		static Ref<Material> Create() { return CreateRef<Material>(); }
+
+		static Ref<Material> Create(Model* pModel, uint32 meshIndex) { return CreateRef<Material>(pModel, meshIndex); }
 
 		void SetTexture(Type type, Texture* pTexture) { m_Textures[type] = pTexture; }
 
@@ -48,9 +56,14 @@ namespace Poly
 
 		bool UsesCombinedPBRMaterial() const { return m_MaterialValues.IsCombined; }
 
+		Model* GetModel() const { return m_pModel; }
+
 	private:
 		std::unordered_map<Type, Texture*> m_Textures;
 		std::unordered_map<Type, TextureView*> m_TextureViews;
 		MaterialValues m_MaterialValues = {};
+
+		Model* m_pModel;
+		uint32 m_MeshIndex;
 	};
 }

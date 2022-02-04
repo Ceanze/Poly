@@ -7,6 +7,7 @@ namespace Poly
 	class Resource;
 	class SceneRenderer;
 	class ResourceCache;
+	class RenderContext;
 
 	/**
 	 * Render Data is created for each execute call of a pass.

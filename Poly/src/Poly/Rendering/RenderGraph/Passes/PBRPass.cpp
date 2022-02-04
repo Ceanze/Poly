@@ -34,8 +34,8 @@ namespace Poly
 		reflection.SetBindPoint("depth", FResourceBindPoint::DEPTH_STENCIL);
 		reflection.SetFormat("depth", EFormat::D24_UNORM_S8_UINT);
 
-		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("pbr.vert", FShaderStage::VERTEX));
-		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("pbr.frag", FShaderStage::FRAGMENT));
+		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("shaders/pbr.vert", FShaderStage::VERTEX));
+		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("shaders/pbr.frag", FShaderStage::FRAGMENT));
 
 		return reflection;
 	}

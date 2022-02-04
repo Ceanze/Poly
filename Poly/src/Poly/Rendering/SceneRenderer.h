@@ -1,5 +1,6 @@
 #pragma once
-#include "Scene.h"
+#include "Poly/Scene/Scene.h"
+#include "Poly/Model/Model.h"
 
 namespace Poly
 {
@@ -32,6 +33,16 @@ namespace Poly
 		}
 	};
 
+	struct DrawObject
+	{
+		MeshInstance			UniqueMeshInstance;
+		std::vector<glm::mat4>	Matrices;
+		Ref<DescriptorSet>		pInstanceDescriptorSet;
+		Ref<DescriptorSet>		pVertexDescriptorSet;
+		Ref<DescriptorSet>		pTextureDescriptorSet;
+		Ref<DescriptorSet>		pMaterialDescriptorSet;
+	};
+
 	class SceneRenderer
 	{
 	public:
@@ -50,6 +61,7 @@ namespace Poly
 		Ref<DescriptorSet> GetDescriptor(FramePassKey framePassKey, uint32 drawObjectIndex, uint32 setIndex, PipelineLayout* pPipelineLayout);
 		void UpdateInstanceBuffers(uint64 size);
 		void UpdateMaterialBuffers(uint64 size);
+		void OrderModels();
 
 		Ref<Scene> m_pScene;
 
@@ -60,6 +72,7 @@ namespace Poly
 
 		std::unordered_map<FramePassKey, std::vector<Ref<DescriptorSet>>, FramePassHasher> m_Descriptors;
 		std::unordered_map<size_t, DrawObject> m_DrawObjects;
+		uint32 m_TotalMeshCount = 0;
 	};
 
 }

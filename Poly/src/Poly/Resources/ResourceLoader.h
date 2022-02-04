@@ -5,6 +5,7 @@
 
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Model/Material.h"
+#include "Poly/Scene/Entity.h"
 
 struct aiNode;
 struct aiMesh;
@@ -15,7 +16,6 @@ enum aiTextureType;
 
 namespace Poly
 {
-
 	class Mesh;
 	class Model;
 	class Shader;
@@ -24,6 +24,12 @@ namespace Poly
 	class Semaphore;
 	class CommandPool;
 	class CommandBuffer;
+
+	struct MeshMaterialRefPair
+	{
+		Ref<Mesh> pMesh;
+		Ref<Material> pMaterial;
+	};
 
 	class ResourceLoader
 	{
@@ -42,16 +48,14 @@ namespace Poly
 
 		static Ref<Texture> LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format);
 
-		static Ref<Model> LoadModel(const std::string& path);
-
-		// static Ref<Mesh> LoadMesh(const std::string& path);
+		static Ref<Model> LoadModel(const std::string& path, Entity root);
 
 		static Ref<Material> LoadMaterial(const std::string& path);
 
 	private:
-		static void ProcessNode(aiNode* pNode, const aiScene* pScene, Model* pModel, const std::string& folder);
-		static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Mesh* pPolyMesh);
-		static void ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, PolyID& materialID, const std::string& folder);
+		static void ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent);
+		static Ref<Mesh> ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index);
+		static Ref<Material> ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder);
 		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
 		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
 		static void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial, const std::string& folder);

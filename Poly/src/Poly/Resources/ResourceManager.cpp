@@ -1,7 +1,9 @@
 #include "polypch.h"
 #include "ResourceManager.h"
 
+#include "IOManager.h"
 #include "ResourceLoader.h"
+#include "ResourceImporter.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
 #include "Poly/Model/Material.h"
@@ -13,7 +15,7 @@ namespace Poly
 {
 	void ResourceManager::Init()
 	{
-		RegisterDefaultMaterial();
+		RegisterDefaults();
 	}
 
 	void ResourceManager::Release()
@@ -21,24 +23,45 @@ namespace Poly
 		m_Models.clear();
 		m_Textures.clear();
 		m_Materials.clear();
-		m_PathToEntry.clear();
+		m_IDToHandle.clear();
 	}
 
-	PolyID ResourceManager::LoadTexture(const std::string& path, EFormat format)
+	PolyID ResourceManager::ImportResource(const std::string& path, ResourceType type)
 	{
-		if (m_PathToEntry.contains(path))
+		PolyID pathID = PolyID::None();
+		if (type == ResourceType::MODEL || type == ResourceType::MESH)
 		{
-			PolyIDEntry entry = m_PathToEntry[path];
-			if (entry.Type == ResourceType::TEXTURE)
-				return entry.ID;
-			else
-			{
-				POLY_CORE_WARN("Tried to load texture with path {}, but path has been used before as a different type", path);
-				return POLY_ID_UNKNOWN;
-			}
+			pathID = ResourceImporter::ImportModel(path);
+			m_IDToHandle[pathID] = { .Index = UINT32_MAX, .Type = ResourceType::MODEL, .IsLoaded = false };
+		}
+		else if (type == ResourceType::TEXTURE)
+		{
+			pathID = ResourceImporter::ImportTexture(path);
+			m_IDToHandle[pathID] = { .Index = UINT32_MAX, .Type = ResourceType::TEXTURE, .IsLoaded = false };
+		}
+		else if (type == ResourceType::MATERIAL)
+		{
+			pathID = ResourceImporter::ImportMaterial(path);
+			m_IDToHandle[pathID] = { .Index = UINT32_MAX, .Type = ResourceType::MATERIAL, .IsLoaded = false };
 		}
 
-		Ref<Texture> pTex = ResourceLoader::LoadTexture(path, format);
+		return pathID;
+	}
+
+	void ResourceManager::LoadTexture(PolyID textureID, EFormat format)
+	{
+		if (!m_IDToHandle.contains(textureID))
+		{
+			POLY_CORE_WARN("Tried to load texture {}, but texture has never been imported", textureID);
+			return;
+		}
+
+		ResourceHandle& handle = m_IDToHandle[textureID];
+
+		if (handle.IsLoaded)
+			return;
+
+		Ref<Texture> pTex = ResourceLoader::LoadTexture(handle.Path, format);
 
 		// TODO: Grab necessary data from texture
 		Poly::TextureViewDesc textureViewDesc = {
@@ -53,189 +76,258 @@ namespace Poly
 		};
 		Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&textureViewDesc);
 
-		PolyID id = m_Textures.size();
+		uint32 index = m_Textures.size();
 		m_Textures.push_back({ .pTexture = pTex, .pTextureView = pTextureView });
-		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::TEXTURE };
-		return id;
+
+		handle.Index	= index;
+		handle.IsLoaded	= true;
 	}
 
-	PolyID ResourceManager::LoadModel(const std::string& path)
+	PolyID ResourceManager::ImportAndLoadTexture(const std::string& path, EFormat format)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+
+		PolyID pathID = ResourceImporter::ImportTexture(path);
+
+		if (!m_IDToHandle.contains(pathID))
 		{
-			PolyIDEntry entry = m_PathToEntry[path];
-			if (entry.Type == ResourceType::MODEL)
-				return entry.ID;
-			else
-			{
-				POLY_CORE_WARN("Tried to load model with path {}, but path has been used before as a different type", path);
-				return POLY_ID_UNKNOWN;
-			}
+			ResourceHandle handle = {};
+			handle.Path = relativePath;
+			handle.Type	= ResourceType::TEXTURE;
+			m_IDToHandle[pathID] = handle;
 		}
 
-		Ref<Model> pModel = ResourceLoader::LoadModel(path);
-		PolyID id = m_Models.size();
+		LoadTexture(pathID, format);
+
+		return pathID;
+	}
+
+	void ResourceManager::LoadModel(PolyID modelID, Entity root)
+	{
+		if (!m_IDToHandle.contains(modelID))
+		{
+			POLY_CORE_WARN("Tried to load model {}, but texture has never been imported", modelID);
+			return;
+		}
+
+		ResourceHandle& handle = m_IDToHandle[modelID];
+
+		if (handle.IsLoaded)
+			return;
+
+		Ref<Model> pModel = ResourceLoader::LoadModel(handle.Path, root);
+		pModel->SetModelID(modelID);
+		uint32 index = m_Models.size();
 		m_Models.push_back(pModel);
-		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MODEL };
-		return id;
+
+		handle.Index	= index;
+		handle.IsLoaded	= true;
 	}
 
-	// PolyID ResourceManager::LoadMesh(const std::string& path)
-	// {
-	// 	if (m_PathToEntry.contains(path))
-	// 	{
-	// 		PolyIDEntry entry = m_PathToEntry[path];
-	// 		if (entry.Type == ResourceType::MESH)
-	// 			return entry.ID;
-	// 		else
-	// 		{
-	// 			POLY_CORE_WARN("Tried to load mesh with path {}, but path has been used before as a different type", path);
-	// 			return POLY_ID_UNKNOWN;
-	// 		}
-	// 	}
-
-	// 	Ref<Mesh> pMesh = ResourceLoader::LoadMesh(path);
-	// 	PolyID id = m_Meshes.size();
-	// 	m_Meshes.push_back(pMesh);
-	// 	m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MESH };
-	// 	return id;
-	// }
-
-	PolyID ResourceManager::LoadMaterial(const std::string& path)
+	PolyID ResourceManager::ImportAndLoadModel(const std::string& path, Entity root)
 	{
-		if (m_PathToEntry.contains(path))
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+
+		PolyID pathID = ResourceImporter::ImportModel(path);
+
+		if (!m_IDToHandle.contains(pathID))
 		{
-			PolyIDEntry entry = m_PathToEntry[path];
-			if (entry.Type == ResourceType::MATERIAL)
-				return entry.ID;
-			else
-			{
-				POLY_CORE_WARN("Tried to load material with path {}, but path has been used before as a different type", path);
-				return POLY_ID_UNKNOWN;
-			}
+			ResourceHandle handle = {};
+			handle.Path = relativePath;
+			handle.Type	= ResourceType::MODEL;
+			m_IDToHandle[pathID] = handle;
 		}
 
-		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(path);
-		PolyID id = m_Materials.size();
+		LoadModel(pathID, root);
+
+		return pathID;
+	}
+
+	void ResourceManager::LoadMaterial(PolyID materialID)
+	{
+		if (!m_IDToHandle.contains(materialID))
+		{
+			POLY_CORE_WARN("Tried to load material {}, but texture has never been imported", materialID);
+			return;
+		}
+
+		ResourceHandle& handle = m_IDToHandle[materialID];
+
+		if (handle.IsLoaded)
+			return;
+
+		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(handle.Path);
+		uint32 index = m_Materials.size();
 		m_Materials.push_back(pMaterial);
-		m_PathToEntry[path] = { .ID = id, .Type = ResourceType::MATERIAL };
-		return id;
+
+		handle.Index	= index;
+		handle.IsLoaded	= true;
 	}
 
-	PolyID ResourceManager::GetPolyIDFromPath(const std::string& path)
+	PolyID ResourceManager::ImportAndLoadMaterial(const std::string& path)
 	{
-		if (IsResourceLoaded(path))
-			return m_PathToEntry[path].ID;
-		else
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+
+		PolyID pathID = ResourceImporter::ImportMaterial(path);
+
+		if (!m_IDToHandle.contains(pathID))
 		{
-			POLY_CORE_WARN("Tried to get a PolyID from path '{}' when no resource was loaded with that path", path);
-			return POLY_ID_UNKNOWN;
+			ResourceHandle handle = {};
+			handle.Path = relativePath;
+			handle.Type	= ResourceType::MATERIAL;
+			m_IDToHandle[pathID] = handle;
 		}
+
+		LoadMaterial(pathID);
+
+		return pathID;
 	}
 
-	PolyID ResourceManager::RegisterModel(const std::string& path, Ref<Model> pModel)
+	Mesh* ResourceManager::GetMesh(PolyID modelID, uint32 meshIndex)
 	{
-		if (m_PathToEntry.contains(path))
+		if (!HasCorrectResource(modelID, ResourceType::MODEL))
 		{
-			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
-			return POLY_ID_UNKNOWN;
+			POLY_CORE_WARN("Cannot get model {}. It is either wrong ID, not loaded and/or not imported", modelID);
+			return nullptr;
 		}
 
-		PolyIDEntry entry = {};
-		entry.Type	= ResourceType::MODEL;
-		entry.ID	= m_Models.size();
+		uint32 index = m_IDToHandle[modelID].Index;
 
-		m_Models.push_back(pModel);
-		m_PathToEntry[path] = entry;
+		if (index < m_Models.size())
+			return m_Models[index]->GetMesh(meshIndex);
 
-		return entry.ID;
-	}
-
-	PolyID ResourceManager::RegisterPolyTexture(const std::string& path, Ref<Texture> pTexture, Ref<TextureView> pTextureView)
-	{
-		if (m_PathToEntry.contains(path))
-		{
-			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
-			return POLY_ID_UNKNOWN;
-		}
-
-		PolyIDEntry entry = {};
-		entry.Type	= ResourceType::TEXTURE;
-		entry.ID	= m_Textures.size();
-
-		m_Textures.push_back({ .pTexture = pTexture, .pTextureView = pTextureView });
-		m_PathToEntry[path] = entry;
-
-		return entry.ID;
-	}
-
-	PolyID ResourceManager::RegisterMaterial(const std::string& path, Ref<Material> pMaterial)
-	{
-		if (m_PathToEntry.contains(path))
-		{
-			POLY_CORE_WARN("A resource is already registered to path {} with ID {} and type {}!", path, m_PathToEntry[path].ID, m_PathToEntry[path].Type);
-			return POLY_ID_UNKNOWN;
-		}
-
-		if (!pMaterial)
-		{
-			POLY_CORE_WARN("Can't register a null material! Path: {}", path);
-			return POLY_ID_UNKNOWN;
-		}
-
-		PolyIDEntry entry = {};
-		entry.Type	= ResourceType::MATERIAL;
-		entry.ID	= m_Materials.size();
-
-		m_Materials.push_back(pMaterial);
-		m_PathToEntry[path] = entry;
-
-		return entry.ID;
+		POLY_CORE_WARN("Tried to get mesh with ID {}, but ID was out of range", index);
+		return nullptr;
 	}
 
 	Model* ResourceManager::GetModel(PolyID modelID)
 	{
-		if (modelID < m_Models.size())
-			return m_Models[modelID].get();
+		if (!HasCorrectResource(modelID, ResourceType::MODEL))
+		{
+			POLY_CORE_WARN("Cannot get model {}. It is either wrong ID, not loaded and/or not imported", modelID);
+			return nullptr;
+		}
 
-		POLY_CORE_WARN("Tried to get model with ID {}, but ID was out of range", modelID);
+		uint32 index = m_IDToHandle[modelID].Index;
+
+		if (index < m_Models.size())
+			return m_Models[index].get();
+
+		POLY_CORE_WARN("Tried to get mesh with ID {}, but ID was out of range", index);
 		return nullptr;
 	}
 
 	Texture* ResourceManager::GetTexture(PolyID textureID)
 	{
-		if (textureID < m_Textures.size())
-			return m_Textures[textureID].pTexture.get();
+		if (!HasCorrectResource(textureID, ResourceType::TEXTURE))
+		{
+			POLY_CORE_WARN("Cannot get texture {}. It is either wrong ID, not loaded and/or not imported", textureID);
+			return nullptr;
+		}
 
-		POLY_CORE_WARN("Tried to get texture with ID {}, but ID was out of range", textureID);
+		uint32 index = m_IDToHandle[textureID].Index;
+
+		if (index < m_Textures.size())
+			return m_Textures[index].pTexture.get();
+
+		POLY_CORE_WARN("Tried to get texture with ID {}, but ID was out of range", index);
 		return nullptr;
 	}
 
 	TextureView* ResourceManager::GetTextureView(PolyID textureViewID)
 	{
-		if (textureViewID < m_Textures.size())
-			return m_Textures[textureViewID].pTextureView.get();
+		// Texture and texture view is saved under same ID
+		if (!HasCorrectResource(textureViewID, ResourceType::TEXTURE))
+		{
+			POLY_CORE_WARN("Cannot get textureview {}. It is either wrong ID, not loaded and/or not imported", textureViewID);
+			return nullptr;
+		}
 
-		POLY_CORE_WARN("Tried to get texture view with ID {}, but ID was out of range", textureViewID);
+		uint32 index = m_IDToHandle[textureViewID].Index;
+
+		if (index < m_Textures.size())
+			return m_Textures[index].pTextureView.get();
+
+		POLY_CORE_WARN("Tried to get texture view with ID {}, but ID was out of range", index);
 		return nullptr;
 	}
 
 	ManagedTexture ResourceManager::GetManagedTexture(PolyID polyTextureID)
 	{
-		if (polyTextureID < m_Textures.size())
-			return m_Textures[polyTextureID];
+		// Texture, texture view, and managed texture is saved under same ID
+		if (polyTextureID > 0 && !HasCorrectResource(polyTextureID, ResourceType::TEXTURE))
+		{
+			POLY_CORE_WARN("Cannot get managed texture {}. It is either wrong ID, not loaded and/or not imported", polyTextureID);
+			return {};
+		}
 
-		POLY_CORE_WARN("Tried to get poly texture with ID {}, but ID was out of range", polyTextureID);
+		uint32 index = m_IDToHandle[polyTextureID].Index;
+
+		if (index < m_Textures.size())
+			return m_Textures[index];
+
+		POLY_CORE_WARN("Tried to get poly texture with ID {}, but ID was out of range", index);
 		return {};
 	}
 
 	Material* ResourceManager::GetMaterial(PolyID materialID)
 	{
-		if (materialID < m_Materials.size())
-			return m_Materials[materialID].get();
+		if (!HasCorrectResource(materialID, ResourceType::TEXTURE))
+		{
+			POLY_CORE_WARN("Cannot get material {}. It is either wrong ID, not loaded and/or not imported", materialID);
+			return {};
+		}
 
-		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range, returning default material", materialID);
+		uint32 index = m_IDToHandle[materialID].Index;
+
+		if (index < m_Materials.size())
+			return m_Materials[index].get();
+
+		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range, returning default material", index);
 		return m_Materials[DEFAULT_MATERIAL_ID].get();
+	}
+
+	Material* ResourceManager::GetMaterial(PolyID modelID, uint32 meshIndex)
+	{
+		if (!HasCorrectResource(modelID, ResourceType::MODEL))
+		{
+			POLY_CORE_WARN("Cannot get model {}. It is either wrong ID, not loaded and/or not imported", modelID);
+			return nullptr;
+		}
+
+		uint32 index = m_IDToHandle[modelID].Index;
+
+		if (index < m_Models.size())
+			return m_Models[index]->GetMaterial(meshIndex);
+
+		POLY_CORE_WARN("Tried to get material with ID {}, but ID was out of range", index);
+		return nullptr;
+	}
+
+	bool ResourceManager::IsResourceImported(const std::string& path)
+	{
+		return ResourceImporter::IsImported(path);
+	}
+
+	bool ResourceManager::IsResourceLoaded(PolyID id)
+	{
+		return m_IDToHandle.contains(id) && m_IDToHandle[id].IsLoaded;
+	}
+
+	PolyID ResourceManager::GetPolyIDFromPath(const std::string& path)
+	{
+		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		return ResourceImporter::GetPathID(relativePath);
+	}
+
+	void ResourceManager::RegisterDefaults()
+	{
+		RegisterDefaultMaterial();
+
+		ResourceHandle handle = {};
+		handle.Index = 0;
+		handle.IsLoaded = true;
+		m_IDToHandle[DEFAULT_MATERIAL_ID] = handle;
 	}
 
 	void ResourceManager::RegisterDefaultMaterial()
@@ -271,11 +363,18 @@ namespace Poly
 		pMaterial->SetMaterialValues(matVals);
 	}
 
+	bool ResourceManager::HasCorrectResource(PolyID id, ResourceType type)
+	{
+		if (!m_IDToHandle.contains(id))
+			return false;
+
+		return m_IDToHandle[id].Type == type && m_IDToHandle[id].IsLoaded;
+	}
+
 
 	std::vector<ManagedTexture>	ResourceManager::m_Textures;
 	std::vector<Ref<Model>>		ResourceManager::m_Models;
-	std::vector<Ref<Mesh>>		ResourceManager::m_Meshes;
 	std::vector<Ref<Material>>	ResourceManager::m_Materials;
 
-	std::unordered_map<std::string, ResourceManager::PolyIDEntry> ResourceManager::m_PathToEntry;
+	std::unordered_map<PolyID, ResourceManager::ResourceHandle> ResourceManager::m_IDToHandle;
 }
