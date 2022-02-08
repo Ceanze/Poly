@@ -7,16 +7,26 @@ namespace Poly
 	class Sampler;
 
 	using PassResourcePair = std::pair<std::string, std::string>;
+	using GroupResourcePair = std::pair<std::string, std::string>;
 
-	inline PassResourcePair GetPassResourcePair(std::string name)
+	inline PassResourcePair GetPassResourcePair(const std::string& name)
 	{
-		auto pos = name.find_first_of('.');
+		return SeparateStrings(name, '.');
+	}
 
-		// If no dot was found - then only a pass name was given
+	inline GroupResourcePair GetPassResourcePair(const std::string& name)
+	{
+		return SeparateStrings(name, ':');
+	}
+
+	inline std::pair<std::string, std::string> SeparateStrings(const std::string& value, char separator)
+	{
+		auto pos = value.find_first_of(separator);
+
 		if (pos == std::string::npos)
-			return { "", name };
+			return { "", value };
 
-		return { name.substr(0, pos), name.substr(pos + 1) };
+		return { value.substr(0, pos), value.substr(pos + 1) };
 	}
 
 	inline FTextureUsage ConvertResourceBindPointToTextureUsage(FResourceBindPoint bindPoint)
