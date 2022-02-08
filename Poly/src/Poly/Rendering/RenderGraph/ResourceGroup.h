@@ -12,7 +12,7 @@ namespace Poly
 
 		/**
 		 * Adds a resource to the group, name is gotten from the resource
-		 * @param pResource - resource to be added
+		 * @param pResource - resource to be added - must not contain group name
 		 */
 		void AddResource(Ref<Resource> pResource);
 
@@ -21,9 +21,16 @@ namespace Poly
 		 * with the render graph program before use
 		 * to guarantee an active resource can be used.
 		 * If a resource already exists, use AddResource(Ref<Resource>)
-		 * @param name - name of resource to be added
+		 * @param name - name of resource to be added - must not contain group name
 		 */
 		void AddResource(const std::string& name);
+
+		/**
+		 * Sets the resource of a previously added resource
+		 * @param name - name of resource to set - must not contain group name
+		 * @param pResource - resource to set
+		 */
+		void SetResource(const std::string& name, Ref<Resource> pResource);
 
 		/**
 		 * Gets a previously added resource.

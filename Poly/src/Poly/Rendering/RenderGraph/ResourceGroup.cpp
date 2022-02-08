@@ -12,6 +12,7 @@ namespace Poly
 			return;
 		}
 
+		pResource->SetName(m_GroupName + ':' + pResource->GetName());
 		m_Resources[pResource->GetName()] = pResource;
 	}
 
@@ -24,6 +25,18 @@ namespace Poly
 		}
 
 		m_Resources[name] = nullptr;
+	}
+
+	void ResourceGroup::SetResource(const std::string& name, Ref<Resource> pResource)
+	{
+		if (!m_Resources.contains(name))
+		{
+			POLY_CORE_WARN("Resource {} is not added to resource group {}!", name, m_GroupName);
+			return;
+		}
+
+		pResource->SetName(m_GroupName + ':' + pResource->GetName());
+		m_Resources[name] = pResource;
 	}
 
 	Ref<Resource> ResourceGroup::GetResource(const std::string& name) const

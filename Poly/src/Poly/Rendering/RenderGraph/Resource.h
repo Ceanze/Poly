@@ -71,6 +71,11 @@ namespace Poly
 		const std::string& GetName() const { return m_Name; }
 
 		/**
+		 * @param name - new name of resource
+		 */
+		void SetName(const std::string& name) { m_Name = name; }
+
+		/**
 		 * @return current queue index
 		 */
 		uint32 GetCurrentQueueIndex() const { return m_CurrentQueueIndex; }
