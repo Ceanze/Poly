@@ -71,7 +71,7 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource("lights", sizeof(LightBuffer), &data);
 
-		Poly::Ref<Poly::Scene> pScene = Poly::CreateRef<Poly::Scene>(); //Poly::Scene::Create();
+		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
 		Poly::Entity cubeEntity = pScene->CreateEntity();
