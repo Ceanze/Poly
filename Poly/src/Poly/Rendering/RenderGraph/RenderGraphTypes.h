@@ -9,16 +9,6 @@ namespace Poly
 	using PassResourcePair = std::pair<std::string, std::string>;
 	using GroupResourcePair = std::pair<std::string, std::string>;
 
-	inline PassResourcePair GetPassResourcePair(const std::string& name)
-	{
-		return SeparateStrings(name, '.');
-	}
-
-	inline GroupResourcePair GetPassResourcePair(const std::string& name)
-	{
-		return SeparateStrings(name, ':');
-	}
-
 	inline std::pair<std::string, std::string> SeparateStrings(const std::string& value, char separator)
 	{
 		auto pos = value.find_first_of(separator);
@@ -27,6 +17,16 @@ namespace Poly
 			return { "", value };
 
 		return { value.substr(0, pos), value.substr(pos + 1) };
+	}
+
+	inline PassResourcePair GetPassResourcePair(const std::string& name)
+	{
+		return SeparateStrings(name, '.');
+	}
+
+	inline GroupResourcePair GetGroupResourcePair(const std::string& name)
+	{
+		return SeparateStrings(name, ':');
 	}
 
 	inline FTextureUsage ConvertResourceBindPointToTextureUsage(FResourceBindPoint bindPoint)
