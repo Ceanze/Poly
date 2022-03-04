@@ -15,6 +15,8 @@ namespace Poly
 {
 	void SceneRenderer::Update(const RenderContext& context, const std::vector<SceneBinding>& sceneBindings, uint32 imageIndex, PipelineLayout* pPipelineLayout)
 	{
+		// TODO: Only update when the scene is "dirty" (or anything related is dirty)
+
 		uint32 passIndex = context.GetPassIndex();
 
 		m_DrawObjects.clear();
