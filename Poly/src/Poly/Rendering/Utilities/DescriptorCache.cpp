@@ -13,9 +13,7 @@ namespace Poly
 
 	const DescriptorSet* DescriptorCache::GetDescriptorSetCopy(uint32 set, uint32 frameIndex, uint32 index, uint32 offset, uint32 segmentSize)
 	{
-		if (ValidateOffset(offset, segmentSize))
-			offset = offset / segmentSize;
-		else
+		if (!ValidateOffset(&offset, segmentSize))
 			return;
 
 		CacheKey key(frameIndex, set);
@@ -49,9 +47,7 @@ namespace Poly
 
 	const DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 frameIndex, uint32 index, uint32 offset, uint32 segmentSize)
 	{
-		if (ValidateOffset(offset, segmentSize))
-			offset = offset / segmentSize;
-		else
+		if (!ValidateOffset(&offset, segmentSize))
 			return;
 
 		CacheKey key(frameIndex, set);
@@ -97,7 +93,7 @@ namespace Poly
 		return true;
 	}
 
-	bool DescriptorCache::ValidateOffset(uint32 offset, uint32 segmentSize)
+	bool DescriptorCache::ValidateOffset(uint32* offset, uint32 segmentSize)
 	{
 		if (offset > 0)
 		{
@@ -107,6 +103,7 @@ namespace Poly
 								offset);
 				return false;
 			}
+			*offset = *offset / segmentSize;
 		}
 
 		return true;

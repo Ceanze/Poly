@@ -112,7 +112,7 @@ namespace Poly
 	private:
 		Ref<DescriptorSet> CreateDescriptor(CacheKey key, uint32 index, uint32 offset);
 		bool HasDescriptor(CacheKey key, uint32 index, uint32 offset);
-		bool ValidateOffset(uint32 offset, uint32 segmentSize);
+		bool ValidateOffset(uint32* offset, uint32 segmentSize);
 
 		PipelineLayout* m_pPipelineLayout = nullptr;
 		std::unordered_map<CacheKey, std::vector<std::vector<Ref<DescriptorSet>>>, CacheKeyHasher> m_Descriptors;
