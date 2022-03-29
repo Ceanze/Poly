@@ -9,6 +9,7 @@
 #include "Platform/API/Sampler.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
+#include "Poly/Rendering/RenderGraph/ResourceGroup.h"
 
 namespace Poly
 {
@@ -153,13 +154,15 @@ namespace Poly
 		return false;
 	}
 
-	bool RenderGraph::AddExternalResource(const std::string& name, Ref<Resource> pResource)
+	bool RenderGraph::AddExternalResource(Ref<Resource> pResource, bool autoBindDescriptor)
 	{
 		if (!pResource)
 		{
-			POLY_CORE_WARN("Cannot add external resource {}, resource pointer was nullptr", name);
+			POLY_CORE_WARN("Cannot add external resource, resource pointer was nullptr");
 			return false;
 		}
+
+		const std::string& name = pResource->GetName();
 
 		if (m_ExternalResources.contains(name))
 		{
@@ -167,12 +170,38 @@ namespace Poly
 			return false;
 		}
 
-		m_ExternalResources[name] = pResource;
+		m_ExternalResources[name] = { pResource, autoBindDescriptor };
 
 		return true;
 	}
 
-	bool RenderGraph::AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data)
+	bool RenderGraph::AddExternalResource(Ref<ResourceGroup> pResourceGroup)
+	{
+		if (!pResourceGroup)
+		{
+			POLY_CORE_WARN("Cannot add external resource group, resource group pointer was nullptr");
+			return false;
+		}
+
+		const std::string& groupName = pResourceGroup->GetGroupName();
+
+		const auto& resources = pResourceGroup->GetResources();
+		for (auto& resource : resources)
+		{
+			std::string name = std::format("{}:{}", groupName, resource.first);
+			if (m_ExternalResources.contains(name))
+			{
+				POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
+				return false;
+			}
+
+			m_ExternalResources[name] = resource.second;
+		}
+
+		return true;
+	}
+
+	bool RenderGraph::AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data, bool autoBindDescriptor)
 	{
 		if (m_ExternalResources.contains(name))
 		{
@@ -188,7 +217,7 @@ namespace Poly
 
 		Ref<Resource> pResource = Resource::Create(pBuffer, name);
 
-		m_ExternalResources[name] = pResource;
+		m_ExternalResources[name] = { pResource, autoBindDescriptor };
 
 		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)

@@ -5,6 +5,7 @@
 namespace Poly
 {
 	class Sampler;
+	class Resource;
 
 	using PassResourcePair = std::pair<std::string, std::string>;
 	using GroupResourcePair = std::pair<std::string, std::string>;
@@ -49,5 +50,11 @@ namespace Poly
 		uint32 TextureHeight		= 0;
 		uint32 MaxBackbufferCount	= 3;
 		Ref<Sampler> pSampler		= nullptr;
+	};
+
+	struct ResourceInfo
+	{
+		Ref<Resource>	pResource			= nullptr;
+		bool			AutoBindDescriptor	= true;
 	};
 }

@@ -32,7 +32,7 @@ namespace Poly
 		 * @param name - name of resource following $.resourceName format
 		 * @param pResource - resource pointer
 		 */
-		void RegisterExternalResource(const std::string& name, Ref<Resource> pResource);
+		void RegisterExternalResource(const std::string& name, ResourceInfo resourceInfo);
 
 		/**
 		 * Registers a resource to be created
@@ -83,6 +83,6 @@ namespace Poly
 		std::unordered_map<std::string, uint32> m_NameToIndex;
 		std::vector<ResourceData> m_Resources;
 		std::unordered_map<std::string, uint32> m_NameToExternalIndex;
-		std::vector<Ref<Resource>> m_ExternalResources;
+		std::vector<ResourceInfo> m_ExternalResources;
 	};
 }

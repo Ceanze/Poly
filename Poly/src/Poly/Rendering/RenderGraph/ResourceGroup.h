@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RenderGraphTypes.h"
+
 namespace Poly
 {
 	class Resource;
@@ -14,7 +16,7 @@ namespace Poly
 		 * Adds a resource to the group, name is gotten from the resource
 		 * @param pResource - resource to be added - must not contain group name
 		 */
-		void AddResource(Ref<Resource> pResource);
+		void AddResource(Ref<Resource> pResource, bool autoBindDescriptor);
 
 		/**
 		 * Adds a resource to the group, resource must be updated
@@ -23,7 +25,7 @@ namespace Poly
 		 * If a resource already exists, use AddResource(Ref<Resource>)
 		 * @param name - name of resource to be added - must not contain group name
 		 */
-		void AddResource(const std::string& name);
+		void AddResource(const std::string& name, bool autoBindDescriptor);
 
 		/**
 		 * Sets the resource of a previously added resource
@@ -40,10 +42,16 @@ namespace Poly
 		Ref<Resource> GetResource(const std::string& name) const;
 
 		/**
+		 * Gets a previously added resource.
+		 * @return resourceInfo
+		 */
+		const ResourceInfo& GetResourceInfo(const std::string& name) const;
+
+		/**
 		 * Gets all added resources
 		 * @return vector of added resources
 		 */
-		const std::unordered_map<std::string, Ref<Resource>>& GetResources() const { return m_Resources; }
+		const std::unordered_map<std::string, ResourceInfo>& GetResources() const { return m_Resources; }
 
 		/**
 		 * @return name of group
@@ -52,6 +60,6 @@ namespace Poly
 
 	private:
 		std::string m_GroupName;
-		std::unordered_map<std::string, Ref<Resource>> m_Resources;
+		std::unordered_map<std::string, ResourceInfo> m_Resources;
 	};
 }

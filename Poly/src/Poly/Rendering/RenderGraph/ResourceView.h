@@ -15,9 +15,11 @@ namespace Poly
 	{
 	public:
 		ResourceView(const TextureView* pTextureView, const Sampler* pSampler);
-		ResourceView(const Resource* pResource, uint32 span, uint32 offset);
-		ResourceView(const Buffer* pBuffer, uint32 span, uint32 offset);
+		ResourceView(const Resource* pResource, uint64 span, uint64 offset);
+		ResourceView(const Buffer* pBuffer, uint64 span, uint64 offset);
 		~ResourceView() = default;
+
+		static ResourceView Empty() { return {}; }
 
 		bool HasTextureView() const { return m_pTextureView; }
 		bool HasSampler() const { return m_pSampler; }
@@ -27,15 +29,17 @@ namespace Poly
 		const Sampler* GetSampler() const { return m_pSampler; }
 		const Buffer* GetBuffer() const { return m_pBuffer; }
 
-		uint32 GetSpan() const { return m_Span; }
-		uint32 GetOffset() const { return m_Offset; }
+		uint64 GetSpan() const { return m_Span; }
+		uint64 GetOffset() const { return m_Offset; }
 
 	private:
+		ResourceView() = default;
+
 		const TextureView*	m_pTextureView	= nullptr;
 		const Sampler*		m_pSampler		= nullptr;
 		const Buffer*		m_pBuffer		= nullptr;
 
-		uint32 m_Span	= 0;
-		uint32 m_Offset	= 0;
+		uint64 m_Span	= 0;
+		uint64 m_Offset	= 0;
 	};
 }

@@ -16,6 +16,7 @@ namespace Poly
 	class Pass;
 	class RenderPass;
 	class Resource;
+	class ResourceGroup;
 	class DirectedGraph;
 	class RenderGraphProgram;
 
@@ -90,11 +91,22 @@ namespace Poly
 		/**
 		 * Add a global input resource node to the graph. This resource will be in the global space
 		 * which means it will use the $ prefix, i.e. resource name will become $.resource
-		 * @param name - Resource name without any prefix - prefix is automatically added
+		 * NOTE: Resource name is gotten from the resource itself
 		 * @param pResource - Ref to the resource
+		 * @param autoBindDescriptor - Decides if the render graph should automatically bind descriptors. Defaulted to true
 		 * @return true if resource could be added successfully
 		 */
-		bool AddExternalResource(const std::string& name, Ref<Resource> pResource);
+		bool AddExternalResource(Ref<Resource> pResource, bool autoBindDescriptor = true);
+
+		/**
+		 * Adds a resource group of resources to the external resources.
+		 * External resources under a resource group is namded like $.group:resource.
+		 * NOTE: Resource group name is gotten from the resoure group itself
+		 * NOTE: Resource names are gotten from the resources in the group
+		 * @param pResourceGroup - Ref to the resource group
+		 * @return true if resource could be added successfully
+		 */
+		bool AddExternalResource(Ref<ResourceGroup> pResourceGroup);
 
 		/**
 		 * Add a global input resource node to the graph. This resource will be in the global space
@@ -103,9 +115,10 @@ namespace Poly
 		 * @param size - Size of the buffer that will be used for this resource
 		 * @param bufferUsage - Type of buffer
 		 * @param data - (Optional) pointer to data if transfer to buffer should be done at creation of buffer
+		 * @param autoBindDescriptor - Decides if the render graph should automatically bind descriptors. Defaulted to true
 		 * @return true if resource could be added sucessfully and potentially have data transfered to it
 		 */
-		bool AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data = nullptr);
+		bool AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data = nullptr, bool autoBindDescriptor = true);
 
 		/**
 		 * Removes a previously added external resource
@@ -185,7 +198,7 @@ namespace Poly
 		std::unordered_map<uint32, Ref<Pass>> m_Passes;
 		std::unordered_map<uint32, EdgeData> m_Edges;
 		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
-		std::unordered_map<std::string, Ref<Resource>> m_ExternalResources;
+		std::unordered_map<std::string, ResourceInfo> m_ExternalResources;
 		RenderGraphDefaultParams m_DefaultParams;
 	};
 }

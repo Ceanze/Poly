@@ -2,23 +2,20 @@
 
 /**
  * TODO:
- * DescriptorCache:
- * 		- Om denna ska användas i render graphen (även för sets som har autobind=true) så behöver följande (antagligen) läggas till
- * 		* GetDescriptorCopy(...) som kopierar (eller skapar) en som finns i samma nyckel. Finns en redan så köas den gamla för removal
- * 		* Update(...) som tar bort gamla sets som har blivit gamla från Copy funktionen
- *
- * RenderGraph:
- * 		- Vid AddExternalResource (med ResourceGroup och Resource) tillåt att sätta "autoBindDescriptor = true" för att manuellt kunna hantera
- * 		  bindning av descriptors. Detta är ett måste vid flera descriptors per resurs namn.
- *
  * RenderGraphProgram:
  * 		- UpdateGraphResource måste kunna hantera offset och index precis som descriptor cache, skapa overload av UpdateGraphResource(const std::string& name, uint64 size, const void* data)
  * 		  behöver nog inte en overload av den andra UpdateGraphResource varianten (den med Ref<Resource>)
+ * 		- Gör så att RenderGraphProgram använder sig ut av DescriptorCache
+ * 		- Använd autobind som ResourceCache har när descriptors binds i Execute()
  *
  * ResourceCache:
+ * 		- Se till så att rendergraphen även sparar om en resurs ska ha autobind eller inte
  * 		- Tillåt att ha flera resurser per resursnamn (index biten i DescriptorCache och UpdateGraphResource)
  * 		- Synkroniseringen måste även hanteras i detta fall, rimligtvis genom att kolla om ett resursnamn har flera resurser bundet till sig
  * 		  och loopa igenom alla som den har. Borde med denna väg inte behöva göra om RenderGraphCompiler
+ *
+ * Ide:
+ * 		* För att undvika att behöva skapa en Ref<Resource> varje gång jag ska uppdatera en resours så kanske man kan använda sig ut av "view" konceptet
  */
 
 namespace Poly
@@ -55,6 +52,7 @@ namespace Poly
 
 		/**
 		 * Needs to be called every frame to delete any old descriptor sets.
+		 * Only needs to be used if GetDescriptorSetCopy is used
 		 */
 		void Update(uint32 frameIndex);
 
@@ -105,14 +103,14 @@ namespace Poly
 		 * @param offset - The offset for the descriptor in the current index, set, and frameindex combo. Offset is in bytes
 		 * 					and is the same offset used when updating the descriptor (i.e. the offset in the buffer). 0 if only one descriptor
 		 * @param segmentSize - Uniform size in bytes for each segment used for the offset bindings. 0 if only one descriptor
-		 * @return A cached or newly created descriptor set
+		 * @return A newly created descriptor set
 		 */
 		const DescriptorSet* GetDescriptorSetCopy(uint32 set, uint32 frameIndex, uint32 index, uint32 offset, uint32 segmentSize);
 
 	private:
 		Ref<DescriptorSet> CreateDescriptor(CacheKey key, uint32 index, uint32 offset);
 		bool HasDescriptor(CacheKey key, uint32 index, uint32 offset);
-		bool ValidateOffset(uint32* offset, uint32 segmentSize);
+		bool ValidateOffset(uint32& offset, uint32 segmentSize);
 
 		PipelineLayout* m_pPipelineLayout = nullptr;
 		std::unordered_map<CacheKey, std::vector<std::vector<Ref<DescriptorSet>>>, CacheKeyHasher> m_Descriptors;

@@ -164,7 +164,26 @@ namespace Poly
 		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, Ref<Resource> pResource)
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, Ref<Resource> pResource, uint32 index)
+	{
+		if (!pResource)
+		{
+			UpdateGraphResource(name, ResourceView::Empty(), 0, index);
+		}
+		else if (pResource->IsBuffer())
+		{
+			const Buffer* pBuffer = pResource->GetAsBuffer();
+			UpdateGraphResource(name, {pBuffer, pBuffer->GetSize(), 0}, 0, index);
+		}
+		else if (pResource->IsTexture())
+		{
+			const TextureView* pTextureView = pResource->GetAsTextureView();
+			const Sampler* pSampler = pResource->GetAsSampler();
+			UpdateGraphResource(name, {pTextureView, pSampler}, 0, index);
+		}
+	}
+
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, ResourceView view, uint64 offset, uint32 index)
 	{
 		PassResourcePair passPair = GetPassResourcePair(name);
 
@@ -187,14 +206,15 @@ namespace Poly
 			if (BitsSet(inputRes.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
 				continue;
 
-			Ref<Resource> pActualRes = pResource;
-			if (!pActualRes && BitsSet(inputRes.BindPoint, FResourceBindPoint::INTERNAL_USE))
+			Ref<Resource> pResource;
+			bool hasResource = view.HasBuffer() || view.HasTextureView();
+			if (!hasResource && BitsSet(inputRes.BindPoint, FResourceBindPoint::INTERNAL_USE))
 				return;
 
-			if (!pActualRes)
-				pActualRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
+			if (!hasResource)
+				pResource = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
 
-			if (!pActualRes)
+			if (!hasResource && !pResource)
 			{
 				POLY_CORE_ERROR("No resource was gotten from the cache!");
 				return;
@@ -208,19 +228,24 @@ namespace Poly
 			m_DescriptorsToBeDestroyed[m_ImageIndex].push_back(pOldSet);
 			m_Descriptors[passIndex][inputRes.Set] = pNewSet;
 
-			if (pActualRes->IsBuffer())
-				pNewSet->UpdateBufferBinding(inputRes.Binding, pActualRes->GetAsBuffer(), 0, pActualRes->GetAsBuffer()->GetSize());
-			else if (pActualRes->IsTexture())
+			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
+				const Buffer* pBuffer = (pResource && pResource->IsBuffer()) ? pResource->GetAsBuffer() : view.GetBuffer();
+				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, pBuffer->GetSize());
+			}
+			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
+			{
+				const TextureView* pTextureView = (pResource && pResource->IsTexture()) ? pResource->GetAsTextureView() : view.GetTextureView();
+
 				// Set sampler if it hasn't been set before from the reflection
-				if (!pActualRes->GetAsSampler())
-					pActualRes->SetSampler(inputRes.pSampler);
-				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pActualRes->GetAsTextureView(), pActualRes->GetAsSampler());
+				if (pResource && !pResource->GetAsSampler())
+					pResource->SetSampler(inputRes.pSampler);
+				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pTextureView, pResource ? pResource->GetAsSampler() : inputRes.pSampler.get());
 			}
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data)
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data, uint64 offset, uint32 index)
 	{
 		PassResourcePair passPair = GetPassResourcePair(name);
 		Ref<Resource> pRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);

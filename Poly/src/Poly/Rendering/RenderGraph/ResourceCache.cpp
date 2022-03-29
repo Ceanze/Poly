@@ -20,14 +20,14 @@ namespace Poly
 		return CreateRef<ResourceCache>(defaultParams);
 	}
 
-	void ResourceCache::RegisterExternalResource(const std::string& name, Ref<Resource> pResource)
+	void ResourceCache::RegisterExternalResource(const std::string& name, ResourceInfo resourceInfo)
 	{
 		if (m_NameToExternalIndex.contains(name))
-			m_ExternalResources[m_NameToExternalIndex[name]] = pResource;
+			m_ExternalResources[m_NameToExternalIndex[name]] = resourceInfo;
 		else
 		{
 			m_NameToExternalIndex[name] = m_ExternalResources.size();
-			m_ExternalResources.push_back(pResource);
+			m_ExternalResources.push_back(resourceInfo);
 		}
 	}
 
@@ -176,7 +176,7 @@ namespace Poly
 		if (m_NameToIndex.contains(name))
 			return m_Resources[m_NameToIndex[name]].pResource;
 		else
-			return m_ExternalResources[m_NameToExternalIndex[name]];
+			return m_ExternalResources[m_NameToExternalIndex[name]].pResource;
 	}
 
 	void ResourceCache::Reset()
