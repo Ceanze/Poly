@@ -12,6 +12,7 @@ namespace Poly
 	class CommandBuffer;
 	class DescriptorSet;
 	class PipelineLayout;
+	class PassReflection;
 
 	struct FramePassKey
 	{
@@ -51,7 +52,7 @@ namespace Poly
 
 		void SetScene(Ref<Scene> pScene) { m_pScene = pScene; }
 
-		void Update(const RenderContext& context, const std::vector<SceneBinding>& sceneBindings, uint32 imageIndex, PipelineLayout* pPipelineLayout);
+		void Update(const RenderContext& context, const PassReflection& reflection, uint32 imageIndex, PipelineLayout* pPipelineLayout);
 
 		void Render(const RenderContext& context);
 

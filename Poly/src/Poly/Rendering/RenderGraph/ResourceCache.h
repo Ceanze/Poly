@@ -30,7 +30,7 @@ namespace Poly
 		 * External resources are expected to be alive during the render graphs lifespan
 		 * Additional calls to this function with same name will update the resource pointer
 		 * @param name - name of resource following $.resourceName format
-		 * @param pResource - resource pointer
+		 * @param resourceInfo - resource info (pResource & autobind)
 		 */
 		void RegisterExternalResource(const std::string& name, ResourceInfo resourceInfo);
 

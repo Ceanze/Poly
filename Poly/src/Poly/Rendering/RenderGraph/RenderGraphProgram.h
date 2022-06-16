@@ -4,6 +4,7 @@
 #include "PassReflection.h"
 #include "ResourceView.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Poly/Rendering/Utilities/DescriptorCache.h"
 
 namespace Poly
 {
@@ -107,7 +108,7 @@ namespace Poly
 		GraphicsRenderPass* GetGraphicsRenderPass(const Ref<Pass>& pPass, uint32 passIndex);
 		Framebuffer* GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex);
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
-		const std::vector<Ref<DescriptorSet>>& GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex);
+		// const std::vector<Ref<DescriptorSet>>& GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex);
 
 		bool HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex);
 
@@ -131,8 +132,8 @@ namespace Poly
 		std::unordered_map<uint32, std::vector<Ref<Framebuffer>>>	m_Framebuffers; // key: passIndex, index: imageIndex
 		std::unordered_map<uint32, Ref<PipelineLayout>>				m_PipelineLayouts; // key: passIndex
 		std::unordered_map<uint32, Ref<GraphicsPipeline>>			m_GraphicsPipelines; // key: passIndex
-		std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_Descriptors; // key: passIndex, index: set
-		std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_DescriptorsToBeDestroyed; // key: frameIndex
-		std::unordered_map<uint32, std::vector<SceneBinding>>		m_SceneBindings; // key: passIndex, index: instanceSetIndex
+		// std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_Descriptors; // key: passIndex, index: set
+		// std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>>	m_DescriptorsToBeDestroyed; // key: frameIndex
+		std::unordered_map<uint32, DescriptorCache>					m_DescriptorCaches;
 	};
 }

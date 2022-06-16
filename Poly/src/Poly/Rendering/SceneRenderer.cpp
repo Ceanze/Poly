@@ -10,10 +10,11 @@
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Resources/ResourceManager.h"
+#include "Poly/Rendering/RenderGraph/PassReflection.h"
 
 namespace Poly
 {
-	void SceneRenderer::Update(const RenderContext& context, const std::vector<SceneBinding>& sceneBindings, uint32 imageIndex, PipelineLayout* pPipelineLayout)
+	void SceneRenderer::Update(const RenderContext& context, const PassReflection& reflection, uint32 imageIndex, PipelineLayout* pPipelineLayout)
 	{
 		// TODO: Only update when the scene is "dirty" (or anything related is dirty)
 
@@ -22,13 +23,8 @@ namespace Poly
 		m_DrawObjects.clear();
 		OrderModels();
 
-		auto vertexBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_VERTEX; });
-		auto textureBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_TEXTURES; });
-		auto instanceBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_INSTANCE; });
-		auto materialBinding = std::find_if(sceneBindings.begin(), sceneBindings.end(), [](const SceneBinding& binding){ return binding.Type == FResourceBindPoint::SCENE_MATERIAL; });
-
-		bool hasInstanceBuffer	= instanceBinding != sceneBindings.end();
-		bool hasMaterial		= materialBinding != sceneBindings.end();
+		bool hasInstanceBuffer	= reflection.HasSceneBinding(ESceneBinding::INSTANCE);
+		bool hasMaterial	= reflection.HasSceneBinding(ESceneBinding::MATERIAL);
 		if (hasInstanceBuffer || hasMaterial)
 		{
 			if (hasInstanceBuffer)
@@ -41,52 +37,98 @@ namespace Poly
 		uint64 materialOffset = 0;
 		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
 		{
-			// SCENE_VERTEX
-			if (vertexBinding != sceneBindings.end())
+			// VERTEX
+			if (reflection.HasSceneBinding(ESceneBinding::VERTEX))
 			{
-				FramePassKey framePassKey = {imageIndex, passIndex, vertexBinding->SetIndex};
-				drawObjectPair.second.pVertexDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, vertexBinding->SetIndex, pPipelineLayout);
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::VERTEX);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pVertexDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
 				const Buffer* pVertexBuffer = drawObjectPair.second.UniqueMeshInstance.pMesh->GetVertexBuffer();
-				drawObjectPair.second.pVertexDescriptorSet->UpdateBufferBinding(vertexBinding->Binding, pVertexBuffer, 0, pVertexBuffer->GetSize());
+				drawObjectPair.second.pVertexDescriptorSet->UpdateBufferBinding(ioData.Binding, pVertexBuffer, 0, pVertexBuffer->GetSize());
 			}
 
-			// SCENE_TEXTURE
-			if (textureBinding != sceneBindings.end())
+			// TEXTURE_ALBEDO
+			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_ALBEDO))
 			{
-				FramePassKey framePassKey = {imageIndex, passIndex, textureBinding->SetIndex};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, textureBinding->SetIndex, pPipelineLayout);
-
-				for (uint32 i = 1; auto& binding : sceneBindings)
-				{
-					if (binding.Type == FResourceBindPoint::SCENE_TEXTURES)
-					{
-						// TODO: Make this more generic instead of relying on a specific order decided by enum
-						const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type(i++));
-						drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(binding.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-					}
-				}
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_ALBEDO);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::ALBEDO);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
 			}
 
-			// SCENE_INSTANCE
+			// TEXTURE_AO
+			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_AO))
+			{
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_AO);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::AMBIENT_OCCLUSION);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+			}
+
+			// TEXTURE_COMBINED
+			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_COMBINED))
+			{
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_COMBINED);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::COMBINED);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+			}
+
+			// TEXTURE_METALLIC
+			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_METALLIC))
+			{
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_METALLIC);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::METALIC);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+			}
+
+			// TEXTURE_NORMAL
+			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_NORMAL))
+			{
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_NORMAL);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::NORMAL);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+			}
+
+			// TEXTURE_ROUGHNESS
+			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_ROUGHNESS))
+			{
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_ROUGHNESS);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
+				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::ROUGHNESS);
+				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
+			}
+
+			// INSTANCE
 			if (hasInstanceBuffer)
 			{
-				FramePassKey framePassKey = {imageIndex, passIndex, instanceBinding->SetIndex};
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::INSTANCE);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
 				uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
-				drawObjectPair.second.pInstanceDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, instanceBinding->SetIndex, pPipelineLayout);
-				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(instanceBinding->Binding, m_pInstanceBuffer.get(), instanceOffset, size);
+				drawObjectPair.second.pInstanceDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pInstanceBuffer.get(), instanceOffset, size);
 
 				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, instanceOffset);
 
 				instanceOffset += size;
 			}
 
-			// SCENE_MATERIAL
+			// MATERIAL
 			if (hasMaterial)
 			{
-				FramePassKey framePassKey = {imageIndex, passIndex, materialBinding->SetIndex};
+				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::MATERIAL);
+				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
 				uint64 size = sizeof(MaterialValues);
-				drawObjectPair.second.pMaterialDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, materialBinding->SetIndex, pPipelineLayout);
-				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(materialBinding->Binding, m_pMaterialBuffer.get(), materialOffset, size);
+				drawObjectPair.second.pMaterialDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pMaterialBuffer.get(), materialOffset, size);
 
 				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.UniqueMeshInstance.pMaterial->GetMaterialValues(), size, materialOffset);
 

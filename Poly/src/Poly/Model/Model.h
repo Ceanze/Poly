@@ -32,7 +32,7 @@ namespace Poly
 
 		const std::vector<MeshInstance>& GetMeshInstances() const { return m_MeshInstances; }
 
-		uint32 GetMeshInstanceCount() const { return m_MeshInstances.size(); }
+		uint32 GetMeshInstanceCount() const { return static_cast<uint32>(m_MeshInstances.size()); }
 
 		MeshInstance GetMeshInstance(uint32 meshIndex) const { return m_MeshInstances[meshIndex]; }
 

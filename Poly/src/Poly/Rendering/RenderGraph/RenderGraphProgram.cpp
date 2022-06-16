@@ -77,7 +77,7 @@ namespace Poly
 		m_ImageIndex = imageIndex;
 
 		// Remove old resources
-		m_DescriptorsToBeDestroyed[imageIndex].clear(); // Since smart pointers - cleanup is handled automatically
+		// m_DescriptorsToBeDestroyed[imageIndex].clear(); // Since smart pointers - cleanup is handled automatically
 
 		Ref<RenderContext> renderContext = RenderContext::Create();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
@@ -86,6 +86,10 @@ namespace Poly
 		// m_pScene->SetFrameIndex(m_ImageIndex);
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
+			// Clear old descriptors
+			if (m_DescriptorCaches.contains(passIndex))
+				m_DescriptorCaches[passIndex].Update();
+
 			// Set inital pass values
 			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
 			renderContext->SetCommandBuffer(currentCommandBuffer);
@@ -104,9 +108,9 @@ namespace Poly
 			// TODO: This should probably be done on the Transfer queue asyncronously
 			m_pStagingBufferCache->SubmitQueuedBuffers(currentCommandBuffer);
 
-			if (m_SceneBindings.contains(passIndex))
+			if (m_Reflections[passIndex].HasAnySceneBinding())
 			{
-				m_pSceneRenderer->Update(*renderContext, m_SceneBindings[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
+				m_pSceneRenderer->Update(*renderContext, m_Reflections[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
 			}
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
@@ -126,8 +130,8 @@ namespace Poly
 				currentCommandBuffer->BindPipeline(pGraphicsPipeline);
 
 				ViewportDesc viewport = {};
-				viewport.Width	= pFramebuffer->GetWidth();
-				viewport.Height	= pFramebuffer->GetHeight();
+				viewport.Width	= static_cast<float>(pFramebuffer->GetWidth());
+				viewport.Height	= static_cast<float>(pFramebuffer->GetHeight());
 				currentCommandBuffer->SetViewport(&viewport);
 
 				ScissorDesc scissor = {};
@@ -135,9 +139,15 @@ namespace Poly
 				scissor.Height	= pFramebuffer->GetHeight();
 				currentCommandBuffer->SetScissor(&scissor);
 
-				const std::vector<Ref<DescriptorSet>>& sets = GetDescriptorSets(pPass, passIndex);
-				for (const auto& set : sets)
-					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, set.get());
+				// const std::vector<Ref<DescriptorSet>>& sets = GetDescriptorSets(pPass, passIndex);
+				// for (const auto& set : sets)
+				// 	currentCommandBuffer->BindDescriptor(pGraphicsPipeline, set.get());
+				const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
+				for (uint32 setIndex : setIndices)
+				{
+					const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex);
+					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
+				}
 
 				renderContext->SetActivePipeline(pGraphicsPipeline);
 
@@ -220,13 +230,18 @@ namespace Poly
 				return;
 			}
 
-			const auto& sets = GetDescriptorSets(pPass, passIndex); // Creates set if it doesn't exist yet
+			// const auto& sets = GetDescriptorSets(pPass, passIndex); // Creates set if it doesn't exist yet
 
-			Ref<DescriptorSet> pOldSet = sets[inputRes.Set]; // If crash here - check the sets bound to the pass as it should be too few if this happens
+			// Ref<DescriptorSet> pOldSet = sets[inputRes.Set]; // If crash here - check the sets bound to the pass as it should be too few if this happens
 
-			Ref<DescriptorSet> pNewSet = RenderAPI::CreateDescriptorSetCopy(pOldSet);
-			m_DescriptorsToBeDestroyed[m_ImageIndex].push_back(pOldSet);
-			m_Descriptors[passIndex][inputRes.Set] = pNewSet;
+			// Ref<DescriptorSet> pNewSet = RenderAPI::CreateDescriptorSetCopy(pOldSet);
+			// m_DescriptorsToBeDestroyed[m_ImageIndex].push_back(pOldSet);
+			// m_Descriptors[passIndex][inputRes.Set] = pNewSet;
+
+			if (!m_DescriptorCaches.contains(passIndex))
+				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
+
+			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, offset, view.GetSpan());
 
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
@@ -329,8 +344,8 @@ namespace Poly
 				for (const auto& pushConstant : pushConstants)
 				{
 					PushConstantRange range;
-					range.Size			= pushConstant.Size;
-					range.Offset		= pushConstant.Offset;
+					range.Size			= static_cast<uint32>(pushConstant.Size);
+					range.Offset		= static_cast<uint32>(pushConstant.Offset);
 					range.ShaderStage	= pushConstant.ShaderStage;
 					ranges.push_back(range);
 				}
@@ -539,39 +554,39 @@ namespace Poly
 		return m_GraphicsPipelines[passIndex].get();
 	}
 
-	const std::vector<Ref<DescriptorSet>>& RenderGraphProgram::GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex)
-	{
-		if (m_Descriptors.contains(passIndex))
-			return m_Descriptors[passIndex];
+	// const std::vector<Ref<DescriptorSet>>& RenderGraphProgram::GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex)
+	// {
+	// 	if (m_Descriptors.contains(passIndex))
+	// 		return m_Descriptors[passIndex];
 
-		// Collect the sets from the reflection
-		// Note that descriptors for internal types are also created for ease of use
-		const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
-		std::unordered_set<uint32> setIndicies;
-		for (const auto& input : inputs)
-		{
-			if (BitsSet(input.BindPoint, FResourceBindPoint::ALL_SCENES))
-			{
-				// m_InstanceSetIndices[passIndex] = input.Set;
-				m_SceneBindings[passIndex].push_back({
-					.Type		= input.BindPoint,
-					.SetIndex	= input.Set,
-					.Binding	= input.Binding
-				});
-			}
-			else
-				setIndicies.insert(input.Set);
-		}
+	// 	// Collect the sets from the reflection
+	// 	// Note that descriptors for internal types are also created for ease of use
+	// 	const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
+	// 	std::unordered_set<uint32> setIndicies;
+	// 	for (const auto& input : inputs)
+	// 	{
+	// 		if (BitsSet(input.BindPoint, FResourceBindPoint::ALL_SCENES))
+	// 		{
+	// 			// m_InstanceSetIndices[passIndex] = input.Set;
+	// 			m_SceneBindings[passIndex].push_back({
+	// 				.Type		= input.BindPoint,
+	// 				.SetIndex	= input.Set,
+	// 				.Binding	= input.Binding
+	// 			});
+	// 		}
+	// 		else
+	// 			setIndicies.insert(input.Set);
+	// 	}
 
-		//for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
-		//{
-		m_Descriptors[passIndex].resize(setIndicies.size());
-		for (uint32 setIndex : setIndicies)
-			m_Descriptors[passIndex][setIndex] = RenderAPI::CreateDescriptorSet(m_PipelineLayouts[passIndex].get(), setIndex);
-		//}
+	// 	//for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
+	// 	//{
+	// 	m_Descriptors[passIndex].resize(setIndicies.size());
+	// 	for (uint32 setIndex : setIndicies)
+	// 		m_Descriptors[passIndex][setIndex] = RenderAPI::CreateDescriptorSet(m_PipelineLayouts[passIndex].get(), setIndex);
+	// 	//}
 
-		return m_Descriptors[passIndex];
-	}
+	// 	return m_Descriptors[passIndex];
+	// }
 
 	bool RenderGraphProgram::HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex)
 	{

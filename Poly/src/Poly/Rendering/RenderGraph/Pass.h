@@ -81,6 +81,23 @@ namespace Poly
 		 */
 		Ref<Shader> GetShader(FShaderStage shaderStage) const { return p_ShaderStages.at(shaderStage); }
 
+		/**
+		 * @param setIndex - set index to enable/disable autobind for
+		 * @param autoBind - sets autobind to either enabled (true) or disabled (false)
+		 */
+		void SetAutoBind(uint32 setIndex, bool autoBind);
+
+		/**
+		 * @param setIndex - set index to get enabled state for
+		 * @return true if enabled, false if not
+		 */
+		bool IsAutoBindEnabled(uint32 setIndex) const;
+
+		/**
+		 * @return vector of all the sets that are auto binded
+		 */
+		const std::vector<uint32>& GetAutoBindedSets() const { return p_AutoBindedSets; }
+
 		//--------------------------------------------
 		// Custom graphics types for advanced usages |
 		//--------------------------------------------
@@ -110,6 +127,7 @@ namespace Poly
 		std::string	p_Name	= "";
 		Pass::Type	p_Type	= Pass::Type::NONE;
 		std::unordered_map<FShaderStage, Ref<Shader>> p_ShaderStages;
+		std::vector<uint32> p_AutoBindedSets;
 
 		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
 		std::vector<std::pair<std::string, std::string>> p_ExternalResources;

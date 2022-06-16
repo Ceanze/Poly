@@ -81,15 +81,15 @@ namespace Poly
 		}
 	}
 
-	void PVKCommandBuffer::BindDescriptor(Pipeline* pPipeline, DescriptorSet* pDescriptor, uint32 dynamicOffsetCount, const uint32* pDynamicOffsets)
+	void PVKCommandBuffer::BindDescriptor(const Pipeline* pPipeline, const DescriptorSet* pDescriptor, uint32 dynamicOffsetCount, const uint32* pDynamicOffsets)
 	{
 		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
 		{
-			VkDescriptorSet descSet = reinterpret_cast<PVKDescriptorSet*>(pDescriptor)->GetNativeVK();
+			VkDescriptorSet descSet = reinterpret_cast<const PVKDescriptorSet*>(pDescriptor)->GetNativeVK();
 			vkCmdBindDescriptorSets(
 				m_Buffer,
 				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
-				reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
+				reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<const PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
 				pDescriptor->GetSetIndex(),
 				1,
 				&descSet,

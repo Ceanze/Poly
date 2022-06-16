@@ -15,12 +15,17 @@ namespace Poly
 		reflection.AddInput("camera", 0, 0);
 		reflection.SetBindPoint("camera", FResourceBindPoint::UNIFORM);
 
-		reflection.AddSpecialInput("vertices", 1, 0, ESpecialInput::SCENE_VERTEX);
-		reflection.AddSpecialInput("instanceBuffer", 1, 1, ESpecialInput::SCENE_INSTANCE);
+		reflection.AddSceneInput("vertices", 1, 0, ESceneBinding::VERTEX);
+		reflection.AddSceneInput("instanceBuffer", 1, 1, ESceneBinding::INSTANCE);
 
 		// Fragment shader input
-		reflection.AddSpecialInput("materials", 2, 0, ESpecialInput::SCENE_MATERIAL);
-		reflection.AddSpecialInput("textures", 2, 1, ESpecialInput::SCENE_TEXTURES); // SCENE_TEXTURE must be the last bound to a set - due to it using multiple bindings
+		reflection.AddSceneInput("materials", 2, 0, ESceneBinding::MATERIAL);
+		reflection.AddSceneInput("albedoTex", 2, 1, ESceneBinding::TEXTURE_ALBEDO);
+		reflection.AddSceneInput("metallicTex", 2, 2, ESceneBinding::TEXTURE_METALLIC);
+		reflection.AddSceneInput("normalTex", 2, 3, ESceneBinding::TEXTURE_NORMAL);
+		reflection.AddSceneInput("roughnessTex", 2, 4, ESceneBinding::TEXTURE_ROUGHNESS);
+		reflection.AddSceneInput("aoTex", 2, 5, ESceneBinding::TEXTURE_AO);
+		reflection.AddSceneInput("combinedTex", 2, 6, ESceneBinding::TEXTURE_COMBINED);
 
 		// Output
 		reflection.AddOutput("out");

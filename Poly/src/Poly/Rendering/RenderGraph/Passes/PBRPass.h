@@ -9,6 +9,8 @@ namespace Poly
 		PBRPass() = default;
 		~PBRPass() = default;
 
+		virtual void Compile() override final;
+
 		virtual PassReflection Reflect() override final;
 
 		virtual void Execute(const RenderContext& context, const RenderData& renderData) override final;

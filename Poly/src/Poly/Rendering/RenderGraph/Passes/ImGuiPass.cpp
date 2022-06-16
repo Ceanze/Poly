@@ -57,6 +57,8 @@ namespace Poly
 		SetupFont();
 
 		m_pStagingBufferCache = StagingBufferCache::Create();
+
+		SetAutoBind(0, true);
 	}
 
 	void ImGuiPass::Update(const RenderContext& context)

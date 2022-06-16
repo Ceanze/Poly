@@ -5,27 +5,30 @@
 
 namespace Poly
 {
-	void DescriptorCache::Update(uint32 frameIndex)
+	void DescriptorCache::Update()
 	{
-		if (m_DescriptorsToBeDeleted.contains(frameIndex))
-			m_DescriptorsToBeDeleted[frameIndex].clear();
+		for (auto& removableDescriptor : m_RemovableDescriptors)
+			removableDescriptor.DeadTimer++;
+
+		auto it = std::remove_if(m_RemovableDescriptors.begin(), m_RemovableDescriptors.end(), [](const RemovableDescriptorSet& info) { return info.DeadTimer > 3; });
+		m_RemovableDescriptors.erase(it, m_RemovableDescriptors.end());
 	}
 
-	const DescriptorSet* DescriptorCache::GetDescriptorSetCopy(uint32 set, uint32 frameIndex, uint32 index, uint32 offset, uint32 segmentSize)
+	DescriptorSet* DescriptorCache::GetDescriptorSetCopy(uint32 set, uint32 index, uint32 offset, uint32 segmentSize)
 	{
 		if (!ValidateOffset(offset, segmentSize))
 			return nullptr;
 
-		CacheKey key(frameIndex, set);
-		if (!HasDescriptor(key, index, offset))
-			return CreateDescriptor(key, index, offset).get();
+		if (!HasDescriptor(set, index, offset))
+			return CreateDescriptor(set, index, offset).get();
 
-		Ref<DescriptorSet> pOldDescriptor = m_Descriptors[key][index][offset];
+		Ref<DescriptorSet> pOldDescriptor = m_Descriptors[set][index][offset];
 
 		Ref<DescriptorSet> pNewDescriptor = RenderAPI::CreateDescriptorSetCopy(pOldDescriptor);
-		m_Descriptors[key][index][offset] = pNewDescriptor;
+		m_Descriptors[set][index][offset] = pNewDescriptor;
 
-		m_DescriptorsToBeDeleted[frameIndex].push_back(pOldDescriptor);
+		// m_DescriptorsToBeDeleted[frameIndex].push_back(pOldDescriptor);
+		m_RemovableDescriptors.push_back(RemovableDescriptorSet(pOldDescriptor));
 
 		return pNewDescriptor.get();
 	}
@@ -35,50 +38,49 @@ namespace Poly
 		m_pPipelineLayout = pPipelineLayout;
 	}
 
-	const DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 frameIndex)
+	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set)
 	{
-		return GetDescriptorSet(set, frameIndex, 0, 0, 0);
+		return GetDescriptorSet(set, 0, 0, 0);
 	}
 
-	const DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 frameIndex, uint32 index)
+	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 index)
 	{
-		return GetDescriptorSet(set, frameIndex, index, 0, 0);
+		return GetDescriptorSet(set, index, 0, 0);
 	}
 
-	const DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 frameIndex, uint32 index, uint32 offset, uint32 segmentSize)
+	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 index, uint32 offset, uint32 segmentSize)
 	{
 		if (!ValidateOffset(offset, segmentSize))
 			return nullptr;
 
-		CacheKey key(frameIndex, set);
-		if (!HasDescriptor(key, index, offset))
-			return CreateDescriptor(key, index, offset).get();
+		if (!HasDescriptor(set, index, offset))
+			return CreateDescriptor(set, index, offset).get();
 
-		return m_Descriptors[key][index][offset].get();
+		return m_Descriptors[set][index][offset].get();
 	}
 
-	Ref<DescriptorSet> DescriptorCache::CreateDescriptor(CacheKey key, uint32 index, uint32 offset)
+	Ref<DescriptorSet> DescriptorCache::CreateDescriptor(uint32 set, uint32 index, uint32 offset)
 	{
-		Ref<DescriptorSet> pDescriptorSet = RenderAPI::CreateDescriptorSet(m_pPipelineLayout, key.Set);
+		Ref<DescriptorSet> pDescriptorSet = RenderAPI::CreateDescriptorSet(m_pPipelineLayout, set);
 
-		auto& indexVector = m_Descriptors[key];
-		if (index >= indexVector.size())
-			indexVector.resize(index);
+		auto& indexVector = m_Descriptors[set];
+		if (index + 1 >= indexVector.size())
+			indexVector.resize(index + 1);
 
 		auto& offsetVector = indexVector[index];
-		if (offset >= offsetVector.size())
-			offsetVector.resize(offset);
+		if (offset + 1 >= offsetVector.size())
+			offsetVector.resize(offset + 1);
 
 		offsetVector[offset] = pDescriptorSet;
 		return pDescriptorSet;
 	}
 
-	bool DescriptorCache::HasDescriptor(CacheKey key, uint32 index, uint32 offset)
+	bool DescriptorCache::HasDescriptor(uint32 set, uint32 index, uint32 offset)
 	{
-		if (!m_Descriptors.contains(key))
+		if (!m_Descriptors.contains(set))
 			return false;
 
-		const auto& indexVector = m_Descriptors[key];
+		const auto& indexVector = m_Descriptors[set];
 		if (index >= indexVector.size())
 			return false;
 
