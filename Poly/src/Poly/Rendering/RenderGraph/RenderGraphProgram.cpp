@@ -56,8 +56,12 @@ namespace Poly
 			}
 
 			const auto& reflections = m_Reflections[passIndex].GetAllIOs();
-			for (const auto& reflection : reflections)
-				UpdateGraphResource(pPass->GetName() + "." + reflection.Name, nullptr);
+			if (!reflections.empty())
+			{
+				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
+				for (const auto& reflection : reflections)
+					UpdateGraphResource(pPass->GetName() + "." + reflection.Name, nullptr);
+			}
 			passIndex++;
 		}
 
@@ -93,6 +97,7 @@ namespace Poly
 			renderContext.SetActivePassIndex(passIndex);
 			renderContext.SetActivePipelineLayout(m_PipelineLayouts[passIndex].get());
 			renderContext.SetRenderGraphProgram(this);
+			renderContext.SetDescriptorCache(&(m_DescriptorCaches[passIndex]));
 			renderData.SetRenderPassName(pPass->GetName());
 
 			// Begin recording

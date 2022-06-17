@@ -10,13 +10,16 @@
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Resources/ResourceManager.h"
-#include "Poly/Rendering/RenderGraph/PassReflection.h"
+// #include "Poly/Rendering/RenderGraph/PassReflection.h"
 
 namespace Poly
 {
 	void SceneRenderer::Update(const RenderContext& context, const PassReflection& reflection, uint32 imageIndex, PipelineLayout* pPipelineLayout)
 	{
 		// TODO: Only update when the scene is "dirty" (or anything related is dirty)
+
+		// TODO: Use GetDescriptorCopy and only have one descriptor per buffer (instead one per buffer per frame) - can only be sensibly done when this is only updated
+		// when it is needed (read above TODO)
 
 		uint32 passIndex = context.GetPassIndex();
 
@@ -41,79 +44,47 @@ namespace Poly
 			if (reflection.HasSceneBinding(ESceneBinding::VERTEX))
 			{
 				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::VERTEX);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pVertexDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				drawObjectPair.second.pVertexDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
 				const Buffer* pVertexBuffer = drawObjectPair.second.UniqueMeshInstance.pMesh->GetVertexBuffer();
 				drawObjectPair.second.pVertexDescriptorSet->UpdateBufferBinding(ioData.Binding, pVertexBuffer, 0, pVertexBuffer->GetSize());
 			}
 
 			// TEXTURE_ALBEDO
 			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_ALBEDO))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_ALBEDO);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
-				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::ALBEDO);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-			}
+				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_ALBEDO, Material::Type::ALBEDO);
+
 
 			// TEXTURE_AO
 			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_AO))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_AO);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
-				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::AMBIENT_OCCLUSION);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-			}
+				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_AO, Material::Type::AMBIENT_OCCLUSION);
+
 
 			// TEXTURE_COMBINED
 			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_COMBINED))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_COMBINED);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
-				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::COMBINED);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-			}
+				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_COMBINED, Material::Type::COMBINED);
+
 
 			// TEXTURE_METALLIC
 			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_METALLIC))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_METALLIC);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
-				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::METALIC);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-			}
+				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_METALLIC, Material::Type::METALIC);
+
 
 			// TEXTURE_NORMAL
 			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_NORMAL))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_NORMAL);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
-				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::NORMAL);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-			}
+				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_NORMAL, Material::Type::NORMAL);
+
 
 			// TEXTURE_ROUGHNESS
 			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_ROUGHNESS))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::TEXTURE_ROUGHNESS);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
-				drawObjectPair.second.pTextureDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
-				const TextureView* pTextureView = drawObjectPair.second.UniqueMeshInstance.pMaterial->GetTextureView(Material::Type::ROUGHNESS);
-				drawObjectPair.second.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
-			}
+				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_ROUGHNESS, Material::Type::ROUGHNESS);
+
 
 			// INSTANCE
 			if (hasInstanceBuffer)
 			{
 				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::INSTANCE);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
 				uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
-				drawObjectPair.second.pInstanceDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				drawObjectPair.second.pInstanceDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
 				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pInstanceBuffer.get(), instanceOffset, size);
 
 				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, instanceOffset);
@@ -125,9 +96,8 @@ namespace Poly
 			if (hasMaterial)
 			{
 				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::MATERIAL);
-				FramePassKey framePassKey = {imageIndex, passIndex, ioData.Set};
 				uint64 size = sizeof(MaterialValues);
-				drawObjectPair.second.pMaterialDescriptorSet = GetDescriptor(framePassKey, drawObjectIndex, ioData.Set, pPipelineLayout);
+				drawObjectPair.second.pMaterialDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
 				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pMaterialBuffer.get(), materialOffset, size);
 
 				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.UniqueMeshInstance.pMaterial->GetMaterialValues(), size, materialOffset);
@@ -154,8 +124,8 @@ namespace Poly
 			uint32 instanceCount = drawObject.second.Matrices.size();
 
 			// Draw
-			std::set<DescriptorSet*> sets = { drawObject.second.pVertexDescriptorSet.get(), drawObject.second.pTextureDescriptorSet.get(),
-											  drawObject.second.pInstanceDescriptorSet.get(), drawObject.second.pMaterialDescriptorSet.get()};
+			std::set<DescriptorSet*> sets = { drawObject.second.pVertexDescriptorSet, drawObject.second.pTextureDescriptorSet,
+											  drawObject.second.pInstanceDescriptorSet, drawObject.second.pMaterialDescriptorSet};
 			for (auto& set : sets)
 				commandBuffer->BindDescriptor(context.GetActivePipeline(), set);
 
@@ -168,15 +138,12 @@ namespace Poly
 		}
 	}
 
-	Ref<DescriptorSet> SceneRenderer::GetDescriptor(FramePassKey framePassKey, uint32 drawObjectIndex, uint32 setIndex, PipelineLayout* pPipelineLayout)
+	void SceneRenderer::UpdateTextureDescriptor(const RenderContext& context, const PassReflection& reflection, DrawObject& drawObject, uint32 drawObjectIndex, uint32 imageIndex, ESceneBinding sceneBinding, Material::Type type)
 	{
-		// The key and index already exists
-		if (m_Descriptors.contains(framePassKey) && drawObjectIndex < m_Descriptors[framePassKey].size())
-			return m_Descriptors[framePassKey][drawObjectIndex];
-
-		// If either key or index is valid, make them valid and create descriptor
-		m_Descriptors[framePassKey].push_back(RenderAPI::CreateDescriptorSet(pPipelineLayout, setIndex));
-		return m_Descriptors[framePassKey].back();
+		const IOData& ioData = reflection.GetSceneBinding(sceneBinding);
+		drawObject.pTextureDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
+		const TextureView* pTextureView = drawObject.UniqueMeshInstance.pMaterial->GetTextureView(type);
+		drawObject.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
 	}
 
 	void SceneRenderer::UpdateInstanceBuffers(uint64 size)

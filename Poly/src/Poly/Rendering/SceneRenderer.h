@@ -1,6 +1,8 @@
 #pragma once
 #include "Poly/Scene/Scene.h"
 #include "Poly/Model/Model.h"
+#include "Poly/Model/Material.h"
+#include "Poly/Rendering/RenderGraph/PassReflection.h"
 
 namespace Poly
 {
@@ -14,34 +16,14 @@ namespace Poly
 	class PipelineLayout;
 	class PassReflection;
 
-	struct FramePassKey
-	{
-		uint32	FrameIndex;
-		uint32	ImageIndex;
-		uint32	Set;
-
-		bool operator==(const FramePassKey& other) const
-		{
-			return other.FrameIndex == FrameIndex && other.ImageIndex == ImageIndex && other.Set == Set;
-		}
-	};
-
-	struct FramePassHasher
-	{
-		size_t operator()(const FramePassKey& other) const
-		{
-			return (static_cast<uint64>(other.FrameIndex) << 48) | (static_cast<uint64>(other.ImageIndex) << 32) | static_cast<uint64>(other.Set);
-		}
-	};
-
 	struct DrawObject
 	{
 		MeshInstance			UniqueMeshInstance;
 		std::vector<glm::mat4>	Matrices;
-		Ref<DescriptorSet>		pInstanceDescriptorSet;
-		Ref<DescriptorSet>		pVertexDescriptorSet;
-		Ref<DescriptorSet>		pTextureDescriptorSet;
-		Ref<DescriptorSet>		pMaterialDescriptorSet;
+		DescriptorSet*			pInstanceDescriptorSet;
+		DescriptorSet*			pVertexDescriptorSet;
+		DescriptorSet*			pTextureDescriptorSet;
+		DescriptorSet*			pMaterialDescriptorSet;
 	};
 
 	class SceneRenderer
@@ -59,7 +41,7 @@ namespace Poly
 		static Ref<SceneRenderer> Create() { return CreateRef<SceneRenderer>(); }
 
 	private:
-		Ref<DescriptorSet> GetDescriptor(FramePassKey framePassKey, uint32 drawObjectIndex, uint32 setIndex, PipelineLayout* pPipelineLayout);
+		void UpdateTextureDescriptor(const RenderContext& context, const PassReflection& reflection, DrawObject& drawObject, uint32 drawObjectIndex, uint32 imageIndex, ESceneBinding sceneBinding, Material::Type type);
 		void UpdateInstanceBuffers(uint64 size);
 		void UpdateMaterialBuffers(uint64 size);
 		void OrderModels();
@@ -71,7 +53,6 @@ namespace Poly
 		Ref<Buffer> m_pMaterialBuffer;
 		Ref<Buffer> m_pMaterialStagingBuffer;
 
-		std::unordered_map<FramePassKey, std::vector<Ref<DescriptorSet>>, FramePassHasher> m_Descriptors;
 		std::unordered_map<size_t, DrawObject> m_DrawObjects;
 		uint32 m_TotalMeshCount = 0;
 	};
