@@ -76,12 +76,9 @@ namespace Poly
 		//		the GraphicsRenderPass to resolve it, but ignore the rest of the pass.
 		m_ImageIndex = imageIndex;
 
-		// Remove old resources
-		// m_DescriptorsToBeDestroyed[imageIndex].clear(); // Since smart pointers - cleanup is handled automatically
-
-		Ref<RenderContext> renderContext = RenderContext::Create();
+		RenderContext renderContext = RenderContext();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
-		renderContext->SetImageIndex(m_ImageIndex);
+		renderContext.SetImageIndex(m_ImageIndex);
 		renderData.SetSceneRenderer(m_pSceneRenderer.get());
 		// m_pScene->SetFrameIndex(m_ImageIndex);
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
@@ -92,17 +89,17 @@ namespace Poly
 
 			// Set inital pass values
 			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
-			renderContext->SetCommandBuffer(currentCommandBuffer);
-			renderContext->SetActivePassIndex(passIndex);
-			renderContext->SetActivePipelineLayout(m_PipelineLayouts[passIndex].get());
-			renderContext->SetRenderGraphProgram(this);
+			renderContext.SetCommandBuffer(currentCommandBuffer);
+			renderContext.SetActivePassIndex(passIndex);
+			renderContext.SetActivePipelineLayout(m_PipelineLayouts[passIndex].get());
+			renderContext.SetRenderGraphProgram(this);
 			renderData.SetRenderPassName(pPass->GetName());
 
 			// Begin recording
 			currentCommandBuffer->Begin(FCommandBufferFlag::NONE);
 
 			// Update current pass before executing it
-			pPass->Update(*renderContext);
+			pPass->Update(renderContext);
 
 			// Transfer staging buffer data
 			// TODO: This should probably be done on the Transfer queue asyncronously
@@ -110,7 +107,7 @@ namespace Poly
 
 			if (m_Reflections[passIndex].HasAnySceneBinding())
 			{
-				m_pSceneRenderer->Update(*renderContext, m_Reflections[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
+				m_pSceneRenderer->Update(renderContext, m_Reflections[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
 			}
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
@@ -139,9 +136,6 @@ namespace Poly
 				scissor.Height	= pFramebuffer->GetHeight();
 				currentCommandBuffer->SetScissor(&scissor);
 
-				// const std::vector<Ref<DescriptorSet>>& sets = GetDescriptorSets(pPass, passIndex);
-				// for (const auto& set : sets)
-				// 	currentCommandBuffer->BindDescriptor(pGraphicsPipeline, set.get());
 				const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
 				for (uint32 setIndex : setIndices)
 				{
@@ -149,10 +143,10 @@ namespace Poly
 					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
 				}
 
-				renderContext->SetActivePipeline(pGraphicsPipeline);
+				renderContext.SetActivePipeline(pGraphicsPipeline);
 
 				// The pass handles the draw command and any additional data before that
-				pPass->Execute(*renderContext, renderData);
+				pPass->Execute(renderContext, renderData);
 
 				currentCommandBuffer->EndRenderPass();
 			}
@@ -162,10 +156,11 @@ namespace Poly
 			}
 			else if (pPass->GetPassType() == Pass::Type::SYNC)
 			{
-				pPass->Execute(*renderContext, renderData);
+				pPass->Execute(renderContext, renderData);
 			}
 
 			currentCommandBuffer->End();
+
 			// Only graphics queue at the moment
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(currentCommandBuffer, nullptr, nullptr, nullptr);
 			passIndex++;

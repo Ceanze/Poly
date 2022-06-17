@@ -27,8 +27,6 @@ namespace Poly
 
 		RenderGraphProgram* GetRenderGraphProgram() const { return m_pRenderGraphProgram; }
 
-		static Ref<RenderContext> Create();
-
 	private:
 		friend class RenderGraphProgram;
 		void SetCommandBuffer(CommandBuffer* pCommandBuffer);

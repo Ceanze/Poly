@@ -9,16 +9,9 @@ namespace Poly
 	{
 		m_pCommandBuffer = pCommandBuffer;
 	}
-	
+
 	CommandBuffer* RenderContext::GetCommandBuffer() const
 	{
 		return m_pCommandBuffer;
 	}
-
-	Ref<RenderContext> RenderContext::Create()
-	{
-		return CreateRef<RenderContext>();
-	}
-
-
 }
