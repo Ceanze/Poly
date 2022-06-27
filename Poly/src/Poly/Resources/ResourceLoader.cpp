@@ -289,8 +289,10 @@ namespace Poly
 
 	Ref<Model> ResourceLoader::LoadModel(const std::string& path, Entity root)
 	{
+		std::string absolutePath = IOManager::GetAssetsFolder() + path;
+
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(path, aiProcess_JoinIdenticalVertices
+		const aiScene* pScene = importer.ReadFile(absolutePath, aiProcess_JoinIdenticalVertices
 														| aiProcess_Triangulate
 														| aiProcess_FlipUVs
 														| aiProcess_CalcTangentSpace);
@@ -299,7 +301,7 @@ namespace Poly
 
 		if (!pScene)
 		{
-			POLY_CORE_WARN("Could not open mesh at path {}", path);
+			POLY_CORE_WARN("Could not open mesh at path {}", absolutePath);
 			return nullptr;
 		}
 

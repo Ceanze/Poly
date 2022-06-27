@@ -16,6 +16,7 @@ namespace Poly
 	void ResourceManager::Init()
 	{
 		RegisterDefaults();
+		ResourceImporter::LoadImports();
 	}
 
 	void ResourceManager::Release()
@@ -126,7 +127,7 @@ namespace Poly
 
 	PolyID ResourceManager::ImportAndLoadModel(const std::string& path, Entity root)
 	{
-		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		std::string relativePath = path;
 
 		PolyID pathID = ResourceImporter::ImportModel(path);
 

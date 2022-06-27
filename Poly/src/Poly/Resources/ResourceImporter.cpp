@@ -3,7 +3,7 @@
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
-// #include <yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 #include <fstream>
 
 #include "IOManager.h"
@@ -17,16 +17,16 @@ namespace Poly
 		if (!IOManager::FileExists(PROJECT_POLYRES_FILE))
 			return;
 
-		// YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
+		YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
 
-		// if (projectFile["models"])
-		// 	for (auto pair : projectFile["models"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
+		if (projectFile["models"])
+			for (auto pair : projectFile["models"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
 
-		// if (projectFile["textures"])
-		// 	for (auto pair : projectFile["textures"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
+		if (projectFile["textures"])
+			for (auto pair : projectFile["textures"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
 
-		// if (projectFile["materials"])
-		// 	for (auto pair : projectFile["materials"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
+		if (projectFile["materials"])
+			for (auto pair : projectFile["materials"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
 	}
 
 	PolyID ResourceImporter::GetPathID(const std::string& path)
@@ -72,32 +72,29 @@ namespace Poly
 		if (!IOManager::FileExists(PROJECT_POLYRES_FILE))
 			CreateProjectFile();
 
-		// YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
+		YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
 
-		// YAML::Node node;
-		// node[path] = pathID;
+		switch (type)
+		{
+			case ResourceType::MODEL: projectFile["models"][path] = std::format("{}", (uint64)pathID); break;
+			case ResourceType::TEXTURE: projectFile["textures"][path] = std::format("{}", (uint64)pathID); break;
+			case ResourceType::MATERIAL: projectFile["material"][path] = std::format("{}", (uint64)pathID); break;
+		}
 
-		// switch (type)
-		// {
-		// 	case ResourceType::MODEL: projectFile["models"].push_back(node); break;
-		// 	case ResourceType::TEXTURE: projectFile["textures"].push_back(node); break;
-		// 	case ResourceType::MATERIAL: projectFile["material"].push_back(node); break;
-		// }
-
-		// std::ofstream file(PROJECT_POLYRES_FILE);
-		// file << projectFile;
-		// file.close();
+		std::ofstream file(PROJECT_POLYRES_FILE);
+		file << projectFile;
+		file.close();
 	}
 
 	void ResourceImporter::CreateProjectFile()
 	{
-		// YAML::Emitter out;
-		// out << YAML::BeginMap << YAML::Key << "models" << YAML::Value << YAML::BeginSeq << YAML::EndSeq << YAML::EndMap;
-		// out << YAML::BeginMap << YAML::Key << "textures" << YAML::Value << YAML::BeginSeq << YAML::EndSeq << YAML::EndMap;
-		// out << YAML::BeginMap << YAML::Key << "materials" << YAML::Value << YAML::BeginSeq << YAML::EndSeq << YAML::EndMap;
-		// std::ofstream file(PROJECT_POLYRES_FILE);
-		// file << out.c_str();
-		// file.close();
+		YAML::Emitter out;
+		out << YAML::BeginMap << YAML::Key << "models" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
+		out << YAML::BeginMap << YAML::Key << "textures" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
+		out << YAML::BeginMap << YAML::Key << "materials" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
+		std::ofstream file(PROJECT_POLYRES_FILE);
+		file << out.c_str();
+		file.close();
 	}
 
 	std::unordered_map<std::string, PolyID> ResourceImporter::m_PathToID;
