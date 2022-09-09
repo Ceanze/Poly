@@ -31,7 +31,7 @@ namespace Poly
 		Scene* GetScene() const { return m_pScene; }
 
 		template <typename Component>
-		bool HasComponent()
+		bool HasComponent() const
 		{
 			return m_pScene->m_Registry.any_of<Component>(m_Entity);
 		}
@@ -51,17 +51,20 @@ namespace Poly
 		}
 
 		template <typename Component>
-		Component& GetComponent()
+		Component& GetComponent() const
 		{
 			POLY_VALIDATE(HasComponent<Component>(), "Cannot get component, entity {} does not have it", m_Entity);
 			return m_pScene->m_Registry.get<Component>(m_Entity);
 		}
+
+		PolyID GetPolyID() const { return GetComponent<IDComponent>().ID; }
 
 		operator entt::entity() const { return m_Entity; }
 		operator uint32() const { return entt::to_integral(m_Entity); }
 
 	private:
 		friend class Scene;
+		friend class SceneSerializer;
 
 		Entity(Scene* pScene, entt::entity entity) : m_pScene(pScene), m_Entity(entity) {}
 

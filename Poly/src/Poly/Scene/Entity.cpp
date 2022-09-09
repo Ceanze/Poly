@@ -91,6 +91,7 @@ namespace Poly
 			parentHierarchy.ChildrenCount++;
 			selfHierarchy.Next = m_Entity;
 			selfHierarchy.Previous = m_Entity;
+			selfHierarchy.Parent = parent;
 			return;
 		}
 
@@ -101,6 +102,7 @@ namespace Poly
 		lastHierarchy.Next = m_Entity;
 		selfHierarchy.Previous = firstHierarchy.Previous;
 		selfHierarchy.Next = parentHierarchy.First;
+		selfHierarchy.Parent = parent;
 		parentHierarchy.ChildrenCount++;
 	}
 }

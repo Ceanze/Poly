@@ -1,0 +1,27 @@
+Scene: Untitled
+Entites:
+  - EntityID: 17187217755230767517
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      Orientation: [0, 0, 0, 0]
+    HierarchyComponent:
+      ChildrenCount: 0
+      Parent: 12567264068025302244
+      First: 0
+      Next: 17187217755230767517
+      Previous: 17187217755230767517
+    MeshComponent:
+      Model: 10769257606534950593
+      MeshIndex: 0
+  - EntityID: 12567264068025302244
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Scale: [1, 1, 1]
+      Orientation: [0, 0, 0, 0]
+    HierarchyComponent:
+      ChildrenCount: 1
+      Parent: 0
+      First: 17187217755230767517
+      Next: 0
+      Previous: 0

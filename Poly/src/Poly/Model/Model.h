@@ -40,6 +40,8 @@ namespace Poly
 
 		Material* GetMaterial(uint32 meshIndex) const { return m_MeshInstances[meshIndex].pMaterial.get(); }
 
+		PolyID GetPolyID() const { return m_ModelID; }
+
 	private:
 		friend class ResourceManager;
 		void SetModelID(PolyID modelID) { m_ModelID = modelID; }

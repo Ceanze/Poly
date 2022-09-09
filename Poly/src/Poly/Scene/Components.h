@@ -34,9 +34,15 @@ namespace Poly
 	struct MeshComponent
 	{
 		MeshComponent(Model* pModel, uint32 meshIndex) : pModel(pModel), MeshIndex(meshIndex) {}
-		// MeshComponent(Ref<Mesh> pMesh, Ref<Material> pMaterial) : ModelID(pMesh->GetModelID()), MeshIndex(pMesh->GetMeshIndex()) {}
 
 		Model* pModel;
 		uint32 MeshIndex;
+	};
+
+	struct IDComponent
+	{
+		IDComponent(PolyID polyID) : ID(polyID) {}
+
+		PolyID ID;
 	};
 }

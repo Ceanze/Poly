@@ -21,16 +21,23 @@ namespace Poly
 		static constexpr const char* AO_TEX_RESOURCE_NAME = "aoTex";
 
 	public:
-		Scene();
+		Scene(const std::string& name);
 		~Scene() = default;
 
-		static Ref<Scene> Create() { return CreateRef<Scene>(); }
+		static Ref<Scene> Create(const std::string& name = "Untitled") { return CreateRef<Scene>(name); }
 
 		/**
 		 * Creates and adds an entity with transform component to the scene
 		 * @return new entity
 		 */
 		Entity CreateEntity();
+
+		/**
+		 * Creates and adds an entity with transform component to the scene with a predetermined PolyID
+		 * @param id - ID of the entity to create
+		 * @return new entity
+		 */
+		Entity CreateEntityWithID(PolyID id);
 
 		/**
 		 * Destroys a previously created entity
@@ -45,12 +52,28 @@ namespace Poly
 		 */
 		const ResourceGroup* GetResourceGroup() const { return &m_ResourceGroup; }
 
+		/**
+		 * Sets the name of the scene
+		 * @param name - new name of the scene
+		 */
+		void SetName(const std::string& name) { m_Name = name; }
+
+		/**
+		 * @return the name of the scene - "Untitled" if no name has been set
+		 */
+		const std::string& GetName() const { return m_Name; }
 
 	private:
 		friend class Entity;
 		friend class SceneRenderer;
+		friend class SceneSerializer;
+		friend class EntitySerializer;
 
 		entt::registry m_Registry;
 		ResourceGroup m_ResourceGroup;
+
+		std::string m_Name;
+
+		PolyID GetIdOfEntity(entt::entity entity);
 	};
 }
