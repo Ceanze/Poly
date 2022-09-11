@@ -33,6 +33,26 @@ namespace Poly
 		return Entity(this, entity);
 	}
 
+	Entity Scene::GetOrCreateEntityWithID(PolyID id)
+	{
+		auto view = m_Registry.view<const IDComponent>();
+
+		entt::entity enttEntity = entt::null;
+		for (auto [entity, IDComp] : view.each())
+		{
+			if (IDComp.ID == id)
+			{
+				enttEntity = entity;
+				break;
+			}
+		}
+
+		if (enttEntity == entt::null)
+			return CreateEntityWithID(id);
+
+		return Entity(this, enttEntity);
+	}
+
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);

@@ -328,27 +328,34 @@ namespace Poly
 			Ref<Material> pPolyMaterial = ProcessMaterial(pMaterial, pScene, pModel, index, folder);
 			pModel->AddMeshInstance({ pPolyMesh, pPolyMaterial });
 
-			Entity child = parent.GetScene()->CreateEntity();
-			child.SetParent(parent);
-			child.AddComponent<MeshComponent>(pModel, index);
-			TransformComponent& transformComp = child.GetComponent<TransformComponent>();
+			if (parent != Entity::None())
+			{
+				Entity child = parent.GetScene()->CreateEntity();
+				child.SetParent(parent);
+				child.AddComponent<MeshComponent>(pModel, index);
+				TransformComponent& transformComp = child.GetComponent<TransformComponent>();
 
-			glm::mat4 transform = ConvertAiMatToGLM(&pNode->mTransformation);
-			glm::vec3 scale, translation, skew;
-			glm::vec4 perspective;
-			glm::quat orientation;
-			glm::decompose(transform, scale, orientation, translation, skew, perspective);
+				glm::mat4 transform = ConvertAiMatToGLM(&pNode->mTransformation);
+				glm::vec3 scale, translation, skew;
+				glm::vec4 perspective;
+				glm::quat orientation;
+				glm::decompose(transform, scale, orientation, translation, skew, perspective);
 
-			transformComp.Translation = translation;
-			transformComp.Orientation = orientation;
-			transformComp.Scale = scale;
+				transformComp.Translation = translation;
+				transformComp.Orientation = orientation;
+				transformComp.Scale = scale;
+			}
 		}
 
 		for (uint32 i = 0; i < pNode->mNumChildren; i++)
 		{
 			aiNode* child = pNode->mChildren[i];
-			Entity childEntity = parent.GetScene()->CreateEntity();
-			childEntity.SetParent(parent);
+			Entity childEntity = Entity::None();
+			if (parent != Entity::None())
+			{
+				childEntity = parent.GetScene()->CreateEntity();
+				childEntity.SetParent(parent);
+			}
 			ProcessNode(child, pScene, folder, pModel, childEntity);
 		}
 	}

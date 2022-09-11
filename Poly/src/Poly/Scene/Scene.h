@@ -40,6 +40,13 @@ namespace Poly
 		Entity CreateEntityWithID(PolyID id);
 
 		/**
+		 * Gets an entity with the corresponding id. If no entity with that id exist, creates a new one with that id
+		 * @param id - ID of the entity to get or create
+		 * @return requested existing entity or new
+		 */
+		Entity GetOrCreateEntityWithID(PolyID id);
+
+		/**
 		 * Destroys a previously created entity
 		 * @param entity - entity to destroy
 		 */
@@ -63,17 +70,22 @@ namespace Poly
 		 */
 		const std::string& GetName() const { return m_Name; }
 
+		/**
+		 * @return true if no entites are registered, false otherwise
+		 */
+		bool IsEmpty() const { return m_Registry.empty(); }
+
 	private:
 		friend class Entity;
 		friend class SceneRenderer;
 		friend class SceneSerializer;
 		friend class EntitySerializer;
 
+		PolyID GetIdOfEntity(entt::entity entity);
+
 		entt::registry m_Registry;
 		ResourceGroup m_ResourceGroup;
 
 		std::string m_Name;
-
-		PolyID GetIdOfEntity(entt::entity entity);
 	};
 }

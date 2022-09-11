@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ResourceTypes.h"
+
 class aiNode;
 class aiScene;
 
@@ -11,21 +13,13 @@ namespace YAML
 
 namespace Poly
 {
-	struct MeshMaterialIDPair
-	{
-		PolyID MeshID;
-		PolyID MaterialID;
-	};
-
 	class ResourceImporter
 	{
 	public:
-		enum class ResourceType
+		struct ImportedResource
 		{
-			NONE		= 0,
-			MODEL		= 1,
-			TEXTURE		= 2,
-			MATERIAL	= 3,
+			PolyID ResourceID;
+			ResourceType Type;
 		};
 
 	public:
@@ -33,6 +27,8 @@ namespace Poly
 		~ResourceImporter() = default;
 
 		static void LoadImports();
+
+		static const std::unordered_map<std::string, ImportedResource>& GetImports();
 
 		static PolyID GetPathID(const std::string& path);
 
@@ -51,6 +47,6 @@ namespace Poly
 
 		static void CreateProjectFile();
 
-		static std::unordered_map<std::string, PolyID> m_PathToID;
+		static std::unordered_map<std::string, ImportedResource> m_PathToImportedResource;
 	};
 }

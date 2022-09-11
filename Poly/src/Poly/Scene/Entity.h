@@ -13,6 +13,8 @@ namespace Poly
 	public:
 		~Entity() = default;
 
+		static Entity None() { return Entity(nullptr, entt::null); }
+
 		void SetParent(Entity parent, uint8 siblingIndex = LAST_SIBLING_INDEX);
 
 		void SetSiblingIndex(uint8 index);
@@ -61,6 +63,7 @@ namespace Poly
 
 		operator entt::entity() const { return m_Entity; }
 		operator uint32() const { return entt::to_integral(m_Entity); }
+		bool operator==(const Entity& other) const { return other.m_Entity == m_Entity; }
 
 	private:
 		friend class Scene;

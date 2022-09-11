@@ -2,3 +2,5 @@ models: {models/Cube/Cube.gltf: 10769257606534950593}
 textures:
   models/Cube/Cube_BaseColor.png: 16559548834082573537
   models/Cube/Cube_MetallicRoughness.png: 9297794973963045492
+  ../assets/models/Cube/Cube_BaseColor.png: 3511152711129620217
+  ../assets/models/Cube/Cube_MetallicRoughness.png: 7487396080707164742

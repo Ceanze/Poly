@@ -20,35 +20,40 @@ namespace Poly
 		YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
 
 		if (projectFile["models"])
-			for (auto pair : projectFile["models"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
+			for (auto pair : projectFile["models"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::MODEL };
 
 		if (projectFile["textures"])
-			for (auto pair : projectFile["textures"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
+			for (auto pair : projectFile["textures"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::TEXTURE };
 
 		if (projectFile["materials"])
-			for (auto pair : projectFile["materials"]) m_PathToID[pair.first.as<std::string>()] = PolyID(pair.second.as<uint64>());
+			for (auto pair : projectFile["materials"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::MATERIAL };
+	}
+
+	const std::unordered_map<std::string, ResourceImporter::ImportedResource>& ResourceImporter::GetImports()
+	{
+		return m_PathToImportedResource;
 	}
 
 	PolyID ResourceImporter::GetPathID(const std::string& path)
 	{
 		if (IsImported(path))
-			return m_PathToID.at(path);
+			return m_PathToImportedResource.at(path).ResourceID;
 		return PolyID::None();
 	}
 
 	bool ResourceImporter::IsImported(const std::string& path)
 	{
-		return m_PathToID.contains(path);
+		return m_PathToImportedResource.contains(path);
 	}
 
 	PolyID ResourceImporter::Import(const std::string& path, ResourceType type)
 	{
 		if (IsImported(path))
-			return m_PathToID[path];
+			return m_PathToImportedResource[path].ResourceID;
 
 		PolyID pathID = PolyID();
 		UpdateProjectFile(path, pathID, type);
-		m_PathToID[path] = pathID;
+		m_PathToImportedResource[path] = { pathID, type };
 		return pathID;
 	}
 
@@ -97,5 +102,5 @@ namespace Poly
 		file.close();
 	}
 
-	std::unordered_map<std::string, PolyID> ResourceImporter::m_PathToID;
+	std::unordered_map<std::string, ResourceImporter::ImportedResource> ResourceImporter::m_PathToImportedResource;
 }

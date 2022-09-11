@@ -5,6 +5,7 @@
 namespace YAML
 {
 	class Emitter;
+	class Node;
 }
 
 namespace Poly
@@ -22,7 +23,8 @@ namespace Poly
 		void Deserialize(const std::string& path);
 
 	private:
-		void SerializeEntity(YAML::Emitter& emitter, Entity entity);
+		void SerializeEntity(EntitySerializer& entitySerializer, YAML::Emitter& emitter, Entity entity);
+		bool DeserializeEntity(EntitySerializer& entitySerializer, YAML::Node& node);
 
 		Ref<Scene> m_pScene;
 	};

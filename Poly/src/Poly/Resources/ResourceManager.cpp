@@ -17,6 +17,7 @@ namespace Poly
 	{
 		RegisterDefaults();
 		ResourceImporter::LoadImports();
+		RegisterImports();
 	}
 
 	void ResourceManager::Release()
@@ -362,6 +363,23 @@ namespace Poly
 
 		MaterialValues matVals = {};
 		pMaterial->SetMaterialValues(matVals);
+	}
+
+	void ResourceManager::RegisterImports()
+	{
+		const auto& imports = ResourceImporter::GetImports();
+		for (const auto& [path, importedResource] : imports)
+		{
+			if (!m_IDToHandle.contains(importedResource.ResourceID))
+			{
+				ResourceHandle handle = {};
+				handle.Path = IOManager::GetAssetsFolder() + path;
+				handle.Type	= importedResource.Type;
+				handle.IsLoaded = false;
+				handle.Index = UINT32_MAX;
+				m_IDToHandle[importedResource.ResourceID] = handle;
+			}
+		}
 	}
 
 	bool ResourceManager::HasCorrectResource(PolyID id, ResourceType type)

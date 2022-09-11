@@ -13,21 +13,20 @@ namespace Poly
 	class EntitySerializer
 	{
 	public:
-		EntitySerializer(YAML::Emitter& emitter);
+		EntitySerializer() = default;
+		~EntitySerializer() = default;
 
-		void Serialize(const Entity& entity);
+		void Serialize(YAML::Emitter& emitter, const Entity& entity);
+
+		void Deserialize(YAML::Node& node, Entity& entity);
 
 	private:
-		YAML::Emitter& m_Emitter;
+		void SerializeTransformComponent(YAML::Emitter& emitter, const Entity& entity);
+		void SerializeHierarchyComponent(YAML::Emitter& emitter, const Entity& entity);
+		void SerializeMeshComponent(YAML::Emitter& emitter, const Entity& entity);
 
-		void SerializeTransformComponent(const Entity& entity);
-		void SerializeHierarchyComponent(const Entity& entity);
-		void SerializeMeshComponent(const Entity& entity);
-	};
-
-	class EntityDeserializer
-	{
-	public:
-		EntityDeserializer(const YAML::Node& node);
+		void DeserializeTransformComponent(YAML::Node& node, Entity& entity);
+		void DeserializeHierarchyComponent(YAML::Node& node, Entity& entity);
+		void DeserializeMeshComponent(YAML::Node& node, Entity& entity);
 	};
 }

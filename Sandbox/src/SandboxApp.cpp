@@ -17,6 +17,8 @@
 #include <imgui/imgui.h>
 #include "Poly/Core/Input/Input.h"
 
+#include "Poly/Scene/SceneSerializer.h"
+
 class TestLayer : public Poly::Layer
 {
 public:
@@ -74,8 +76,12 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		Poly::Entity cubeEntity = pScene->CreateEntity();
-		Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
+		
+		Poly::SceneSerializer sceneSerializer(pScene);
+		sceneSerializer.Deserialize("CubeScene.polyscene");
+
+		// Poly::Entity cubeEntity = pScene->CreateEntity();
+		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
 		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program

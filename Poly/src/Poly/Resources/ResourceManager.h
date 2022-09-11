@@ -2,6 +2,7 @@
 
 #include "Poly/Scene/Entity.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "ResourceTypes.h"
 
 namespace Poly
 {
@@ -11,24 +12,8 @@ namespace Poly
 	class Material;
 	class TextureView;
 
-	struct ManagedTexture
-	{
-		Ref<Texture>		pTexture		= nullptr;
-		Ref<TextureView>	pTextureView	= nullptr;
-	};
-
 	class ResourceManager
 	{
-	private:
-		enum class ResourceType
-		{
-			NONE		= 0,
-			TEXTURE		= 1,
-			MODEL		= 2,
-			MESH		= 3,
-			MATERIAL	= 4
-		};
-
 	public:
 		inline static const PolyID DEFAULT_MATERIAL_ID = PolyID::None();
 		inline static const PolyID DEFAULT_TEXTURE_ID = PolyID::None();
@@ -66,17 +51,17 @@ namespace Poly
 		/**
 		 * Loads model from file and creates a hierarchy with the entity as root
 		 * @param path - path of model
-		 * @param root - root entity of the mesh hierarhcy
+		 * @param root - (optional) root entity of the mesh hierarhcy
 		 */
-		static void LoadModel(PolyID modelID, Entity root);
+		static void LoadModel(PolyID modelID, Entity root = Entity::None());
 
 		/**
 		 * Loads model from file and creates a hierarchy with the entity as root
 		 * @param path - path of model
-		 * @param root - root entity of the mesh hierarhcy
+		 * @param root - (optional) root entity of the mesh hierarhcy
 		 * @return PolyID of model
 		 */
-		static PolyID ImportAndLoadModel(const std::string& path, Entity root);
+		static PolyID ImportAndLoadModel(const std::string& path, Entity root = Entity::None());
 
 		/**
 		 * Loads a material from file
@@ -112,6 +97,7 @@ namespace Poly
 	private:
 		static void RegisterDefaults();
 		static void RegisterDefaultMaterial();
+		static void RegisterImports();
 		static bool HasCorrectResource(PolyID id, ResourceType type);
 
 		struct ResourceHandle
