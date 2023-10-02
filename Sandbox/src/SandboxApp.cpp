@@ -57,11 +57,13 @@ public:
 		// External resources
 		m_pGraph->AddExternalResource("camera", sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
 		m_pGraph->AddExternalResource("lights", sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
+		// m_pGraph->AddExternalResource(pScene->GetResourceGroup());
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "pbrPass");
 		m_pGraph->AddLink("$.camera", "pbrPass.camera");
 		m_pGraph->AddLink("$.lights", "pbrPass.lights");
+		// m_pGraph->AddLink("$.scene:instance", "pbrPass.scene:instance"); // Do this for each resource
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
 		m_pGraph->AddLink("pbrPass.out", "ImGuiPass.out");
@@ -76,7 +78,7 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
-		
+
 		Poly::SceneSerializer sceneSerializer(pScene);
 		sceneSerializer.Deserialize("CubeScene.polyscene");
 

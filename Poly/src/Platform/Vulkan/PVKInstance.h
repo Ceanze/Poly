@@ -98,7 +98,7 @@ namespace Poly
 		void CreateLogicalDevice();
 		void CreateVmaAllocator();
 		std::vector<const char*> GetRequiredExtensions();
-		void GetAllQueues();
+		void GetAllQueues(std::set<unsigned> queueFamiliesUsed);
 
 		VkDebugUtilsMessengerEXT	m_DebugMessenger;
 		static VkInstance			s_Instance;

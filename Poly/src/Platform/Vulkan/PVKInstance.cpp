@@ -503,7 +503,7 @@ namespace Poly
 
 		// Update queue count to match what the program can create
 		s_GraphicsQueueCount	= std::min(s_GraphicsQueueCount, graphicsQueueIndex.second);
-		s_ComputeQueueCount	= std::min(s_ComputeQueueCount, graphicsQueueIndex.second);
+		s_ComputeQueueCount		= std::min(s_ComputeQueueCount, graphicsQueueIndex.second);
 		s_TransferQueueCount	= std::min(s_TransferQueueCount, graphicsQueueIndex.second);
 
 		std::unordered_map<uint32_t, uint32_t> queueCounts;
@@ -554,7 +554,7 @@ namespace Poly
 		s_PresentQueue.queueIndex = indices.presentFamily.value();
 
 		//vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
-		GetAllQueues(); // This function does not check for present support, hence seperate functions
+		GetAllQueues(uniqueQueueFamilies); // This function does not check for present support, hence seperate functions
 		vkGetDeviceQueue(s_Device, indices.presentFamily.value(), 0, &s_PresentQueue.queue);
 	}
 
@@ -607,7 +607,7 @@ namespace Poly
 		return extensions;
 	}
 
-	void PVKInstance::GetAllQueues()
+	void PVKInstance::GetAllQueues(std::set<unsigned> queueFamiliesUsed)
 	{
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(s_PhysicalDevice, &queueFamilyCount, nullptr);
@@ -615,6 +615,11 @@ namespace Poly
 		vkGetPhysicalDeviceQueueFamilyProperties(s_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
 		for (uint32_t fIndex = 0; fIndex < queueFamilyCount; fIndex++) {
+			// Only get the queues that we have assigned to the logical device
+			if (!queueFamiliesUsed.contains(fIndex)) {
+				continue;
+			}
+
 			// Graphics queue
 			if (VK_QUEUE_GRAPHICS_BIT & queueFamilies[fIndex].queueFlags) {
 				s_Queues[FQueueType::GRAPHICS].resize(s_GraphicsQueueCount);
