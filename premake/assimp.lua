@@ -37,14 +37,14 @@ function generate_revision()
 	new_file:close()
 end
 
+local path = _WORKING_DIR .. "/Poly/libs/assimp"
+
 project "assimp"
   kind "StaticLib"
   language "C++"
   cppdialect "C++17"
-  location (_WORKING_DIR .. "/Poly/libs/assimp")
+  location (_WORKING_DIR .. "/projects/%{prj.name}")
 
---   targetdir ("%{prj.location}/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
---   objdir ("%{prj.location}/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
     targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
     objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
@@ -99,7 +99,7 @@ project "assimp"
       "ASSIMP_BUILD_NO_3MF_IMPORTER",
       "ASSIMP_BUILD_NO_X3D_IMPORTER",
       "ASSIMP_BUILD_NO_MMD_IMPORTER",
-      
+
       "ASSIMP_BUILD_NO_STEP_EXPORTER",
       "ASSIMP_BUILD_NO_SIB_IMPORTER",
 
@@ -135,58 +135,58 @@ project "assimp"
   }
 
   files {
-      "%{prj.location}/include/**",
-      "%{prj.location}/code/Common/Assimp.cpp",
-      "%{prj.location}/code/Common/BaseImporter.cpp",
-      "%{prj.location}/code/Common/CreateAnimMesh.cpp",
-      "%{prj.location}/code/Common/BaseProcess.cpp",
-      "%{prj.location}/code/PostProcessing/EmbedTexturesProcess.cpp",
-      "%{prj.location}/code/PostProcessing/ConvertToLHProcess.cpp",
-      "%{prj.location}/code/Common/DefaultIOStream.cpp",
-      "%{prj.location}/code/Common/DefaultIOSystem.cpp",
-      "%{prj.location}/code/Common/DefaultLogger.cpp",
-      "%{prj.location}/code/PostProcessing/GenVertexNormalsProcess.cpp",
-      "%{prj.location}/code/Common/Importer.cpp",
-      "%{prj.location}/code/Common/ImporterRegistry.cpp",
-      "%{prj.location}/code/Material/MaterialSystem.cpp",
-      "%{prj.location}/code/Common/PostStepRegistry.cpp",
-      "%{prj.location}/code/PostProcessing/ProcessHelper.cpp",
-      "%{prj.location}/code/Common/scene.cpp",
-      "%{prj.location}/code/Common/ScenePreprocessor.cpp",
-      "%{prj.location}/code/PostProcessing/ScaleProcess.cpp",
-      "%{prj.location}/code/Common/SGSpatialSort.cpp",
-      "%{prj.location}/code/Common/SkeletonMeshBuilder.cpp",
-      "%{prj.location}/code/Common/SpatialSort.cpp",
-      "%{prj.location}/code/PostProcessing/TriangulateProcess.cpp",
-      "%{prj.location}/code/PostProcessing/ValidateDataStructure.cpp",
-      "%{prj.location}/code/Common/Version.cpp",
-      "%{prj.location}/code/Common/VertexTriangleAdjacency.cpp",
-      "%{prj.location}/code/PostProcessing/MakeVerboseFormat.cpp",
-      "%{prj.location}/code/PostProcessing/CalcTangentsProcess.cpp",
-      "%{prj.location}/code/PostProcessing/ScaleProcess.cpp",
-      "%{prj.location}/code/PostProcessing/EmbedTexturesProcess.cpp",
-      "%{prj.location}/code/PostProcessing/GenBoundingBoxesProcess.cpp",
-      "%{prj.location}/code/PostProcessing/ArmaturePopulate.cpp",
-	  "%{prj.location}/code/Common/Exceptional.cpp",
-	  "%{prj.location}/code/Common/AssertHandler.cpp",
-	  "%{prj.location}/code/Common/material.cpp",
-	  "%{prj.location}/contrib/irrXML/*",
+      path .. "/include/**",
+      path .. "/code/Common/Assimp.cpp",
+      path .. "/code/Common/BaseImporter.cpp",
+      path .. "/code/Common/CreateAnimMesh.cpp",
+      path .. "/code/Common/BaseProcess.cpp",
+      path .. "/code/PostProcessing/EmbedTexturesProcess.cpp",
+      path .. "/code/PostProcessing/ConvertToLHProcess.cpp",
+      path .. "/code/Common/DefaultIOStream.cpp",
+      path .. "/code/Common/DefaultIOSystem.cpp",
+      path .. "/code/Common/DefaultLogger.cpp",
+      path .. "/code/PostProcessing/GenVertexNormalsProcess.cpp",
+      path .. "/code/Common/Importer.cpp",
+      path .. "/code/Common/ImporterRegistry.cpp",
+      path .. "/code/Material/MaterialSystem.cpp",
+      path .. "/code/Common/PostStepRegistry.cpp",
+      path .. "/code/PostProcessing/ProcessHelper.cpp",
+      path .. "/code/Common/scene.cpp",
+      path .. "/code/Common/ScenePreprocessor.cpp",
+      path .. "/code/PostProcessing/ScaleProcess.cpp",
+      path .. "/code/Common/SGSpatialSort.cpp",
+      path .. "/code/Common/SkeletonMeshBuilder.cpp",
+      path .. "/code/Common/SpatialSort.cpp",
+      path .. "/code/PostProcessing/TriangulateProcess.cpp",
+      path .. "/code/PostProcessing/ValidateDataStructure.cpp",
+      path .. "/code/Common/Version.cpp",
+      path .. "/code/Common/VertexTriangleAdjacency.cpp",
+      path .. "/code/PostProcessing/MakeVerboseFormat.cpp",
+      path .. "/code/PostProcessing/CalcTangentsProcess.cpp",
+      path .. "/code/PostProcessing/ScaleProcess.cpp",
+      path .. "/code/PostProcessing/EmbedTexturesProcess.cpp",
+      path .. "/code/PostProcessing/GenBoundingBoxesProcess.cpp",
+      path .. "/code/PostProcessing/ArmaturePopulate.cpp",
+	    path .. "/code/Common/Exceptional.cpp",
+	    path .. "/code/Common/AssertHandler.cpp",
+	    path .. "/code/Common/material.cpp",
+	    path .. "/contrib/irrXML/*",
 
 	  -- Custom
-	  "%{prj.location}/code/AssetLib/Obj/**",
-	  "%{prj.location}/code/AssetLib/glTF/**",
-	  "%{prj.location}/code/AssetLib/glTF2/**",
+	  path .. "/code/AssetLib/Obj/**",
+	  path .. "/code/AssetLib/glTF/**",
+	  path .. "/code/AssetLib/glTF2/**",
   }
 
   includedirs {
-      "%{prj.location}",
-      "%{prj.location}/include",
-      "%{prj.location}/code",
-      "%{prj.location}/contrib",
-      "%{prj.location}/contrib/irrXML",
-      "%{prj.location}/contrib/zlib",
-      "%{prj.location}/contrib/pugixml/src",
-      "%{prj.location}/contrib/rapidjson/include",
+      path,
+      path .. "/include",
+      path .. "/code",
+      path .. "/contrib",
+      path .. "/contrib/irrXML",
+      path .. "/contrib/zlib",
+      path .. "/contrib/pugixml/src",
+      path .. "/contrib/rapidjson/include",
   }
 
 

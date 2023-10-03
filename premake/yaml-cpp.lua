@@ -3,7 +3,7 @@ local path = "../Poly/libs/yaml-cpp/"
 project "yaml-cpp"
 	kind "StaticLib"
 	language "C++"
-	location (path)
+	location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 	targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 	objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")

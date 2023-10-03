@@ -2,31 +2,29 @@ function generate_osdeplib(libpath)
 	project "OSDependent"
 		kind "StaticLib"
 		language "C++"
+		location (_WORKING_DIR .. "/projects/%{prj.name}")
+
+		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
+		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		filter "system:windows"
-			location (libpath .. "/glslang/OSDependent/Windows")
-
-			targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-			objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+			local root = libpath .. "/glslang/OSDependent/Windows"
 
 			files
 			{
-				"%{prj.location}/ossource.cpp",
-				"%{prj.location}/../osinclude.h"
+				root .. "/ossource.cpp",
+				root .. "/../osinclude.h"
 			}
 
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
-	
-		filter "system:linux OR system:macosx"
-			location (libpath .. "/OSDependent/Unix")
 
-			targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
-			objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
+		filter "system:linux OR system:macosx"
+			local root = libpath .. "/OSDependent/Unix"
 
 			files
 			{
-				"%{prj.location}/ossource.cpp",
-				"%{prj.location}/../osinclude.h"
+				root .. "/ossource.cpp",
+				root .. "/../osinclude.h"
 			}
 
 			defines { "GLSLANG_OSINCLUDE_UNIX" }
@@ -34,20 +32,22 @@ function generate_osdeplib(libpath)
 end
 
 function generate_oglcompilerslib(libpath)
+	local root = libpath .. "/OGLCompilersDLL"
+
 	project "OGLCompiler"
 		kind "StaticLib"
 		language "C++"
-		location (libpath .. "/OGLCompilersDLL")
+		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		files
 		{
-			"%{prj.location}/InitializeDll.cpp",
-			"%{prj.location}/InitializeDll.h"
+			root .. "/InitializeDll.cpp",
+			root .. "/InitializeDll.h"
 		}
 
 		filter "system:windows"
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
-	
+
 		filter "system:linux OR system:macosx"
 			defines { "GLSLANG_OSINCLUDE_UNIX" }
 		filter {}
@@ -56,23 +56,25 @@ end
 function generate_glslanglib(libpath)
 	generate_osdeplib(libpath)
 
+	local root = libpath .. "/glslang"
+
 	project "GenericCodeGen"
 		kind "StaticLib"
 		language "C++"
-		location (libpath .. "/glslang")
+		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		files
 		{
-			"%{prj.location}/GenericCodeGen/Link.cpp",
-			"%{prj.location}/GenericCodeGen/CodeGen.cpp",
+			root .. "/GenericCodeGen/Link.cpp",
+			root .. "/GenericCodeGen/CodeGen.cpp",
 		}
 
 		filter "system:windows"
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
-	
+
 		filter "system:linux OR system:macosx"
 			defines { "GLSLANG_OSINCLUDE_UNIX" }
 		filter {}
@@ -80,20 +82,20 @@ function generate_glslanglib(libpath)
 	project "MachineIndependent"
 		kind "StaticLib"
 		language "C++"
-		location (libpath .. "/glslang")
+		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
 		includedirs
 		{
-			libpath .. "/include"
+			_WORKING_DIR .. "/projects/glslang/include"
 		}
 
 		files
 		{
-			"%{prj.location}/MachineIndependent/**.h",
-			"%{prj.location}/MachineIndependent/**.cpp",
+			root .. "/MachineIndependent/**.h",
+			root .. "/MachineIndependent/**.cpp",
 		}
 
 		links
@@ -105,7 +107,7 @@ function generate_glslanglib(libpath)
 
 		filter "system:windows"
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
-	
+
 		filter "system:linux OR system:macosx"
 			defines { "GLSLANG_OSINCLUDE_UNIX" }
 		filter {}
@@ -113,8 +115,8 @@ function generate_glslanglib(libpath)
 	project "glslang"
 		kind "StaticLib"
 		language "C++"
-		location (libpath .. "/glslang")
-		
+		location (_WORKING_DIR .. "/projects/%{prj.name}")
+
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
@@ -125,9 +127,9 @@ function generate_glslanglib(libpath)
 
 		files
 		{
-			"%{prj.location}/CInterface/glslang_c_interface.cpp",
-			"%{prj.location}/Include/**.h",
-			"%{prj.location}/Public/ShaderLang.h"
+			root .. "/CInterface/glslang_c_interface.cpp",
+			root .. "/Include/**.h",
+			root .. "/Public/ShaderLang.h"
 		}
 
 		links
@@ -139,17 +141,19 @@ function generate_glslanglib(libpath)
 
 		filter "system:windows"
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
-	
+
 		filter "system:linux OR system:macosx"
 			defines { "GLSLANG_OSINCLUDE_UNIX" }
 		filter {}
 end
 
 function generate_spirvlib(libpath)
+	local root = libpath .. "/SPIRV"
+
 	project "SPIRV"
 		kind "StaticLib"
 		language "C++"
-		location (libpath .. "/SPIRV")
+		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
@@ -157,44 +161,44 @@ function generate_spirvlib(libpath)
 		includedirs
 		{
 			libpath,
-			libpath .. "/include"
+			_WORKING_DIR .. "/projects/glslang/include"
 		}
 
 		files
 		{
 			-- Sources
-			"%{prj.location}/GlslangToSpv.cpp",
-			"%{prj.location}/InReadableOrder.cpp",
-			"%{prj.location}/Logger.cpp",
-			"%{prj.location}/SpvBuilder.cpp",
-			"%{prj.location}/SpvPostProcess.cpp",
-			"%{prj.location}/doc.cpp",
-			"%{prj.location}/SpvTools.cpp",
-			"%{prj.location}/disassemble.cpp",
-			"%{prj.location}/CInterface/spirv_c_interface.cpp",
+			root .. "/GlslangToSpv.cpp",
+			root .. "/InReadableOrder.cpp",
+			root .. "/Logger.cpp",
+			root .. "/SpvBuilder.cpp",
+			root .. "/SpvPostProcess.cpp",
+			root .. "/doc.cpp",
+			root .. "/SpvTools.cpp",
+			root .. "/disassemble.cpp",
+			root .. "/CInterface/spirv_c_interface.cpp",
 
 			-- Headers
-			"%{prj.location}/bitutils.h",
-			"%{prj.location}/spirv.hpp",
-			"%{prj.location}/GLSL.std.450.h",
-			"%{prj.location}/GLSL.ext.EXT.h",
-			"%{prj.location}/GLSL.ext.KHR.h",
-			"%{prj.location}/GlslangToSpv.h",
-			"%{prj.location}/hex_float.h",
-			"%{prj.location}/Logger.h",
-			"%{prj.location}/SpvBuilder.h",
-			"%{prj.location}/spvIR.h",
-			"%{prj.location}/doc.h",
-			"%{prj.location}/SpvTools.h",
-			"%{prj.location}/disassemble.h",
-			"%{prj.location}/GLSL.ext.AMD.h",
-			"%{prj.location}/GLSL.ext.NV.h",
-			"%{prj.location}/NonSemanticDebugPrintf.h"
+			root .. "/bitutils.h",
+			root .. "/spirv.hpp",
+			root .. "/GLSL.std.450.h",
+			root .. "/GLSL.ext.EXT.h",
+			root .. "/GLSL.ext.KHR.h",
+			root .. "/GlslangToSpv.h",
+			root .. "/hex_float.h",
+			root .. "/Logger.h",
+			root .. "/SpvBuilder.h",
+			root .. "/spvIR.h",
+			root .. "/doc.h",
+			root .. "/SpvTools.h",
+			root .. "/disassemble.h",
+			root .. "/GLSL.ext.AMD.h",
+			root .. "/GLSL.ext.NV.h",
+			root .. "/NonSemanticDebugPrintf.h"
 		}
 
 		filter "system:windows"
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
-	
+
 		filter "system:linux OR system:macosx"
 			defines { "GLSLANG_OSINCLUDE_UNIX" }
 		filter {}
@@ -209,7 +213,7 @@ group "glslang"
 
 	local buildInfoPy	= path .. "/build_info.py"
 	local buildInfoTmpl	= path .. "/build_info.h.tmpl"
-	local includeDir	= path .. "/include"
+	local includeDir	= _WORKING_DIR .. "/projects/glslang/include"
 	local buildInfoH	= includeDir .. "/glslang/build_info.h"
 
 	prebuildcommands

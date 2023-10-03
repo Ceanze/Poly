@@ -3,7 +3,7 @@ local path = "../Poly/libs/glfw/"
 project "GLFW"
 	kind "StaticLib"
 	language "C"
-	location (path)
+	location (_WORKING_DIR .. "/projects/%{prj.name}")
 
     targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
     objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
@@ -20,7 +20,7 @@ project "GLFW"
 		path .. "src/vulkan.c",
 		path .. "src/window.c"
 	}
-	
+
 	filter "system:windows"
 		systemversion "latest"
 		staticruntime "On"
@@ -38,7 +38,7 @@ project "GLFW"
 			path .. "src/osmesa_context.c"
 		}
 
-		defines 
+		defines
 		{
 			"_GLFW_WIN32",
 			"_CRT_SECURE_NO_WARNINGS"
