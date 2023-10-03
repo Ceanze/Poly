@@ -41,21 +41,21 @@ namespace Poly
 		template <typename Component, typename... Args>
 		Component& AddComponent(Args&&... args)
 		{
-			POLY_VALIDATE(!HasComponent<Component>(), "Cannot add component, entity {} already has it", m_Entity);
+			POLY_VALIDATE(!HasComponent<Component>(), "Cannot add component, entity {} already has it", static_cast<uint32_t>(m_Entity));
 			return m_pScene->m_Registry.emplace<Component>(m_Entity, std::forward<Args>(args)...);
 		}
 
 		template <typename Component>
 		void RemoveComponent()
 		{
-			POLY_VALIDATE(HasComponent<Component>(), "Cannot remove component, entity {} does not have it", m_Entity);
+			POLY_VALIDATE(HasComponent<Component>(), "Cannot remove component, entity {} does not have it", static_cast<uint32_t>(m_Entity));
 			m_pScene->m_Registry.remove<Component>(m_Entity);
 		}
 
 		template <typename Component>
 		Component& GetComponent() const
 		{
-			POLY_VALIDATE(HasComponent<Component>(), "Cannot get component, entity {} does not have it", m_Entity);
+			POLY_VALIDATE(HasComponent<Component>(), "Cannot get component, entity {} does not have it", static_cast<uint32_t>(m_Entity));
 			return m_pScene->m_Registry.get<Component>(m_Entity);
 		}
 

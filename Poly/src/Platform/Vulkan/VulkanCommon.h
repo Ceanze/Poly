@@ -83,7 +83,7 @@ namespace Poly {
 		if (backupQueueSet)
 			return backupQueue;
 
-		POLY_VALIDATE(false, "Failed to find queue index for queue family {}!", queueFamily);
+		POLY_VALIDATE(false, "Failed to find queue index for queue family {}!", static_cast<uint32>(queueFamily));
 		return {0, 0};
 	}
 

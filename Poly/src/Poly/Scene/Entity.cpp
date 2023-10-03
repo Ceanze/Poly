@@ -17,7 +17,7 @@ namespace Poly
 		HierarchyComponent* selfHierarchy = m_pScene->m_Registry.try_get<HierarchyComponent>(m_Entity);
 		if (!selfHierarchy || selfHierarchy->Parent == entt::null)
 		{
-			POLY_CORE_WARN("Cannot set sibling index of entity {}, no parent has been set", m_Entity);
+			POLY_CORE_WARN("Cannot set sibling index of entity {}, no parent has been set", static_cast<uint32>(m_Entity));
 			return;
 		}
 

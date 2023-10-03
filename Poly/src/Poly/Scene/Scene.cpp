@@ -68,10 +68,10 @@ namespace Poly
 			if (m_Registry.any_of<IDComponent>(entity))
 				return m_Registry.get<IDComponent>(entity).ID;
 
-			POLY_CORE_WARN("Cannot get ID of entity {}, entity does not have IDComponent", entity);
+			POLY_CORE_WARN("Cannot get ID of entity {}, entity does not have IDComponent", static_cast<uint32>(entity));
 		}
 
-		POLY_CORE_WARN("Cannot get entity {}, identifer is not valid", entity);
+		POLY_CORE_WARN("Cannot get entity {}, identifer is not valid", static_cast<uint32>(entity));
 		return PolyID::None();
 	}
 }
