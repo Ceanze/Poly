@@ -358,3 +358,4 @@ bin-int/
 *.filters
 *.sln
 imgui.ini
+projects/*
