@@ -81,9 +81,9 @@ namespace Poly
 
 		switch (type)
 		{
-			case ResourceType::MODEL: projectFile["models"][path] = std::format("{}", (uint64)pathID); break;
-			case ResourceType::TEXTURE: projectFile["textures"][path] = std::format("{}", (uint64)pathID); break;
-			case ResourceType::MATERIAL: projectFile["material"][path] = std::format("{}", (uint64)pathID); break;
+			case ResourceType::MODEL: projectFile["models"][path] = std::format("{}", static_cast<uint64>(pathID)); break;
+			case ResourceType::TEXTURE: projectFile["textures"][path] = std::format("{}", static_cast<uint64>(pathID)); break;
+			case ResourceType::MATERIAL: projectFile["material"][path] = std::format("{}", static_cast<uint64>(pathID)); break;
 		}
 
 		std::ofstream file(PROJECT_POLYRES_FILE);

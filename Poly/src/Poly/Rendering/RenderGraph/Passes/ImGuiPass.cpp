@@ -112,10 +112,10 @@ namespace Poly
 				{
 					const ImDrawCmd* pCmd = &cmdList->CmdBuffer[j];
 					ScissorDesc scissor = {};
-					scissor.OffsetX	= std::max((int)pCmd->ClipRect.x, 0);
-					scissor.OffsetY	= std::max((int)pCmd->ClipRect.y, 0);
-					scissor.Width	= (uint32)(pCmd->ClipRect.z - pCmd->ClipRect.x);
-					scissor.Height	= (uint32)(pCmd->ClipRect.w - pCmd->ClipRect.y);
+					scissor.OffsetX	= std::max(static_cast<int>(pCmd->ClipRect.x), 0);
+					scissor.OffsetY	= std::max(static_cast<int>(pCmd->ClipRect.y), 0);
+					scissor.Width	= static_cast<uint32>(pCmd->ClipRect.z - pCmd->ClipRect.x);
+					scissor.Height	= static_cast<uint32>(pCmd->ClipRect.w - pCmd->ClipRect.y);
 					pCommandBuffer->SetScissor(&scissor);
 
 					pCommandBuffer->DrawIndexedInstanced(pCmd->ElemCount, 1, indexOffset, vertexOffset, 0);

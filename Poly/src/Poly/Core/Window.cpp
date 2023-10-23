@@ -83,10 +83,10 @@ namespace Poly
 		if (Input::IsKeyToggled(KeyCode(EKey::C))) {
 			int width, height;
 			glfwGetWindowSize(pWindow, &width, &height);
-			glfwSetCursorPos(pWindow, (double)width * 0.5, (double)height * 0.5);
+			glfwSetCursorPos(pWindow, static_cast<double>(width) * 0.5, static_cast<double>(height) * 0.5);
 			glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			// Send cursor offset from centre of window
-			Input::SetMouseDelta(x - (double)width * 0.5, y - (double)height * 0.5);
+			Input::SetMouseDelta(x - static_cast<double>(width) * 0.5, y - static_cast<double>(height) * 0.5);
 		}
 		else {
 			glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);

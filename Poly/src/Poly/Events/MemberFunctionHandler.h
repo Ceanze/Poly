@@ -12,7 +12,7 @@ namespace Poly
 	unsigned getID(T* instance)
 	{
 		size_t h = typeid(EventType).hash_code();
-		return (unsigned)(h - (size_t)instance);
+		return static_cast<unsigned>(h - reinterpret_cast<size_t>(instance));
 	}
 
 	class HandlerFunctionBase

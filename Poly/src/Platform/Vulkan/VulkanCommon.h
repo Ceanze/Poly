@@ -97,7 +97,7 @@ namespace Poly {
 		}
 
 		// Get size
-		size_t fileSize = (size_t)file.tellg();
+		size_t fileSize = static_cast<size_t>(file.tellg());
 		std::vector<char> buffer(fileSize);
 
 		// Read file
