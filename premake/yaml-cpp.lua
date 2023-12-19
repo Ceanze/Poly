@@ -20,10 +20,11 @@ project "yaml-cpp"
 		path .. "include"
 	}
 
+	cppdialect "C++17"
+	staticruntime "off"
+	
 	filter "system:windows"
 		systemversion "latest"
-		cppdialect "C++17"
-		staticruntime "off"
 
 	filter "configurations:Debug"
 		runtime "Debug"

@@ -1,3 +1,24 @@
+function generate_prebuildcommands(path)
+	-- This prebuildcommand needs to happen before all dependnecies in glslang
+	-- Therefore it is called in the lowest denominator (GenericCodeGen)
+	local buildInfoPy	= path .. "/build_info.py"
+	local buildInfoTmpl	= path .. "/build_info.h.tmpl"
+	local includeDir	= _WORKING_DIR .. "/projects/glslang/include"
+	local buildInfoH	= includeDir .. "/glslang/build_info.h"
+
+	filter "system:windows"
+		prebuildcommands
+		{
+			"python " .. buildInfoPy .. " " .. path .. " -i " .. buildInfoTmpl .. " -o " .. buildInfoH
+		}
+	filter "system:macosx"
+		prebuildcommands
+		{
+			"python3 " .. buildInfoPy .. " " .. path .. " -i " .. buildInfoTmpl .. " -o " .. buildInfoH
+		}
+	filter {}
+end
+
 function generate_osdeplib(libpath)
 	project "OSDependent"
 		kind "StaticLib"
@@ -19,7 +40,7 @@ function generate_osdeplib(libpath)
 			defines { "GLSLANG_OSINCLUDE_WIN32" }
 
 		filter "system:linux OR system:macosx"
-			local root = libpath .. "/OSDependent/Unix"
+			local root = libpath .. "/glslang/OSDependent/Unix"
 
 			files
 			{
@@ -61,7 +82,10 @@ function generate_glslanglib(libpath)
 	project "GenericCodeGen"
 		kind "StaticLib"
 		language "C++"
+		cppdialect "C++20"
 		location (_WORKING_DIR .. "/projects/%{prj.name}")
+
+		generate_prebuildcommands(libpath)
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 		objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
@@ -82,6 +106,7 @@ function generate_glslanglib(libpath)
 	project "MachineIndependent"
 		kind "StaticLib"
 		language "C++"
+		cppdialect "C++20"
 		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
@@ -115,6 +140,7 @@ function generate_glslanglib(libpath)
 	project "glslang"
 		kind "StaticLib"
 		language "C++"
+		cppdialect "C++20"
 		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
@@ -153,6 +179,7 @@ function generate_spirvlib(libpath)
 	project "SPIRV"
 		kind "StaticLib"
 		language "C++"
+		cppdialect "C++20"
 		location (_WORKING_DIR .. "/projects/%{prj.name}")
 
 		targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
@@ -208,17 +235,8 @@ local path = ( _WORKING_DIR .. "/Poly/libs/glslang")
 
 group "glslang"
 	generate_glslanglib(path)
+	generate_prebuildcommands(path)
 	generate_oglcompilerslib(path)
 	generate_spirvlib(path)
-
-	local buildInfoPy	= path .. "/build_info.py"
-	local buildInfoTmpl	= path .. "/build_info.h.tmpl"
-	local includeDir	= _WORKING_DIR .. "/projects/glslang/include"
-	local buildInfoH	= includeDir .. "/glslang/build_info.h"
-
-	prebuildcommands
-	{
-		"python " .. buildInfoPy .. " " .. path .. " -i " .. buildInfoTmpl .. " -o " .. buildInfoH
-	}
 
 group ""

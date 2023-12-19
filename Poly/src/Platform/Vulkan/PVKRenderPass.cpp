@@ -18,8 +18,14 @@ namespace Poly
 
 		for (auto& attachDesc : pDesc->Attachments)
 		{
+			VkFormat vkFormat = ConvertFormatVK(attachDesc.Format);
+			if (attachDesc.Format == EFormat::DEPTH_STENCIL)
+			{
+				vkFormat = PVKInstance::FindDepthFormat();
+			}
+
 			VkAttachmentDescription descVK = {};
-			descVK.format			= ConvertFormatVK(attachDesc.Format);
+			descVK.format			= vkFormat;
 			descVK.samples			= ConvertSampleCountVK(attachDesc.SampleCount);
 			descVK.loadOp			= ConvertLoadOpVK(attachDesc.LoadOp);
 			descVK.storeOp			= ConvertStoreOpVK(attachDesc.StoreOp);

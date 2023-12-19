@@ -79,7 +79,7 @@ namespace Poly
 				barrier.SrcQueueIndex	= 0;
 				barrier.DstQueueIndex	= 0;
 				barrier.pTexture		= pTexture;
-				barrier.AspectMask		= pTexture->GetDesc().Format == EFormat::D24_UNORM_S8_UINT ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
+				barrier.AspectMask		= pTexture->GetDesc().Format == EFormat::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR; // TODO: Handle either cusom options or more gradual choises
 				textureBarriers.push_back(barrier);
 
 				srcStage |= data.SrcPipelineStage;

@@ -30,6 +30,12 @@ namespace Poly
 	{
 		VkSampleCountFlagBits sampleCount = ConvertSampleCountVK(p_TextureDesc.SampleCount);
 
+		VkFormat vkFormat = ConvertFormatVK(p_TextureDesc.Format);
+		if (p_TextureDesc.Format == EFormat::DEPTH_STENCIL)
+		{
+			vkFormat = PVKInstance::FindDepthFormat();
+		}
+
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType					= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType				= ConvertTextureDimVK(p_TextureDesc.TextureDim);
@@ -38,7 +44,7 @@ namespace Poly
 		imageInfo.extent.depth			= p_TextureDesc.Depth;
 		imageInfo.mipLevels				= p_TextureDesc.MipLevels;
 		imageInfo.arrayLayers			= p_TextureDesc.ArrayLayers;
-		imageInfo.format				= ConvertFormatVK(p_TextureDesc.Format);
+		imageInfo.format				= vkFormat;
 		//If you want to be able to directly access texels in the memory of the image, then you must use VK_IMAGE_TILING_LINEAR
 		imageInfo.tiling				= VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout			= VK_IMAGE_LAYOUT_UNDEFINED;

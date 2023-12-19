@@ -1,6 +1,7 @@
 function get_vk_sdk_path()
-	-- These are SDK Path Environment Variables that are set on windows when Vulkan installs
-	local sdkPathVars = {"VK_SDK_PATH", "VULKAN_SDK"}
+	-- TODO: VULKAN_SDK should be enough - but for windows the VK_SDK_PATH might be needed - check if this is the case
+	-- local sdkPathVars = {"VK_SDK_PATH", "VULKAN_SDK"}
+	local sdkPathVars = {"VULKAN_SDK"}
 	for _, sdkPathVar in ipairs(sdkPathVars) do
 		sdkPath = os.getenv(sdkPathVar)
 		if sdkPath ~= nil then
@@ -8,8 +9,13 @@ function get_vk_sdk_path()
 		end
 	end
 
-	print(string.format("No environment variables for path to Vulkan SDK are set: %s", array_to_string(sdkPathVars)))
+	print(string.format("No environment variables for path to Vulkan SDK are set: %s", sdkPathVars[0]))
 	return ""
+end
+
+-- TODO: Add a proper search for this variable
+function get_vulkan_include_dir(vkPath)
+	return vkPath .. "/include"
 end
 
 function generate_glslang()
@@ -38,6 +44,7 @@ workspace "Poly"
 	architecture "x64"
 	startproject "Sandbox"
 	language "C++"
+	cppdialect "C++20"
 
 	configurations
 	{
@@ -54,6 +61,12 @@ workspace "Poly"
 		defines
 		{
 			"POLY_PLATFORM_WINDOWS"
+		}
+
+	filter "system:macosx"
+		defines
+		{
+			"POLY_PLATFORM_MACOS"
 		}
 
 	filter "configurations:Debug"
@@ -97,17 +110,23 @@ end
 project "Poly"
 	location "Poly"
 	kind "StaticLib"
-	cppdialect "C++latest"
+	cppdialect "C++20"
 
-	pchheader "polypch.h"
-	pchsource "%{prj.name}/src/polypch.cpp"
+	filter "system:macosx"
+	    links
+	    {
+	        "vulkan"
+	    }
 
-	setDirs()
-	srcFiles()
+	filter "system:windows"
+	    links
+	    {
+	        "vulkan-1"
+	    }
+    filter {}
 
 	links
 	{
-		"vulkan-1",
 		"assimp",
 		"glfw",
 		"glslang",
@@ -131,19 +150,35 @@ project "Poly"
 		"%{prj.name}/libs/yaml-cpp/include",
 	}
 
+	-- TODO: Check if just "polypch.h" is enough for windows too
+	filter "system:windows"
+		pchheader "polypch.h"
+		pchsource "%{prj.name}/src/polypch.cpp"
+
+	filter "action:not vs*"
+		pchheader "polypch.h"
+
+	filter "system:macosx"
+		defines { "VK_USE_PLATFORM_MACOS_MVK" }
+	filter {}
+
+	setDirs()
+	srcFiles()
+
 	forceincludes
 	{
 		"polypch.h"
 	}
 
+	-- TODO: Check case sensitivity (Lib vs lib)
 	libdirs
 	{
-		vkPath .. "/Lib",
+		vkPath .. "/lib",
 	}
 
 	sysincludedirs
 	{
-		vkPath .. "/Include",
+		get_vulkan_include_dir(vkPath)
 	}
 
 	filter "system:windows"
@@ -152,7 +187,7 @@ project "Poly"
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
-	cppdialect "c++latest"
+	cppdialect "c++20"
 
 	setDirs()
 	srcFiles()

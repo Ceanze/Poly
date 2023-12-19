@@ -4,8 +4,10 @@
 
 // glslang
 #include <StandAlone/DirStackFileIncluder.h>
-#include <glslang/SPIRV/GlslangToSpv.h>
+#include <SPIRV/GlslangToSpv.h> // TODO: Make sure this path works on Windows too
 #include <glslang/MachineIndependent/reflection.h>
+
+#include <SPIRV/GlslangToSpv.h>
 
 namespace Poly
 {

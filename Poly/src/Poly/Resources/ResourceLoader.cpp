@@ -6,7 +6,6 @@
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/Semaphore.h"
-#include "Platform/API/TextureView.h"
 #include "Platform/API/CommandPool.h"
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/CommandBuffer.h"
@@ -29,6 +28,53 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+namespace {
+    Poly::Material::Type ConvertTextureType(aiTextureType aiType)
+    {
+        using namespace Poly;
+
+        switch (aiType)
+        {
+            case aiTextureType_BASE_COLOR:			return Material::Type::ALBEDO;
+            case aiTextureType_DIFFUSE:				return Material::Type::ALBEDO;
+
+            case aiTextureType_NORMAL_CAMERA:		return Material::Type::NORMAL;
+            case aiTextureType_NORMALS:				return Material::Type::NORMAL;
+            case aiTextureType_HEIGHT:				return Material::Type::NORMAL;
+
+            case aiTextureType_AMBIENT_OCCLUSION:	return Material::Type::AMBIENT_OCCLUSION;
+            case aiTextureType_AMBIENT:				return Material::Type::AMBIENT_OCCLUSION;
+
+            case aiTextureType_METALNESS:			return Material::Type::METALIC;
+            case aiTextureType_REFLECTION:			return Material::Type::METALIC;
+
+            case aiTextureType_DIFFUSE_ROUGHNESS:	return Material::Type::ROUGHNESS;
+            case aiTextureType_SHININESS:			return Material::Type::ROUGHNESS;
+
+            case aiTextureType_UNKNOWN:				return Material::Type::COMBINED;
+
+            default:								return Material::Type::NONE;
+        }
+    }
+
+    void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Poly::Ref<Poly::Material>& pPolyMaterial, const std::string& folder)
+    {
+        using namespace Poly;
+
+        aiString path;
+        if (pMaterial->GetTexture(type, index, &path) != AI_SUCCESS)
+        {
+            POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
+            return;
+        }
+        PolyID id = ResourceManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
+
+        ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
+        pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
+        pPolyMaterial->SetTextureView(ConvertTextureType(type), managedTexture.pTextureView.get());
+    }
+}
 
 namespace Poly
 {
@@ -241,16 +287,20 @@ namespace Poly
 		s_TransferCommandBuffer->CopyBufferToTexture(pBuffer.get(), pTexture.get(), ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
 
 		// 3. Release texture from transfer queue
-		s_TransferCommandBuffer->ReleaseTexture(
-			pTexture.get(),
-			FPipelineStage::TRANSFER,
-			FPipelineStage::TRANSFER,
-			FAccessFlag::TRANSFER_READ,
-			ETextureLayout::TRANSFER_DST_OPTIMAL,
-			ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-		);
+		const bool transferGraphicsSameQueue = RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex() == RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex();
+		if (!transferGraphicsSameQueue)
+		{
+			s_TransferCommandBuffer->ReleaseTexture(
+				pTexture.get(),
+				FPipelineStage::TRANSFER,
+				FPipelineStage::TRANSFER,
+				FAccessFlag::TRANSFER_READ,
+				ETextureLayout::TRANSFER_DST_OPTIMAL,
+				ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+				RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+				RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
+			);
+		}
 		s_TransferCommandBuffer->End();
 
 		// 4. Semaphore to make sure the transfer is done before acquire
@@ -264,16 +314,19 @@ namespace Poly
 		s_GraphicsCommandPool->Reset();
 		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 
-		s_GraphicsCommandBuffer->AcquireTexture(
-			pTexture.get(),
-			FPipelineStage::TRANSFER,
-			FPipelineStage::TRANSFER,
-			FAccessFlag::TRANSFER_READ,
-			ETextureLayout::TRANSFER_DST_OPTIMAL,
-			ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-		);
+		if (transferGraphicsSameQueue)
+		{
+			s_GraphicsCommandBuffer->AcquireTexture(
+				pTexture.get(),
+				FPipelineStage::TRANSFER,
+				FPipelineStage::TRANSFER,
+				FAccessFlag::TRANSFER_READ,
+				ETextureLayout::TRANSFER_DST_OPTIMAL,
+				ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+				RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+				RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
+			);
+		}
 		s_GraphicsCommandBuffer->End();
 
 		// 7. Submit to graphics queue
@@ -603,46 +656,5 @@ namespace Poly
 							mat->a2, mat->b2, mat->c2, mat->d2,
 							mat->a3, mat->b3, mat->c3, mat->d3,
 							mat->a4, mat->b4, mat->c4, mat->d4);
-	}
-
-	void ResourceLoader::LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial, const std::string& folder)
-	{
-		aiString path;
-		if (pMaterial->GetTexture(type, index, &path) != AI_SUCCESS)
-		{
-			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
-			return;
-		}
-		PolyID id = ResourceManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
-
-		ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
-		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
-		pPolyMaterial->SetTextureView(ConvertTextureType(type), managedTexture.pTextureView.get());
-	}
-
-	Material::Type ResourceLoader::ConvertTextureType(aiTextureType aiType)
-	{
-		switch (aiType)
-		{
-			case aiTextureType_BASE_COLOR:			return Material::Type::ALBEDO;
-			case aiTextureType_DIFFUSE:				return Material::Type::ALBEDO;
-
-			case aiTextureType_NORMAL_CAMERA:		return Material::Type::NORMAL;
-			case aiTextureType_NORMALS:				return Material::Type::NORMAL;
-			case aiTextureType_HEIGHT:				return Material::Type::NORMAL;
-
-			case aiTextureType_AMBIENT_OCCLUSION:	return Material::Type::AMBIENT_OCCLUSION;
-			case aiTextureType_AMBIENT:				return Material::Type::AMBIENT_OCCLUSION;
-
-			case aiTextureType_METALNESS:			return Material::Type::METALIC;
-			case aiTextureType_REFLECTION:			return Material::Type::METALIC;
-
-			case aiTextureType_DIFFUSE_ROUGHNESS:	return Material::Type::ROUGHNESS;
-			case aiTextureType_SHININESS:			return Material::Type::ROUGHNESS;
-
-			case aiTextureType_UNKNOWN:				return Material::Type::COMBINED;
-
-			default:								return Material::Type::NONE;
-		}
 	}
 }

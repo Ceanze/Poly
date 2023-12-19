@@ -10,6 +10,7 @@
 #include "Poly/Core/Utils/DirectedGraph.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
+#include "Poly/Poly/Format.h"
 
 namespace Poly
 {
@@ -188,7 +189,7 @@ namespace Poly
 		const auto& resources = pResourceGroup->GetResources();
 		for (auto& resource : resources)
 		{
-			std::string name = std::format("{}:{}", groupName, resource.first);
+			std::string name = Poly::Format("{}:{}", groupName, resource.first);
 			if (m_ExternalResources.contains(name))
 			{
 				POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);

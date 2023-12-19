@@ -52,6 +52,8 @@ namespace Poly
 		// most available will be set.
 		static void SetQueueCount(FQueueType queue, uint32_t count);
 
+		static VkFormat FindDepthFormat();
+
 		static VkDevice			GetDevice() { return s_Device; }
 		static VkPhysicalDevice	GetPhysicalDevice() { return s_PhysicalDevice; }
 		static VkInstance		GetInstance() { return s_Instance; }
@@ -67,7 +69,7 @@ namespace Poly
 			"VK_LAYER_KHRONOS_validation"
 		};
 
-		const std::vector<const char*> m_DeviceExtensions = {
+		std::vector<const char*> m_DeviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
@@ -95,6 +97,7 @@ namespace Poly
 		bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 		void PickPhysicalDevice();
 		void SetOptimalDevice(const std::vector<VkPhysicalDevice>& devices);
+		void AddRequiredDeviceExtensions();
 		void CreateLogicalDevice();
 		void CreateVmaAllocator();
 		std::vector<const char*> GetRequiredExtensions();

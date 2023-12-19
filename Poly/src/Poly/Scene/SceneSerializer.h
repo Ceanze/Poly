@@ -11,6 +11,7 @@ namespace YAML
 namespace Poly
 {
 	class Scene;
+    class EntitySerializer;
 
 	class SceneSerializer
 	{

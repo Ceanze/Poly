@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <string>
 
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Model/Material.h"
@@ -11,8 +10,6 @@ struct aiNode;
 struct aiMesh;
 struct aiScene;
 struct aiMaterial;
-
-enum aiTextureType;
 
 namespace Poly
 {
@@ -58,8 +55,6 @@ namespace Poly
 		static Ref<Material> ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder);
 		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
 		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
-		static void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Ref<Material>& pPolyMaterial, const std::string& folder);
-		static Material::Type ConvertTextureType(aiTextureType aiType);
 
 		static bool s_GLSLInit;
 

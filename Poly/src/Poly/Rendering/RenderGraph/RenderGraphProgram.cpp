@@ -325,7 +325,9 @@ namespace Poly
 				// Note that the layout creates the bindings for internal types as well for ease of use
 				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
 				const auto pushConstants = m_Reflections[i].GetPushConstants();
-				std::unordered_map<uint32, DescriptorSetLayout> sets;
+				// std::unordered_map<uint32, DescriptorSetLayout> sets;
+				const int maxSet = std::max_element(inputs.begin(), inputs.end(), [](const auto& ioDataA, const auto& ioDataB){ return ioDataA.Set < ioDataB.Set; })->Set;
+				std::vector<DescriptorSetLayout> sets(maxSet + 1);
 				for (const auto& input : inputs)
 				{
 					if (BitsSet(input.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
@@ -353,7 +355,7 @@ namespace Poly
 				PipelineLayoutDesc desc = {};
 				desc.PushConstantRanges = ranges;
 				for (const auto& set : sets)
-					desc.DescriptorSetLayouts.push_back(set.second);
+					desc.DescriptorSetLayouts.push_back(set);
 
 				m_PipelineLayouts[i] = RenderAPI::CreatePipelineLayout(&desc);
 			}
@@ -379,29 +381,29 @@ namespace Poly
 		attachmentDescs.reserve(attachments.size());
 		colorRefs.reserve(attachments.size());
 		GraphicsRenderPassSubpassAttachmentReference depthStencilAttachment = {};
-		for (auto& attachmentPair : attachments)
+		for (const auto& attachment : attachments)
 		{
 			GraphicsRenderPassAttachmentDesc attachmentDesc = {};
-			attachmentDesc.Format			= attachmentPair.second.Format;
+			attachmentDesc.Format			= attachment.Format;
 			attachmentDesc.SampleCount		= 1;
-			attachmentDesc.LoadOp			= attachmentPair.second.InitalLayout == ETextureLayout::UNDEFINED ? ELoadOp::CLEAR : ELoadOp::LOAD;
-			attachmentDesc.StoreOp			= attachmentPair.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? EStoreOp::DONT_CARE : EStoreOp::STORE;
+			attachmentDesc.LoadOp			= attachment.InitalLayout == ETextureLayout::UNDEFINED ? ELoadOp::CLEAR : ELoadOp::LOAD;
+			attachmentDesc.StoreOp			= attachment.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? EStoreOp::DONT_CARE : EStoreOp::STORE;
 			attachmentDesc.StencilLoadOp	= ELoadOp::DONT_CARE;
 			attachmentDesc.StencilStoreOp	= EStoreOp::DONT_CARE;
-			attachmentDesc.InitialLayout	= attachmentPair.second.InitalLayout;
-			attachmentDesc.FinalLayout		= attachmentPair.second.FinalLayout;
+			attachmentDesc.InitialLayout	= attachment.InitalLayout;
+			attachmentDesc.FinalLayout		= attachment.FinalLayout;
 			attachmentDescs.push_back(attachmentDesc);
 
-			if (attachmentPair.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			if (attachment.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 			{
-				depthStencilAttachment.Index	= attachmentPair.second.Index;
-				depthStencilAttachment.Layout	= attachmentPair.second.UsedLayout;
+				depthStencilAttachment.Index	= attachment.Index;
+				depthStencilAttachment.Layout	= attachment.UsedLayout;
 			}
 			else
 			{
 				GraphicsRenderPassSubpassAttachmentReference attachmentRef = {};
-				attachmentRef.Index		= attachmentPair.second.Index;
-				attachmentRef.Layout	= attachmentPair.second.UsedLayout;
+				attachmentRef.Index		= attachment.Index;
+				attachmentRef.Layout	= attachment.UsedLayout;
 				colorRefs.push_back(attachmentRef);
 			}
 		}
@@ -450,9 +452,9 @@ namespace Poly
 
 		const auto& attachmentInfos = renderPass->GetAttachments();
 		attachments.reserve(attachmentInfos.size());
-		for (const auto& a : attachmentInfos)
+		for (const auto& attachmentInfo : attachmentInfos)
 		{
-			Ref<Resource> res = m_pResourceCache->GetResource(renderPass->GetName() + "." + a.first);
+			Ref<Resource> res = m_pResourceCache->GetResource(renderPass->GetName() + "." + attachmentInfo.Name);
 
 			if (!width || !height)
 			{
@@ -460,7 +462,7 @@ namespace Poly
 				height = res->GetAsTexture()->GetHeight();
 			}
 
-			if (a.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			if (attachmentInfo.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 				pDepthAttachment = res->GetAsTextureView();
 			else
 				attachments.push_back(res->GetAsTextureView());

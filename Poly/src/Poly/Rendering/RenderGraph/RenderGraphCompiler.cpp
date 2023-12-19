@@ -487,12 +487,12 @@ namespace Poly
 				if (passData.pPass->GetPassType() == Pass::Type::RENDER)
 				{
 					RenderPass* pPass = static_cast<RenderPass*>(passData.pPass.get());
-					const auto& attachmentMap = pPass->GetAttachments();
-					for (const auto& pair : attachmentMap)
+					const auto& attachments = pPass->GetAttachments();
+					for (const auto& attachment : attachments)
 					{
-						if (pair.second.UsedLayout == ETextureLayout::COLOR_ATTACHMENT_OPTIMAL)
+						if (attachment.UsedLayout == ETextureLayout::COLOR_ATTACHMENT_OPTIMAL)
 						{
-							pPass->SetAttachmentInital(pair.first, ETextureLayout::UNDEFINED);
+							pPass->SetAttachmentInital(attachment.Name, ETextureLayout::UNDEFINED);
 							set = true;
 							break;
 						}

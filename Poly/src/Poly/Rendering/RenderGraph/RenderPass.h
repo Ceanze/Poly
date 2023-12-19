@@ -16,6 +16,7 @@ namespace Poly
 	protected:
 		struct RenderPassAttachment
 		{
+			std::string		Name			= "";
 			ETextureLayout	InitalLayout	= ETextureLayout::UNDEFINED;
 			ETextureLayout	UsedLayout		= ETextureLayout::UNDEFINED;
 			ETextureLayout	FinalLayout		= ETextureLayout::UNDEFINED;
@@ -51,21 +52,15 @@ namespace Poly
 		 * Compile or recompile the Pass
 		 * Called once during re/compilation of the render graph
 		 */
-		virtual void Compile() {};
+		virtual void Compile() {}
 
-		void AddAttachment(const std::string& name, ETextureLayout layout, uint32 index, EFormat format)
-		{
-			p_Attachments[name].UsedLayout = layout;
-			p_Attachments[name].InitalLayout = layout;
-			p_Attachments[name].FinalLayout = layout;
-			p_Attachments[name].Index = index;
-			p_Attachments[name].Format = format;
-		}
+		void AddAttachment(const std::string& name, ETextureLayout layout, uint32 index, EFormat format);
 
-		void SetAttachmentInital(const std::string& name, ETextureLayout layout) { p_Attachments[name].InitalLayout = layout; }
-		void SetAttachmentFinal(const std::string& name, ETextureLayout layout) { p_Attachments[name].FinalLayout = layout; }
-		void SetAttachmentFormat(const std::string& name, EFormat format) { p_Attachments[name].Format = format; }
-		const std::unordered_map<std::string, RenderPassAttachment>& GetAttachments() const { return p_Attachments; };
+		void SetAttachmentInital(const std::string& name, ETextureLayout layout);
+		void SetAttachmentFinal(const std::string& name, ETextureLayout layout);
+		void SetAttacœhmentFormat(const std::string& name, EFormat format);
+		// const std::unordered_map<std::string, RenderPassAttachment>& GetAttachments() const { return p_Attachments; }
+		const std::vector<RenderPassAttachment>& GetAttachments() { return p_Attachments; }
 
 		void SetDepthStenctilUse(bool isUsingDepthStenctil) { p_usesDepthStencil = isUsingDepthStenctil; }
 		bool GetDepthStenctilUse() const { return p_usesDepthStencil; }
@@ -73,7 +68,11 @@ namespace Poly
 	protected:
 		friend class RenderGraph;
 
-		std::unordered_map<std::string, RenderPassAttachment> p_Attachments;
+		std::vector<RenderPassAttachment> p_Attachments;
 		bool p_usesDepthStencil = false;
+
+	private:
+		void AdaptAttachmentsSize(uint32 index);
+		std::optional<std::reference_wrapper<RenderPassAttachment>> GetAttachment(const std::string& name);
 	};
 }

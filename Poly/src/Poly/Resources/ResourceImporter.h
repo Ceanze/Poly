@@ -43,10 +43,15 @@ namespace Poly
 		static PolyID ImportMaterial(const std::string& path);
 
 	private:
+		// TODO: Make the projectres path definition better - this makes bad assumption of the loaction
+		static std::string GetProjectPath();
+
 		static void UpdateProjectFile(const std::string& path, PolyID pathID, ResourceType type);
 
 		static void CreateProjectFile();
 
 		static std::unordered_map<std::string, ImportedResource> m_PathToImportedResource;
+
+		static std::string m_ProjectFilePath;
 	};
 }

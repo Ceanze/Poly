@@ -28,6 +28,13 @@ namespace Poly
 			POLY_CORE_FATAL("Could not create a GLFW window!");
 		}
 
+		// TODO: Investigate if this data should be separate from the initial window creation size. This should only differ however
+		//		 on HDPI screens, such as Retina.
+		int newWidth, newHeight;
+		glfwGetFramebufferSize(m_pWindow, &newWidth, &newHeight);
+		m_Width = newWidth;
+		m_Height = newHeight;
+
 		glfwMakeContextCurrent(m_pWindow);
 
 		// Set callbacks

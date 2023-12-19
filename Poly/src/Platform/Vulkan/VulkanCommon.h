@@ -75,9 +75,12 @@ namespace Poly {
 			// If not requesting graphics queue, should return a queue without graphics support (to avoid non-unique queue)
 			else if ((desiredQueue) && (graphicsCheck == 0))
 				return { i, queueFamilies[i].queueCount };
-			// If no queue meets the critera of no-graphics and other desired queue - use the first available
+			// If no queue meets the criteria of no-graphics and other desired queue - use the first available
 			else if (desiredQueue && !backupQueueSet)
-				backupQueue = { i, queueFamilies[i].queueCount };
+            {
+                backupQueue = {i, queueFamilies[i].queueCount};
+                backupQueueSet = true;
+            }
 		}
 
 		if (backupQueueSet)
