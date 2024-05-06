@@ -361,6 +361,9 @@ MigrationBackup/
 *.cmake
 CMakeLists.txt
 cmake-build-debug/
+CMakeCache.txt
+CMakeFiles/**
+Makefile
 
 
 # Custom ignores
