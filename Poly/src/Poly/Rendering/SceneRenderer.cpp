@@ -108,9 +108,9 @@ namespace Poly
 			drawObjectIndex++;
 		}
 
-		if (hasInstanceBuffer)
+		if (hasInstanceBuffer && m_pStagingBuffer)
 			context.GetCommandBuffer()->CopyBuffer(m_pStagingBuffer.get(), m_pInstanceBuffer.get(), m_pStagingBuffer->GetSize(), 0, 0);
-		if (hasMaterial)
+		if (hasMaterial && m_pMaterialStagingBuffer)
 			context.GetCommandBuffer()->CopyBuffer(m_pMaterialStagingBuffer.get(), m_pMaterialBuffer.get(), m_pMaterialStagingBuffer->GetSize(), 0, 0);
 	}
 
@@ -201,7 +201,12 @@ namespace Poly
 		// TODO: Think of the order things are drawn, in a scene hierarchy the root should be drawn first (probably?)
 		// TODO: The transforms need to be applied in the correct order when having a deeper hierarchy in order for the transforms to be correct
 		// TODO: The transform from assimp is per pNode, not per pMesh, fix resource loader storage of the
-		//		 transforms and also handle that here
+		//		 transforms and also handle that here. ---- This comment might be outdated. Currently, for each pMesh a new Entity is created. The separetion of pNode and pMesh should already be done
+		// TODO: The transforms from assimp are relative to the parent pNode. This means that the ones that are saved for the model are local meshes. For rendering (and any other calculations) it is 
+		//		 needed to multiply with the parent in ordder to achieve the correct transformation.
+		if (!m_pScene)
+			return;
+
 		auto view = m_pScene->m_Registry.view<MeshComponent, TransformComponent>();
 		m_TotalMeshCount = 0;
 		for (auto [entity, meshComp, transform] : view.each())
@@ -211,8 +216,19 @@ namespace Poly
 			size_t hash = meshInstance.GetUniqueHash();
 
 			m_DrawObjects[hash].UniqueMeshInstance = meshInstance;
-			m_DrawObjects[hash].Matrices.push_back(transform.GetTransform());
+			m_DrawObjects[hash].Matrices.push_back(transform.GetTransform()); // TODO: Here I am copying the data already! Either send this to a staging buffer right here and now, or use this data when sending to UpdateGraphResource(data*); mDrawObjects should probably be a std::vector in the case of UpdateGraphResource
 			m_TotalMeshCount++;
 		}
 	}
 }
+
+/*
+* SceneRenderer and Scene structure breakdown:
+* 
+* Currently each entity in the ENTT view of the scene is being rendered without any given order. The scene hierarchy is not followed.
+* 
+* What should instead be done is that, from the root entity in the scene, each entity from that is rendered in order following an algorithm such as DFS.
+* To do this two main things need to change:
+*	1. A root node needs to be defined and saved for the renderer to access. Should ideally be saved in the Scene as a special member.
+*	2. From the root node the renderer should follow the children in order of the hierachy. This order is used to define the transformation data. The rendering itself will still be based "randomly" based on the mesh instance.
+*/

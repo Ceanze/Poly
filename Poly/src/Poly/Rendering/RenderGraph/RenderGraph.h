@@ -103,10 +103,10 @@ namespace Poly
 		 * External resources under a resource group is namded like $.group:resource.
 		 * NOTE: Resource group name is gotten from the resoure group itself
 		 * NOTE: Resource names are gotten from the resources in the group
-		 * @param pResourceGroup - Ref to the resource group
+		 * @param resourceGroup - Reference to the resource group
 		 * @return true if resource could be added successfully
 		 */
-		bool AddExternalResource(Ref<ResourceGroup> pResourceGroup);
+		bool AddExternalResource(const ResourceGroup& resourceGroup);
 
 		/**
 		 * Add a global input resource node to the graph. This resource will be in the global space

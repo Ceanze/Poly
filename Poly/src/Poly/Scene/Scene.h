@@ -57,7 +57,7 @@ namespace Poly
 		 * NOTE: Resource pointers might not be valid before render graph execution
 		 * @return ResourceGroup const pointer
 		 */
-		const ResourceGroup* GetResourceGroup() const { return &m_ResourceGroup; }
+		const ResourceGroup& GetResourceGroup() const { return m_ResourceGroup; }
 
 		/**
 		 * Sets the name of the scene
