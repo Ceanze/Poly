@@ -30,7 +30,7 @@ public:
 
 	struct PointLight
 	{
-		glm::vec4 Color = {1.0, 1.0, 1.0, 1.0};
+		glm::vec4 Color = {1.0, 0.0, 1.0, 1.0};
 		glm::vec4 Position = {0.0, 1.0, -1.0, 1.0};
 	};
 
@@ -53,11 +53,12 @@ public:
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
+		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 
 		// External resources
 		m_pGraph->AddExternalResource("camera", sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
 		m_pGraph->AddExternalResource("lights", sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
-		// m_pGraph->AddExternalResource(pScene->GetResourceGroup());
+		m_pGraph->AddExternalResource(pScene->GetResourceGroup());
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "pbrPass");
@@ -75,7 +76,6 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource("lights", sizeof(LightBuffer), &data);
 
-		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 		m_pProgram->SetScene(pScene);
 
 

@@ -189,7 +189,7 @@ namespace Poly
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
 			for (auto& input : inputs)
 			{
 				std::string resourceName = passData.pPass->GetName() + "." + input.Name;
@@ -220,7 +220,7 @@ namespace Poly
 					}
 				}
 
-				if (alias.empty())
+				if (alias.empty() && !BitsSet(input.BindPoint, FResourceBindPoint::INTERNAL_USE))
 				{
 					POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceName);
 					return;

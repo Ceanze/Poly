@@ -174,7 +174,7 @@ namespace Poly
 		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, Ref<Resource> pResource, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(const std::string& name, const Resource* pResource, uint32 index)
 	{
 		if (!pResource)
 		{
@@ -202,41 +202,35 @@ namespace Poly
 		{
 			auto& pPass = m_Passes[passIndex];
 
-			if (pPass->GetPassType() == Pass::Type::SYNC || pPass->GetName() != passPair.first)
+			if (pPass->GetPassType() == Pass::Type::SYNC || (pPass->GetName() != passPair.first && view.IsEmpty()))
 			{
 				continue;
 			}
 
+
 			// Check if pass has the requested resource, continue if not
-			if (!HasPassResource(passPair, pPass, passIndex))
+			const ResourceGUID mappedResource = GetMappedResourceGUID({ passPair.first, passPair.second }, pPass, passIndex);
+			if (!mappedResource.IsValid())
 				continue;
 
 			// Resource is being used in pass, update corresponding descriptor
-			const IOData& inputRes = m_Reflections[passIndex].GetIOData(passPair.second);
+			const IOData& inputRes = m_Reflections[passIndex].GetIOData(mappedResource.GetResourceName());
 			if (BitsSet(inputRes.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
 				continue;
 
-			Ref<Resource> pResource;
-			bool hasResource = view.HasBuffer() || view.HasTextureView();
-			if (!hasResource && BitsSet(inputRes.BindPoint, FResourceBindPoint::INTERNAL_USE))
+			Resource* pResource = nullptr;
+			bool hasProvidedResource = view.HasBuffer() || view.HasTextureView();
+			if (!hasProvidedResource && BitsSet(inputRes.BindPoint, FResourceBindPoint::INTERNAL_USE))
 				return;
 
-			if (!hasResource)
-				pResource = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
+			if (!hasProvidedResource)
+				pResource = m_pResourceCache->GetResource(mappedResource.GetFullName());
 
-			if (!hasResource && !pResource)
+			if (!hasProvidedResource && !pResource)
 			{
 				POLY_CORE_ERROR("No resource was gotten from the cache!");
 				return;
 			}
-
-			// const auto& sets = GetDescriptorSets(pPass, passIndex); // Creates set if it doesn't exist yet
-
-			// Ref<DescriptorSet> pOldSet = sets[inputRes.Set]; // If crash here - check the sets bound to the pass as it should be too few if this happens
-
-			// Ref<DescriptorSet> pNewSet = RenderAPI::CreateDescriptorSetCopy(pOldSet);
-			// m_DescriptorsToBeDestroyed[m_ImageIndex].push_back(pOldSet);
-			// m_Descriptors[passIndex][inputRes.Set] = pNewSet;
 
 			if (!m_DescriptorCaches.contains(passIndex))
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
@@ -263,13 +257,38 @@ namespace Poly
 	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data, uint64 offset, uint32 index)
 	{
 		PassResourcePair passPair = GetPassResourcePair(name);
-		Ref<Resource> pRes = m_pResourceCache->GetResource(passPair.first.empty() ? ("$." + passPair.second) : name);
+		std::string resourceName = passPair.first.empty() ? ("$." + passPair.second) : name;
+		const Resource* pRes = m_pResourceCache->GetResource(resourceName);
 
 		if (!pRes)
+		{
+			POLY_CORE_ERROR("UpdateGraphResource - cannot update resource {} as it was not in the resource cache", name);
 			return;
+		}
 
-		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, 0, data);
-		UpdateGraphResource(name, pRes);
+		if (!pRes->IsBuffer())
+		{
+			POLY_CORE_WARN("UpdateGraphResource(data*) can only update buffers, but a non-buffer resource was provided.");
+			return;
+		}
+
+		uint64 oldSize = pRes->GetAsBuffer()->GetSize();
+		bool hasSizeChanged = oldSize != size;
+		if (oldSize < size)
+		{
+			pRes = m_pResourceCache->UpdateResourceSize(resourceName, size);
+		}
+
+		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, offset, data);
+
+		if (hasSizeChanged)
+		{
+			UpdateGraphResource(name, pRes, index);
+		}
+		else
+		{
+			UpdateGraphResource(name, nullptr, index);
+		}
 	}
 
 	void RenderGraphProgram::SetBackbuffer(Ref<Resource> pResource)
@@ -452,18 +471,18 @@ namespace Poly
 		attachments.reserve(attachmentInfos.size());
 		for (const auto& a : attachmentInfos)
 		{
-			Ref<Resource> res = m_pResourceCache->GetResource(renderPass->GetName() + "." + a.first);
+			Resource* pRes = m_pResourceCache->GetResource(renderPass->GetName() + "." + a.first);
 
 			if (!width || !height)
 			{
-				width = res->GetAsTexture()->GetWidth();
-				height = res->GetAsTexture()->GetHeight();
+				width = pRes->GetAsTexture()->GetWidth();
+				height = pRes->GetAsTexture()->GetHeight();
 			}
 
 			if (a.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-				pDepthAttachment = res->GetAsTextureView();
+				pDepthAttachment = pRes->GetAsTextureView();
 			else
-				attachments.push_back(res->GetAsTextureView());
+				attachments.push_back(pRes->GetAsTextureView());
 		}
 
 		Ref<Framebuffer> framebuffer = RenderAPI::GetFramebuffer(attachments, pDepthAttachment, GetGraphicsRenderPass(pPass, passIndex), width, height);
@@ -554,60 +573,17 @@ namespace Poly
 		return m_GraphicsPipelines[passIndex].get();
 	}
 
-	// const std::vector<Ref<DescriptorSet>>& RenderGraphProgram::GetDescriptorSets(const Ref<Pass>& pPass, uint32 passIndex)
-	// {
-	// 	if (m_Descriptors.contains(passIndex))
-	// 		return m_Descriptors[passIndex];
-
-	// 	// Collect the sets from the reflection
-	// 	// Note that descriptors for internal types are also created for ease of use
-	// 	const auto inputs = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
-	// 	std::unordered_set<uint32> setIndicies;
-	// 	for (const auto& input : inputs)
-	// 	{
-	// 		if (BitsSet(input.BindPoint, FResourceBindPoint::ALL_SCENES))
-	// 		{
-	// 			// m_InstanceSetIndices[passIndex] = input.Set;
-	// 			m_SceneBindings[passIndex].push_back({
-	// 				.Type		= input.BindPoint,
-	// 				.SetIndex	= input.Set,
-	// 				.Binding	= input.Binding
-	// 			});
-	// 		}
-	// 		else
-	// 			setIndicies.insert(input.Set);
-	// 	}
-
-	// 	//for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
-	// 	//{
-	// 	m_Descriptors[passIndex].resize(setIndicies.size());
-	// 	for (uint32 setIndex : setIndicies)
-	// 		m_Descriptors[passIndex][setIndex] = RenderAPI::CreateDescriptorSet(m_PipelineLayouts[passIndex].get(), setIndex);
-	// 	//}
-
-	// 	return m_Descriptors[passIndex];
-	// }
-
-	bool RenderGraphProgram::HasPassResource(const PassResourcePair& passPair, const Ref<Pass>& pPass, uint32 passIndex)
+	ResourceGUID RenderGraphProgram::GetMappedResourceGUID(const ResourceGUID& resourceGUID, const Ref<Pass>& pPass, uint32 passIndex)
 	{
-		if (passPair.first.empty() || passPair.first == "$")
-		{
-			const auto& externalResources = pPass->GetExternalResources();
-			auto itr = std::find_if(externalResources.begin(), externalResources.end(), [passPair](const std::pair<std::string, std::string>& other){
-				return other.first == passPair.second;
-			});
+		ResourceGUID mappedResource = m_pResourceCache->GetMappedResourceName(resourceGUID, pPass->GetName());
+		if (!mappedResource.IsValid())
+			return ResourceGUID::Invalid();
 
-			if (itr == externalResources.end())
-				return false;
-			return false;
-		}
-		else
-		{
-			const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
-			auto itr = std::find_if(reflections.begin(), reflections.end(), [passPair](const IOData& data){ return data.Name == passPair.second; });
-			if (itr == reflections.end())
-				return false;
-			return true;
-		}
+		const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const IOData& data){ return data.Name == mappedResource.GetResourceName(); });
+		if (itr == reflections.end())
+			return ResourceGUID::Invalid();
+
+		return mappedResource;
 	}
 }

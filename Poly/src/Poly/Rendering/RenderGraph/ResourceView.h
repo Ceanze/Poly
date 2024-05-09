@@ -25,6 +25,8 @@ namespace Poly
 		bool HasSampler() const { return m_pSampler; }
 		bool HasBuffer() const { return m_pBuffer; }
 
+		bool IsEmpty() const { return !m_pTextureView && !m_pSampler && !m_pBuffer; }
+
 		const TextureView* GetTextureView() const { return m_pTextureView; }
 		const Sampler* GetSampler() const { return m_pSampler; }
 		const Buffer* GetBuffer() const { return m_pBuffer; }

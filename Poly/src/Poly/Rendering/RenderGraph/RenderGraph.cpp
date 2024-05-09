@@ -175,17 +175,11 @@ namespace Poly
 		return true;
 	}
 
-	bool RenderGraph::AddExternalResource(Ref<ResourceGroup> pResourceGroup)
+	bool RenderGraph::AddExternalResource(const ResourceGroup& resourceGroup)
 	{
-		if (!pResourceGroup)
-		{
-			POLY_CORE_WARN("Cannot add external resource group, resource group pointer was nullptr");
-			return false;
-		}
+		const std::string& groupName = resourceGroup.GetGroupName();
 
-		const std::string& groupName = pResourceGroup->GetGroupName();
-
-		const auto& resources = pResourceGroup->GetResources();
+		const auto& resources = resourceGroup.GetResources();
 		for (auto& resource : resources)
 		{
 			std::string name = std::format("{}:{}", groupName, resource.first);

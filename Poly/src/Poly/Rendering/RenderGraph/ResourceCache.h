@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ResourceGUID.h"
 #include "PassReflection.h"
 #include "RenderGraphTypes.h"
 
@@ -67,8 +68,25 @@ namespace Poly
 		/**
 		 * Get a resource
 		 * @param name - resource name
+		 * 
+		 * @return pointer to resource
 		 */
-		Ref<Resource> GetResource(const std::string& name);
+		Resource* GetResource(const std::string& name);
+
+		/**
+		* Gets the mapped resource name, i.e. resource "pass.resource" retruns the mapped name for "passName.resource"
+		* @param resource - resource to map from, following the "passName.resource" syntax
+		* @param passName - the pass to map to, following "passName" syntax, i.e. no resource suffix
+		* 
+		* @return "resource" name that belongs to the pass
+		*/
+		ResourceGUID GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName);
+
+		/**
+		* Update a resource size
+		* WARNING: Old data will be deleted when size is changed. 
+		*/
+		Resource* UpdateResourceSize(const std::string& name, uint64 size);
 
 		/**
 		 * Resets the cache, losing ownership of resource and clears vectors

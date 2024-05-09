@@ -8,7 +8,6 @@ namespace Poly
 	class Resource;
 
 	using PassResourcePair = std::pair<std::string, std::string>;
-	using GroupResourcePair = std::pair<std::string, std::string>;
 
 	inline std::pair<std::string, std::string> SeparateStrings(const std::string& value, char separator)
 	{
@@ -23,11 +22,6 @@ namespace Poly
 	inline PassResourcePair GetPassResourcePair(const std::string& name)
 	{
 		return SeparateStrings(name, '.');
-	}
-
-	inline GroupResourcePair GetGroupResourcePair(const std::string& name)
-	{
-		return SeparateStrings(name, ':');
 	}
 
 	inline FTextureUsage ConvertResourceBindPointToTextureUsage(FResourceBindPoint bindPoint)

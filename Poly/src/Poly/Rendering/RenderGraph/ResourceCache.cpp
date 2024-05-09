@@ -123,6 +123,8 @@ namespace Poly
 				continue;
 
 			FResourceBindPoint bindPoint = resourceData.IOInfo.BindPoint;
+			if (BitsSet(bindPoint, FResourceBindPoint::INTERNAL_USE))
+				continue;
 
 			if (bindPoint == FResourceBindPoint::STORAGE || bindPoint == FResourceBindPoint::UNIFORM)
 			{
@@ -165,7 +167,7 @@ namespace Poly
 		}
 	}
 
-	Ref<Resource> ResourceCache::GetResource(const std::string& name)
+	Resource* ResourceCache::GetResource(const std::string& name)
 	{
 		if (!m_NameToIndex.contains(name) && !m_NameToExternalIndex.contains(name))
 		{
@@ -174,9 +176,84 @@ namespace Poly
 		}
 
 		if (m_NameToIndex.contains(name))
-			return m_Resources[m_NameToIndex[name]].pResource;
+			return m_Resources[m_NameToIndex[name]].pResource.get();
 		else
-			return m_ExternalResources[m_NameToExternalIndex[name]].pResource;
+			return m_ExternalResources[m_NameToExternalIndex[name]].pResource.get();
+	}
+
+	ResourceGUID ResourceCache::GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName)
+	{
+		// Find resource index
+		const std::string fullResourceName = resourceGUID.GetFullName();
+		std::unordered_map<std::string, uint32>* map = &m_NameToIndex;
+		if (!map->contains(fullResourceName))
+		{
+			map = &m_NameToExternalIndex;
+			if (!map->contains(fullResourceName))
+				return ResourceGUID::Invalid();
+		}
+
+		const uint32 index = map->at(fullResourceName);
+
+		// Find if passName uses resource
+		auto resNameItr = std::find_if(map->begin(), map->end(), [&index, &passName](const auto& pair) {
+			auto resGUID = ResourceGUID(pair.first);
+			if (pair.second == index && resGUID.GetPassName() == passName)
+				return true;
+			else
+				return false;
+			});
+
+		if (resNameItr != map->end())
+			return ResourceGUID(resNameItr->first);
+		else
+			return ResourceGUID::Invalid();
+	}
+
+	Resource* ResourceCache::UpdateResourceSize(const std::string& name, uint64 size)
+	{
+		if (!m_NameToIndex.contains(name) && !m_NameToExternalIndex.contains(name))
+		{
+			POLY_CORE_WARN("Resource {} cannot be updated, it does not exist", name);
+			return nullptr;
+		}
+
+		auto getResourceFunc = [this, &name]() -> Ref<Resource>&
+			{
+				if (m_NameToIndex.contains(name))
+					return m_Resources[m_NameToIndex[name]].pResource;
+				else
+					return m_ExternalResources[m_NameToExternalIndex[name]].pResource;
+			};
+
+		Ref<Resource>& pRes = getResourceFunc();
+
+		if (!pRes)
+			return nullptr;
+
+		if (pRes->IsBuffer())
+		{
+			Buffer* pBuffer = pRes->GetAsBuffer();
+
+			auto desc = pBuffer->GetDesc();
+			desc.Size = size;
+			auto pNewBuffer = RenderAPI::CreateBuffer(&desc);
+
+			Ref<Resource> pNewResource = Resource::Create(pNewBuffer, name);
+
+			pRes.swap(pNewResource);
+			pNewResource.reset();
+
+			return pRes.get();
+		}
+
+		if (pRes->IsTexture())
+		{
+			POLY_CORE_ERROR("TODO: Add texture resizing support");
+		}
+
+		POLY_CORE_ERROR("Resource {} was neither a Buffer nor a Texture, cannot update size", name);
+		return nullptr;
 	}
 
 	void ResourceCache::Reset()

@@ -20,11 +20,11 @@ namespace Poly
 
 	Resource* RenderData::GetResourceNonConst(const std::string& resourceName) const
 	{
-		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
+		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName);
 	}
 
 	const Resource* RenderData::operator[] (const std::string& resourceName) const
 	{
-		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
+		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName);
 	}
 }
