@@ -44,8 +44,7 @@ namespace Poly
 	{
 		POLY_VALIDATE(pPass, "Added pass cannot be nullptr");
 
-		auto namePair = GetPassNameResourcePair(name);
-		if (!namePair.second.empty())
+		if (name.contains('.'))
 		{
 			POLY_CORE_WARN("Cannot add a pass with name {}, its naming is invalid (contains a dot)", name);
 			return false;
@@ -78,48 +77,45 @@ namespace Poly
 		// If the pass is marked for output it will also have to be removed
 	}
 
-	bool RenderGraph::AddLink(const std::string& src, const std::string& dst)
+	bool RenderGraph::AddLink(const ResourceGUID& src, const ResourceGUID& dst)
 	{
-		auto srcPair = GetPassNameResourcePair(src);
-		auto dstPair = GetPassNameResourcePair(dst);
-
 		// Check global space first
-		if (srcPair.first == "$")
+		if (src.IsExternal())
 		{
-			if (!m_ExternalResources.contains(srcPair.second))
+			if (!m_ExternalResources.contains(src))
 			{
-				POLY_CORE_WARN("Tried to link external resource {} to {} but the resource has not been added to the graph", srcPair.second, dst);
+				POLY_CORE_WARN("Tried to link external resource {} to {} but the resource has not been added to the graph", src.GetFullName(), dst.GetFullName());
 				return false;
 			}
 
-			if (!m_NameToNodeIndex.contains(dstPair.first))
+			if (!m_NameToNodeIndex.contains(dst.GetPassName()))
 			{
-				POLY_CORE_WARN("Pass with name {} could not be found in the graph when adding link for external resource", dstPair.first);
+				POLY_CORE_WARN("Pass with name {} could not be found in the graph when adding link for external resource", dst.GetPassName());
 				return false;
 			}
 
-			uint32 nodeIndex = m_NameToNodeIndex[dstPair.first];
-			m_Passes[nodeIndex]->p_ExternalResources.push_back({ srcPair.second, dstPair.second });
+			uint32 nodeIndex = m_NameToNodeIndex[dst.GetPassName()];
+			m_Passes[nodeIndex]->p_ExternalResources.push_back({ src.GetResourceName(), dst.GetResourceName()});
 
 			return true;
 		}
 
 		// If not global space check other passes
-		if (!m_NameToNodeIndex.contains(srcPair.first) || !m_NameToNodeIndex.contains(dstPair.first))
+		if (!m_NameToNodeIndex.contains(src.GetPassName()) || !m_NameToNodeIndex.contains(dst.GetPassName()))
 		{
-			POLY_CORE_WARN("Pass with either name {} or {} could not be found in the graph when adding link", srcPair.first, dstPair.first);
+			POLY_CORE_WARN("Pass with either name {} or {} could not be found in the graph when adding link", src.GetPassName(), dst.GetPassName());
 			return false;
 		}
 
 		// Make sure it is a data-data connected or an execution-execution connection
-		if (srcPair.second.empty() && !dstPair.second.empty() || !srcPair.second.empty() && dstPair.second.empty())
+		if (src.GetResourceName().empty() && !src.GetResourceName().empty() || !src.GetResourceName().empty() && src.GetResourceName().empty())
 		{
-			POLY_CORE_WARN("Cannot link {} with {}, dependency type does not match (both must be data-data or exe-exe dep.)", src, dst);
+			POLY_CORE_WARN("Cannot link {} with {}, dependency type does not match (both must be data-data or exe-exe dep.)", src.GetFullName(), dst.GetFullName());
 			return false;
 		}
 
 
-		uint32 index = m_pGraph->AddEdge(m_NameToNodeIndex[srcPair.first], m_NameToNodeIndex[dstPair.first]);
+		uint32 index = m_pGraph->AddEdge(m_NameToNodeIndex[src.GetPassName()], m_NameToNodeIndex[dst.GetPassName()]);
 
 		EdgeData edgeData = {};
 		edgeData.Src = src;
@@ -129,17 +125,15 @@ namespace Poly
 		return true;
 	}
 
-	bool RenderGraph::RemoveLink(const std::string& src, const std::string& dst)
+	bool RenderGraph::RemoveLink(const ResourceGUID& src, const ResourceGUID& dst)
 	{
-		auto srcPair = GetPassNameResourcePair(src);
-		auto dstPair = GetPassNameResourcePair(dst);
-		if (!m_NameToNodeIndex.contains(srcPair.first) || !m_NameToNodeIndex.contains(dstPair.first))
+		if (!m_NameToNodeIndex.contains(src.GetPassName()) || !m_NameToNodeIndex.contains(dst.GetPassName()))
 		{
-			POLY_CORE_WARN("Pass with either name {} or {} could not be found in the graph when removing link", srcPair.first, dstPair.first);
+			POLY_CORE_WARN("Pass with either name {} or {} could not be found in the graph when removing link", src.GetPassName(), dst.GetPassName());
 			return false;
 		}
 
-		const std::vector<uint32>& outgoingEdges = m_pGraph->GetNode(m_NameToNodeIndex[srcPair.first])->GetOutgoingEdges();
+		const std::vector<uint32>& outgoingEdges = m_pGraph->GetNode(m_NameToNodeIndex[src.GetPassName()])->GetOutgoingEdges();
 		for (auto edgeID : outgoingEdges)
 		{
 			if (m_Edges[edgeID].Src == src && m_Edges[edgeID].Dst == dst)
@@ -150,7 +144,7 @@ namespace Poly
 			}
 		}
 
-		POLY_CORE_WARN("Render pass and resource {} does not connect with {}, no link was removed", src, dst);
+		POLY_CORE_WARN("Render pass and resource {} does not connect with {}, no link was removed", src.GetFullName(), dst.GetFullName());
 		return false;
 	}
 
@@ -195,11 +189,11 @@ namespace Poly
 		return true;
 	}
 
-	bool RenderGraph::AddExternalResource(const std::string& name, uint64 size, FBufferUsage bufferUsage, const void* data, bool autoBindDescriptor)
+	bool RenderGraph::AddExternalResource(const ResourceGUID& resourceGUID, uint64 size, FBufferUsage bufferUsage, const void* data, bool autoBindDescriptor)
 	{
-		if (m_ExternalResources.contains(name))
+		if (m_ExternalResources.contains(resourceGUID))
 		{
-			POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
+			POLY_CORE_WARN("External resource {} has already been added, ignoring call", resourceGUID.GetFullName());
 			return false;
 		}
 
@@ -209,69 +203,67 @@ namespace Poly
 		desc.BufferUsage	= bufferUsage | FBufferUsage::COPY_DST;
 		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
 
-		Ref<Resource> pResource = Resource::Create(pBuffer, name);
+		Ref<Resource> pResource = Resource::Create(pBuffer, resourceGUID.GetResourceName());
 
-		m_ExternalResources[name] = { pResource, autoBindDescriptor };
+		m_ExternalResources[resourceGUID] = { pResource, autoBindDescriptor };
 
 		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)
 			POLY_CORE_INFO("AddExternalResource does not currently support instant data transfer");
 	}
 
-	bool RenderGraph::RemoveExternalResource(const std::string& name)
+	bool RenderGraph::RemoveExternalResource(const ResourceGUID& resourceGUID)
 	{
-		if (!m_ExternalResources.contains(name))
+		if (!m_ExternalResources.contains(resourceGUID))
 		{
-			POLY_CORE_WARN("External resource {} cannot be removed, it is not currently added", name);
+			POLY_CORE_WARN("External resource {} cannot be removed, it is not currently added", resourceGUID.GetFullName());
 			return false;
 		}
 
-		m_ExternalResources.erase(name);
+		m_ExternalResources.erase(resourceGUID);
 
 		return true;
 	}
 
-	bool RenderGraph::MarkOutput(const std::string& name)
+	bool RenderGraph::MarkOutput(const ResourceGUID& resourceGUID)
 	{
-		auto namePair = GetPassNameResourcePair(name);
-		if (!m_NameToNodeIndex.contains(namePair.first))
+		if (!m_NameToNodeIndex.contains(resourceGUID.GetPassName()))
 		{
-			POLY_CORE_WARN("Cannot mark output of {}, render pass does not exist in graph", namePair.first);
+			POLY_CORE_WARN("Cannot mark output of {}, render pass does not exist in graph", resourceGUID.GetPassName());
 			return false;
 		}
 
-		if (namePair.second == "")
+		if (!resourceGUID.HasResource())
 		{
-			POLY_CORE_WARN("MarkOutput requires a render pass and resouce name, but only render pass name of {} was given", name);
+			POLY_CORE_WARN("MarkOutput requires a render pass and resouce name, but only render pass name of {} was given", resourceGUID.GetFullName());
 			return false;
 		}
 
 		Output output = {};
-		output.NodeID = m_NameToNodeIndex[namePair.first];
-		output.ResourceName = namePair.second;
+		output.NodeID = m_NameToNodeIndex[resourceGUID.GetPassName()];
+		output.ResourceName = resourceGUID.GetResourceName();
 		m_Outputs.insert(output);
 
 		return true;
 	}
 
-	bool RenderGraph::UnmarkOutput(const std::string& name)
+	bool RenderGraph::UnmarkOutput(const ResourceGUID& resourceGUID)
 	{
-		auto namePair = GetPassNameResourcePair(name);
-		if (!m_NameToNodeIndex.contains(namePair.first))
+		if (!m_NameToNodeIndex.contains(resourceGUID.GetPassName()))
 		{
-			POLY_CORE_WARN("Cannot unmark output of {}, render pass does not exist in graph", namePair.first);
+			POLY_CORE_WARN("Cannot unmark output of {}, render pass does not exist in graph", resourceGUID.GetPassName());
 			return false;
 		}
 
-		if (namePair.second == "")
+		if (!resourceGUID.HasResource())
 		{
-			POLY_CORE_WARN("UnmarkOutput requires a render pass and resouce name, but only render pass name of {} was given", name);
+			POLY_CORE_WARN("UnmarkOutput requires a render pass and resouce name, but only render pass name of {} was given", resourceGUID.GetFullName());
 			return false;
 		}
 
 		Output output = {};
-		output.NodeID = m_NameToNodeIndex[name];
-		output.ResourceName = namePair.second;
+		output.NodeID = m_NameToNodeIndex[resourceGUID.GetPassName()];
+		output.ResourceName = resourceGUID.GetResourceName();
 		m_Outputs.erase(output);
 
 		return true;
@@ -309,16 +301,5 @@ namespace Poly
 			m_DefaultParams.MaxBackbufferCount = pDefaultParams->MaxBackbufferCount;
 		if (pDefaultParams->pSampler)
 			m_DefaultParams.pSampler = pDefaultParams->pSampler;
-	}
-
-	std::pair<std::string, std::string> RenderGraph::GetPassNameResourcePair(std::string name)
-	{
-		auto pos = name.find_first_of('.');
-
-		// If no dot was found - then only a pass name was given
-		if (pos == std::string::npos)
-			return { name, "" };
-
-		return { name.substr(0, pos), name.substr(pos + 1) };
 	}
 }

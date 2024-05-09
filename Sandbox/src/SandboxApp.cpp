@@ -56,25 +56,25 @@ public:
 		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
 
 		// External resources
-		m_pGraph->AddExternalResource("camera", sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
-		m_pGraph->AddExternalResource("lights", sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
+		m_pGraph->AddExternalResource({ "camera" }, sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
+		m_pGraph->AddExternalResource({ "lights" }, sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
 		m_pGraph->AddExternalResource(pScene->GetResourceGroup());
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "pbrPass");
-		m_pGraph->AddLink("$.camera", "pbrPass.camera");
-		m_pGraph->AddLink("$.lights", "pbrPass.lights");
+		m_pGraph->AddLink({ "$.camera" }, { "pbrPass.camera" });
+		m_pGraph->AddLink({ "$.lights" }, { "pbrPass.lights" });
 		// m_pGraph->AddLink("$.scene:instance", "pbrPass.scene:instance"); // Do this for each resource
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
-		m_pGraph->AddLink("pbrPass.out", "ImGuiPass.out");
-		m_pGraph->MarkOutput("ImGuiPass.out");
+		m_pGraph->AddLink({ "pbrPass.out" }, { "ImGuiPass.out" });
+		m_pGraph->MarkOutput({ "ImGuiPass.out" });
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
 
 		LightBuffer data = {};
-		m_pProgram->UpdateGraphResource("lights", sizeof(LightBuffer), &data);
+		m_pProgram->UpdateGraphResource({ "lights" }, sizeof(LightBuffer), &data);
 
 		m_pProgram->SetScene(pScene);
 
@@ -106,7 +106,7 @@ public:
 
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
-		m_pProgram->UpdateGraphResource("camera", sizeof(CameraBuffer), &data);
+		m_pProgram->UpdateGraphResource({ "camera" }, sizeof(CameraBuffer), &data);
 		m_pRenderer->Render();
 	};
 

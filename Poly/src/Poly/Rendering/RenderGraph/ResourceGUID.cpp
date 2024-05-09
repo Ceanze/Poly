@@ -15,13 +15,37 @@ namespace
 
 namespace Poly
 {
-	ResourceGUID::ResourceGUID(std::string resourceGUID)
+	ResourceGUID::ResourceGUID(const std::string& resourceGUID)
 		: m_Pass(SeparateStrings(resourceGUID, '.').first)
 		, m_Resource(SeparateStrings(resourceGUID, '.').second) {}
 
 	ResourceGUID::ResourceGUID(std::string pass, std::string resource)
-		: m_Pass(pass.empty() ? "$" : pass)
-		, m_Resource(resource) {}
+		: m_Pass(pass.empty() ? "$" : std::move(pass))
+		, m_Resource(std::move(resource)) {}
+
+	ResourceGUID::ResourceGUID(const ResourceGUID& other)
+		: m_Pass(other.m_Pass)
+		, m_Resource(other.m_Resource) {}
+
+	ResourceGUID::ResourceGUID(ResourceGUID&& other)
+		: m_Pass(std::move(other.m_Pass))
+		, m_Resource(std::move(other.m_Resource)) {}
+
+	ResourceGUID& ResourceGUID::operator=(const ResourceGUID& other)
+	{
+		m_Pass		= other.m_Pass;
+		m_Resource	= other.m_Resource;
+		return *this;
+	}
+
+	ResourceGUID& ResourceGUID::operator=(ResourceGUID&& other)
+	{
+		m_Pass		= std::move(other.m_Pass);
+		m_Resource	= std::move(other.m_Resource);
+		return *this;
+	}
+
+	ResourceGUID::~ResourceGUID() = default;
 
 	ResourceGUID ResourceGUID::Invalid()
 	{
@@ -48,7 +72,7 @@ namespace Poly
 		return m_Pass == "$";
 	}
 
-	bool ResourceGUID::IsValid() const
+	bool ResourceGUID::HasResource() const
 	{
 		return !m_Resource.empty();
 	}
@@ -61,5 +85,10 @@ namespace Poly
 			return m_Resource == other.m_Resource;
 		else
 			return m_Pass == other.m_Pass && m_Resource == other.m_Resource;
+	}
+
+	ResourceGUID::operator std::string() const
+	{
+		return GetFullName();
 	}
 }

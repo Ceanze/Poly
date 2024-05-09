@@ -20,88 +20,88 @@ namespace Poly
 		return CreateRef<ResourceCache>(defaultParams);
 	}
 
-	void ResourceCache::RegisterExternalResource(const std::string& name, ResourceInfo resourceInfo)
+	void ResourceCache::RegisterExternalResource(const ResourceGUID& resourceGUID, ResourceInfo resourceInfo)
 	{
-		if (m_NameToExternalIndex.contains(name))
-			m_ExternalResources[m_NameToExternalIndex[name]] = resourceInfo;
+		if (m_NameToExternalIndex.contains(resourceGUID))
+			m_ExternalResources[m_NameToExternalIndex[resourceGUID]] = resourceInfo;
 		else
 		{
-			m_NameToExternalIndex[name] = m_ExternalResources.size();
+			m_NameToExternalIndex[resourceGUID] = m_ExternalResources.size();
 			m_ExternalResources.push_back(resourceInfo);
 		}
 	}
 
-	void ResourceCache::RegisterResource(const std::string& name, uint32 timepoint, IOData iodata, const std::string& alias)
+	void ResourceCache::RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, IOData iodata, const ResourceGUID& aliasGUID)
 	{
-		if (m_NameToIndex.contains(name))
+		if (m_NameToIndex.contains(resourceGUID))
 		{
-			POLY_CORE_WARN("Resource {} has already been added, ignoring call", name);
+			POLY_CORE_WARN("Resource {} has already been added, ignoring call", resourceGUID.GetFullName());
 			return;
 		}
 
-		bool isAlias = !alias.empty();
-		if (isAlias && (!m_NameToIndex.contains(alias) && !m_NameToExternalIndex.contains(alias)))
+		bool isAlias = aliasGUID.HasResource();
+		if (isAlias && (!m_NameToIndex.contains(aliasGUID) && !m_NameToExternalIndex.contains(aliasGUID)))
 		{
-			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", name, alias);
+			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", resourceGUID.GetFullName(), aliasGUID.GetFullName());
 			return;
 		}
 
 		if (!isAlias) // New resource
 		{
 			uint32 index = m_Resources.size();
-			m_NameToIndex[name] = index;
+			m_NameToIndex[resourceGUID] = index;
 			ResourceData data = {};
-			data.Lifetime	= {timepoint, timepoint};
-			data.Name		= name;
-			data.IOInfo		= iodata;
+			data.Lifetime		= {timepoint, timepoint};
+			data.ResourceGUID	= resourceGUID;
+			data.IOInfo			= iodata;
 			m_Resources.push_back(data);
 		}
 		else // Aliased resource
 		{
-			if (m_NameToIndex.contains(alias))
+			if (m_NameToIndex.contains(aliasGUID))
 			{
-				uint32 index = m_NameToIndex[alias];
-				m_NameToIndex[name] = index;
+				uint32 index = m_NameToIndex[aliasGUID];
+				m_NameToIndex[resourceGUID] = index;
 				m_Resources[index].IOInfo.Merge(iodata);
 				CalcLifetime(m_Resources[index].Lifetime, timepoint);
 			}
 			else
 			{
-				m_NameToExternalIndex[name] = m_NameToExternalIndex[alias];
+				m_NameToExternalIndex[resourceGUID] = m_NameToExternalIndex[aliasGUID];
 			}
 		}
 	}
 
-	void ResourceCache::RegisterSyncResource(const std::string& name, const std::string& alias)
+	void ResourceCache::RegisterSyncResource(const ResourceGUID& resourceGUID, const ResourceGUID& aliasGUID)
 	{
 		// A sync resource is always an alias
-		if (!m_NameToIndex.contains(alias) && !m_NameToExternalIndex.contains(alias))
+		if (!m_NameToIndex.contains(aliasGUID) && !m_NameToExternalIndex.contains(aliasGUID))
 		{
-			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", name, alias);
+			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", resourceGUID.GetFullName(), aliasGUID.GetFullName());
 			return;
 		}
 
-		if (m_NameToIndex.contains(alias))
+		if (m_NameToIndex.contains(aliasGUID))
 		{
-			m_NameToIndex[name] = m_NameToIndex[alias];
+			m_NameToIndex[resourceGUID] = m_NameToIndex[aliasGUID];
 		}
 		else
 		{
-			m_NameToExternalIndex[name] = m_NameToExternalIndex[alias];
+			m_NameToExternalIndex[resourceGUID] = m_NameToExternalIndex[aliasGUID];
 		}
 	}
 
-	void ResourceCache::MarkOutput(const std::string& name, IOData iodata)
+	void ResourceCache::MarkOutput(const ResourceGUID& resourceGUID, IOData iodata)
 	{
 		// auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.Name == name; });
-		if (!m_NameToIndex.contains(name)) // Register resource if it hasn't been that already
+		if (!m_NameToIndex.contains(resourceGUID)) // Register resource if it hasn't been that already
 		{
-			RegisterResource(name, 0, iodata);
+			RegisterResource(resourceGUID, 0, iodata);
 			m_Resources.back().IsOutput = true;
 		}
 		else
 		{
-			m_Resources[m_NameToIndex[name]].IsOutput = true;
+			m_Resources[m_NameToIndex[resourceGUID]].IsOutput = true;
 			// itr->IsOutput = true;
 		}
 
@@ -133,7 +133,7 @@ namespace Poly
 				desc.MemUsage		= EMemoryUsage::GPU_ONLY; // TODO: Check if staging buffers should/can be created here
 				desc.Size			= resourceData.IOInfo.Size;
 
-				resourceData.pResource = Resource::Create(RenderAPI::CreateBuffer(&desc), resourceData.Name);
+				resourceData.pResource = Resource::Create(RenderAPI::CreateBuffer(&desc), resourceData.ResourceGUID.GetResourceName());
 			}
 			else if (BitsSet(bindPoint, FResourceBindPoint::COLOR_ATTACHMENT) || BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL)
 					|| BitsSet(bindPoint, FResourceBindPoint::SAMPLER) || BitsSet(bindPoint, FResourceBindPoint::SHADER_READ))
@@ -161,31 +161,31 @@ namespace Poly
 				desc2.pTexture			= pTexture.get();
 				Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&desc2);
 
-				resourceData.pResource = Resource::Create(pTexture, pTextureView, resourceData.Name);
+				resourceData.pResource = Resource::Create(pTexture, pTextureView, resourceData.ResourceGUID.GetResourceName());
 				resourceData.pResource->SetSampler(resourceData.IOInfo.pSampler ? resourceData.IOInfo.pSampler : m_DefaultParams.pSampler);
 			}
 		}
 	}
 
-	Resource* ResourceCache::GetResource(const std::string& name)
+	Resource* ResourceCache::GetResource(const ResourceGUID& resourceGUID)
 	{
-		if (!m_NameToIndex.contains(name) && !m_NameToExternalIndex.contains(name))
+		if (!m_NameToIndex.contains(resourceGUID) && !m_NameToExternalIndex.contains(resourceGUID))
 		{
-			POLY_CORE_WARN("Resource {} cannot be gotten, it does not exist", name);
+			POLY_CORE_WARN("Resource {} cannot be gotten, it does not exist", resourceGUID.GetFullName());
 			return nullptr;
 		}
 
-		if (m_NameToIndex.contains(name))
-			return m_Resources[m_NameToIndex[name]].pResource.get();
+		if (m_NameToIndex.contains(resourceGUID))
+			return m_Resources[m_NameToIndex[resourceGUID]].pResource.get();
 		else
-			return m_ExternalResources[m_NameToExternalIndex[name]].pResource.get();
+			return m_ExternalResources[m_NameToExternalIndex[resourceGUID]].pResource.get();
 	}
 
 	ResourceGUID ResourceCache::GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName)
 	{
 		// Find resource index
 		const std::string fullResourceName = resourceGUID.GetFullName();
-		std::unordered_map<std::string, uint32>* map = &m_NameToIndex;
+		auto* map = &m_NameToIndex;
 		if (!map->contains(fullResourceName))
 		{
 			map = &m_NameToExternalIndex;
@@ -210,20 +210,20 @@ namespace Poly
 			return ResourceGUID::Invalid();
 	}
 
-	Resource* ResourceCache::UpdateResourceSize(const std::string& name, uint64 size)
+	Resource* ResourceCache::UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size)
 	{
-		if (!m_NameToIndex.contains(name) && !m_NameToExternalIndex.contains(name))
+		if (!m_NameToIndex.contains(resourceGUID) && !m_NameToExternalIndex.contains(resourceGUID))
 		{
-			POLY_CORE_WARN("Resource {} cannot be updated, it does not exist", name);
+			POLY_CORE_WARN("Resource {} cannot be updated, it does not exist", resourceGUID.GetFullName());
 			return nullptr;
 		}
 
-		auto getResourceFunc = [this, &name]() -> Ref<Resource>&
+		auto getResourceFunc = [this, &resourceGUID]() -> Ref<Resource>&
 			{
-				if (m_NameToIndex.contains(name))
-					return m_Resources[m_NameToIndex[name]].pResource;
+				if (m_NameToIndex.contains(resourceGUID))
+					return m_Resources[m_NameToIndex[resourceGUID]].pResource;
 				else
-					return m_ExternalResources[m_NameToExternalIndex[name]].pResource;
+					return m_ExternalResources[m_NameToExternalIndex[resourceGUID]].pResource;
 			};
 
 		Ref<Resource>& pRes = getResourceFunc();
@@ -239,7 +239,7 @@ namespace Poly
 			desc.Size = size;
 			auto pNewBuffer = RenderAPI::CreateBuffer(&desc);
 
-			Ref<Resource> pNewResource = Resource::Create(pNewBuffer, name);
+			Ref<Resource> pNewResource = Resource::Create(pNewBuffer, resourceGUID.GetResourceName());
 
 			pRes.swap(pNewResource);
 			pNewResource.reset();
@@ -252,7 +252,7 @@ namespace Poly
 			POLY_CORE_ERROR("TODO: Add texture resizing support");
 		}
 
-		POLY_CORE_ERROR("Resource {} was neither a Buffer nor a Texture, cannot update size", name);
+		POLY_CORE_ERROR("Resource {} was neither a Buffer nor a Texture, cannot update size", resourceGUID.GetFullName());
 		return nullptr;
 	}
 
