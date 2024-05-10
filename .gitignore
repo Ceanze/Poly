@@ -350,6 +350,21 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# CLion
+.idea/
+
+# Mac
+.DS_Store
+
+# CMake
+# This projects generates the cmake files from premake - therefore it is not necessary to include those files
+*.cmake
+CMakeLists.txt
+cmake-build-debug/
+CMakeCache.txt
+CMakeFiles/**
+Makefile
+
 
 # Custom ignores
 *.tlog

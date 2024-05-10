@@ -12,7 +12,7 @@ project "GLFW"
 	{
 		path .. "include/GLFW/glfw3.h",
 		path .. "include/GLFW/glfw3native.h",
-		path .. "src/glfw_config.h",
+		-- path .. "src/glfw_config.h",
 		path .. "src/context.c",
 		path .. "src/init.c",
 		path .. "src/input.c",
@@ -42,6 +42,34 @@ project "GLFW"
 		{
 			"_GLFW_WIN32",
 			"_CRT_SECURE_NO_WARNINGS"
+		}
+
+	filter "system:macosx"
+		staticruntime "On"
+
+		files
+		{
+			path .. "src/cocoa_init.m",
+			path .. "src/cocoa_joystick.m",
+			path .. "src/cocoa_monitor.m",
+			path .. "src/cocoa_time.c",
+			path .. "src/posix_thread.c",
+			path .. "src/cocoa_window.m",
+			path .. "src/nsgl_context.m",
+			path .. "src/egl_context.c",
+			path .. "src/osmesa_context.c",
+		}
+
+		links
+		{
+			"-framework Cocoa",
+			"-framework IOKit",
+			"-framework CoreFoundation"
+		}
+
+		defines
+		{
+			"_GLFW_COCOA"
 		}
 
 	filter "configurations:Debug"

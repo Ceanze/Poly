@@ -4,17 +4,13 @@ namespace Poly
 {
 	class IOManager
 	{
-	private:
-		// Standalone build should follow same structure
-		static constexpr const char* ASSETS_FOLDER_PATH = "../assets/";
-		static constexpr const char* SCENES_FOLDER_PATH = "../assets/scenes/";
-
 	public:
 		IOManager() = default;
 		~IOManager() = default;
 
-		static std::string GetAssetsFolder() { return ASSETS_FOLDER_PATH; }
-		static std::string GetScenesFolder() { return SCENES_FOLDER_PATH; }
+		static std::string GetRootFolder();
+		static std::string GetAssetsFolder();
+		static std::string GetScenesFolder();
 
 		static std::string GetFolderFromPath(const std::string& path)
 		{

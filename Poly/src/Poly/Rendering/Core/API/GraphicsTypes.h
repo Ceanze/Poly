@@ -85,7 +85,8 @@ namespace Poly
 		R32_SFLOAT			= 4,
 		R32G32_SFLOAT		= 5,
 		R32G32B32_SFLOAT	= 6,
-		R32G32B32A32_SFLOAT	= 7
+		R32G32B32A32_SFLOAT	= 7,
+		DEPTH_STENCIL		= 8,	// Shorthand for using the most optimal depth-stencil format that is supported
 	};
 
 	enum class FTextureUsage : uint32

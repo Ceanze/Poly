@@ -63,7 +63,10 @@ namespace Poly
 		if (handle.IsLoaded)
 			return;
 
-		Ref<Texture> pTex = ResourceLoader::LoadTexture(handle.Path, format);
+		// TODO: As for now all calls to ResourceLoader are done with Absolute Paths - but we save in Relative Paths.
+		//		 Either make sure this is clear, or have internal functions to check if path is Absolute or Relative
+		//		 to handle it.
+		Ref<Texture> pTex = ResourceLoader::LoadTexture(IOManager::GetAssetsFolder() + handle.Path, format);
 
 		// TODO: Grab necessary data from texture
 		Poly::TextureViewDesc textureViewDesc = {
@@ -87,7 +90,7 @@ namespace Poly
 
 	PolyID ResourceManager::ImportAndLoadTexture(const std::string& path, EFormat format)
 	{
-		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		std::string relativePath = path;
 
 		PolyID pathID = ResourceImporter::ImportTexture(path);
 
@@ -318,7 +321,7 @@ namespace Poly
 
 	PolyID ResourceManager::GetPolyIDFromPath(const std::string& path)
 	{
-		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		std::string relativePath = path;
 		return ResourceImporter::GetPathID(relativePath);
 	}
 
@@ -373,7 +376,7 @@ namespace Poly
 			if (!m_IDToHandle.contains(importedResource.ResourceID))
 			{
 				ResourceHandle handle = {};
-				handle.Path = IOManager::GetAssetsFolder() + path;
+				handle.Path = path;
 				handle.Type	= importedResource.Type;
 				handle.IsLoaded = false;
 				handle.Index = UINT32_MAX;

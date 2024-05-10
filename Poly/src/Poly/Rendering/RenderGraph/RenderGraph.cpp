@@ -10,6 +10,7 @@
 #include "Poly/Core/Utils/DirectedGraph.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
+#include "Poly/Poly/Format.h"
 
 namespace Poly
 {
@@ -44,7 +45,7 @@ namespace Poly
 	{
 		POLY_VALIDATE(pPass, "Added pass cannot be nullptr");
 
-		if (name.contains('.'))
+		if (name.find('.') != std::string::npos)
 		{
 			POLY_CORE_WARN("Cannot add a pass with name {}, its naming is invalid (contains a dot)", name);
 			return false;
@@ -177,7 +178,7 @@ namespace Poly
 		const auto& resources = resourceGroup.GetResources();
 		for (auto& resource : resources)
 		{
-			std::string name = std::format("{}:{}", groupName, resource.first);
+			std::string name = Poly::Format("{}:{}", groupName, resource.first);
 			if (m_ExternalResources.contains(name))
 			{
 				POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);

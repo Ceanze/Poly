@@ -14,10 +14,10 @@ namespace Poly
 {
 	void ResourceImporter::LoadImports()
 	{
-		if (!IOManager::FileExists(PROJECT_POLYRES_FILE))
+		if (!IOManager::FileExists(GetProjectPath()))
 			return;
 
-		YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
+		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
 
 		if (projectFile["models"])
 			for (auto pair : projectFile["models"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::MODEL };
@@ -72,21 +72,27 @@ namespace Poly
 		return Import(path, ResourceType::MATERIAL);
 	}
 
+	std::string ResourceImporter::GetProjectPath()
+	{
+		return IOManager::GetRootFolder() + PROJECT_POLYRES_FILE;
+	}
+
 	void ResourceImporter::UpdateProjectFile(const std::string& path, PolyID pathID, ResourceType type)
 	{
-		if (!IOManager::FileExists(PROJECT_POLYRES_FILE))
+		if (!IOManager::FileExists(GetProjectPath()))
 			CreateProjectFile();
 
-		YAML::Node projectFile = YAML::LoadFile(PROJECT_POLYRES_FILE);
+		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
+		uint64 id = static_cast<uint64>(pathID);
 
 		switch (type)
 		{
-			case ResourceType::MODEL: projectFile["models"][path] = std::format("{}", static_cast<uint64>(pathID)); break;
-			case ResourceType::TEXTURE: projectFile["textures"][path] = std::format("{}", static_cast<uint64>(pathID)); break;
-			case ResourceType::MATERIAL: projectFile["material"][path] = std::format("{}", static_cast<uint64>(pathID)); break;
+			case ResourceType::MODEL: projectFile["models"][path] =	std::to_string(id); break;
+			case ResourceType::TEXTURE: projectFile["textures"][path] =	std::to_string(id); break;
+			case ResourceType::MATERIAL: projectFile["material"][path] = std::to_string(id); break;
 		}
 
-		std::ofstream file(PROJECT_POLYRES_FILE);
+		std::ofstream file(GetProjectPath());
 		file << projectFile;
 		file.close();
 	}
@@ -97,7 +103,7 @@ namespace Poly
 		out << YAML::BeginMap << YAML::Key << "models" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
 		out << YAML::BeginMap << YAML::Key << "textures" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
 		out << YAML::BeginMap << YAML::Key << "materials" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
-		std::ofstream file(PROJECT_POLYRES_FILE);
+		std::ofstream file(GetProjectPath());
 		file << out.c_str();
 		file.close();
 	}

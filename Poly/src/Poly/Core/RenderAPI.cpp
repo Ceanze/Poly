@@ -101,7 +101,7 @@ namespace Poly
 
 	Ref<Semaphore> RenderAPI::CreateSemaphore()
 	{
-		return m_pGraphicsInstance->CreateSemaphoreW();
+		return m_pGraphicsInstance->CreateSemaphore();
 	}
 
 	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)

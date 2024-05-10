@@ -4,8 +4,12 @@
 #include "Poly/Core/Window.h"
 
 #include <cstdint>
+// Required for VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+#include <vulkan/vulkan_beta.h>
 
 // API Specific objects
+#include <cstring>
+
 #include "PVKFence.h"
 #include "PVKShader.h"
 #include "PVKBuffer.h"
@@ -22,6 +26,34 @@
 #include "PVKCommandBuffer.h"
 #include "PVKPipelineLayout.h"
 #include "PVKGraphicsPipeline.h"
+
+namespace
+{
+	VkFormat FindSupportedFormat(
+	const std::vector<VkFormat>& candidates,
+	VkImageTiling tiling,
+	VkFormatFeatureFlags features,
+	VkPhysicalDevice physicalDevice)
+	{
+		for (VkFormat format : candidates)
+		{
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+			if ((tiling == VK_IMAGE_TILING_LINEAR) &&
+				((props.linearTilingFeatures & features) == features))
+			{
+				return format;
+			}
+			else if ((tiling == VK_IMAGE_TILING_OPTIMAL) &&
+				((props.optimalTilingFeatures & features) == features))
+			{
+				return format;
+			}
+		}
+		return VK_FORMAT_UNDEFINED;
+	}
+}
 
 namespace Poly
 {
@@ -259,6 +291,20 @@ namespace Poly
 		}
 	}
 
+	VkFormat PVKInstance::FindDepthFormat()
+	{
+		std::vector<VkFormat> formats;
+		formats.push_back(VK_FORMAT_D32_SFLOAT);
+		formats.push_back(VK_FORMAT_D32_SFLOAT_S8_UINT);
+		formats.push_back(VK_FORMAT_D24_UNORM_S8_UINT);
+
+		return FindSupportedFormat(
+			formats,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			s_PhysicalDevice);
+	}
+
 	PVKQueue& PVKInstance::GetQueue(FQueueType queueType, uint32_t index)
 	{
 		// Check if valid queue and index, return if successful
@@ -284,17 +330,17 @@ namespace Poly
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 		{
-			POLY_CORE_TRACE("{}\n", pCallbackData->pMessage);
+			POLY_CORE_TRACE("Info: {}\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 		{
-			POLY_CORE_WARN("{}\n", pCallbackData->pMessage);
+			POLY_CORE_WARN("Warn: {}\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 		{
-			POLY_CORE_ERROR("{}\n", pCallbackData->pMessage);
+			POLY_CORE_ERROR("Error: {}\n", pCallbackData->pMessage);
 			break;
 		}
 		// default:
@@ -349,6 +395,7 @@ namespace Poly
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
+        createInfo.flags = 0;
 
 		// Add the validation layers if they are enabled
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
@@ -361,6 +408,10 @@ namespace Poly
 			createInfo.enabledLayerCount = 0;
 			createInfo.pNext = nullptr;
 		}
+
+#ifdef POLY_PLATFORM_MACOS
+        createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 
 		// Add GLFW as an extension to the instance
 		auto extensions = GetRequiredExtensions();
@@ -450,6 +501,8 @@ namespace Poly
 		if (s_PhysicalDevice == VK_NULL_HANDLE) {
 			throw std::runtime_error("failed to find a suitable GPU!");
 		}
+
+		AddRequiredDeviceExtensions();
 	}
 
 	void PVKInstance::SetOptimalDevice(const std::vector<VkPhysicalDevice>& devices)
@@ -477,7 +530,8 @@ namespace Poly
 			score += deviceProperties.limits.maxImageDimension2D;
 
 			// Make sure the device has support for the requested extensions
-			bool extensionsSupported = CheckDeviceExtensionSupport(d);
+			const bool extensionsSupported = CheckDeviceExtensionSupport(d);
+			POLY_VALIDATE(extensionsSupported, "Required extensions are not supported!");
 
 			// Save the device with the best score and is complete with its queues
 			if (score > bestScore && findQueueFamilies(d, s_Surface).isComplete() && deviceFeatures.samplerAnisotropy) {
@@ -488,6 +542,25 @@ namespace Poly
 		}
 
 		POLY_CORE_INFO("Picked device: {}", pickedDeviceName);
+	}
+
+	// TODO: Improve extension handling (Better extension adding, extension checking, etc.)
+	void PVKInstance::AddRequiredDeviceExtensions()
+	{
+		unsigned extensionCount;
+		vkEnumerateDeviceExtensionProperties(s_PhysicalDevice, nullptr, &extensionCount, nullptr);
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(s_PhysicalDevice, nullptr, &extensionCount, availableExtensions.data());
+
+		const bool foundPortabilitySubset = std::find_if(availableExtensions.begin(), availableExtensions.end(), [](const VkExtensionProperties& properties)
+		{
+			return std::strcmp(properties.extensionName, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) == 0;
+		}) != availableExtensions.end();
+
+		if (foundPortabilitySubset)
+		{
+			m_DeviceExtensions.emplace_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+		}
 	}
 
 	void PVKInstance::CreateLogicalDevice()
@@ -581,6 +654,7 @@ namespace Poly
 			createInfo.flags |= VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT;
 		}
 
+
 		// Uncomment to enable recording to CSV file.
 		/*
 		static VmaRecordSettings recordSettings = {};
@@ -603,6 +677,10 @@ namespace Poly
 		if (m_EnableValidationLayers) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
+
+#ifdef POLY_PLATFORM_MACOS
+      extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
 
 		return extensions;
 	}

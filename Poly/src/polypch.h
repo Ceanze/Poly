@@ -5,7 +5,9 @@
 #pragma warning(disable : 26812) // Disable unscoped enum warning
 
 // Standard libraries
+#ifdef POLY_PLATFORM_WINDOWS
 #include <windows.h>
+#endif
 #include <string>
 #include <set>
 #include <algorithm>

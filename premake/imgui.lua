@@ -3,6 +3,8 @@ local path = "../Poly/libs/imgui/"
 project "ImGui"
     kind "StaticLib"
     language "C++"
+	cppdialect "c++20"
+
     location (_WORKING_DIR .. "/projects/%{prj.name}")
 
     targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
