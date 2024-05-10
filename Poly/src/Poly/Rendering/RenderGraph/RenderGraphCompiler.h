@@ -9,6 +9,7 @@ namespace Poly
 	class Resource;
 	class RenderPass;
 	class RenderGraph;
+	class ResourceGUID;
 	class ResourceCache;
 	class RenderGraphProgram;
 
@@ -38,8 +39,8 @@ namespace Poly
 		void ValidateGraph();
 		void AllocateResources();
 		void AddSync(bool* pNewPasses);
-		bool IsResourceUsed(uint32 nodeIndex, const std::string& outputName);
-		bool IsResourceGraphOutput(uint32 nodeIndex, const std::string& outputName);
+		bool IsResourceUsed(const ResourceGUID& resourceGUID, uint32 nodeIndex);
+		bool IsResourceGraphOutput(const ResourceGUID& resourceGUID, uint32 nodeIndex);
 		FAccessFlag GetAccessFlag(FResourceBindPoint bindPoint, bool isInput);
 		FPipelineStage GetPipelineStage(FResourceBindPoint bindPoint);
 

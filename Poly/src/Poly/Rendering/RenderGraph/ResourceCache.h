@@ -13,11 +13,11 @@ namespace Poly
 	private:
 		struct ResourceData
 		{
-			std::pair<uint32, uint32>	Lifetime	= {0, 0};
-			Ref<Resource>				pResource	= nullptr;
-			std::string					Name		= "";
-			IOData						IOInfo		= {};
-			bool						IsOutput	= false;
+			std::pair<uint32, uint32>	Lifetime		= {0, 0};
+			Ref<Resource>				pResource		= nullptr;
+			ResourceGUID				ResourceGUID	= ResourceGUID::Invalid();
+			IOData						IOInfo			= {};
+			bool						IsOutput		= false;
 		};
 
 	public:
@@ -33,7 +33,7 @@ namespace Poly
 		 * @param name - name of resource following $.resourceName format
 		 * @param resourceInfo - resource info (pResource & autobind)
 		 */
-		void RegisterExternalResource(const std::string& name, ResourceInfo resourceInfo);
+		void RegisterExternalResource(const ResourceGUID& resourceGUID, ResourceInfo resourceInfo);
 
 		/**
 		 * Registers a resource to be created
@@ -42,9 +42,9 @@ namespace Poly
 		 * @param iodata - IOData for the resource
 		 * @param alias - [optional] informs that the resource is going by another name added previously
 		 */
-		void RegisterResource(const std::string& name, uint32 timepoint, IOData iodata, const std::string& alias = "");
+		void RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, IOData iodata, const ResourceGUID& aliasGUID = ResourceGUID::Invalid());
 
-		void RegisterSyncResource(const std::string& name, const std::string& alias);
+		void RegisterSyncResource(const ResourceGUID& resourceGUID, const ResourceGUID& aliasGUID);
 
 		/**
 		 * Mark a resource as being the output of the graph - this will
@@ -52,7 +52,7 @@ namespace Poly
 		 * @param name - name of resource following renderPass.resourceName format
 		 * @param iodata - IOData for that resource
 		 */
-		void MarkOutput(const std::string& name, IOData iodata);
+		void MarkOutput(const ResourceGUID& resourceGUID, IOData iodata);
 
 		/**
 		 * Sets the current backbuffer resource for this frame to be used
@@ -71,7 +71,7 @@ namespace Poly
 		 * 
 		 * @return pointer to resource
 		 */
-		Resource* GetResource(const std::string& name);
+		Resource* GetResource(const ResourceGUID& resourceGUID);
 
 		/**
 		* Gets the mapped resource name, i.e. resource "pass.resource" retruns the mapped name for "passName.resource"
@@ -86,7 +86,7 @@ namespace Poly
 		* Update a resource size
 		* WARNING: Old data will be deleted when size is changed. 
 		*/
-		Resource* UpdateResourceSize(const std::string& name, uint64 size);
+		Resource* UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size);
 
 		/**
 		 * Resets the cache, losing ownership of resource and clears vectors
@@ -98,9 +98,9 @@ namespace Poly
 
 		RenderGraphDefaultParams m_DefaultParams;
 
-		std::unordered_map<std::string, uint32> m_NameToIndex;
+		std::unordered_map<ResourceGUID, uint32, ResourceGUIDHasher> m_NameToIndex;
 		std::vector<ResourceData> m_Resources;
-		std::unordered_map<std::string, uint32> m_NameToExternalIndex;
+		std::unordered_map<ResourceGUID, uint32, ResourceGUIDHasher> m_NameToExternalIndex;
 		std::vector<ResourceInfo> m_ExternalResources;
 	};
 }

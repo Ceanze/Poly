@@ -180,7 +180,6 @@ namespace Poly
 
 	const IOData& PassReflection::GetIOData(const std::string& resName) const
 	{
-		//auto it = std::find(m_IOs.begin(), m_IOs.end(), resName);
 		auto it = std::find_if(m_IOs.begin(), m_IOs.end(), [resName](const IOData& io) { return io.Name == resName; });
 		if (it != m_IOs.end())
 			return *it;

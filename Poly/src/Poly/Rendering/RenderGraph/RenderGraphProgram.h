@@ -59,7 +59,7 @@ namespace Poly
 		 * @param pResource - resource to update with - nullptr if resource is same and only updated binding. If resource is provided, all bindings using this resource will also be updated.
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(const std::string& name, const Resource* pResource, uint32 index = 0);
+		void UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index = 0);
 
 		/**
 		 * Updates a resource's descriptor - must be done when the resource has changed size or if
@@ -69,7 +69,7 @@ namespace Poly
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the ResourceView as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(const std::string& name, ResourceView view, uint64 offset = 0, uint32 index = 0);
+		void UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint64 offset = 0, uint32 index = 0);
 
 		/**
 		 * Updates a resource's descriptor - must be done when the resource has changed size or if
@@ -80,7 +80,7 @@ namespace Poly
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the data as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(const std::string& name, uint64 size, const void* data, uint64 offset = 0, uint32 index = 0);
+		void UpdateGraphResource(ResourceGUID resourceGUID, uint64 size, const void* data, uint64 offset = 0, uint32 index = 0);
 
 		/**
 		 * USED BY THE RENDERER

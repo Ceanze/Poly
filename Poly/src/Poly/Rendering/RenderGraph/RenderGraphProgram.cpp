@@ -60,7 +60,7 @@ namespace Poly
 			{
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 				for (const auto& reflection : reflections)
-					UpdateGraphResource(pPass->GetName() + "." + reflection.Name, nullptr);
+					UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
 			}
 			passIndex++;
 		}
@@ -174,43 +174,41 @@ namespace Poly
 		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, const Resource* pResource, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
 	{
 		if (!pResource)
 		{
-			UpdateGraphResource(name, ResourceView::Empty(), 0, index);
+			UpdateGraphResource(resourceGUID, ResourceView::Empty(), 0, index);
 		}
 		else if (pResource->IsBuffer())
 		{
 			const Buffer* pBuffer = pResource->GetAsBuffer();
-			UpdateGraphResource(name, {pBuffer, pBuffer->GetSize(), 0}, 0, index);
+			UpdateGraphResource(resourceGUID, {pBuffer, pBuffer->GetSize(), 0}, 0, index);
 		}
 		else if (pResource->IsTexture())
 		{
 			const TextureView* pTextureView = pResource->GetAsTextureView();
 			const Sampler* pSampler = pResource->GetAsSampler();
-			UpdateGraphResource(name, {pTextureView, pSampler}, 0, index);
+			UpdateGraphResource(resourceGUID, {pTextureView, pSampler}, 0, index);
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, ResourceView view, uint64 offset, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint64 offset, uint32 index)
 	{
-		PassResourcePair passPair = GetPassResourcePair(name);
-
 		// Go through each pass and find where resource is being used
 		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
 		{
 			auto& pPass = m_Passes[passIndex];
 
-			if (pPass->GetPassType() == Pass::Type::SYNC || (pPass->GetName() != passPair.first && view.IsEmpty()))
+			if (pPass->GetPassType() == Pass::Type::SYNC || (pPass->GetName() != resourceGUID.GetPassName() && view.IsEmpty()))
 			{
 				continue;
 			}
 
 
 			// Check if pass has the requested resource, continue if not
-			const ResourceGUID mappedResource = GetMappedResourceGUID({ passPair.first, passPair.second }, pPass, passIndex);
-			if (!mappedResource.IsValid())
+			const ResourceGUID mappedResource = GetMappedResourceGUID(resourceGUID, pPass, passIndex);
+			if (!mappedResource.HasResource())
 				continue;
 
 			// Resource is being used in pass, update corresponding descriptor
@@ -254,15 +252,13 @@ namespace Poly
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(const std::string& name, uint64 size, const void* data, uint64 offset, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, uint64 size, const void* data, uint64 offset, uint32 index)
 	{
-		PassResourcePair passPair = GetPassResourcePair(name);
-		std::string resourceName = passPair.first.empty() ? ("$." + passPair.second) : name;
-		const Resource* pRes = m_pResourceCache->GetResource(resourceName);
+		const Resource* pRes = m_pResourceCache->GetResource(resourceGUID);
 
 		if (!pRes)
 		{
-			POLY_CORE_ERROR("UpdateGraphResource - cannot update resource {} as it was not in the resource cache", name);
+			POLY_CORE_ERROR("UpdateGraphResource - cannot update resource {} as it was not in the resource cache", resourceGUID.GetResourceName());
 			return;
 		}
 
@@ -276,18 +272,18 @@ namespace Poly
 		bool hasSizeChanged = oldSize != size;
 		if (oldSize < size)
 		{
-			pRes = m_pResourceCache->UpdateResourceSize(resourceName, size);
+			pRes = m_pResourceCache->UpdateResourceSize(resourceGUID, size);
 		}
 
 		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, offset, data);
 
 		if (hasSizeChanged)
 		{
-			UpdateGraphResource(name, pRes, index);
+			UpdateGraphResource(resourceGUID, pRes, index);
 		}
 		else
 		{
-			UpdateGraphResource(name, nullptr, index);
+			UpdateGraphResource(resourceGUID, nullptr, index);
 		}
 	}
 
@@ -449,6 +445,12 @@ namespace Poly
 
 	Framebuffer* RenderGraphProgram::GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex)
 	{
+		if (pPass->GetPassType() != Pass::Type::RENDER)
+		{
+			POLY_CORE_ERROR("Cannot get/create a framebuffer for non-render passes. Pass {} with passIndex {} is not a render pass", pPass->GetName(), passIndex);
+			return nullptr;
+		}
+
 		// If we have already created it, return it
 		if (m_Framebuffers.contains(passIndex))
 		{
@@ -469,9 +471,9 @@ namespace Poly
 
 		const auto& attachmentInfos = renderPass->GetAttachments();
 		attachments.reserve(attachmentInfos.size());
-		for (const auto& a : attachmentInfos)
+		for (const auto& [resourceName, attachmentInfo] : attachmentInfos)
 		{
-			Resource* pRes = m_pResourceCache->GetResource(renderPass->GetName() + "." + a.first);
+			Resource* pRes = m_pResourceCache->GetResource({ renderPass->GetName(), resourceName });
 
 			if (!width || !height)
 			{
@@ -479,7 +481,7 @@ namespace Poly
 				height = pRes->GetAsTexture()->GetHeight();
 			}
 
-			if (a.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			if (attachmentInfo.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 				pDepthAttachment = pRes->GetAsTextureView();
 			else
 				attachments.push_back(pRes->GetAsTextureView());
@@ -576,7 +578,7 @@ namespace Poly
 	ResourceGUID RenderGraphProgram::GetMappedResourceGUID(const ResourceGUID& resourceGUID, const Ref<Pass>& pPass, uint32 passIndex)
 	{
 		ResourceGUID mappedResource = m_pResourceCache->GetMappedResourceName(resourceGUID, pPass->GetName());
-		if (!mappedResource.IsValid())
+		if (!mappedResource.HasResource())
 			return ResourceGUID::Invalid();
 
 		const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
