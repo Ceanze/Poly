@@ -39,7 +39,7 @@ namespace Poly
         attachment->get().FinalLayout = layout;
     }
 
-    void RenderPass::SetAttacœhmentFormat(const std::string& name, EFormat format)
+    void RenderPass::SetAttachmentFormat(const std::string& name, EFormat format)
     {
         const auto attachment = GetAttachment(name);
         if (!attachment)

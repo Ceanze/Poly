@@ -58,7 +58,7 @@ namespace Poly
 
 		void SetAttachmentInital(const std::string& name, ETextureLayout layout);
 		void SetAttachmentFinal(const std::string& name, ETextureLayout layout);
-		void SetAttacœhmentFormat(const std::string& name, EFormat format);
+		void SetAttachmentFormat(const std::string& name, EFormat format);
 		// const std::unordered_map<std::string, RenderPassAttachment>& GetAttachments() const { return p_Attachments; }
 		const std::vector<RenderPassAttachment>& GetAttachments() { return p_Attachments; }
 

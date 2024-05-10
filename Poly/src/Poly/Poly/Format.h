@@ -1,15 +1,23 @@
 #pragma once
 
+#ifdef POLY_PLATFORM_WINDOWS
+#include <format>
+#else
 #include <spdlog/fmt/bundled/format.h>
+#endif
 
 namespace Poly {
+#ifdef POLY_PLATFORM_WINDOWS
     template <typename... T>
-    inline auto Format(const std::string& format, T&&... args)
+    inline auto Format(std::format_string<T...> format, T&&... args)
     {
-#ifdef POLY_WINDOWS
-        return std::format(format, std::forward(args...));
-#else
-        return fmt::format(format, std::forward<T>(args)...);
-#endif
+        return std::format(format, std::forward<T>(args)...);
     }
+#else
+    template <typename... T>
+    inline auto Format(fmt::format_string<T...> format, T&&... args)
+    {
+        return fmt::format(format, std::forward<T>(args)...);
+    }
+#endif
 }

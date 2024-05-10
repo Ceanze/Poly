@@ -7,7 +7,6 @@
 #include <fstream>
 
 #include "IOManager.h"
-#include "Poly/Poly/Format.h"
 
 #define PROJECT_POLYRES_FILE "project.polyres"
 
@@ -84,12 +83,13 @@ namespace Poly
 			CreateProjectFile();
 
 		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
+		uint64 id = static_cast<uint64>(pathID);
 
 		switch (type)
 		{
-			case ResourceType::MODEL: projectFile["models"][path] = Poly::Format("{}", static_cast<uint64>(pathID)); break;
-			case ResourceType::TEXTURE: projectFile["textures"][path] = Poly::Format("{}", static_cast<uint64>(pathID)); break;
-			case ResourceType::MATERIAL: projectFile["material"][path] = Poly::Format("{}", static_cast<uint64>(pathID)); break;
+			case ResourceType::MODEL: projectFile["models"][path] =	std::to_string(id); break;
+			case ResourceType::TEXTURE: projectFile["textures"][path] =	std::to_string(id); break;
+			case ResourceType::MATERIAL: projectFile["material"][path] = std::to_string(id); break;
 		}
 
 		std::ofstream file(GetProjectPath());
