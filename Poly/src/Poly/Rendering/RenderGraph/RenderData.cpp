@@ -20,11 +20,13 @@ namespace Poly
 
 	Resource* RenderData::GetResourceNonConst(const std::string& resourceName) const
 	{
-		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
+		// ResourceGUID is created within the function to avoid the pass to get resources outside of pass scope
+		return m_pResourceCache->GetResource({ m_RenderPassName, resourceName });
 	}
 
 	const Resource* RenderData::operator[] (const std::string& resourceName) const
 	{
-		return m_pResourceCache->GetResource(m_RenderPassName + "." + resourceName).get();
+		// ResourceGUID is created within the function to avoid the pass to get resources outside of pass scope
+		return m_pResourceCache->GetResource({ m_RenderPassName, resourceName });
 	}
 }

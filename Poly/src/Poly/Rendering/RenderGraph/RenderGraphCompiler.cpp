@@ -1,12 +1,15 @@
 #include "polypch.h"
 #include "RenderGraphCompiler.h"
+
 #include "SyncPass.h"
 #include "Resource.h"
 #include "RenderPass.h"
 #include "RenderGraph.h"
+#include "ResourceGUID.h"
 #include "ResourceCache.h"
 #include "RenderGraphProgram.h"
 #include "Poly/Core/Utils/DirectedGraphHelper.h"
+
 #include <ranges>
 
 namespace Poly
@@ -51,15 +54,12 @@ namespace Poly
 			mandatoryPasses.insert(output.NodeID);
 
 		// 2. Add all passes which has an execution link, since this might affect other mandatory passes
-		for (const auto& edge : m_pRenderGraph->m_Edges)
+		for (const auto& [_, edgeData] : m_pRenderGraph->m_Edges)
 		{
-			// Remove dstPair or srcPair check? If one is true the other should also be (check done when link is added)
-			auto srcPair = m_pRenderGraph->GetPassNameResourcePair(edge.second.Src);
-			auto dstPair = m_pRenderGraph->GetPassNameResourcePair(edge.second.Dst);
-			if (srcPair.second.empty() && dstPair.second.empty())
+			if (!edgeData.Src.HasResource() && !edgeData.Dst.HasResource())
 			{
-				mandatoryPasses.insert(m_pRenderGraph->m_NameToNodeIndex[srcPair.first]);
-				mandatoryPasses.insert(m_pRenderGraph->m_NameToNodeIndex[dstPair.first]);
+				mandatoryPasses.insert(m_pRenderGraph->m_NameToNodeIndex[edgeData.Src.GetPassName()]);
+				mandatoryPasses.insert(m_pRenderGraph->m_NameToNodeIndex[edgeData.Dst.GetPassName()]);
 			}
 		}
 
@@ -110,7 +110,8 @@ namespace Poly
 
 		if (m_pRenderGraph->m_Outputs.empty())
 		{
-			POLY_CORE_WARN("Rendergraph must have atleast one resource marked as output");
+			// TODO: Validate if an output always need to exist. For Compute only or render to texture it wouldn't be needed
+			POLY_CORE_ERROR("Rendergraph must have atleast one resource marked as output");
 			return;
 		}
 
@@ -121,12 +122,12 @@ namespace Poly
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (uint32 i = 0; i < inputs.size(); i++)
 			{
-				std::string dst = passData.pPass->GetName() + "." + inputs[i].Name;
+				ResourceGUID dstGUID(passData.pPass->GetName(), inputs[i].Name);
 				bool valid = false;
 				for (auto edgeID : incommingEdges)
 				{
 					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
-					if (edgeData.Dst == dst)
+					if (edgeData.Dst == dstGUID)
 					{
 						valid = true;
 						break;
@@ -134,10 +135,9 @@ namespace Poly
 				}
 				if (!valid)
 				{
-					for (auto& externalResource : externalResources)
+					for (const Pass::ExternalResourceData& externalResource : externalResources)
 					{
-						std::string externalDst = passData.pPass->GetName() + "." + externalResource.second;
-						if (externalDst == dst)
+						if (externalResource.DstGUID == dstGUID)
 						{
 							valid = true;
 							break;
@@ -146,7 +146,7 @@ namespace Poly
 				}
 				// Let the user know, continue the loop to find if more are missing
 				if (!valid)
-					POLY_CORE_WARN("Input resource {} did not have a link to it", dst);
+					POLY_CORE_WARN("Input resource {} did not have a link to it", dstGUID.GetFullName());
 			}
 		}
 	}
@@ -156,8 +156,8 @@ namespace Poly
 		m_pResourceCache = ResourceCache::Create(m_DefaultParams);
 
 		// Register external resources
-		for (const auto& resPair : m_pRenderGraph->m_ExternalResources)
-			m_pResourceCache->RegisterExternalResource("$." + resPair.first, resPair.second);
+		for (const auto& [resGUID, resInfo] : m_pRenderGraph->m_ExternalResources)
+			m_pResourceCache->RegisterExternalResource(resGUID, resInfo);
 
 		for (uint32 passID = 0; passID < m_OrderedPasses.size(); passID++)
 		{
@@ -167,11 +167,11 @@ namespace Poly
 			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::ALL_SCENES);
 			for (auto& output : outputs)
 			{
-				std::string resourceName = passData.pPass->GetName() + "." + output.Name;
+				ResourceGUID resourceGUID(passData.pPass->GetName(), output.Name);
 
 				// Check if resource is being used, as the graph allows outputs to be non-linked, go to next output if not used
-				bool isMarkedOutput = IsResourceGraphOutput(passData.NodeIndex, output.Name);
-				bool isUsed = IsResourceUsed(passData.NodeIndex, output.Name);
+				bool isMarkedOutput = IsResourceGraphOutput(resourceGUID, passData.NodeIndex);
+				bool isUsed = IsResourceUsed(resourceGUID, passData.NodeIndex);
 				bool isDepthStencil = BitsSet(FResourceBindPoint::DEPTH_STENCIL, output.BindPoint);
 				if (!isUsed && !isMarkedOutput && !isDepthStencil)
 					continue;
@@ -181,56 +181,56 @@ namespace Poly
 
 				if (isMarkedOutput && !BitsSet(output.IOType, FIOType::INPUT)) // Create alias to backbuffer
 				{
-					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + output.Name, output);
+					m_pResourceCache->MarkOutput(resourceGUID, output);
 					passData.Reflection.SetFormat(output.Name, EFormat::B8G8R8A8_UNORM);
 				}
 				else if (!BitsSet(output.IOType, FIOType::INPUT) && !BitsSet(output.BindPoint, FResourceBindPoint::INTERNAL_USE)) // Only register new resource if it wasn't an input (passthrough)
-					m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + output.Name, passID, output);
+					m_pResourceCache->RegisterResource(resourceGUID, passID, output);
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
 			for (auto& input : inputs)
 			{
-				std::string resourceName = passData.pPass->GetName() + "." + input.Name;
-				std::string alias = "";
+				ResourceGUID resourceGUID(passData.pPass->GetName(), input.Name);
+				ResourceGUID aliasGUID = ResourceGUID::Invalid();
 
 				const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 				for (auto edgeID : incommingEdges)
 				{
 					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
-					if (edgeData.Dst == resourceName)
+					if (edgeData.Dst == resourceGUID)
 					{
-						alias = edgeData.Src;
+						aliasGUID = edgeData.Src;
 						break;
 					}
 				}
 
 				// If incomming didn't get any match, check for externals
-				if (alias.empty())
+				if (!aliasGUID.HasResource())
 				{
 					const auto& externals = passData.pPass->GetExternalResources();
 					for (auto& external : externals)
 					{
-						if (external.second == input.Name)
+						if (external.DstGUID == resourceGUID)
 						{
-							alias = "$." + external.first;
+							aliasGUID = ResourceGUID(external.SrcGUID);
 							break;
 						}
 					}
 				}
 
-				if (alias.empty())
+				if (!aliasGUID.HasResource() && !BitsSet(input.BindPoint, FResourceBindPoint::INTERNAL_USE))
 				{
-					POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceName);
+					POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceGUID.GetFullName());
 					return;
 				}
 
-				m_pResourceCache->RegisterResource(passData.pPass->GetName() + "." + input.Name, passID, input, alias);
+				m_pResourceCache->RegisterResource(resourceGUID, passID, input, aliasGUID);
 
-				if (IsResourceGraphOutput(passData.NodeIndex, input.Name))
+				if (IsResourceGraphOutput(resourceGUID, passData.NodeIndex))
 				{
-					m_pResourceCache->MarkOutput(passData.pPass->GetName() + "." + input.Name, input);
+					m_pResourceCache->MarkOutput(resourceGUID, input);
 					passData.Reflection.SetFormat(input.Name, EFormat::B8G8R8A8_UNORM);
 				}
 			}
@@ -314,15 +314,15 @@ namespace Poly
 			std::unordered_set<uint32> brokenEdges;
 
 			const auto& externalResources = passData.pPass->GetExternalResources();
-			for (const auto& resPair : externalResources)
+			for (const auto& [srcGUID, dstGUID] : externalResources)
 			{
 				auto& barriers = m_Invalidates[passData.NodeIndex];
-				auto itr = std::find_if(barriers.begin(), barriers.end(), [&](const HalfBarrier& b){ return b.Name == resPair.second; });
+				auto itr = std::find_if(barriers.begin(), barriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
 
 				// Check if it is a texture or a buffer
 				if (itr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
 				{
-					if (!BitsSet(passData.Reflection.GetIOData(resPair.second).IOType, FIOType::OUTPUT))
+					if (!BitsSet(passData.Reflection.GetIOData(dstGUID.GetResourceName()).IOType, FIOType::OUTPUT))
 						continue;
 
 					if (BitsSet(itr->AccessMask, FAccessFlag::COLOR_ATTACHMENT_WRITE | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE | FAccessFlag::SHADER_WRITE)) // Write
@@ -355,14 +355,12 @@ namespace Poly
 			for (const auto& edgeID : incommingEdges)
 			{
 				// If external, check if we are reading or writing. If writing and texture, use layout undefined
-				const std::string& srcName = m_pRenderGraph->m_Edges[edgeID].Src;
-				const std::string& dstName = m_pRenderGraph->m_Edges[edgeID].Dst;
-				PassResourcePair srcPair = m_pRenderGraph->GetPassNameResourcePair(srcName);
-				PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(dstName);
-				if (srcPair.first == "$") // External
+				const ResourceGUID& srcGUID = m_pRenderGraph->m_Edges[edgeID].Src;
+				const ResourceGUID& dstGUID = m_pRenderGraph->m_Edges[edgeID].Dst;
+				if (srcGUID.IsExternal()) // External
 				{
 					auto& barriers = m_Invalidates[passData.NodeIndex];
-					auto itr = std::find_if(barriers.begin(), barriers.end(), [&](const HalfBarrier& b){ return b.Name == dstPair.second; });
+					auto itr = std::find_if(barriers.begin(), barriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
 
 					// Check if it is a texture or a buffer
 					if (itr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
@@ -393,10 +391,10 @@ namespace Poly
 				}
 				else // From another pass
 				{
-					auto& flushBarriers = m_Flushes[m_pRenderGraph->m_NameToNodeIndex[srcPair.first]];
-					auto srcItr = std::find_if(flushBarriers.begin(), flushBarriers.end(), [&](const HalfBarrier& b){ return b.Name == srcPair.second; });
+					auto& flushBarriers = m_Flushes[m_pRenderGraph->m_NameToNodeIndex[srcGUID.GetPassName()]];
+					auto srcItr = std::find_if(flushBarriers.begin(), flushBarriers.end(), [&srcGUID](const HalfBarrier& b){ return b.Name == srcGUID.GetResourceName(); });
 					auto& invalidateBarriers = m_Invalidates[passData.NodeIndex];
-					auto dstItr = std::find_if(invalidateBarriers.begin(), invalidateBarriers.end(), [&](const HalfBarrier& b){ return b.Name == dstPair.second; });
+					auto dstItr = std::find_if(invalidateBarriers.begin(), invalidateBarriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
 
 					if (dstItr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
 					{
@@ -406,11 +404,11 @@ namespace Poly
 						{
 							// Write after read - execution barrier needed - for simplicity a normal barrier is added
 							if (!syncPass)
-								syncPass = SyncPass::Create("Presync for " + dstPair.first);
+								syncPass = SyncPass::Create("Presync for " + dstGUID.GetPassName());
 
 							SyncPass::SyncData data = {};
 							data.Type				= SyncPass::SyncType::TEXTURE;
-							data.ResourceName		= dstPair.second;
+							data.ResourceName		= dstGUID.GetResourceName();
 							data.SrcLayout			= srcItr->TextureLayout;
 							data.DstLayout			= dstItr->TextureLayout;
 							data.SrcAccessFlag		= srcItr->AccessMask;
@@ -419,8 +417,7 @@ namespace Poly
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
 
-							// m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
-							m_pResourceCache->RegisterSyncResource(syncPass->GetName() + "." + dstPair.second, srcName);
+							m_pResourceCache->RegisterSyncResource({ syncPass->GetName(), dstGUID.GetResourceName()}, srcGUID);
 							brokenEdges.insert(edgeID);
 
 							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(dstItr->Name, srcItr->TextureLayout);
@@ -436,11 +433,11 @@ namespace Poly
 						if (BitsSet(dstItr->AccessMask, FAccessFlag::SHADER_WRITE) || BitsSet(srcItr->AccessMask, FAccessFlag::SHADER_WRITE)) // WAR or RAW
 						{
 							if (!syncPass)
-								syncPass = SyncPass::Create("Presync for " + dstPair.first);
+								syncPass = SyncPass::Create("Presync for " + dstGUID.GetPassName());
 
 							SyncPass::SyncData data = {};
 							data.Type				= SyncPass::SyncType::BUFFER;
-							data.ResourceName		= dstPair.second;
+							data.ResourceName		= dstGUID.GetResourceName();
 							data.SrcLayout			= srcItr->TextureLayout; // These are undefined for this resource (buffer)
 							data.DstLayout			= dstItr->TextureLayout;
 							data.SrcAccessFlag		= srcItr->AccessMask;
@@ -449,8 +446,7 @@ namespace Poly
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
 
-							// m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
-							m_pResourceCache->RegisterSyncResource(syncPass->GetName() + "." + dstPair.second, srcName);
+							m_pResourceCache->RegisterSyncResource({ syncPass->GetName(), dstGUID.GetResourceName()}, srcGUID);
 							brokenEdges.insert(edgeID);
 						}
 						else // Read after read
@@ -526,66 +522,6 @@ namespace Poly
 			static_cast<RenderPass*>(m_OrderedPasses[lastOutputIndex].pPass.get())->SetAttachmentFinal(resourceName, ETextureLayout::PRESENT);
 		}
 
-		// Go through the passes in order of use
-		// for (const auto& passData : m_OrderedPasses)
-		// {
-		// 	// Go though all the inputs of the pass
-		// 	Ref<SyncPass> syncPass = nullptr;
-		// 	std::unordered_set<uint32> brokenEdges;
-		// 	auto incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
-		// 	for (const auto& edgeID : incommingEdges)
-		// 	{
-		// 		bool externalResource = false;
-		// 		const std::string& srcName = m_pRenderGraph->m_Edges[edgeID].Src;
-		// 		const std::string& dstName = m_pRenderGraph->m_Edges[edgeID].Dst;
-		// 		PassResourcePair srcPair = m_pRenderGraph->GetPassNameResourcePair(srcName);
-		// 		PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(dstName);
-		// 		if (srcPair.first == "$")
-		// 			externalResource = true;
-
-		// 		uint32 srcPassIndex = m_pRenderGraph->m_NameToNodeIndex[srcPair.first];
-		// 		auto srcIt = std::find_if(m_OrderedPasses.begin(), m_OrderedPasses.end(), [srcPassIndex](const PassData& passData) { return passData.NodeIndex == srcPassIndex; });
-		// 		const auto& srcReflection = srcIt->Reflection.GetIOData(srcPair.second);
-		// 		const auto& dstReflection = passData.Reflection.GetIOData(dstPair.second);
-
-		// 		const auto& srcRes = m_pResourceCache->GetResource(srcName);
-
-
-		// 		// If the current layout of the input resource does not match this pass, add sync
-		// 		if (srcReflection.TextureLayout != dstReflection.TextureLayout)
-		// 		{
-		// 			// add sync [make this render pass transition later]
-		// 			if (!syncPass)
-		// 				syncPass = SyncPass::Create("Presync for " + dstPair.first);
-		// 			SyncPass::SyncData data = {};
-		// 			data.Type			= SyncPass::SyncType::TEXTURE;
-		// 			data.ResourceName	= dstPair.second;
-		// 			data.SrcLayout		= srcReflection.TextureLayout;
-		// 			data.DstLayout		= dstReflection.TextureLayout;
-		// 			data.SrcBindPoint	= srcReflection.BindPoint;
-		// 			data.DstBindPoint	= dstReflection.BindPoint;
-		// 			syncPass->AddSyncData(data);
-
-		// 			// Register alias for the syncPass resource so it can be accessed in its execute
-		// 			// TODO: Create specific function for syncpass additions
-		// 			m_pResourceCache->RegisterResource(syncPass->GetName() + "." + dstPair.second, 0, {}, srcName);
-		// 			brokenEdges.insert(edgeID);
-		// 		}
-
-		// 		// TODO: Add more sync checks
-
-		// 	}
-		// 	// If a sync pass was created, add it to the array
-		// 	if (syncPass)
-		// 	{
-		// 		*pNewPasses = true;
-		// 		SyncPassData data = {};
-		// 		data.pSyncPass		= syncPass;
-		// 		data.brokenEdgeIDs	= brokenEdges;
-		// 		addedSyncPasses.push_back(data);
-		// 	}
-		// }
-
 		// Add sync passes to the graph
 		for (const auto& syncPassData : addedSyncPasses)
 		{
@@ -594,43 +530,39 @@ namespace Poly
 
 			for (const uint32 brokenEdgeID : syncPassData.brokenEdgeIDs)
 			{
-				RenderGraph::EdgeData edge = m_pRenderGraph->GetEdgeData(brokenEdgeID);
+				const ResourceGUID dstGUID = m_pRenderGraph->GetEdgeData(brokenEdgeID).Dst;
+				const ResourceGUID srcGUID = m_pRenderGraph->GetEdgeData(brokenEdgeID).Src;
 				// Current implementation assumes that the resource name is set to dst resource name
-				PassResourcePair dstPair = m_pRenderGraph->GetPassNameResourcePair(edge.Dst);
 
 				// Add links for new pass
-				m_pRenderGraph->RemoveLink(edge.Src, edge.Dst);
-				m_pRenderGraph->AddLink(edge.Src, syncPassData.pSyncPass->GetName() + "." + dstPair.second);
-				m_pRenderGraph->AddLink(syncPassData.pSyncPass->GetName() + "." + dstPair.second, edge.Dst);
+				m_pRenderGraph->RemoveLink(srcGUID, dstGUID);
+				m_pRenderGraph->AddLink(srcGUID, { syncPassData.pSyncPass->GetName(), dstGUID.GetResourceName()});
+				m_pRenderGraph->AddLink({ syncPassData.pSyncPass->GetName(), dstGUID.GetResourceName()}, dstGUID);
 			}
 		}
 	}
 
-	bool RenderGraphCompiler::IsResourceUsed(uint32 nodeIndex, const std::string& outputName)
+	bool RenderGraphCompiler::IsResourceUsed(const ResourceGUID& resourceGUID, uint32 nodeIndex)
 	{
-		std::string resourceName = m_pRenderGraph->m_Passes[nodeIndex]->GetName() + "." + outputName;
 		const auto& outgoingEdges = m_pRenderGraph->m_pGraph->GetNode(nodeIndex)->GetOutgoingEdges();
 
 		for (auto edgeID : outgoingEdges)
-
 		{
-			if (m_pRenderGraph->m_Edges[edgeID].Src == resourceName)
+			if (m_pRenderGraph->m_Edges[edgeID].Src == resourceGUID)
 				return true;
 		}
 
 		return false;
 	}
 
-	bool RenderGraphCompiler::IsResourceGraphOutput(uint32 nodeIndex, const std::string& outputName)
+	bool RenderGraphCompiler::IsResourceGraphOutput(const ResourceGUID& resourceGUID, uint32 nodeIndex)
 	{
-		std::string resourceName = m_pRenderGraph->m_Passes[nodeIndex]->GetName() + "." + outputName;
-
 		auto& markedOutputs = m_pRenderGraph->m_Outputs;
 		for (auto& markedOutput : markedOutputs)
 		{
 			if (markedOutput.NodeID == nodeIndex)
 			{
-				if (markedOutput.ResourceName == outputName)
+				if (markedOutput.ResourceName == resourceGUID.GetResourceName())
 					return true;
 			}
 		}

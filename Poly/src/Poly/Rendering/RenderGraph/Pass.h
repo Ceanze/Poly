@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ResourceGUID.h"
 #include "PassReflection.h"
 #include "RenderGraphTypes.h"
 
@@ -21,6 +22,12 @@ namespace Poly
 			RENDER,
 			COMPUTE,
 			SYNC
+		};
+
+		struct ExternalResourceData
+		{
+			ResourceGUID SrcGUID;
+			ResourceGUID DstGUID;
 		};
 
 	public:
@@ -61,7 +68,7 @@ namespace Poly
 		/**
 		 * @return read-only vector of external resources
 		 */
-		const std::vector<std::pair<std::string, std::string>>& GetExternalResources() const { return p_ExternalResources; }
+		const std::vector<ExternalResourceData>& GetExternalResources() const { return p_ExternalResources; }
 
 		/**
 		 * @return type of pass
@@ -130,7 +137,7 @@ namespace Poly
 		std::vector<uint32> p_AutoBindedSets;
 
 		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
-		std::vector<std::pair<std::string, std::string>> p_ExternalResources;
+		std::vector<ExternalResourceData> p_ExternalResources;
 
 		// Variables for custom usage of passes
 		Ref<PipelineDesc> p_pPipelineDesc = nullptr;

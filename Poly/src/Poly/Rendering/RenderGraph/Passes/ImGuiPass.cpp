@@ -70,7 +70,7 @@ namespace Poly
 		{
 			Ref<Resource> pRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "FontTexture");
 			pRes->SetSampler(m_pFontSampler);
-			context.GetRenderGraphProgram()->UpdateGraphResource("ImGuiPass.FontTexture", pRes);
+			context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.FontTexture" }, pRes.get());
 			first = false;
 		}
 		// TODO: Should probably not call Render() here
