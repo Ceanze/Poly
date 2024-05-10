@@ -314,7 +314,7 @@ namespace Poly
 		s_GraphicsCommandPool->Reset();
 		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 
-		if (transferGraphicsSameQueue)
+		if (!transferGraphicsSameQueue)
 		{
 			s_GraphicsCommandBuffer->AcquireTexture(
 				pTexture.get(),

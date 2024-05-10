@@ -473,9 +473,9 @@ namespace Poly
 
 		const auto& attachmentInfos = renderPass->GetAttachments();
 		attachments.reserve(attachmentInfos.size());
-		for (const auto& [resourceName, attachmentInfo] : attachmentInfos)
+		for (const auto& attachmentInfo : attachmentInfos)
 		{
-			Resource* pRes = m_pResourceCache->GetResource({ renderPass->GetName(), resourceName });
+			Resource* pRes = m_pResourceCache->GetResource({ renderPass->GetName(), attachmentInfo.Name });
 
 			if (!width || !height)
 			{
