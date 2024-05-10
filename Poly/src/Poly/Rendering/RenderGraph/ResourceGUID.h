@@ -5,6 +5,7 @@ namespace Poly
 	class ResourceGUID
 	{
 	public:
+		ResourceGUID();
 		ResourceGUID(const std::string& resourceGUID);
 		ResourceGUID(std::string pass, std::string resource);
 

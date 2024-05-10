@@ -15,6 +15,10 @@ namespace
 
 namespace Poly
 {
+	ResourceGUID::ResourceGUID()
+		: m_Pass("")
+		, m_Resource("") {}
+
 	ResourceGUID::ResourceGUID(const std::string& resourceGUID)
 		: m_Pass(SeparateStrings(resourceGUID, '.').first)
 		, m_Resource(SeparateStrings(resourceGUID, '.').second) {}

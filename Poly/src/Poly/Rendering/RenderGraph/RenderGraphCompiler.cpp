@@ -118,12 +118,12 @@ namespace Poly
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (uint32 i = 0; i < inputs.size(); i++)
 			{
-				std::string dst = passData.pPass->GetName() + "." + inputs[i].Name;
+				ResourceGUID dstGUID(passData.pPass->GetName(), inputs[i].Name);
 				bool valid = false;
 				for (auto edgeID : incommingEdges)
 				{
 					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
-					if (edgeData.Dst == dst)
+					if (edgeData.Dst == dstGUID)
 					{
 						valid = true;
 						break;
@@ -131,10 +131,9 @@ namespace Poly
 				}
 				if (!valid)
 				{
-					for (auto& externalResource : externalResources)
+					for (const Pass::ExternalResourceData& externalResource : externalResources)
 					{
-						std::string externalDst = passData.pPass->GetName() + "." + externalResource.second;
-						if (externalDst == dst)
+						if (externalResource.DstGUID == dstGUID)
 						{
 							valid = true;
 							break;
@@ -143,7 +142,7 @@ namespace Poly
 				}
 				// Let the user know, continue the loop to find if more are missing
 				if (!valid)
-					POLY_CORE_WARN("Input resource {} did not have a link to it", dst);
+					POLY_CORE_WARN("Input resource {} did not have a link to it", dstGUID.GetFullName());
 			}
 		}
 	}
@@ -209,9 +208,9 @@ namespace Poly
 					const auto& externals = passData.pPass->GetExternalResources();
 					for (auto& external : externals)
 					{
-						if (external.second == input.Name)
+						if (external.DstGUID == resourceGUID)
 						{
-							aliasGUID = ResourceGUID(external.first);
+							aliasGUID = ResourceGUID(external.SrcGUID);
 							break;
 						}
 					}
@@ -311,15 +310,15 @@ namespace Poly
 			std::unordered_set<uint32> brokenEdges;
 
 			const auto& externalResources = passData.pPass->GetExternalResources();
-			for (const auto& resPair : externalResources)
+			for (const auto& [srcGUID, dstGUID] : externalResources)
 			{
 				auto& barriers = m_Invalidates[passData.NodeIndex];
-				auto itr = std::find_if(barriers.begin(), barriers.end(), [&](const HalfBarrier& b){ return b.Name == resPair.second; });
+				auto itr = std::find_if(barriers.begin(), barriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
 
 				// Check if it is a texture or a buffer
 				if (itr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
 				{
-					if (!BitsSet(passData.Reflection.GetIOData(resPair.second).IOType, FIOType::OUTPUT))
+					if (!BitsSet(passData.Reflection.GetIOData(dstGUID.GetResourceName()).IOType, FIOType::OUTPUT))
 						continue;
 
 					if (BitsSet(itr->AccessMask, FAccessFlag::COLOR_ATTACHMENT_WRITE | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE | FAccessFlag::SHADER_WRITE)) // Write
@@ -352,8 +351,8 @@ namespace Poly
 			for (const auto& edgeID : incommingEdges)
 			{
 				// If external, check if we are reading or writing. If writing and texture, use layout undefined
-				const ResourceGUID srcGUID = m_pRenderGraph->m_Edges[edgeID].Src;
-				const ResourceGUID dstGUID = m_pRenderGraph->m_Edges[edgeID].Dst;
+				const ResourceGUID& srcGUID = m_pRenderGraph->m_Edges[edgeID].Src;
+				const ResourceGUID& dstGUID = m_pRenderGraph->m_Edges[edgeID].Dst;
 				if (srcGUID.IsExternal()) // External
 				{
 					auto& barriers = m_Invalidates[passData.NodeIndex];

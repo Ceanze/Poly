@@ -95,7 +95,8 @@ namespace Poly
 			}
 
 			uint32 nodeIndex = m_NameToNodeIndex[dst.GetPassName()];
-			m_Passes[nodeIndex]->p_ExternalResources.push_back({ src.GetResourceName(), dst.GetResourceName()});
+			Pass::ExternalResourceData data = { .SrcGUID = src, .DstGUID = dst };
+			m_Passes[nodeIndex]->p_ExternalResources.emplace_back(std::move(data));
 
 			return true;
 		}
