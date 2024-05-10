@@ -60,7 +60,7 @@ namespace Poly
 			{
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 				for (const auto& reflection : reflections)
-					UpdateGraphResource(pPass->GetName() + "." + reflection.Name, nullptr);
+					UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
 			}
 			passIndex++;
 		}
@@ -445,6 +445,12 @@ namespace Poly
 
 	Framebuffer* RenderGraphProgram::GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex)
 	{
+		if (pPass->GetPassType() != Pass::Type::RENDER)
+		{
+			POLY_CORE_ERROR("Cannot get/create a framebuffer for non-render passes. Pass {} with passIndex {} is not a render pass", pPass->GetName(), passIndex);
+			return nullptr;
+		}
+
 		// If we have already created it, return it
 		if (m_Framebuffers.contains(passIndex))
 		{
@@ -465,9 +471,9 @@ namespace Poly
 
 		const auto& attachmentInfos = renderPass->GetAttachments();
 		attachments.reserve(attachmentInfos.size());
-		for (const auto& a : attachmentInfos)
+		for (const auto& [resourceName, attachmentInfo] : attachmentInfos)
 		{
-			Resource* pRes = m_pResourceCache->GetResource(renderPass->GetName() + "." + a.first);
+			Resource* pRes = m_pResourceCache->GetResource({ renderPass->GetName(), resourceName });
 
 			if (!width || !height)
 			{
@@ -475,7 +481,7 @@ namespace Poly
 				height = pRes->GetAsTexture()->GetHeight();
 			}
 
-			if (a.second.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			if (attachmentInfo.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 				pDepthAttachment = pRes->GetAsTextureView();
 			else
 				attachments.push_back(pRes->GetAsTextureView());
