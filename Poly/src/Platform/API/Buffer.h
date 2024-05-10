@@ -7,9 +7,9 @@ namespace Poly
 {
 	struct BufferDesc
 	{
-		uint64 Size;
-		EMemoryUsage MemUsage;
-		FBufferUsage BufferUsage;
+		uint64 Size					= 0;
+		EMemoryUsage MemUsage		= EMemoryUsage::UNKNOWN;
+		FBufferUsage BufferUsage	= FBufferUsage::NONE;
 	};
 
 	class Buffer

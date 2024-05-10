@@ -26,7 +26,7 @@ namespace Poly
 			m_ExternalResources[m_NameToExternalIndex[resourceGUID]] = resourceInfo;
 		else
 		{
-			m_NameToExternalIndex[resourceGUID] = m_ExternalResources.size();
+			m_NameToExternalIndex[resourceGUID] = static_cast<uint32>(m_ExternalResources.size());
 			m_ExternalResources.push_back(resourceInfo);
 		}
 	}
@@ -48,7 +48,7 @@ namespace Poly
 
 		if (!isAlias) // New resource
 		{
-			uint32 index = m_Resources.size();
+			uint32 index = static_cast<uint32>(m_Resources.size());
 			m_NameToIndex[resourceGUID] = index;
 			ResourceData data = {};
 			data.Lifetime		= {timepoint, timepoint};

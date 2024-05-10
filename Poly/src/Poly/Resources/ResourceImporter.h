@@ -2,8 +2,8 @@
 
 #include "ResourceTypes.h"
 
-class aiNode;
-class aiScene;
+struct aiNode;
+struct aiScene;
 
 namespace YAML
 {

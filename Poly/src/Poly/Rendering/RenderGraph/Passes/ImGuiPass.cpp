@@ -98,17 +98,17 @@ namespace Poly
 		pCommandBuffer->UpdatePushConstants(context.GetActivePipelineLayout(), FShaderStage::VERTEX, 0, sizeof(PushConstantBlock), &m_PushConstantData);
 
 		ImDrawData* pDrawData = ImGui::GetDrawData();
-		uint64 vertexOffset	= 0;
-		uint64 indexOffset	= 0;
+		uint32 vertexOffset	= 0;
+		uint32 indexOffset	= 0;
 		if (pDrawData->Valid && pDrawData->CmdListsCount > 0)
 		{
 			pCommandBuffer->BindVertexBuffer(m_pVertexBuffer.get(), 0, 1, 0);
 			pCommandBuffer->BindIndexBuffer(m_pIndexBuffer.get(), 0, EIndexType::UINT16);
 
-			for (uint32 i = 0; i < pDrawData->CmdListsCount; i++)
+			for (uint32 i = 0; i < static_cast<uint32>(pDrawData->CmdListsCount); i++)
 			{
 				const ImDrawList* cmdList = pDrawData->CmdLists[i];
-				for (uint32 j = 0; j < cmdList->CmdBuffer.Size; j++)
+				for (uint32 j = 0; j < static_cast<uint32>(cmdList->CmdBuffer.Size); j++)
 				{
 					const ImDrawCmd* pCmd = &cmdList->CmdBuffer[j];
 					ScissorDesc scissor = {};

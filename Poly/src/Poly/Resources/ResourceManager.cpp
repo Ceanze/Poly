@@ -81,7 +81,7 @@ namespace Poly
 		};
 		Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&textureViewDesc);
 
-		uint32 index = m_Textures.size();
+		uint32 index = static_cast<uint32>(m_Textures.size());
 		m_Textures.push_back({ .pTexture = pTex, .pTextureView = pTextureView });
 
 		handle.Index	= index;
@@ -122,7 +122,7 @@ namespace Poly
 
 		Ref<Model> pModel = ResourceLoader::LoadModel(handle.Path, root);
 		pModel->SetModelID(modelID);
-		uint32 index = m_Models.size();
+		uint32 index = static_cast<uint32>(m_Models.size());
 		m_Models.push_back(pModel);
 
 		handle.Index	= index;
@@ -162,7 +162,7 @@ namespace Poly
 			return;
 
 		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(handle.Path);
-		uint32 index = m_Materials.size();
+		uint32 index = static_cast<uint32>(m_Materials.size());
 		m_Materials.push_back(pMaterial);
 
 		handle.Index	= index;

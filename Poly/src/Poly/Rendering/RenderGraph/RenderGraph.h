@@ -33,10 +33,10 @@ namespace Poly
 
 	public:
 		// Prefer to use the static Create function to create the render graph
-		RenderGraph(const std::string& name);
+		RenderGraph(std::string name);
 		~RenderGraph() = default;
 
-		static Ref<RenderGraph> Create(const std::string& name);
+		static Ref<RenderGraph> Create(std::string name);
 
 		/**
 		 * Compiles the rendergraph - all changes to it are final after this point.

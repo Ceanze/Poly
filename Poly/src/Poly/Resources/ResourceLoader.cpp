@@ -204,7 +204,10 @@ namespace Poly
 
 		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, 0);
 		if (!data)
+		{
 			POLY_CORE_ERROR("Failed to load image {}", path);
+			return {};
+		}
 
 		std::vector<byte> image(texWidth * texHeight * channels);
 		memcpy(image.data(), data, texWidth * texHeight * channels);
@@ -471,8 +474,8 @@ namespace Poly
 		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
 		TransferDataToGPU(indices.data(), desc.Size, sizeof(uint32), pIndexBuffer);
 
-		pPolyMesh->SetVertexBuffer(pVertexBuffer, vertices.size());
-		pPolyMesh->SetIndexBuffer(pIndexBuffer, indices.size());
+		pPolyMesh->SetVertexBuffer(pVertexBuffer, static_cast<uint32>(vertices.size()));
+		pPolyMesh->SetIndexBuffer(pIndexBuffer, static_cast<uint32>(indices.size()));
 
 		return pPolyMesh;
 	}
@@ -589,7 +592,7 @@ namespace Poly
 		return pPolyMaterial;
 	}
 
-	void ResourceLoader::TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer)
+	void ResourceLoader::TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer)
 	{
 		// Create transfer buffer
 		BufferDesc bufferDesc = {};

@@ -181,11 +181,9 @@ namespace Poly
 	const IOData& PassReflection::GetIOData(const std::string& resName) const
 	{
 		auto it = std::find_if(m_IOs.begin(), m_IOs.end(), [resName](const IOData& io) { return io.Name == resName; });
-		if (it != m_IOs.end())
-			return *it;
+		POLY_VALIDATE(it != m_IOs.end(), "Reflection with resource name {} could not be found", resName);
 
-		POLY_CORE_WARN("Reflection with resource name {} could not be found", resName);
-		return IOData();
+		return *it;
 	}
 
 	const IOData& PassReflection::GetSceneBinding(ESceneBinding sceneBinding) const
@@ -206,7 +204,7 @@ namespace Poly
 			}
 		}
 
-		uint32 index = m_IOs.size();
+		uint32 index = static_cast<uint32>(m_IOs.size());
 		m_IOs.push_back(io);
 		return index;
 	}

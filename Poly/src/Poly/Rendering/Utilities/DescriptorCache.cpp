@@ -64,11 +64,11 @@ namespace Poly
 		Ref<DescriptorSet> pDescriptorSet = RenderAPI::CreateDescriptorSet(m_pPipelineLayout, set);
 
 		auto& indexVector = m_Descriptors[set];
-		if (index + 1 >= indexVector.size())
+		if (index + 1 >= static_cast<uint32>(indexVector.size()))
 			indexVector.resize(index + 1);
 
 		auto& offsetVector = indexVector[index];
-		if (offset + 1 >= offsetVector.size())
+		if (offset + 1 >= static_cast<uint32>(offsetVector.size()))
 			offsetVector.resize(offset + 1);
 
 		offsetVector[offset] = pDescriptorSet;
@@ -81,11 +81,11 @@ namespace Poly
 			return false;
 
 		const auto& indexVector = m_Descriptors[set];
-		if (index >= indexVector.size())
+		if (index >= static_cast<uint32>(indexVector.size()))
 			return false;
 
 		const auto& offsetVector = indexVector[index];
-		if (offset >= offsetVector.size())
+		if (offset >= static_cast<uint32>(offsetVector.size()))
 			return false;
 
 		const Ref<DescriptorSet>& pDescriptorSet = offsetVector[offset];

@@ -23,6 +23,6 @@ namespace Poly
 		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Fence); }
 	
 	private:
-		VkFence m_Fence;
+		VkFence m_Fence = VK_NULL_HANDLE;
 	};
 }

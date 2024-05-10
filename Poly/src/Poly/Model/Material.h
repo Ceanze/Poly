@@ -46,7 +46,7 @@ namespace Poly
 
 		void SetMaterialValues(MaterialValues materialValues) { m_MaterialValues = materialValues; }
 
-		void SetUsesCombinedPBRMaterial(bool isCombined) { m_MaterialValues.IsCombined = 1.0 ? isCombined : 0.0; }
+		void SetUsesCombinedPBRMaterial(bool isCombined) { m_MaterialValues.IsCombined = 1.0f ? isCombined : 0.0f; }
 
 		const Texture* GetTexture(Type type) const { return m_Textures.at(type); }
 

@@ -27,7 +27,7 @@ namespace Poly
 
 		virtual void BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType) override final;
 
-		virtual void UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint64 offset, uint64 size, const void* data) override final;
+		virtual void UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint32 offset, uint32 size, const void* data) override final;
 
 		virtual void CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
 

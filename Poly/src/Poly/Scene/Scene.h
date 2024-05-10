@@ -73,7 +73,7 @@ namespace Poly
 		/**
 		 * @return true if no entites are registered, false otherwise
 		 */
-		bool IsEmpty() const { return m_Registry.empty(); }
+		bool IsEmpty() const { return m_Registry.storage<entt::entity>()->empty(); }
 
 	private:
 		friend class Entity;

@@ -40,7 +40,8 @@ namespace Poly
 		EFormat				Format			= EFormat::UNDEFINED;
 		FResourceBindPoint	BindPoint		= FResourceBindPoint::NONE;
 		ETextureLayout		TextureLayout	= ETextureLayout::UNDEFINED;
-		union { uint32 Width; uint32 Size; };
+		uint32				Width			= 0;
+		uint32				Size			= 0;
 		uint32				Height			= 0;
 		uint32				Set				= 0;
 		uint32				Binding			= 0;

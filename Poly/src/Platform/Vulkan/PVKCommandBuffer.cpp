@@ -59,7 +59,7 @@ namespace Poly
 		renderPassInfo.framebuffer			= reinterpret_cast<PVKFramebuffer*>(pFramebuffer)->GetNativeVK();
 		renderPassInfo.renderArea.offset	= { 0, 0 };
 		renderPassInfo.renderArea.extent	= extent;
-		renderPassInfo.clearValueCount		= vkClearValues.size();
+		renderPassInfo.clearValueCount		= static_cast<uint32>(vkClearValues.size());
 		renderPassInfo.pClearValues			= vkClearValues.data();
 		renderPassInfo.pNext				= nullptr;
 
@@ -112,7 +112,7 @@ namespace Poly
 		vkCmdBindIndexBuffer(m_Buffer, vkBuffer, offset, ConvertIndexTypeVK(indexType));
 	}
 
-	void PVKCommandBuffer::UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint64 offset, uint64 size, const void* data)
+	void PVKCommandBuffer::UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint32 offset, uint32 size, const void* data)
 	{
 		VkPipelineLayout layout = static_cast<const PVKPipelineLayout*>(pPipelineLayout)->GetNativeVK();
 		vkCmdPushConstants(m_Buffer, layout, ConvertShaderStageVK(shaderStage), offset, size, data);
@@ -513,11 +513,11 @@ namespace Poly
 			ConvertPipelineStageFlagsVK(srcStage),
 			ConvertPipelineStageFlagsVK(dstStage),
 			0,
-			vkMemoryBarriers.size(),
+			static_cast<uint32>(vkMemoryBarriers.size()),
 			vkMemoryBarriers.data(),
-			vkBufferBarriers.size(),
+			static_cast<uint32>(vkBufferBarriers.size()),
 			vkBufferBarriers.data(),
-			vkImageBarriers.size(),
+			static_cast<uint32>(vkImageBarriers.size()),
 			vkImageBarriers.data());
 	}
 

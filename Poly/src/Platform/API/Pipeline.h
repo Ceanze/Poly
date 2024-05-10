@@ -22,6 +22,6 @@ namespace Poly
 		EPipelineType GetPipelineType() const { return p_PipelineType; }
 
 	protected:
-		EPipelineType			p_PipelineType;
+		EPipelineType p_PipelineType = EPipelineType::NONE;
 	};
 }

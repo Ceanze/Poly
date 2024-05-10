@@ -132,7 +132,7 @@ namespace Poly
 		 * @param size - Size of the data to update with
 		 * @param data - ponter to the new data
 		 */
-		virtual void UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint64 offset, uint64 size, const void* data) = 0;
+		virtual void UpdatePushConstants(const PipelineLayout* pPipelineLayout, FShaderStage shaderStage, uint32 offset, uint32 size, const void* data) = 0;
 
 		/**
 		 * Copy buffer to a texture

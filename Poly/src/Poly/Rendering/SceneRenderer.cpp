@@ -121,7 +121,7 @@ namespace Poly
 		// One draw call for each unique mesh instance -> refill buffer for each draw call
 		for (uint32 i = 0; auto& drawObject : m_DrawObjects)
 		{
-			uint32 instanceCount = drawObject.second.Matrices.size();
+			uint32 instanceCount = static_cast<uint32>(drawObject.second.Matrices.size());
 
 			// Draw
 			std::set<DescriptorSet*> sets = { drawObject.second.pVertexDescriptorSet, drawObject.second.pTextureDescriptorSet,

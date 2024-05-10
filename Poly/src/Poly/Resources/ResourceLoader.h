@@ -53,7 +53,7 @@ namespace Poly
 		static void ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent);
 		static Ref<Mesh> ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index);
 		static Ref<Material> ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder);
-		static void TransferDataToGPU(const void* data, uint32 size, uint32 count, Ref<Buffer> pDestinationBuffer);
+		static void TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer);
 		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
 
 		static bool s_GLSLInit;

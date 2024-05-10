@@ -120,6 +120,8 @@ namespace Poly
 		case GLFW_MOUSE_BUTTON_7:		return EKey::MOUSE_7;
 		case GLFW_MOUSE_BUTTON_8:		return EKey::MOUSE_8;
 
+		default:						return EKey::UNKNOWN;
+
 
 		/**
 		 * Gamepad support is not yet implemented due to the fact that
@@ -160,11 +162,11 @@ namespace Poly
 	inline FKeyModifier ConvertToPolyModifier(int GLFWModifer)
 	{
 		FKeyModifier mask = FKeyModifier::NONE;
-		if (GLFWModifer & GLFW_MOD_SHIFT > 0)		mask |= FKeyModifier::SHIFT;
-		if (GLFWModifer & GLFW_MOD_CONTROL > 0)		mask |= FKeyModifier::CTRL;
-		if (GLFWModifer & GLFW_MOD_ALT > 0)			mask |= FKeyModifier::ALT;
-		if (GLFWModifer & GLFW_MOD_CAPS_LOCK > 0)	mask |= FKeyModifier::CAPS_LOCK;
-		if (GLFWModifer & GLFW_MOD_NUM_LOCK > 0)	mask |= FKeyModifier::NUM_LOCK;
+		if ((GLFWModifer & GLFW_MOD_SHIFT) > 0)		mask |= FKeyModifier::SHIFT;
+		if ((GLFWModifer & GLFW_MOD_CONTROL) > 0)	mask |= FKeyModifier::CTRL;
+		if ((GLFWModifer & GLFW_MOD_ALT) > 0)		mask |= FKeyModifier::ALT;
+		if ((GLFWModifer & GLFW_MOD_CAPS_LOCK) > 0)	mask |= FKeyModifier::CAPS_LOCK;
+		if ((GLFWModifer & GLFW_MOD_NUM_LOCK) > 0)	mask |= FKeyModifier::NUM_LOCK;
 		return mask;
 	}
 }

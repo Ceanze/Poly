@@ -270,7 +270,7 @@ namespace Poly
 			copies.push_back(copySetDesc);
 		}
 
-		vkUpdateDescriptorSets(s_Device, 0, nullptr, copies.size(), copies.data());
+		vkUpdateDescriptorSets(s_Device, 0, nullptr, static_cast<uint32>(copies.size()), copies.data());
 
 		return pNewSet;
 	}

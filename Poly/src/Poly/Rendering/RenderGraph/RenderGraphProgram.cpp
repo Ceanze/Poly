@@ -233,7 +233,7 @@ namespace Poly
 			if (!m_DescriptorCaches.contains(passIndex))
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 
-			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, offset, view.GetSpan());
+			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, static_cast<uint32>(offset), static_cast<uint32>(view.GetSpan()));
 
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
@@ -339,7 +339,7 @@ namespace Poly
 			{
 				// Note that the layout creates the bindings for internal types as well for ease of use
 				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
-				const auto pushConstants = m_Reflections[i].GetPushConstants();
+				const auto& pushConstants = m_Reflections[i].GetPushConstants();
 				// std::unordered_map<uint32, DescriptorSetLayout> sets;
 				const int maxSet = std::max_element(inputs.begin(), inputs.end(), [](const auto& ioDataA, const auto& ioDataB){ return ioDataA.Set < ioDataB.Set; })->Set;
 				std::vector<DescriptorSetLayout> sets(maxSet + 1);

@@ -14,7 +14,7 @@
 
 namespace Poly
 {
-	RenderGraph::RenderGraph(const std::string& name)
+	RenderGraph::RenderGraph(std::string name)
 	: m_Name(std::move(name))
 	{
 		m_pGraph = DirectedGraph::Create();
@@ -28,9 +28,9 @@ namespace Poly
 		};
 	}
 
-	Ref<RenderGraph> RenderGraph::Create(const std::string& name)
+	Ref<RenderGraph> RenderGraph::Create(std::string name)
 	{
-		return CreateRef<RenderGraph>(name);
+		return CreateRef<RenderGraph>(std::move(name));
 	}
 
 	Ref<RenderGraphProgram> RenderGraph::Compile()
@@ -76,6 +76,9 @@ namespace Poly
 
 		// When removing a pass all links that are connected to it also needs to be removed
 		// If the pass is marked for output it will also have to be removed
+
+		POLY_VALIDATE(false, "RemovePass is not yet implemented");
+		return false;
 	}
 
 	bool RenderGraph::AddLink(const ResourceGUID& src, const ResourceGUID& dst)
@@ -110,7 +113,7 @@ namespace Poly
 		}
 
 		// Make sure it is a data-data connected or an execution-execution connection
-		if (src.GetResourceName().empty() && !src.GetResourceName().empty() || !src.GetResourceName().empty() && src.GetResourceName().empty())
+		if (src.GetResourceName().empty() && !dst.GetResourceName().empty() || !src.GetResourceName().empty() && dst.GetResourceName().empty())
 		{
 			POLY_CORE_WARN("Cannot link {} with {}, dependency type does not match (both must be data-data or exe-exe dep.)", src.GetFullName(), dst.GetFullName());
 			return false;
@@ -212,6 +215,8 @@ namespace Poly
 		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)
 			POLY_CORE_INFO("AddExternalResource does not currently support instant data transfer");
+
+		return true;
 	}
 
 	bool RenderGraph::RemoveExternalResource(const ResourceGUID& resourceGUID)
@@ -273,22 +278,14 @@ namespace Poly
 
 	const RenderGraph::EdgeData& RenderGraph::GetEdgeData(uint32 edgeID) const
 	{
-		if (!m_Edges.contains(edgeID))
-		{
-			POLY_CORE_WARN("Cannot get edge with ID {}, ID does not exist in graph", edgeID);
-			return EdgeData();
-		}
+		POLY_VALIDATE(m_Edges.contains(edgeID), "Cannot get edge with ID {}, ID does not exist in graph", edgeID);
 
 		return m_Edges.at(edgeID);
 	}
 
 	const Ref<Pass>& RenderGraph::GetPass(uint32 nodeID) const
 	{
-		if (!m_Passes.contains(nodeID))
-		{
-			POLY_CORE_WARN("Cannot get pass with ID {}, ID does not exist in graph", nodeID);
-			return nullptr;
-		}
+		POLY_VALIDATE(m_Passes.contains(nodeID), "Cannot get pass with ID {}, ID does not exist in graph", nodeID);
 
 		return m_Passes.at(nodeID);
 	}
