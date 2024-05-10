@@ -45,7 +45,7 @@ namespace Poly
 	{
 		POLY_VALIDATE(pPass, "Added pass cannot be nullptr");
 
-		if (name.contains('.'))
+		if (name.find('.') != std::string::npos)
 		{
 			POLY_CORE_WARN("Cannot add a pass with name {}, its naming is invalid (contains a dot)", name);
 			return false;

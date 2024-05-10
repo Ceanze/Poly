@@ -1,5 +1,7 @@
 #include "ResourceGUID.h"
 
+#include "Poly/Poly/Format.h"
+
 namespace
 {
 	inline std::pair<std::string, std::string> SeparateStrings(const std::string& value, char separator)
@@ -68,7 +70,7 @@ namespace Poly
 
 	std::string ResourceGUID::GetFullName() const
 	{
-		return std::format("{}.{}", m_Pass, m_Resource);
+		return Poly::Format("{}.{}", m_Pass, m_Resource);
 	}
 
 	bool ResourceGUID::IsExternal() const

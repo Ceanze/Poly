@@ -288,19 +288,16 @@ namespace Poly
 
 		// 3. Release texture from transfer queue
 		const bool transferGraphicsSameQueue = RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex() == RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex();
-		if (!transferGraphicsSameQueue)
-		{
-			s_TransferCommandBuffer->ReleaseTexture(
-				pTexture.get(),
-				FPipelineStage::TRANSFER,
-				FPipelineStage::TRANSFER,
-				FAccessFlag::TRANSFER_READ,
-				ETextureLayout::TRANSFER_DST_OPTIMAL,
-				ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-				RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-				RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-			);
-		}
+		s_TransferCommandBuffer->ReleaseTexture(
+			pTexture.get(),
+			FPipelineStage::TRANSFER,
+			FPipelineStage::TRANSFER,
+			FAccessFlag::TRANSFER_READ,
+			ETextureLayout::TRANSFER_DST_OPTIMAL,
+			ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
+		);
 		s_TransferCommandBuffer->End();
 
 		// 4. Semaphore to make sure the transfer is done before acquire
