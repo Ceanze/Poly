@@ -4,7 +4,7 @@
 
 // glslang
 #include <StandAlone/DirStackFileIncluder.h>
-#include <SPIRV/GlslangToSpv.h> // TODO: Make sure this path works on Windows too
+#include <SPIRV/GlslangToSpv.h>
 #include <glslang/MachineIndependent/reflection.h>
 
 #include <SPIRV/GlslangToSpv.h>
