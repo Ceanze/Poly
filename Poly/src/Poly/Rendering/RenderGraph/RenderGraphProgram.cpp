@@ -60,7 +60,11 @@ namespace Poly
 			{
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 				for (const auto& reflection : reflections)
-					UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
+				{
+					// Only update graph resource if a resource is already valid, otherwise skip
+					if (m_pResourceCache->GetResource({ pPass->GetName(), reflection.Name }))
+						UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
+				}
 			}
 			passIndex++;
 		}

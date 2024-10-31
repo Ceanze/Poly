@@ -2,10 +2,12 @@
 
 #include <entt/entt.hpp>
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
+#include "Poly/Model/Model.h" // TODO: See if this can be removed
 
 namespace Poly
 {
 	class Entity;
+	class RenderGraphProgram;
 
 	class Scene
 	{
@@ -19,6 +21,12 @@ namespace Poly
 		static constexpr const char* METALLIC_TEX_RESOURCE_NAME = "metallicTex";
 		static constexpr const char* ROUGHNESS_TEX_RESOURCE_NAME = "roughnessTex";
 		static constexpr const char* AO_TEX_RESOURCE_NAME = "aoTex";
+
+		struct DrawData
+		{
+			MeshInstance	MeshInstance;
+			uint32			InstanceCount;
+		};
 
 	public:
 		Scene(const std::string& name);
@@ -75,6 +83,16 @@ namespace Poly
 		 */
 		bool IsEmpty() const { return m_Registry.storage<entt::entity>()->empty(); }
 
+		/**
+		* Updates the scene with the current entities
+		*/
+		void Update(RenderGraphProgram& program);
+
+		/**
+		* Get the draw data of the current scene. Draw data is set during the Update() call
+		*/
+		const std::vector<DrawData>& GetDrawData() { return m_DrawData;  }
+
 	private:
 		friend class Entity;
 		friend class SceneRenderer;
@@ -83,9 +101,11 @@ namespace Poly
 
 		PolyID GetIdOfEntity(entt::entity entity);
 
+		std::string m_Name;
+
 		entt::registry m_Registry;
 		ResourceGroup m_ResourceGroup;
-
-		std::string m_Name;
+		std::unordered_map<size_t, int> m_InstanceHashToIndex;
+		std::vector<DrawData> m_DrawData;
 	};
 }

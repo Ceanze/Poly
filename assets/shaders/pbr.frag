@@ -34,12 +34,12 @@ layout(set = 0, binding = 0) uniform Camera { mat4 camera; vec4 camPos; };
 layout(set = 0, binding = 1) buffer Lights { vec4 lightsCount; PointLight pointLights[]; };
 
 layout(set = 2, binding = 0) buffer MaterialProperties { MaterialValues material[]; };
-layout(set = 2, binding = 1) uniform sampler2D albedoTex;
-layout(set = 2, binding = 2) uniform sampler2D metallicTex;
-layout(set = 2, binding = 3) uniform sampler2D normalTex;
-layout(set = 2, binding = 4) uniform sampler2D roughnessTex;
-layout(set = 2, binding = 5) uniform sampler2D aoTex;
-layout(set = 2, binding = 6) uniform sampler2D combinedTex;
+layout(set = 3, binding = 0) uniform sampler2D albedoTex;
+layout(set = 3, binding = 1) uniform sampler2D metallicTex;
+layout(set = 3, binding = 2) uniform sampler2D normalTex;
+layout(set = 3, binding = 3) uniform sampler2D roughnessTex;
+layout(set = 3, binding = 4) uniform sampler2D aoTex;
+layout(set = 3, binding = 5) uniform sampler2D combinedTex;
 
 vec3 GenerateNormal(in mat3 TBN)
 {

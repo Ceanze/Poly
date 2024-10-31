@@ -8,6 +8,11 @@ namespace Poly
 	class Model;
 	class Material;
 
+	// Tags
+	struct DirtyTag {};
+
+
+	// Components
 	struct HierarchyComponent
 	{
 		uint8 ChildrenCount		= 0;

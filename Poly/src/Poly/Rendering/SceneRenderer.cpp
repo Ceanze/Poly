@@ -16,11 +16,6 @@ namespace Poly
 {
 	void SceneRenderer::Update(const RenderContext& context, const PassReflection& reflection, uint32 imageIndex, PipelineLayout* pPipelineLayout)
 	{
-		// TODO: Only update when the scene is "dirty" (or anything related is dirty)
-
-		// TODO: Use GetDescriptorCopy and only have one descriptor per buffer (instead one per buffer per frame) - can only be sensibly done when this is only updated
-		// when it is needed (read above TODO)
-
 		uint32 passIndex = context.GetPassIndex();
 
 		m_DrawObjects.clear();
@@ -119,13 +114,15 @@ namespace Poly
 		CommandBuffer* commandBuffer = context.GetCommandBuffer();
 
 		// One draw call for each unique mesh instance -> refill buffer for each draw call
-		for (uint32 i = 0; auto& drawObject : m_DrawObjects)
+		for (uint32 i = 0; auto& drawObject : m_DrawObjects) // TODO: This should get the scene draw data
 		{
 			uint32 instanceCount = static_cast<uint32>(drawObject.second.Matrices.size());
 
 			// Draw
-			std::set<DescriptorSet*> sets = { drawObject.second.pVertexDescriptorSet, drawObject.second.pTextureDescriptorSet,
+			std::set<DescriptorSet*> sets = { 
 											  drawObject.second.pInstanceDescriptorSet, drawObject.second.pMaterialDescriptorSet};
+			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(3, i));
+			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(4, i));
 			for (auto& set : sets)
 				commandBuffer->BindDescriptor(context.GetActivePipeline(), set);
 
@@ -222,13 +219,10 @@ namespace Poly
 	}
 }
 
-/*
-* SceneRenderer and Scene structure breakdown:
-* 
-* Currently each entity in the ENTT view of the scene is being rendered without any given order. The scene hierarchy is not followed.
-* 
-* What should instead be done is that, from the root entity in the scene, each entity from that is rendered in order following an algorithm such as DFS.
-* To do this two main things need to change:
-*	1. A root node needs to be defined and saved for the renderer to access. Should ideally be saved in the Scene as a special member.
-*	2. From the root node the renderer should follow the children in order of the hierachy. This order is used to define the transformation data. The rendering itself will still be based "randomly" based on the mesh instance.
-*/
+// 1. Scene on Update updates all "dirty" (tagged by a DirtyTag?) entities with their data (aka Transform, Textures, Materials) or if they are new to a Vector and map in scene
+//		Transform and Material: Written directly to buffer or to temp buffer? Refine this! To start with for testing: Update the whole buffer everytime something is marked as dirty
+//		Map: Contains a "MeshInstanceHash" to Index mapping. The MeshInstanceHash guarantees only one Instance data per unique instance
+//		Vector: Contains the data per instance, condensed storage. Data per instance is at least {ResourceIndex (For RenderGraph), InstanceCount, pMesh}
+//		Update: Calls UpdateRenderGraphResource for textures, and for data in buffers for Material and Instance, with index provided by the Map/Vector logic. This will be placed in Scene and the Update will take in the RenderGraphProgram as a parameter for that function.
+// 2. Scene Renderer gets the vector from the scene during rendering call to loop through the render data
+//		Scene renderer needs to somehow get the correct descriptors for the current index; to start with a simple getter in the RenderContext should suffice. <- Getter already exist to get the DescriptorCache.
