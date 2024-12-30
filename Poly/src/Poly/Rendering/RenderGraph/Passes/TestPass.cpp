@@ -45,6 +45,6 @@ namespace Poly
 
 	void TestPass::Execute(const RenderContext& context, const RenderData& renderData)
 	{
-		renderData.ExecuteScene(context);
+		m_SceneRenderer.Execute(context, renderData.GetScene(), renderData.GetPassReflection(), context.GetImageIndex());
 	}
 }

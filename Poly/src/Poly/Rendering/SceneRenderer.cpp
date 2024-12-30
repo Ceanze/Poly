@@ -10,16 +10,21 @@
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Resources/ResourceManager.h"
-// #include "Poly/Rendering/RenderGraph/PassReflection.h"
 
 namespace Poly
 {
-	void SceneRenderer::Update(const RenderContext& context, const PassReflection& reflection, uint32 imageIndex, PipelineLayout* pPipelineLayout)
+	void SceneRenderer::Execute(const RenderContext& context, const Scene& scene, const PassReflection& reflection, uint32 imageIndex)
+	{
+		Update(context, scene, reflection, imageIndex);
+		Render(context);
+	}
+
+	void SceneRenderer::Update(const RenderContext& context, const Scene& scene, const PassReflection& reflection, uint32 imageIndex)
 	{
 		uint32 passIndex = context.GetPassIndex();
 
 		m_DrawObjects.clear();
-		OrderModels();
+		OrderModels(scene);
 
 		bool hasInstanceBuffer	= reflection.HasSceneBinding(ESceneBinding::INSTANCE);
 		bool hasMaterial	= reflection.HasSceneBinding(ESceneBinding::MATERIAL);
@@ -193,7 +198,7 @@ namespace Poly
 		}
 	}
 
-	void SceneRenderer::OrderModels()
+	void SceneRenderer::OrderModels(const Scene& scene)
 	{
 		// TODO: Think of the order things are drawn, in a scene hierarchy the root should be drawn first (probably?)
 		// TODO: The transforms need to be applied in the correct order when having a deeper hierarchy in order for the transforms to be correct
@@ -201,10 +206,7 @@ namespace Poly
 		//		 transforms and also handle that here. ---- This comment might be outdated. Currently, for each pMesh a new Entity is created. The separetion of pNode and pMesh should already be done
 		// TODO: The transforms from assimp are relative to the parent pNode. This means that the ones that are saved for the model are local meshes. For rendering (and any other calculations) it is 
 		//		 needed to multiply with the parent in ordder to achieve the correct transformation.
-		if (!m_pScene)
-			return;
-
-		auto view = m_pScene->m_Registry.view<MeshComponent, TransformComponent>();
+		auto view = scene.m_Registry.view<MeshComponent, TransformComponent>();
 		m_TotalMeshCount = 0;
 		for (auto [entity, meshComp, transform] : view.each())
 		{

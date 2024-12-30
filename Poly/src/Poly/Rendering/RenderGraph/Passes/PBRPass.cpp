@@ -18,6 +18,10 @@ namespace Poly
 	PassReflection PBRPass::Reflect()
 	{
 		PassReflection reflection;
+		//ShaderReflector reflector(this);
+		//reflector.Reflect("pbt.vert");
+		//reflector.Reflect("pbt.frag");
+		//return reflector.GetReflection();
 
 		// Vertex shader input
 		reflection.AddInput("camera", 0, 0);
@@ -97,6 +101,6 @@ namespace Poly
 
 	void PBRPass::Execute(const RenderContext& context, const RenderData& renderData)
 	{
-		renderData.ExecuteScene(context);
+		m_SceneRenderer.Execute(context, renderData.GetScene(), renderData.GetPassReflection(), context.GetImageIndex());
 	}
 }

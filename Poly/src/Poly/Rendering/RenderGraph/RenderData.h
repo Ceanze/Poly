@@ -4,10 +4,11 @@
 
 namespace Poly
 {
+	class Scene;
 	class Resource;
-	class SceneRenderer;
 	class ResourceCache;
 	class RenderContext;
+	class PassReflection; // TEMP
 
 	/**
 	 * Render Data is created for each execute call of a pass.
@@ -28,20 +29,23 @@ namespace Poly
 
 		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }
 
-		const SceneRenderer* GetSceneRenderer() const { return m_pSceneRenderer; }
+		const Scene& GetScene() const { return *m_pScene; };
 
-		void ExecuteScene(const RenderContext& context) const;
+		// TODO: TEMP, Remove when scene renderer isn't using the reflections
+		const PassReflection& GetPassReflection() const { return *m_pPassReflection; }
 
 	private:
 		friend class SyncPass;
 		friend class RenderGraphProgram;
 		Resource* GetResourceNonConst(const std::string& resourceName) const;
 		void SetRenderPassName(const std::string& renderPassName) { m_RenderPassName = renderPassName; }
-		void SetSceneRenderer(SceneRenderer* pSceneRenderer) { m_pSceneRenderer = pSceneRenderer; }
+		void SetPassReflection(PassReflection* pPassReflection) { m_pPassReflection = pPassReflection; }
+		void SetScene(Scene* pScene) { m_pScene = pScene; }
 
 		Ref<ResourceCache> m_pResourceCache;
 		std::string m_RenderPassName = "";
 		RenderGraphDefaultParams m_DefaultParams = {};
-		SceneRenderer* m_pSceneRenderer = nullptr;
+		PassReflection* m_pPassReflection = nullptr;
+		Scene* m_pScene = nullptr;
 	};
 }

@@ -12,11 +12,6 @@ namespace Poly
 		m_pResourceCache	= pResourceCache;
 		m_DefaultParams		= defaultParams;
 	}
-	
-	void RenderData::ExecuteScene(const RenderContext& context) const
-	{
-		m_pSceneRenderer->Render(context);
-	}
 
 	Resource* RenderData::GetResourceNonConst(const std::string& resourceName) const
 	{

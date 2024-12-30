@@ -18,7 +18,6 @@ namespace Poly
 	class DescriptorSet;
 	class CommandBuffer;
 	class ResourceCache;
-	class SceneRenderer;
 	class PipelineLayout;
 	class GraphicsPipeline;
 	class GraphicsRenderPass;
@@ -113,7 +112,6 @@ namespace Poly
 
 		// General
 		Ref<Scene> m_pScene;
-		Ref<SceneRenderer> m_pSceneRenderer;
 		Ref<StagingBufferCache> m_pStagingBufferCache;
 
 		// Render Graph specific types

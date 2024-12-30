@@ -1,5 +1,7 @@
 #pragma once
-#include "../RenderPass.h"
+
+#include "Poly/Rendering/RenderGraph/RenderPass.h"
+#include "Poly/Rendering/SceneRenderer.h"
 
 namespace Poly
 {
@@ -18,6 +20,6 @@ namespace Poly
 		static Ref<PBRPass> Create() { return CreateRef<PBRPass>(); }
 
 	private:
-
+		SceneRenderer m_SceneRenderer;
 	};
 }

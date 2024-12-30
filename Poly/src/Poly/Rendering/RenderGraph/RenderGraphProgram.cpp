@@ -23,7 +23,6 @@
 #include "Platform/API/GraphicsRenderPass.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
-#include "Poly/Rendering/SceneRenderer.h"
 namespace Poly
 {
 	RenderGraphProgram::RenderGraphProgram(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
@@ -40,8 +39,6 @@ namespace Poly
 			if (!m_Reflections.contains(i))
 				m_Reflections[i] = m_Passes[i]->Reflect();
 		}
-
-		m_pSceneRenderer = SceneRenderer::Create();
 
 		InitCommandBuffers();
 		InitPipelineLayouts();
@@ -87,7 +84,7 @@ namespace Poly
 		RenderContext renderContext = RenderContext();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
 		renderContext.SetImageIndex(m_ImageIndex);
-		renderData.SetSceneRenderer(m_pSceneRenderer.get());
+		renderData.SetScene(m_pScene.get());
 		// m_pScene->SetFrameIndex(m_ImageIndex);
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
@@ -114,10 +111,8 @@ namespace Poly
 			// TODO: This should probably be done on the Transfer queue asyncronously
 			m_pStagingBufferCache->SubmitQueuedBuffers(currentCommandBuffer);
 
-			if (m_Reflections[passIndex].HasAnySceneBinding())
-			{
-				m_pSceneRenderer->Update(renderContext, m_Reflections[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
-			}
+			// TODO: TEMP, remove when reflection is gone from the scene renderer
+			renderData.SetPassReflection(&m_Reflections[passIndex]);
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
 			{
@@ -299,7 +294,6 @@ namespace Poly
 	void RenderGraphProgram::SetScene(const Ref<Scene>& pScene)
 	{
 		m_pScene = pScene;
-		m_pSceneRenderer->SetScene(pScene);
 	}
 
 	void RenderGraphProgram::AddPass(Ref<Pass> pPass)

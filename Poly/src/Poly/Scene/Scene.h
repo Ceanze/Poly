@@ -95,7 +95,7 @@ namespace Poly
 
 	private:
 		friend class Entity;
-		friend class SceneRenderer;
+		friend class SceneRenderer; // TODO: Remove when scene renderer uses the new RenderScene instead
 		friend class SceneSerializer;
 		friend class EntitySerializer;
 
