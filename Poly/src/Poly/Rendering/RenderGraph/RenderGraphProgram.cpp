@@ -143,7 +143,7 @@ namespace Poly
 				const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
 				for (uint32 setIndex : setIndices)
 				{
-					const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex);
+					const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, DescriptorCache::EAction::GET);
 					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
 				}
 

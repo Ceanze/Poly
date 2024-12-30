@@ -47,6 +47,11 @@ namespace Poly
 		DescriptorCache() = default;
 		~DescriptorCache() = default;
 
+		enum class EAction {
+			GET,
+			GET_OR_CREATE
+		};
+
 		/**
 		 * Needs to be called every frame to delete any old descriptor sets.
 		 * Only needs to be used if GetDescriptorSetCopy is used
@@ -66,7 +71,7 @@ namespace Poly
 		 * @param set - The set the descriptor will be using
 		 * @return A cached or newly created descriptor set
 		 */
-		DescriptorSet* GetDescriptorSet(uint32 set);
+		DescriptorSet* GetDescriptorSet(uint32 set, EAction action);
 
 		/**
 		 * Gets/Creates a descriptor for the given set
@@ -76,7 +81,7 @@ namespace Poly
 		 * @param index - The index of the descriptor if multiple for the same set and frameindex combo. 0 if only one descriptor
 		 * @return A cached or newly created descriptor set
 		 */
-		DescriptorSet* GetDescriptorSet(uint32 set, uint32 index);
+		DescriptorSet* GetDescriptorSet(uint32 set, uint32 index, EAction action);
 
 		/**
 		 * Gets/Creates a descriptor for the given set
@@ -88,7 +93,7 @@ namespace Poly
 		 * @param segmentSize - Uniform size in bytes for each segment used for the offset bindings. 0 if only one descriptor
 		 * @return A cached or newly created descriptor set
 		 */
-		DescriptorSet* GetDescriptorSet(uint32 set, uint32 index, uint32 offset, uint32 segmentSize);
+		DescriptorSet* GetDescriptorSet(uint32 set, uint32 index, uint32 offset, uint32 segmentSize, EAction action);
 
 		/**
 		 * Creates a copied descriptor for the given set, replaces any potential descriptor used with the same key

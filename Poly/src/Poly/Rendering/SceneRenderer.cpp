@@ -40,51 +40,12 @@ namespace Poly
 		uint64 materialOffset = 0;
 		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
 		{
-			// VERTEX
-			if (reflection.HasSceneBinding(ESceneBinding::VERTEX))
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::VERTEX);
-				drawObjectPair.second.pVertexDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
-				const Buffer* pVertexBuffer = drawObjectPair.second.UniqueMeshInstance.pMesh->GetVertexBuffer();
-				drawObjectPair.second.pVertexDescriptorSet->UpdateBufferBinding(ioData.Binding, pVertexBuffer, 0, pVertexBuffer->GetSize());
-			}
-
-			// TEXTURE_ALBEDO
-			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_ALBEDO))
-				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_ALBEDO, Material::Type::ALBEDO);
-
-
-			// TEXTURE_AO
-			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_AO))
-				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_AO, Material::Type::AMBIENT_OCCLUSION);
-
-
-			// TEXTURE_COMBINED
-			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_COMBINED))
-				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_COMBINED, Material::Type::COMBINED);
-
-
-			// TEXTURE_METALLIC
-			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_METALLIC))
-				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_METALLIC, Material::Type::METALIC);
-
-
-			// TEXTURE_NORMAL
-			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_NORMAL))
-				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_NORMAL, Material::Type::NORMAL);
-
-
-			// TEXTURE_ROUGHNESS
-			if (reflection.HasSceneBinding(ESceneBinding::TEXTURE_ROUGHNESS))
-				UpdateTextureDescriptor(context, reflection, drawObjectPair.second, drawObjectIndex, imageIndex, ESceneBinding::TEXTURE_ROUGHNESS, Material::Type::ROUGHNESS);
-
-
 			// INSTANCE
 			if (hasInstanceBuffer)
 			{
 				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::INSTANCE);
 				uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
-				drawObjectPair.second.pInstanceDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
+				drawObjectPair.second.pInstanceDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
 				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pInstanceBuffer.get(), instanceOffset, size);
 
 				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, instanceOffset);
@@ -97,7 +58,7 @@ namespace Poly
 			{
 				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::MATERIAL);
 				uint64 size = sizeof(MaterialValues);
-				drawObjectPair.second.pMaterialDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
+				drawObjectPair.second.pMaterialDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
 				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pMaterialBuffer.get(), materialOffset, size);
 
 				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.UniqueMeshInstance.pMaterial->GetMaterialValues(), size, materialOffset);
@@ -126,8 +87,8 @@ namespace Poly
 			// Draw
 			std::set<DescriptorSet*> sets = { 
 											  drawObject.second.pInstanceDescriptorSet, drawObject.second.pMaterialDescriptorSet};
-			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(3, i));
-			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(4, i));
+			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(3, i, DescriptorCache::EAction::GET));
+			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(4, i, DescriptorCache::EAction::GET));
 			for (auto& set : sets)
 				commandBuffer->BindDescriptor(context.GetActivePipeline(), set);
 
@@ -143,7 +104,7 @@ namespace Poly
 	void SceneRenderer::UpdateTextureDescriptor(const RenderContext& context, const PassReflection& reflection, DrawObject& drawObject, uint32 drawObjectIndex, uint32 imageIndex, ESceneBinding sceneBinding, Material::Type type)
 	{
 		const IOData& ioData = reflection.GetSceneBinding(sceneBinding);
-		drawObject.pTextureDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1);
+		drawObject.pTextureDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
 		const TextureView* pTextureView = drawObject.UniqueMeshInstance.pMaterial->GetTextureView(type);
 		drawObject.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
 	}

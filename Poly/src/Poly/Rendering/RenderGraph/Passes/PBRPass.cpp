@@ -31,7 +31,6 @@ namespace Poly
 		reflection.SetBindPoint("lights", FResourceBindPoint::STORAGE);
 		
 		// Vertex Buffer
-		//reflection.AddSceneInput("vertices", 1, 0, ESceneBinding::VERTEX);
 		reflection.AddInput("vertices", 4, 0);
 		reflection.SetBindPoint("vertices", FResourceBindPoint::STORAGE);
 
@@ -75,13 +74,6 @@ namespace Poly
 		reflection.SetFormat("combinedTex", EFormat::R8G8B8A8_UNORM);
 		reflection.SetBindPoint("combinedTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
 		reflection.SetSampler("combinedTex", Sampler::GetDefaultLinearSampler());
-
-		//reflection.AddSceneInput("albedoTex", 2, 1, ESceneBinding::TEXTURE_ALBEDO);
-		//reflection.AddSceneInput("metallicTex", 2, 1, ESceneBinding::TEXTURE_METALLIC);
-		//reflection.AddSceneInput("normalTex", 2, 2, ESceneBinding::TEXTURE_NORMAL);
-		//reflection.AddSceneInput("roughnessTex", 2, 3, ESceneBinding::TEXTURE_ROUGHNESS);
-		//reflection.AddSceneInput("aoTex", 2, 4, ESceneBinding::TEXTURE_AO);
-		//reflection.AddSceneInput("combinedTex", 2, 5, ESceneBinding::TEXTURE_COMBINED);
 
 		// Output
 		reflection.AddOutput("out");
