@@ -22,9 +22,8 @@ namespace Poly
 	{
 		MeshInstance			UniqueMeshInstance;
 		std::vector<glm::mat4>	Matrices;
+		// TODO: Remove these descriptor sets
 		DescriptorSet*			pInstanceDescriptorSet;
-		DescriptorSet*			pVertexDescriptorSet;
-		DescriptorSet*			pTextureDescriptorSet;
 		DescriptorSet*			pMaterialDescriptorSet;
 	};
 
@@ -40,7 +39,6 @@ namespace Poly
 		void Update(const RenderContext& context, const Scene& scene, const PassReflection& reflection, uint32 imageIndex);
 		void Render(const RenderContext& context);
 
-		void UpdateTextureDescriptor(const RenderContext& context, const PassReflection& reflection, DrawObject& drawObject, uint32 drawObjectIndex, uint32 imageIndex, ESceneBinding sceneBinding, Material::Type type);
 		void UpdateInstanceBuffers(uint64 size);
 		void UpdateMaterialBuffers(uint64 size);
 		void OrderModels(const Scene& scene);

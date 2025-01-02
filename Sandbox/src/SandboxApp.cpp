@@ -84,6 +84,9 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource({ "lights" }, sizeof(LightBuffer), &data);
 
+		m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
+
+
 		m_pProgram->SetScene(m_pScene);
 
 
@@ -112,7 +115,7 @@ public:
 
 		ImGui::ShowDemoWindow();
 
-		m_pScene->Update(*m_pProgram);
+		m_pScene->Update();
 
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};

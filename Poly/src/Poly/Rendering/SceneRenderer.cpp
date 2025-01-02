@@ -85,6 +85,7 @@ namespace Poly
 			uint32 instanceCount = static_cast<uint32>(drawObject.second.Matrices.size());
 
 			// Draw
+			// TODO: This will be removed when instanced drawing is introduced from the render graph program. Descriptor getting will be automated then
 			std::set<DescriptorSet*> sets = { 
 											  drawObject.second.pInstanceDescriptorSet, drawObject.second.pMaterialDescriptorSet};
 			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(3, i, DescriptorCache::EAction::GET));
@@ -99,14 +100,6 @@ namespace Poly
 
 			commandBuffer->DrawIndexedInstanced(pMesh->GetIndexCount(), instanceCount, 0, 0, 0);
 		}
-	}
-
-	void SceneRenderer::UpdateTextureDescriptor(const RenderContext& context, const PassReflection& reflection, DrawObject& drawObject, uint32 drawObjectIndex, uint32 imageIndex, ESceneBinding sceneBinding, Material::Type type)
-	{
-		const IOData& ioData = reflection.GetSceneBinding(sceneBinding);
-		drawObject.pTextureDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
-		const TextureView* pTextureView = drawObject.UniqueMeshInstance.pMaterial->GetTextureView(type);
-		drawObject.pTextureDescriptorSet->UpdateTextureBinding(ioData.Binding, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, pTextureView, Sampler::GetDefaultLinearSampler().get());
 	}
 
 	void SceneRenderer::UpdateInstanceBuffers(uint64 size)

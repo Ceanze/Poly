@@ -1,12 +1,14 @@
 #pragma once
 
 #include <entt/entt.hpp>
+
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
 #include "Poly/Model/Model.h" // TODO: See if this can be removed
 
 namespace Poly
 {
 	class Entity;
+	class RenderScene;
 	class RenderGraphProgram;
 
 	class Scene
@@ -86,16 +88,18 @@ namespace Poly
 		/**
 		* Updates the scene with the current entities
 		*/
-		void Update(RenderGraphProgram& program);
+		void Update();
 
 		/**
-		* Get the draw data of the current scene. Draw data is set during the Update() call
+		* Internally creates a render scene bound to the program provided.
+		* This is automatically done when a scene is set to a render graph program.
 		*/
-		const std::vector<DrawData>& GetDrawData() { return m_DrawData;  }
+		void CreateRenderScene(RenderGraphProgram& program);
 
 	private:
 		friend class Entity;
 		friend class SceneRenderer; // TODO: Remove when scene renderer uses the new RenderScene instead
+		friend class RenderScene; // TODO: Will be removed when interface for views exist
 		friend class SceneSerializer;
 		friend class EntitySerializer;
 
@@ -105,7 +109,6 @@ namespace Poly
 
 		entt::registry m_Registry;
 		ResourceGroup m_ResourceGroup;
-		std::unordered_map<size_t, int> m_InstanceHashToIndex;
-		std::vector<DrawData> m_DrawData;
+		Ref<RenderScene> m_pRenderScene;
 	};
 }

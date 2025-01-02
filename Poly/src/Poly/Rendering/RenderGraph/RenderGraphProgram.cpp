@@ -294,6 +294,7 @@ namespace Poly
 	void RenderGraphProgram::SetScene(const Ref<Scene>& pScene)
 	{
 		m_pScene = pScene;
+		pScene->CreateRenderScene(*this);
 	}
 
 	void RenderGraphProgram::AddPass(Ref<Pass> pPass)
