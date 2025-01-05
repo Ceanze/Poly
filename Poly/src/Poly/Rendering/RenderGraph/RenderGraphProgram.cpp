@@ -173,6 +173,40 @@ namespace Poly
 		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
+	void RenderGraphProgram::CreateResource(ResourceGUID resourceGUID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset, uint32 index)
+	{
+		if (!resourceGUID.IsExternal())
+		{
+			POLY_CORE_WARN("Resource {} is not external. Only external resource can use CreateResource()", resourceGUID.GetFullName());
+			return;
+		}
+
+		if (!m_pResourceCache->HasResource(resourceGUID))
+		{
+			POLY_CORE_WARN("External resource {} has not been registered. A resource must be registered before being created", resourceGUID.GetFullName());
+			return;
+		}
+
+		BufferDesc desc = {};
+		desc.Size = size;
+		desc.MemUsage = EMemoryUsage::GPU_ONLY;
+		desc.BufferUsage = bufferUsage | FBufferUsage::COPY_DST;
+		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
+
+		Ref<Resource> pResource = Resource::Create(pBuffer, resourceGUID.GetResourceName());
+
+		m_pResourceCache->RegisterExternalResource(resourceGUID, { pResource, true }); // TODO: Check autoBindDescriptor ("true")
+
+		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
+		if (data)
+			POLY_CORE_INFO("AddExternalResource does not currently support instant data transfer");
+	}
+
+	bool RenderGraphProgram::HasResource(ResourceGUID resourceGUID) const
+	{
+		return m_pResourceCache->HasResource(resourceGUID);
+	}
+
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
 	{
 		if (!pResource)

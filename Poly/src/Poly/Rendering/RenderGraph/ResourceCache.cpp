@@ -75,7 +75,7 @@ namespace Poly
 	void ResourceCache::RegisterSyncResource(const ResourceGUID& resourceGUID, const ResourceGUID& aliasGUID)
 	{
 		// A sync resource is always an alias
-		if (!m_NameToIndex.contains(aliasGUID) && !m_NameToExternalIndex.contains(aliasGUID))
+		if (!HasResource(aliasGUID))
 		{
 			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", resourceGUID.GetFullName(), aliasGUID.GetFullName());
 			return;
@@ -167,9 +167,14 @@ namespace Poly
 		}
 	}
 
+	bool ResourceCache::HasResource(const ResourceGUID& resourceGUID) const
+	{
+		return m_NameToIndex.contains(resourceGUID) || m_NameToExternalIndex.contains(resourceGUID);
+	}
+
 	Resource* ResourceCache::GetResource(const ResourceGUID& resourceGUID)
 	{
-		if (!m_NameToIndex.contains(resourceGUID) && !m_NameToExternalIndex.contains(resourceGUID))
+		if (!HasResource(resourceGUID))
 		{
 			POLY_CORE_WARN("Resource {} cannot be gotten, it does not exist", resourceGUID.GetFullName());
 			return nullptr;
@@ -212,7 +217,7 @@ namespace Poly
 
 	Resource* ResourceCache::UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size)
 	{
-		if (!m_NameToIndex.contains(resourceGUID) && !m_NameToExternalIndex.contains(resourceGUID))
+		if (!HasResource(resourceGUID))
 		{
 			POLY_CORE_WARN("Resource {} cannot be updated, it does not exist", resourceGUID.GetFullName());
 			return nullptr;
