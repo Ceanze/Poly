@@ -85,7 +85,7 @@ namespace Poly
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the ResourceView as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint64 offset = 0, uint32 index = 0);
+		void UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index = 0);
 
 		/**
 		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if

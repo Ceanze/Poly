@@ -90,20 +90,27 @@ float GeometrySmith(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness)
 
 void main()
 {
-	vec3 albedo		= (material[in_MaterialIndex].Albedo * texture(albedoTex, in_TexCoord)).rgb;
+	MaterialValues mat = material[in_MaterialIndex];
+	vec3 albedo		= (mat.Albedo * texture(albedoTex, in_TexCoord)).rgb;
 	vec3 normal		= GenerateNormal(in_TBN);
 	vec3 viewDir	= normalize(camPos.xyz - in_WorldPos);
 
-	float metallic	= material[in_MaterialIndex].Metallic	* texture(metallicTex, in_TexCoord).r;
-	float roughness	= material[in_MaterialIndex].Roughness	* texture(roughnessTex, in_TexCoord).r;
-	float ao		= material[in_MaterialIndex].AO			* texture(aoTex, in_TexCoord).r;
+	float metallic	= 0.f;
+	float roughness	= 0.f;
+	float ao		= 0.f;
 
-	if (material[in_MaterialIndex].IsCombined > 0.5f)
+	if (mat.IsCombined > 0.5f)
 	{
 		vec3 tex	= texture(combinedTex, in_TexCoord).rgb;
-		ao			= material[in_MaterialIndex].AO			* tex.r;
-		roughness	= material[in_MaterialIndex].Roughness	* tex.g;
-		metallic	= material[in_MaterialIndex].Metallic	* tex.b;
+		ao			= mat.AO		* tex.r;
+		roughness	= mat.Roughness	* tex.g;
+		metallic	= mat.Metallic	* tex.b;
+	}
+	else
+	{
+		metallic	= mat.Metallic	* texture(metallicTex, in_TexCoord).r;
+		roughness	= mat.Roughness	* texture(roughnessTex, in_TexCoord).r;
+		ao			= mat.AO		* texture(aoTex, in_TexCoord).r;
 	}
 
 	// Loop over the point lights

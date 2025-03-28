@@ -75,7 +75,7 @@ namespace Poly
 	void ResourceCache::RegisterSyncResource(const ResourceGUID& resourceGUID, const ResourceGUID& aliasGUID)
 	{
 		// A sync resource is always an alias
-		if (!HasResource(aliasGUID))
+		if (!IsResourceRegistered(aliasGUID))
 		{
 			POLY_CORE_WARN("Resource {} cannot use alias {}, alias resource has not been registered", resourceGUID.GetFullName(), aliasGUID.GetFullName());
 			return;
@@ -168,6 +168,14 @@ namespace Poly
 	}
 
 	bool ResourceCache::HasResource(const ResourceGUID& resourceGUID) const
+	{
+		bool exist = false;
+		exist |= m_NameToIndex.contains(resourceGUID) && m_Resources[m_NameToIndex.at(resourceGUID)].pResource;
+		exist |= m_NameToExternalIndex.contains(resourceGUID) && m_ExternalResources[m_NameToExternalIndex.at(resourceGUID)].pResource;
+		return exist;
+	}
+
+	bool ResourceCache::IsResourceRegistered(const ResourceGUID& resourceGUID) const
 	{
 		return m_NameToIndex.contains(resourceGUID) || m_NameToExternalIndex.contains(resourceGUID);
 	}

@@ -33,6 +33,8 @@ namespace Poly
 
 		virtual void CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) override final;
 
+		virtual void CopyBufferRegions(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, const std::vector<BufferRegion>& regions) override final;
+
 		virtual void UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData) override final;
 
 		virtual void SetViewport(const ViewportDesc* pViewport) override final;

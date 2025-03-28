@@ -96,6 +96,13 @@ namespace Poly
 		*/
 		void CreateRenderScene(RenderGraphProgram& program);
 
+		/**
+		* Gets the previously created render scene, else nullptr
+		* 
+		* @return existing renderscene, else nullptr
+		*/
+		RenderScene* GetRenderScene() const { return m_pRenderScene.get(); }
+
 	private:
 		friend class Entity;
 		friend class SceneRenderer; // TODO: Remove when scene renderer uses the new RenderScene instead

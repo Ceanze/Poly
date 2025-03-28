@@ -30,6 +30,13 @@ namespace Poly
 		ClearDepthStencilValue	DepthStencil;
 	};
 
+	struct BufferRegion
+	{
+		uint64 Size;
+		uint64 SrcOffset;
+		uint64 DstOffset;
+	};
+
 	enum class FShaderStage : uint32
 	{
 		NONE					= 0,

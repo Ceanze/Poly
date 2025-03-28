@@ -7,6 +7,7 @@
 #include "Platform/API/Texture.h"
 #include "Platform/API/Sampler.h"
 #include "Platform/API/DescriptorSet.h"
+#include "Poly/Rendering/RenderScene.h"
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Resources/ResourceManager.h"
@@ -26,53 +27,53 @@ namespace Poly
 		m_DrawObjects.clear();
 		OrderModels(scene);
 
-		bool hasInstanceBuffer	= reflection.HasSceneBinding(ESceneBinding::INSTANCE);
-		bool hasMaterial	= reflection.HasSceneBinding(ESceneBinding::MATERIAL);
-		if (hasInstanceBuffer || hasMaterial)
-		{
-			if (hasInstanceBuffer)
-				UpdateInstanceBuffers(m_TotalMeshCount * sizeof(glm::mat4));
-			if (hasMaterial)
-				UpdateMaterialBuffers(m_TotalMeshCount * sizeof(MaterialValues));
-		}
+		//bool hasInstanceBuffer	= reflection.HasSceneBinding(ESceneBinding::INSTANCE);
+		//bool hasMaterial	= reflection.HasSceneBinding(ESceneBinding::MATERIAL);
+		//if (hasInstanceBuffer || hasMaterial)
+		//{
+		//	if (hasInstanceBuffer)
+		//		UpdateInstanceBuffers(m_TotalMeshCount * sizeof(glm::mat4));
+		//	if (hasMaterial)
+		//		UpdateMaterialBuffers(m_TotalMeshCount * sizeof(MaterialValues));
+		//}
 
-		uint64 instanceOffset = 0;
-		uint64 materialOffset = 0;
-		for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
-		{
-			// INSTANCE
-			if (hasInstanceBuffer)
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::INSTANCE);
-				uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
-				drawObjectPair.second.pInstanceDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
-				drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pInstanceBuffer.get(), instanceOffset, size);
+		//uint64 instanceOffset = 0;
+		//uint64 materialOffset = 0;
+		//for (uint32 drawObjectIndex = 0; auto& drawObjectPair : m_DrawObjects)
+		//{
+		//	// INSTANCE
+		//	if (hasInstanceBuffer)
+		//	{
+		//		const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::INSTANCE);
+		//		uint64 size = drawObjectPair.second.Matrices.size() * sizeof(glm::mat4);
+		//		drawObjectPair.second.pInstanceDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
+		//		drawObjectPair.second.pInstanceDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pInstanceBuffer.get(), instanceOffset, size);
 
-				m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, instanceOffset);
+		//		m_pStagingBuffer->TransferData(drawObjectPair.second.Matrices.data(), size, instanceOffset);
 
-				instanceOffset += size;
-			}
+		//		instanceOffset += size;
+		//	}
 
-			// MATERIAL
-			if (hasMaterial)
-			{
-				const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::MATERIAL);
-				uint64 size = sizeof(MaterialValues);
-				drawObjectPair.second.pMaterialDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
-				drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pMaterialBuffer.get(), materialOffset, size);
+		//	// MATERIAL
+		//	if (hasMaterial)
+		//	{
+		//		const IOData& ioData = reflection.GetSceneBinding(ESceneBinding::MATERIAL);
+		//		uint64 size = sizeof(MaterialValues);
+		//		drawObjectPair.second.pMaterialDescriptorSet = context.GetDescriptorCache()->GetDescriptorSet(ioData.Set, drawObjectIndex, imageIndex, 1, DescriptorCache::EAction::GET_OR_CREATE);
+		//		drawObjectPair.second.pMaterialDescriptorSet->UpdateBufferBinding(ioData.Binding, m_pMaterialBuffer.get(), materialOffset, size);
 
-				m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.UniqueMeshInstance.pMaterial->GetMaterialValues(), size, materialOffset);
+		//		m_pMaterialStagingBuffer->TransferData(drawObjectPair.second.UniqueMeshInstance.pMaterial->GetMaterialValues(), size, materialOffset);
 
-				materialOffset += size;
-			}
+		//		materialOffset += size;
+		//	}
 
-			drawObjectIndex++;
-		}
+		//	drawObjectIndex++;
+		//}
 
-		if (hasInstanceBuffer && m_pStagingBuffer)
-			context.GetCommandBuffer()->CopyBuffer(m_pStagingBuffer.get(), m_pInstanceBuffer.get(), m_pStagingBuffer->GetSize(), 0, 0);
-		if (hasMaterial && m_pMaterialStagingBuffer)
-			context.GetCommandBuffer()->CopyBuffer(m_pMaterialStagingBuffer.get(), m_pMaterialBuffer.get(), m_pMaterialStagingBuffer->GetSize(), 0, 0);
+		//if (hasInstanceBuffer && m_pStagingBuffer)
+		//	context.GetCommandBuffer()->CopyBuffer(m_pStagingBuffer.get(), m_pInstanceBuffer.get(), m_pStagingBuffer->GetSize(), 0, 0);
+		//if (hasMaterial && m_pMaterialStagingBuffer)
+		//	context.GetCommandBuffer()->CopyBuffer(m_pMaterialStagingBuffer.get(), m_pMaterialBuffer.get(), m_pMaterialStagingBuffer->GetSize(), 0, 0);
 	}
 
 	void SceneRenderer::Render(const RenderContext& context)
@@ -80,26 +81,29 @@ namespace Poly
 		CommandBuffer* commandBuffer = context.GetCommandBuffer();
 
 		// One draw call for each unique mesh instance -> refill buffer for each draw call
-		for (uint32 i = 0; auto& drawObject : m_DrawObjects) // TODO: This should get the scene draw data
-		{
-			uint32 instanceCount = static_cast<uint32>(drawObject.second.Matrices.size());
+		//for (uint32 i = 0; auto& drawObject : m_DrawObjects) // TODO: This should get the scene draw data
+		//{
+			//uint32 instanceCount = static_cast<uint32>(drawObject.second.Matrices.size());
+		const SceneBatch* pSceneBatch = context.GetSceneBatch();
+			uint32 instanceCount = pSceneBatch->Matrices.size();
 
 			// Draw
 			// TODO: This will be removed when instanced drawing is introduced from the render graph program. Descriptor getting will be automated then
-			std::set<DescriptorSet*> sets = { 
-											  drawObject.second.pInstanceDescriptorSet, drawObject.second.pMaterialDescriptorSet};
-			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(3, i, DescriptorCache::EAction::GET));
-			sets.insert(context.GetDescriptorCache()->GetDescriptorSet(4, i, DescriptorCache::EAction::GET));
-			for (auto& set : sets)
-				commandBuffer->BindDescriptor(context.GetActivePipeline(), set);
+			//std::set<DescriptorSet*> sets = { };
+			//sets.insert(context.GetDescriptorCache()->GetDescriptorSet(1, i, DescriptorCache::EAction::GET)); // PBR - Instance
+			//sets.insert(context.GetDescriptorCache()->GetDescriptorSet(2, i, DescriptorCache::EAction::GET)); // PBR - Material
+			//sets.insert(context.GetDescriptorCache()->GetDescriptorSet(3, i, DescriptorCache::EAction::GET)); // PBR - Textures
+			//sets.insert(context.GetDescriptorCache()->GetDescriptorSet(4, i, DescriptorCache::EAction::GET)); // PBR - Vertices
+			//for (auto& set : sets)
+			//	commandBuffer->BindDescriptor(context.GetActivePipeline(), set);
 
 
-			Ref<Mesh> pMesh = drawObject.second.UniqueMeshInstance.pMesh;
+			Ref<Mesh> pMesh = pSceneBatch->MeshInstance.pMesh;
 			const Buffer* pIndexBuffer = pMesh->GetIndexBuffer();
 			commandBuffer->BindIndexBuffer(pIndexBuffer, 0, EIndexType::UINT32);
 
 			commandBuffer->DrawIndexedInstanced(pMesh->GetIndexCount(), instanceCount, 0, 0, 0);
-		}
+		//}
 	}
 
 	void SceneRenderer::UpdateInstanceBuffers(uint64 size)

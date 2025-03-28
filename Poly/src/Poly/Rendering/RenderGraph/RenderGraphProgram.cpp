@@ -11,6 +11,7 @@
 #include "Poly/Scene/Scene.h"
 #include "RenderGraphTypes.h"
 #include "Poly/Core/RenderAPI.h"
+#include "Poly/Rendering/RenderScene.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/CommandPool.h"
@@ -59,7 +60,7 @@ namespace Poly
 				for (const auto& reflection : reflections)
 				{
 					// Only update graph resource if a resource is already valid, otherwise skip
-					if (m_pResourceCache->GetResource({ pPass->GetName(), reflection.Name }))
+					if (m_pResourceCache->HasResource({ pPass->GetName(), reflection.Name }))
 						UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
 				}
 			}
@@ -140,17 +141,29 @@ namespace Poly
 				scissor.Height	= pFramebuffer->GetHeight();
 				currentCommandBuffer->SetScissor(&scissor);
 
-				const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
-				for (uint32 setIndex : setIndices)
-				{
-					const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, DescriptorCache::EAction::GET);
-					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
-				}
-
 				renderContext.SetActivePipeline(pGraphicsPipeline);
 
-				// The pass handles the draw command and any additional data before that
-				pPass->Execute(renderContext, renderData);
+				const std::vector<SceneBatch>& batches = m_pScene->GetRenderScene()->GetBatches();
+				uint32 batchSize = 1;
+				if (pPass->IsInstancedSceneRenderingEnabled())
+					batchSize = batches.size();
+
+				for (uint32 batchIndex = 0; batchIndex < batchSize; batchIndex++) {
+					renderContext.SetSceneBatch(&batches[batchIndex]);
+					renderContext.SetBatchIndex(batchIndex);
+
+					const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
+					for (uint32 setIndex : setIndices)
+					{
+						const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, batchIndex, DescriptorCache::EAction::GET);
+						if (pSet)
+							currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
+					}
+
+					// The pass handles the draw command and any additional data before that
+					pPass->Execute(renderContext, renderData);
+
+				}
 
 				currentCommandBuffer->EndRenderPass();
 			}
@@ -181,7 +194,7 @@ namespace Poly
 			return;
 		}
 
-		if (!m_pResourceCache->HasResource(resourceGUID))
+		if (!m_pResourceCache->IsResourceRegistered(resourceGUID))
 		{
 			POLY_CORE_WARN("External resource {} has not been registered. A resource must be registered before being created", resourceGUID.GetFullName());
 			return;
@@ -197,9 +210,9 @@ namespace Poly
 
 		m_pResourceCache->RegisterExternalResource(resourceGUID, { pResource, true }); // TODO: Check autoBindDescriptor ("true")
 
-		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)
-			POLY_CORE_INFO("AddExternalResource does not currently support instant data transfer");
+			m_pStagingBufferCache->QueueTransfer(pBuffer.get(), size, offset, data);
+
 	}
 
 	bool RenderGraphProgram::HasResource(ResourceGUID resourceGUID) const
@@ -209,34 +222,37 @@ namespace Poly
 
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
 	{
+		// Note: This function always updates a whole span of a resource - therefore no size or offset is supplied, and views for
+		// that whole resource are automatically created with default span (resource size) and default offset (0)
+
 		if (!pResource)
 		{
-			UpdateGraphResource(resourceGUID, ResourceView::Empty(), 0, index);
+			UpdateGraphResource(resourceGUID, ResourceView::Empty(), index);
 		}
 		else if (pResource->IsBuffer())
 		{
 			const Buffer* pBuffer = pResource->GetAsBuffer();
-			UpdateGraphResource(resourceGUID, {pBuffer, pBuffer->GetSize(), 0}, 0, index);
+			UpdateGraphResource(resourceGUID, {pBuffer, pBuffer->GetSize(), 0}, index);
 		}
 		else if (pResource->IsTexture())
 		{
 			const TextureView* pTextureView = pResource->GetAsTextureView();
 			const Sampler* pSampler = pResource->GetAsSampler();
-			UpdateGraphResource(resourceGUID, {pTextureView, pSampler}, 0, index);
+			UpdateGraphResource(resourceGUID, {pTextureView, pSampler}, index);
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint64 offset, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index)
 	{
+		bool hasUpdated = false;
 		// Go through each pass and find where resource is being used
 		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
 		{
 			auto& pPass = m_Passes[passIndex];
 
-			if (pPass->GetPassType() == Pass::Type::SYNC || (pPass->GetName() != resourceGUID.GetPassName() && view.IsEmpty()))
-			{
+			// || (pPass->GetName() != resourceGUID.GetPassName() && view.IsEmpty())
+			if (pPass->GetPassType() == Pass::Type::SYNC)
 				continue;
-			}
 
 
 			// Check if pass has the requested resource, continue if not
@@ -255,7 +271,7 @@ namespace Poly
 				return;
 
 			if (!hasProvidedResource)
-				pResource = m_pResourceCache->GetResource(mappedResource.GetFullName());
+				pResource = m_pResourceCache->HasResource(mappedResource.GetFullName()) ? m_pResourceCache->GetResource(mappedResource.GetFullName()) : nullptr;
 
 			if (!hasProvidedResource && !pResource)
 			{
@@ -266,12 +282,12 @@ namespace Poly
 			if (!m_DescriptorCaches.contains(passIndex))
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 
-			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, static_cast<uint32>(offset), static_cast<uint32>(view.GetSpan()));
+			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, static_cast<uint32>(view.GetOffset()), static_cast<uint32>(view.GetSpan()));
 
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
 				const Buffer* pBuffer = (pResource && pResource->IsBuffer()) ? pResource->GetAsBuffer() : view.GetBuffer();
-				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, pBuffer->GetSize());
+				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, view.GetSpan());
 			}
 			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
 			{
@@ -282,7 +298,12 @@ namespace Poly
 					pResource->SetSampler(inputRes.pSampler);
 				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pTextureView, pResource ? pResource->GetAsSampler() : inputRes.pSampler.get());
 			}
+
+			hasUpdated = true;
 		}
+
+		if (!hasUpdated)
+			POLY_CORE_WARN("UpdateGraphResource - failed to update resource {} - it isn't used in any pass", resourceGUID.GetFullName());
 	}
 
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, uint64 size, const void* data, uint64 offset, uint32 index)
@@ -301,7 +322,8 @@ namespace Poly
 			return;
 		}
 
-		uint64 oldSize = pRes->GetAsBuffer()->GetSize();
+		const Buffer* pBuffer = pRes->GetAsBuffer();
+		uint64 oldSize = pBuffer->GetSize();
 		bool hasSizeChanged = oldSize != size;
 		if (oldSize < size)
 		{
@@ -310,14 +332,16 @@ namespace Poly
 
 		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, offset, data);
 
-		if (hasSizeChanged)
-		{
-			UpdateGraphResource(resourceGUID, pRes, index);
-		}
-		else
-		{
-			UpdateGraphResource(resourceGUID, nullptr, index);
-		}
+		//if (hasSizeChanged)
+		//{
+			UpdateGraphResource(resourceGUID, { pBuffer, size, offset }, index);
+			//UpdateGraphResource(resourceGUID, pRes, index);
+		//}
+		//else
+		//{
+		//	UpdateGraphResource(resourceGUID, { pBuffer, size, offset }, offset, index);
+		//	UpdateGraphResource(resourceGUID, nullptr, index);
+		//}
 	}
 
 	void RenderGraphProgram::SetBackbuffer(Ref<Resource> pResource)

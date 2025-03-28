@@ -73,6 +73,8 @@ public:
 		m_pGraph->AddLink({ "$.scene:aoTex" }, { "pbrPass.aoTex" });
 		m_pGraph->AddLink({ "$.scene:combinedTex" }, { "pbrPass.combinedTex" });
 		m_pGraph->AddLink({ "$.scene:vertices" }, { "pbrPass.vertices" });
+		m_pGraph->AddLink({ "$.scene:instance" }, { "pbrPass.instance" });
+		m_pGraph->AddLink({ "$.scene:material" }, { "pbrPass.material" });
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
 		m_pGraph->AddLink({ "pbrPass.out" }, { "ImGuiPass.out" });
@@ -84,18 +86,18 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource({ "lights" }, sizeof(LightBuffer), &data);
 
-		m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
+		//m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
 
 
 		m_pProgram->SetScene(m_pScene);
 
 
-		Poly::SceneSerializer sceneSerializer(m_pScene);
-		sceneSerializer.Deserialize("CubeScene.polyscene");
+		//Poly::SceneSerializer sceneSerializer(m_pScene);
+		//sceneSerializer.Deserialize("CubeScene.polyscene");
 
-		// Poly::Entity cubeEntity = pScene->CreateEntity();
+		 Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);

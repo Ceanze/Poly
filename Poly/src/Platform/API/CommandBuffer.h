@@ -154,6 +154,15 @@ namespace Poly
 		virtual void CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
 
 		/**
+		* Copy source buffer to destination buffer with multiple regions
+		* For Vulkan this is done with one call to the GPU, while for DirectX 12 this is the same as calling CopyBuffer multiple times with one region each
+		* @param pSrcBuffer - source buffer
+		* @param pDstBuffer - destination buffer
+		* @param regions - vector of regions, each containing {size, srcOffset, dstOffset]
+		*/
+		virtual void CopyBufferRegions(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, const std::vector<BufferRegion>& regions) = 0;
+
+		/**
 		 * Update device buffer with local data from host memory - Limited to 65536
 		 * Use staging buffer for larger amount of transfers
 		 * @param buffer - destination buffer on GPU

@@ -159,6 +159,24 @@ namespace Poly
 		);
 	}
 
+	void PVKCommandBuffer::CopyBufferRegions(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, const std::vector<BufferRegion>& regions)
+	{
+		std::vector<VkBufferCopy> vkRegions;
+		vkRegions.reserve(regions.size());
+		for (const BufferRegion& region : regions)
+		{
+			vkRegions.push_back(ConvertBufferRegionCopyVK(region));
+		}
+
+		vkCmdCopyBuffer(
+			m_Buffer,
+			reinterpret_cast<const PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
+			reinterpret_cast<const PVKBuffer*>(pDstBuffer)->GetNativeVK(),
+			vkRegions.size(),
+			vkRegions.data()
+		);
+	}
+
 	void PVKCommandBuffer::UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData)
 	{
 		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);

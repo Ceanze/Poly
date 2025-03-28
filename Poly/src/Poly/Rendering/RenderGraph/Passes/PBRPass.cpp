@@ -11,8 +11,11 @@ namespace Poly
 	void PBRPass::Compile()
 	{
 		SetAutoBind(0, true);
-		SetAutoBind(1, false);
-		SetAutoBind(2, false);
+		SetAutoBind(1, true);
+		SetAutoBind(2, true);
+		SetAutoBind(3, true);
+		SetAutoBind(4, true);
+		ToggleInstancedSceneRendering(true);
 	}
 
 	PassReflection PBRPass::Reflect()
@@ -34,10 +37,14 @@ namespace Poly
 		reflection.AddInput("vertices", 4, 0);
 		reflection.SetBindPoint("vertices", FResourceBindPoint::STORAGE);
 
-		reflection.AddSceneInput("instanceBuffer", 1, 0, ESceneBinding::INSTANCE);
+		//reflection.AddSceneInput("instanceBuffer", 1, 0, ESceneBinding::INSTANCE);
+		reflection.AddInput("instance", 1, 0);
+		reflection.SetBindPoint("instance", FResourceBindPoint::STORAGE);
 
 		// Fragment shader input
-		reflection.AddSceneInput("materials", 2, 0, ESceneBinding::MATERIAL);
+		//reflection.AddSceneInput("materials", 2, 0, ESceneBinding::MATERIAL);
+		reflection.AddInput("material", 2, 0);
+		reflection.SetBindPoint("material", FResourceBindPoint::STORAGE);
 
 		// Albedo
 		reflection.AddInput("albedoTex", 3, 0);

@@ -3,6 +3,7 @@
 namespace Poly
 {
 	class Buffer;
+	class BufferRegion;
 	class CommandBuffer;
 
 	class StagingBufferCache
@@ -47,8 +48,7 @@ namespace Poly
 		{
 			Ref<Buffer> pStagingBuffer;
 			const Buffer* pDstBuffer;
-			uint64 Offset;
-			uint64 Size;
+			std::vector<BufferRegion> Regions;
 		};
 
 		struct LifetimeBuffer
@@ -60,6 +60,7 @@ namespace Poly
 		Ref<Buffer> GetStagingBuffer(uint64 size);
 
 		std::unordered_map<uint32, std::unordered_map<State, std::vector<LifetimeBuffer>>> m_Buffers;
+		std::unordered_map<const Buffer*, size_t> m_BufferToIndex;
 		std::vector<BufferPair> m_QueuedBuffers;
 		uint32 m_ImageIndex = 0;
 		const uint32 BUFFER_LIFETIME = 100;
