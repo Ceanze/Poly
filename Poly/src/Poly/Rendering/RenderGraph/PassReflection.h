@@ -155,12 +155,19 @@ namespace Poly
 		 */
 		void SetSampler(const std::string& name, Ref<Sampler> pSampler);
 
+		/**
+		 * Disables auto bind (Render Graph automatically binding descriptor before Execute for pass being called) for set
+		 * @param setIndex - set index to enable/disable autobind for
+		 */
+		void DisableAutoBind(uint32 setIndex);
+
 		std::vector<IOData> GetIOData(FIOType IOType, FResourceBindPoint excludeFlags) const;
 		std::vector<IOData> GetAllIOs() const { return m_IOs; }
 		const IOData& GetIOData(const std::string& resName) const;
 		const IOData& GetSceneBinding(ESceneBinding sceneBinding) const;
 		bool HasSceneBinding(ESceneBinding sceneBinding) const { return m_SceneInputIndices.contains(sceneBinding); }
 		bool HasAnySceneBinding() const { return m_SceneInputIndices.size() > 0; }
+		const std::set<uint32>& GetAutoBindedSetIndices() const { return m_AutoBindedSets; }
 
 		const std::vector<PushConstantData>& GetPushConstants() const { return m_PushConstants; }
 
@@ -171,5 +178,7 @@ namespace Poly
 		std::vector<IOData> m_IOs;
 		std::unordered_map<ESceneBinding, uint32> m_SceneInputIndices;
 		std::vector<PushConstantData> m_PushConstants;
+		std::set<uint32> m_AutoBindedSets;
+		std::set<uint32> m_ManualSets;
 	};
 }

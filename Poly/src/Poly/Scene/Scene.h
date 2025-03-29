@@ -1,11 +1,15 @@
 #pragma once
 
 #include <entt/entt.hpp>
+
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
+#include "Poly/Model/Model.h" // TODO: See if this can be removed
 
 namespace Poly
 {
 	class Entity;
+	class RenderScene;
+	class RenderGraphProgram;
 
 	class Scene
 	{
@@ -19,6 +23,12 @@ namespace Poly
 		static constexpr const char* METALLIC_TEX_RESOURCE_NAME = "metallicTex";
 		static constexpr const char* ROUGHNESS_TEX_RESOURCE_NAME = "roughnessTex";
 		static constexpr const char* AO_TEX_RESOURCE_NAME = "aoTex";
+
+		struct DrawData
+		{
+			MeshInstance	MeshInstance;
+			uint32			InstanceCount;
+		};
 
 	public:
 		Scene(const std::string& name);
@@ -75,17 +85,37 @@ namespace Poly
 		 */
 		bool IsEmpty() const { return m_Registry.storage<entt::entity>()->empty(); }
 
+		/**
+		* Updates the scene with the current entities
+		*/
+		void Update();
+
+		/**
+		* Internally creates a render scene bound to the program provided.
+		* This is automatically done when a scene is set to a render graph program.
+		*/
+		void CreateRenderScene(RenderGraphProgram& program);
+
+		/**
+		* Gets the previously created render scene, else nullptr
+		* 
+		* @return existing renderscene, else nullptr
+		*/
+		RenderScene* GetRenderScene() const { return m_pRenderScene.get(); }
+
 	private:
 		friend class Entity;
-		friend class SceneRenderer;
+		friend class SceneRenderer; // TODO: Remove when scene renderer uses the new RenderScene instead
+		friend class RenderScene; // TODO: Will be removed when interface for views exist
 		friend class SceneSerializer;
 		friend class EntitySerializer;
 
 		PolyID GetIdOfEntity(entt::entity entity);
 
+		std::string m_Name;
+
 		entt::registry m_Registry;
 		ResourceGroup m_ResourceGroup;
-
-		std::string m_Name;
+		Ref<RenderScene> m_pRenderScene;
 	};
 }

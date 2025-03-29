@@ -9,6 +9,7 @@ namespace Poly
 	class PipelineLayout;
 	class DescriptorCache;
 	class RenderGraphProgram;
+	class SceneBatch;
 
 	class RenderContext
 	{
@@ -26,6 +27,10 @@ namespace Poly
 
 		uint32 GetImageIndex() const { return m_ImageIndex; }
 
+		uint32 GetBatchIndex() const { return m_BatchIndex; }
+
+		const SceneBatch* GetSceneBatch() const { return m_pSceneBatch; }
+
 		RenderGraphProgram* GetRenderGraphProgram() const { return m_pRenderGraphProgram; }
 
 		DescriptorCache* GetDescriptorCache() const { return m_pDescriptorCache; }
@@ -37,6 +42,8 @@ namespace Poly
 		void SetActivePipelineLayout(PipelineLayout* pLayout) { m_pPipelineLayout = pLayout; }
 		void SetActivePassIndex(uint32 passIndex) { m_PassIndex = passIndex; }
 		void SetImageIndex(uint32 imageIndex) { m_ImageIndex = imageIndex; }
+		void SetBatchIndex(uint32 batchIndex) { m_BatchIndex = batchIndex; }
+		void SetSceneBatch(const SceneBatch* pSceneBatch) { m_pSceneBatch = pSceneBatch; }
 		void SetRenderGraphProgram(RenderGraphProgram* pRenderGraphProgram) { m_pRenderGraphProgram = pRenderGraphProgram; }
 		void SetDescriptorCache(DescriptorCache* pDescriptorCache) { m_pDescriptorCache = pDescriptorCache; }
 
@@ -45,6 +52,8 @@ namespace Poly
 		PipelineLayout*		m_pPipelineLayout		= nullptr;
 		uint32				m_PassIndex				= 0;
 		uint32				m_ImageIndex			= 0;
+		uint32				m_BatchIndex			= 0;
+		const SceneBatch*	m_pSceneBatch			= nullptr;
 		RenderGraphProgram*	m_pRenderGraphProgram	= nullptr;
 		DescriptorCache*	m_pDescriptorCache		= nullptr;
 	};

@@ -19,8 +19,8 @@ struct Vertex
 
 // Sets
 layout(set = 0, binding = 0) uniform Camera { mat4 camera; vec4 camPos; };
-layout(set = 1, binding = 0) buffer Vertices { Vertex vertex[]; };
-layout(set = 1, binding = 1) buffer Transforms { mat4 transform[]; };
+layout(set = 4, binding = 0) buffer Vertices { Vertex vertex[]; };
+layout(set = 1, binding = 0) buffer Transforms { mat4 transform[]; };
 
 void main() {
 	vec4 worldPosition = transform[gl_InstanceIndex] * vec4(vertex[gl_VertexIndex].Position.xyz, 1.0f);

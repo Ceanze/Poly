@@ -2,6 +2,8 @@
 #include "Entity.h"
 #include "Components.h"
 
+#include "Poly/Rendering/RenderScene.h"
+
 namespace Poly
 {
 	Scene::Scene(const std::string& name) : m_ResourceGroup("scene"), m_Name(name)
@@ -29,6 +31,7 @@ namespace Poly
 		m_Registry.emplace<TransformComponent>(entity);
 		m_Registry.emplace<HierarchyComponent>(entity);
 		m_Registry.emplace<IDComponent>(entity, id);
+		m_Registry.emplace<DirtyTag>(entity);
 
 		return Entity(this, entity);
 	}
@@ -56,6 +59,22 @@ namespace Poly
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+	}
+
+	void Scene::Update()
+	{
+		if (m_Registry.storage<DirtyTag>().empty())
+			return;
+
+		if (m_pRenderScene)
+			m_pRenderScene->Update();
+
+		m_Registry.clear<DirtyTag>();
+	}
+
+	void Scene::CreateRenderScene(RenderGraphProgram& program)
+	{
+		m_pRenderScene = CreateRef<RenderScene>(*this, program);
 	}
 
 	PolyID Scene::GetIdOfEntity(entt::entity entity)

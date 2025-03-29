@@ -8,6 +8,11 @@ namespace Poly
 	class Model;
 	class Material;
 
+	// Tags
+	struct DirtyTag {};
+
+
+	// Components
 	struct HierarchyComponent
 	{
 		uint8 ChildrenCount		= 0;
@@ -23,7 +28,7 @@ namespace Poly
 		glm::vec3 Scale			= {1.0f, 1.0f, 1.0f};
 		glm::quat Orientation;
 
-		glm::mat4 GetTransform()
+		glm::mat4 GetTransform() const
 		{
 			return glm::translate(glm::mat4(1.0f), Translation)
 				* glm::toMat4(Orientation)

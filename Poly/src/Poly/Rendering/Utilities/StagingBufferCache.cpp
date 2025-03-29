@@ -9,21 +9,51 @@ namespace Poly
 {
 	void StagingBufferCache::QueueTransfer(const Buffer* pDstBuffer, uint64 size, uint64 offset, const void* data)
 	{
-		Ref<Buffer> pStagingBuffer = GetStagingBuffer(size);
+		Ref<Buffer> pStagingBuffer = nullptr;
+		bool alreadyQueued = false;
+		if (m_BufferToIndex.contains(pDstBuffer))
+		{
+			pStagingBuffer = m_QueuedBuffers[m_BufferToIndex[pDstBuffer]].pStagingBuffer;
+			alreadyQueued = true;
+		}
+		else
+		{
+			uint64 maxSize = pDstBuffer->GetSize();
+			pStagingBuffer = GetStagingBuffer(maxSize);
+		}
 
-		pStagingBuffer->TransferData(data, size, 0);
+		pStagingBuffer->TransferData(data, size, offset);
 
-		m_QueuedBuffers.push_back({ pStagingBuffer, pDstBuffer, offset, size });
+		BufferRegion region = { .Size = size, .SrcOffset = offset, .DstOffset = offset };
+
+		if (alreadyQueued)
+		{
+			m_QueuedBuffers[m_BufferToIndex[pDstBuffer]].Regions.push_back(region);
+		}
+		else
+		{
+			m_BufferToIndex[pDstBuffer] = m_QueuedBuffers.size();
+			m_QueuedBuffers.push_back({ pStagingBuffer, pDstBuffer, {region} });
+		}
 	}
 
 	void StagingBufferCache::SubmitQueuedBuffers(CommandBuffer* pCommandBuffer)
 	{
 		for (auto& bufferPair : m_QueuedBuffers)
 		{
-			pCommandBuffer->CopyBuffer(bufferPair.pStagingBuffer.get(), bufferPair.pDstBuffer, bufferPair.Size, 0, bufferPair.Offset);
+			if (bufferPair.Regions.size() == 1)
+			{
+				const BufferRegion& region = bufferPair.Regions.front();
+				pCommandBuffer->CopyBuffer(bufferPair.pStagingBuffer.get(), bufferPair.pDstBuffer, region.Size, region.SrcOffset, region.DstOffset);
+			}
+			else
+			{
+				pCommandBuffer->CopyBufferRegions(bufferPair.pStagingBuffer.get(), bufferPair.pDstBuffer, bufferPair.Regions);
+			}
 		}
 
 		m_QueuedBuffers.clear();
+		m_BufferToIndex.clear();
 	}
 
 	void StagingBufferCache::Update(uint32 imageIndex)

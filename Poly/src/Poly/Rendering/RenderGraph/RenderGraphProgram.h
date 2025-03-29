@@ -7,6 +7,8 @@
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 
+#include <set>
+
 namespace Poly
 {
 	class Pass;
@@ -18,7 +20,6 @@ namespace Poly
 	class DescriptorSet;
 	class CommandBuffer;
 	class ResourceCache;
-	class SceneRenderer;
 	class PipelineLayout;
 	class GraphicsPipeline;
 	class GraphicsRenderPass;
@@ -53,7 +54,24 @@ namespace Poly
 		void Execute(uint32 imageIndex);
 
 		/**
-		 * Updates a resource's descriptor - must be done when the resource has changed size or if
+		* Creates a new resource, if not already existing, for the given resource GUID, and tranfers the optionally provided data
+		* @param resourceGUID - name of resource to create. Note: Resource must be in the global/external space, i.e. the prefix is empty or $.
+		*						Internal resources between passes are created automatically when an output from a pass exist, see RenderGraph for more
+		 * @param size - size of the data to update with
+		 * @param data - pointer to the data, nullptr if no data
+		 * @param bufferUsage - the usage of the buffer, usually STORAGE_BUFFER or UNIFORM_BUFFER. TRANSFER_DST is inferred
+		 * @param offset - offset of the descriptor to update - remember to check the offset of the data as well
+		 * @param index - index of descriptor to update if multiple resources per binding point
+		*/
+		void CreateResource(ResourceGUID resourceGUID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset = 0, uint32 index = 0);
+
+		/**
+		* @return true if resource exists, false otherwise
+		*/
+		bool HasResource(ResourceGUID resourceGUID) const;
+
+		/**
+		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
 		 * the name's resouces is a new resource
 		 * @param name - name of resource follow "renderPass.resource" or "$.resource" format, no prefix assumes external
 		 * @param pResource - resource to update with - nullptr if resource is same and only updated binding. If resource is provided, all bindings using this resource will also be updated.
@@ -62,17 +80,17 @@ namespace Poly
 		void UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index = 0);
 
 		/**
-		 * Updates a resource's descriptor - must be done when the resource has changed size or if
+		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
 		 * the name's resources is a new resource
 		 * @param name - name of resource follow "renderPass.resource" or "$.resource" format, no prefix assumes external
 		 * @param view - ResourceView of the resource/buffer/textureView to update, ResourceView::Empty or empty inner resource if resource is same and only updated binding. If resource is provided, all bindings using this resource will also be updated.
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the ResourceView as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint64 offset = 0, uint32 index = 0);
+		void UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index = 0);
 
 		/**
-		 * Updates a resource's descriptor - must be done when the resource has changed size or if
+		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
 		 * the name's resouces is a new resource
 		 * @param name - name of resource follow "renderPass.resource" or "$.resource" format, no prefix assumes external
 		 * @param size - size of the data to update with. If size differs than already existing buffer all bindings using this resource will also be updated.
@@ -113,7 +131,6 @@ namespace Poly
 
 		// General
 		Ref<Scene> m_pScene;
-		Ref<SceneRenderer> m_pSceneRenderer;
 		Ref<StagingBufferCache> m_pStagingBufferCache;
 
 		// Render Graph specific types

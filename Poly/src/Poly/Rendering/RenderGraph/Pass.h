@@ -89,21 +89,9 @@ namespace Poly
 		Ref<Shader> GetShader(FShaderStage shaderStage) const { return p_ShaderStages.at(shaderStage); }
 
 		/**
-		 * @param setIndex - set index to enable/disable autobind for
-		 * @param autoBind - sets autobind to either enabled (true) or disabled (false)
-		 */
-		void SetAutoBind(uint32 setIndex, bool autoBind);
-
-		/**
-		 * @param setIndex - set index to get enabled state for
-		 * @return true if enabled, false if not
-		 */
-		bool IsAutoBindEnabled(uint32 setIndex) const;
-
-		/**
-		 * @return vector of all the sets that are auto binded
-		 */
-		const std::vector<uint32>& GetAutoBindedSets() const { return p_AutoBindedSets; }
+		* @return true if instanced scene rendering is enabled - see `ToggleInstancedSceneRendering` for more info
+		*/
+		bool IsInstancedSceneRenderingEnabled() const { return m_IsInstancedSceneRenderingEnabled; }
 
 		//--------------------------------------------
 		// Custom graphics types for advanced usages |
@@ -129,12 +117,22 @@ namespace Poly
 		 */
 		void SetCustomPipelineDesc(Ref<PipelineDesc> pPipelineDesc) { p_pPipelineDesc = pPipelineDesc; }
 
+		/**
+		* Enables or disables the use of instanced rendering based on the scene structure.
+		* If enabled, then the `Execute()` call will be called once per instance.
+		* The Instance Index will be provided in the `RenderContext`
+		* If disabled, then `Execute()` is only called once per pass
+		* 
+		* @param enable - enable or disable the feature
+		*/
+		void ToggleInstancedSceneRendering(bool enable) { m_IsInstancedSceneRenderingEnabled = enable; }
+
 	protected:
 		friend class RenderGraph;
 		std::string	p_Name	= "";
 		Pass::Type	p_Type	= Pass::Type::NONE;
 		std::unordered_map<FShaderStage, Ref<Shader>> p_ShaderStages;
-		std::vector<uint32> p_AutoBindedSets;
+		bool m_IsInstancedSceneRenderingEnabled = false;
 
 		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
 		std::vector<ExternalResourceData> p_ExternalResources;

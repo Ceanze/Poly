@@ -53,18 +53,28 @@ public:
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
-		Poly::Ref<Poly::Scene> pScene = Poly::Scene::Create();
+		m_pScene = Poly::Scene::Create();
 
 		// External resources
 		m_pGraph->AddExternalResource({ "camera" }, sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
 		m_pGraph->AddExternalResource({ "lights" }, sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
-		m_pGraph->AddExternalResource(pScene->GetResourceGroup());
+		m_pGraph->AddExternalResource(m_pScene->GetResourceGroup());
 
 		// Passes and links
 		m_pGraph->AddPass(pPass, "pbrPass");
 		m_pGraph->AddLink({ "$.camera" }, { "pbrPass.camera" });
 		m_pGraph->AddLink({ "$.lights" }, { "pbrPass.lights" });
-		// m_pGraph->AddLink("$.scene:instance", "pbrPass.scene:instance"); // Do this for each resource
+
+		// Scene inputs
+		m_pGraph->AddLink({ "$.scene:albedoTex" }, { "pbrPass.albedoTex" });
+		m_pGraph->AddLink({ "$.scene:metallicTex" }, { "pbrPass.metallicTex" });
+		m_pGraph->AddLink({ "$.scene:normalTex" }, { "pbrPass.normalTex" });
+		m_pGraph->AddLink({ "$.scene:roughnessTex" }, { "pbrPass.roughnessTex" });
+		m_pGraph->AddLink({ "$.scene:aoTex" }, { "pbrPass.aoTex" });
+		m_pGraph->AddLink({ "$.scene:combinedTex" }, { "pbrPass.combinedTex" });
+		m_pGraph->AddLink({ "$.scene:vertices" }, { "pbrPass.vertices" });
+		m_pGraph->AddLink({ "$.scene:instance" }, { "pbrPass.instance" });
+		m_pGraph->AddLink({ "$.scene:material" }, { "pbrPass.material" });
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
 		m_pGraph->AddLink({ "pbrPass.out" }, { "ImGuiPass.out" });
@@ -76,15 +86,18 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource({ "lights" }, sizeof(LightBuffer), &data);
 
-		m_pProgram->SetScene(pScene);
+		//m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
 
 
-		Poly::SceneSerializer sceneSerializer(pScene);
-		sceneSerializer.Deserialize("CubeScene.polyscene");
+		m_pProgram->SetScene(m_pScene);
 
-		// Poly::Entity cubeEntity = pScene->CreateEntity();
+
+		//Poly::SceneSerializer sceneSerializer(m_pScene);
+		//sceneSerializer.Deserialize("CubeScene.polyscene");
+
+		 Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);
@@ -104,6 +117,8 @@ public:
 
 		ImGui::ShowDemoWindow();
 
+		m_pScene->Update();
+
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
 		m_pProgram->UpdateGraphResource({ "camera" }, sizeof(CameraBuffer), &data);
@@ -117,6 +132,7 @@ public:
 
 private:
 	Poly::Camera* pCamera = nullptr;
+	Poly::Ref<Poly::Scene> m_pScene = nullptr;
 	Poly::Ref<Poly::Buffer> m_pCambuffer = nullptr;
 	Poly::Ref<Poly::Renderer> m_pRenderer = nullptr;
 	Poly::Ref<Poly::RenderGraph> m_pGraph = nullptr;

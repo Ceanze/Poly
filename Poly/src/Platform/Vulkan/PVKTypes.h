@@ -76,6 +76,11 @@ namespace Poly
 		return mask;
 	}
 
+	inline VkBufferCopy ConvertBufferRegionCopyVK(const BufferRegion& bufferRegion)
+	{
+		return { .srcOffset = bufferRegion.SrcOffset, .dstOffset = bufferRegion.DstOffset, .size = bufferRegion.Size };
+	}
+
 	inline VmaMemoryUsage ConvertMemoryUsageVMA(EMemoryUsage memUsage)
 	{
 		switch (memUsage)

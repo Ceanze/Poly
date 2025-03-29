@@ -11,6 +11,7 @@
 #include "Poly/Scene/Scene.h"
 #include "RenderGraphTypes.h"
 #include "Poly/Core/RenderAPI.h"
+#include "Poly/Rendering/RenderScene.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/CommandPool.h"
@@ -23,7 +24,6 @@
 #include "Platform/API/GraphicsRenderPass.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
-#include "Poly/Rendering/SceneRenderer.h"
 namespace Poly
 {
 	RenderGraphProgram::RenderGraphProgram(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
@@ -40,8 +40,6 @@ namespace Poly
 			if (!m_Reflections.contains(i))
 				m_Reflections[i] = m_Passes[i]->Reflect();
 		}
-
-		m_pSceneRenderer = SceneRenderer::Create();
 
 		InitCommandBuffers();
 		InitPipelineLayouts();
@@ -60,7 +58,11 @@ namespace Poly
 			{
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 				for (const auto& reflection : reflections)
-					UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
+				{
+					// Only update graph resource if a resource is already valid, otherwise skip
+					if (m_pResourceCache->HasResource({ pPass->GetName(), reflection.Name }))
+						UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
+				}
 			}
 			passIndex++;
 		}
@@ -83,8 +85,7 @@ namespace Poly
 		RenderContext renderContext = RenderContext();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
 		renderContext.SetImageIndex(m_ImageIndex);
-		renderData.SetSceneRenderer(m_pSceneRenderer.get());
-		// m_pScene->SetFrameIndex(m_ImageIndex);
+		renderData.SetScene(m_pScene.get());
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
 			// Clear old descriptors
@@ -109,11 +110,6 @@ namespace Poly
 			// Transfer staging buffer data
 			// TODO: This should probably be done on the Transfer queue asyncronously
 			m_pStagingBufferCache->SubmitQueuedBuffers(currentCommandBuffer);
-
-			if (m_Reflections[passIndex].HasAnySceneBinding())
-			{
-				m_pSceneRenderer->Update(renderContext, m_Reflections[passIndex], m_ImageIndex, m_PipelineLayouts[passIndex].get());
-			}
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
 			{
@@ -141,17 +137,29 @@ namespace Poly
 				scissor.Height	= pFramebuffer->GetHeight();
 				currentCommandBuffer->SetScissor(&scissor);
 
-				const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
-				for (uint32 setIndex : setIndices)
-				{
-					const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex);
-					currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
-				}
-
 				renderContext.SetActivePipeline(pGraphicsPipeline);
 
-				// The pass handles the draw command and any additional data before that
-				pPass->Execute(renderContext, renderData);
+				const std::vector<SceneBatch>& batches = m_pScene->GetRenderScene()->GetBatches();
+				uint32 batchSize = 1;
+				if (pPass->IsInstancedSceneRenderingEnabled())
+					batchSize = batches.size();
+
+				for (uint32 batchIndex = 0; batchIndex < batchSize; batchIndex++) {
+					renderContext.SetSceneBatch(&batches[batchIndex]);
+					renderContext.SetBatchIndex(batchIndex);
+
+					const std::set<uint32>& setIndices = m_Reflections[passIndex].GetAutoBindedSetIndices();
+					for (uint32 setIndex : setIndices)
+					{
+						const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, batchIndex, DescriptorCache::EAction::GET);
+						if (pSet)
+							currentCommandBuffer->BindDescriptor(pGraphicsPipeline, pSet);
+					}
+
+					// The pass handles the draw command and any additional data before that
+					pPass->Execute(renderContext, renderData);
+
+				}
 
 				currentCommandBuffer->EndRenderPass();
 			}
@@ -174,37 +182,71 @@ namespace Poly
 		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
+	void RenderGraphProgram::CreateResource(ResourceGUID resourceGUID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset, uint32 index)
+	{
+		if (!resourceGUID.IsExternal())
+		{
+			POLY_CORE_WARN("Resource {} is not external. Only external resource can use CreateResource()", resourceGUID.GetFullName());
+			return;
+		}
+
+		if (!m_pResourceCache->IsResourceRegistered(resourceGUID))
+		{
+			POLY_CORE_WARN("External resource {} has not been registered. A resource must be registered before being created", resourceGUID.GetFullName());
+			return;
+		}
+
+		BufferDesc desc = {};
+		desc.Size = size;
+		desc.MemUsage = EMemoryUsage::GPU_ONLY;
+		desc.BufferUsage = bufferUsage | FBufferUsage::COPY_DST;
+		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
+
+		Ref<Resource> pResource = Resource::Create(pBuffer, resourceGUID.GetResourceName());
+
+		m_pResourceCache->RegisterExternalResource(resourceGUID, { pResource, true }); // TODO: Check autoBindDescriptor ("true")
+
+		if (data)
+			m_pStagingBufferCache->QueueTransfer(pBuffer.get(), size, offset, data);
+
+	}
+
+	bool RenderGraphProgram::HasResource(ResourceGUID resourceGUID) const
+	{
+		return m_pResourceCache->HasResource(resourceGUID);
+	}
+
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
 	{
+		// Note: This function always updates a whole span of a resource - therefore no size or offset is supplied, and views for
+		// that whole resource are automatically created with default span (resource size) and default offset (0)
+
 		if (!pResource)
 		{
-			UpdateGraphResource(resourceGUID, ResourceView::Empty(), 0, index);
+			UpdateGraphResource(resourceGUID, ResourceView::Empty(), index);
 		}
 		else if (pResource->IsBuffer())
 		{
 			const Buffer* pBuffer = pResource->GetAsBuffer();
-			UpdateGraphResource(resourceGUID, {pBuffer, pBuffer->GetSize(), 0}, 0, index);
+			UpdateGraphResource(resourceGUID, {pBuffer, pBuffer->GetSize(), 0}, index);
 		}
 		else if (pResource->IsTexture())
 		{
 			const TextureView* pTextureView = pResource->GetAsTextureView();
 			const Sampler* pSampler = pResource->GetAsSampler();
-			UpdateGraphResource(resourceGUID, {pTextureView, pSampler}, 0, index);
+			UpdateGraphResource(resourceGUID, {pTextureView, pSampler}, index);
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint64 offset, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index)
 	{
 		// Go through each pass and find where resource is being used
 		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
 		{
 			auto& pPass = m_Passes[passIndex];
 
-			if (pPass->GetPassType() == Pass::Type::SYNC || (pPass->GetName() != resourceGUID.GetPassName() && view.IsEmpty()))
-			{
+			if (pPass->GetPassType() == Pass::Type::SYNC)
 				continue;
-			}
-
 
 			// Check if pass has the requested resource, continue if not
 			const ResourceGUID mappedResource = GetMappedResourceGUID(resourceGUID, pPass, passIndex);
@@ -222,7 +264,7 @@ namespace Poly
 				return;
 
 			if (!hasProvidedResource)
-				pResource = m_pResourceCache->GetResource(mappedResource.GetFullName());
+				pResource = m_pResourceCache->HasResource(mappedResource.GetFullName()) ? m_pResourceCache->GetResource(mappedResource.GetFullName()) : nullptr;
 
 			if (!hasProvidedResource && !pResource)
 			{
@@ -233,12 +275,13 @@ namespace Poly
 			if (!m_DescriptorCaches.contains(passIndex))
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 
-			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, static_cast<uint32>(offset), static_cast<uint32>(view.GetSpan()));
+			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, static_cast<uint32>(view.GetOffset()), static_cast<uint32>(view.GetSpan()));
 
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
 				const Buffer* pBuffer = (pResource && pResource->IsBuffer()) ? pResource->GetAsBuffer() : view.GetBuffer();
-				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, pBuffer->GetSize());
+				const uint64 span = view.GetSpan() > 0 ? view.GetSpan() : pBuffer->GetSize();
+				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, span);
 			}
 			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
 			{
@@ -268,7 +311,8 @@ namespace Poly
 			return;
 		}
 
-		uint64 oldSize = pRes->GetAsBuffer()->GetSize();
+		const Buffer* pBuffer = pRes->GetAsBuffer();
+		uint64 oldSize = pBuffer->GetSize();
 		bool hasSizeChanged = oldSize != size;
 		if (oldSize < size)
 		{
@@ -277,14 +321,16 @@ namespace Poly
 
 		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, offset, data);
 
-		if (hasSizeChanged)
-		{
-			UpdateGraphResource(resourceGUID, pRes, index);
-		}
-		else
-		{
-			UpdateGraphResource(resourceGUID, nullptr, index);
-		}
+		//if (hasSizeChanged)
+		//{
+			UpdateGraphResource(resourceGUID, { pBuffer, size, offset }, index);
+			//UpdateGraphResource(resourceGUID, pRes, index);
+		//}
+		//else
+		//{
+		//	UpdateGraphResource(resourceGUID, { pBuffer, size, offset }, offset, index);
+		//	UpdateGraphResource(resourceGUID, nullptr, index);
+		//}
 	}
 
 	void RenderGraphProgram::SetBackbuffer(Ref<Resource> pResource)
@@ -295,7 +341,7 @@ namespace Poly
 	void RenderGraphProgram::SetScene(const Ref<Scene>& pScene)
 	{
 		m_pScene = pScene;
-		m_pSceneRenderer->SetScene(pScene);
+		pScene->CreateRenderScene(*this);
 	}
 
 	void RenderGraphProgram::AddPass(Ref<Pass> pPass)
@@ -340,7 +386,6 @@ namespace Poly
 				// Note that the layout creates the bindings for internal types as well for ease of use
 				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
 				const auto& pushConstants = m_Reflections[i].GetPushConstants();
-				// std::unordered_map<uint32, DescriptorSetLayout> sets;
 				const int maxSet = std::max_element(inputs.begin(), inputs.end(), [](const auto& ioDataA, const auto& ioDataB){ return ioDataA.Set < ioDataB.Set; })->Set;
 				std::vector<DescriptorSetLayout> sets(maxSet + 1);
 				for (const auto& input : inputs)

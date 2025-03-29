@@ -66,8 +66,24 @@ namespace Poly
 		void AllocateResources();
 
 		/**
+		 * Get a resource's existance
+		 * @param resourceGUID - resource name
+		 *
+		 * @return true if resource exist, false otherwise
+		 */
+		bool HasResource(const ResourceGUID& resourceGUID) const;
+
+		/**
+		* Checks if a resource is registered (but not necessarily created)
+		* @param resourceGUID - resource name
+		* 
+		* @return true if resource is registered, false otherwise
+		*/
+		bool IsResourceRegistered(const ResourceGUID& resourceGUID) const;
+
+		/**
 		 * Get a resource
-		 * @param name - resource name
+		 * @param resourceGUID - resource guid
 		 * 
 		 * @return pointer to resource
 		 */

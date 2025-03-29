@@ -38,23 +38,30 @@ namespace Poly
 		m_pPipelineLayout = pPipelineLayout;
 	}
 
-	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set)
+	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, EAction action)
 	{
-		return GetDescriptorSet(set, 0, 0, 0);
+		return GetDescriptorSet(set, 0, 0, 0, action);
 	}
 
-	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 index)
+	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 index, EAction action)
 	{
-		return GetDescriptorSet(set, index, 0, 0);
+		return GetDescriptorSet(set, index, 0, 0, action);
 	}
 
-	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 index, uint32 offset, uint32 segmentSize)
+	DescriptorSet* DescriptorCache::GetDescriptorSet(uint32 set, uint32 index, uint32 offset, uint32 segmentSize, EAction action)
 	{
 		if (!ValidateOffset(offset, segmentSize))
 			return nullptr;
 
-		if (!HasDescriptor(set, index, offset))
-			return CreateDescriptor(set, index, offset).get();
+		if (!HasDescriptor(set, index, offset)) {
+			switch (action)
+			{
+			case Poly::DescriptorCache::EAction::GET:
+				return nullptr;
+			case Poly::DescriptorCache::EAction::GET_OR_CREATE:
+				return CreateDescriptor(set, index, offset).get();
+			}
+		}
 
 		return m_Descriptors[set][index][offset].get();
 	}
