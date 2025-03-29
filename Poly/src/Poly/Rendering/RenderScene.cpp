@@ -16,13 +16,6 @@ namespace Poly
 
 	void RenderScene::Update()
 	{
-		static int count = 0;
-
-		if (count > 3)
-			return;
-
-		count++;
-
 		m_SceneBatches.clear();
 		m_InstanceHashToIndex.clear();
 		m_TotalMeshCount = 0;
@@ -109,8 +102,6 @@ namespace Poly
 
 	void RenderScene::CreateBufferIfNecessary(const ResourceGUID& bufferGUID, uint64 size)
 	{
-		// TODO: Fix a check for resource
-		// Current check only checks if it has been registered - it does not check for an actual buffer/texture resource
 		if (!m_Program.HasResource(bufferGUID)) {
 			m_Program.CreateResource(bufferGUID, size, nullptr, FBufferUsage::STORAGE_BUFFER);
 		}

@@ -31,21 +31,16 @@ namespace Poly
 
 		const Scene& GetScene() const { return *m_pScene; };
 
-		// TODO: TEMP, Remove when scene renderer isn't using the reflections
-		const PassReflection& GetPassReflection() const { return *m_pPassReflection; }
-
 	private:
 		friend class SyncPass;
 		friend class RenderGraphProgram;
 		Resource* GetResourceNonConst(const std::string& resourceName) const;
 		void SetRenderPassName(const std::string& renderPassName) { m_RenderPassName = renderPassName; }
-		void SetPassReflection(PassReflection* pPassReflection) { m_pPassReflection = pPassReflection; }
 		void SetScene(Scene* pScene) { m_pScene = pScene; }
 
 		Ref<ResourceCache> m_pResourceCache;
 		std::string m_RenderPassName = "";
 		RenderGraphDefaultParams m_DefaultParams = {};
-		PassReflection* m_pPassReflection = nullptr;
 		Scene* m_pScene = nullptr;
 	};
 }

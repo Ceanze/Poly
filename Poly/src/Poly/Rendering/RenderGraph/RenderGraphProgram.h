@@ -7,6 +7,8 @@
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 
+#include <set>
+
 namespace Poly
 {
 	class Pass;

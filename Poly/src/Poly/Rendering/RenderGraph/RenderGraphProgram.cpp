@@ -86,7 +86,6 @@ namespace Poly
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
 		renderContext.SetImageIndex(m_ImageIndex);
 		renderData.SetScene(m_pScene.get());
-		// m_pScene->SetFrameIndex(m_ImageIndex);
 		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
 		{
 			// Clear old descriptors
@@ -111,9 +110,6 @@ namespace Poly
 			// Transfer staging buffer data
 			// TODO: This should probably be done on the Transfer queue asyncronously
 			m_pStagingBufferCache->SubmitQueuedBuffers(currentCommandBuffer);
-
-			// TODO: TEMP, remove when reflection is gone from the scene renderer
-			renderData.SetPassReflection(&m_Reflections[passIndex]);
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
 			{
@@ -152,7 +148,7 @@ namespace Poly
 					renderContext.SetSceneBatch(&batches[batchIndex]);
 					renderContext.SetBatchIndex(batchIndex);
 
-					const std::vector<uint32>& setIndices = pPass->GetAutoBindedSets();
+					const std::set<uint32>& setIndices = m_Reflections[passIndex].GetAutoBindedSetIndices();
 					for (uint32 setIndex : setIndices)
 					{
 						const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, batchIndex, DescriptorCache::EAction::GET);
@@ -244,16 +240,13 @@ namespace Poly
 
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index)
 	{
-		bool hasUpdated = false;
 		// Go through each pass and find where resource is being used
 		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
 		{
 			auto& pPass = m_Passes[passIndex];
 
-			// || (pPass->GetName() != resourceGUID.GetPassName() && view.IsEmpty())
 			if (pPass->GetPassType() == Pass::Type::SYNC)
 				continue;
-
 
 			// Check if pass has the requested resource, continue if not
 			const ResourceGUID mappedResource = GetMappedResourceGUID(resourceGUID, pPass, passIndex);
@@ -287,7 +280,8 @@ namespace Poly
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
 				const Buffer* pBuffer = (pResource && pResource->IsBuffer()) ? pResource->GetAsBuffer() : view.GetBuffer();
-				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, view.GetSpan());
+				const uint64 span = view.GetSpan() > 0 ? view.GetSpan() : pBuffer->GetSize();
+				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, span);
 			}
 			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
 			{
@@ -298,12 +292,7 @@ namespace Poly
 					pResource->SetSampler(inputRes.pSampler);
 				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pTextureView, pResource ? pResource->GetAsSampler() : inputRes.pSampler.get());
 			}
-
-			hasUpdated = true;
 		}
-
-		if (!hasUpdated)
-			POLY_CORE_WARN("UpdateGraphResource - failed to update resource {} - it isn't used in any pass", resourceGUID.GetFullName());
 	}
 
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, uint64 size, const void* data, uint64 offset, uint32 index)
@@ -397,7 +386,6 @@ namespace Poly
 				// Note that the layout creates the bindings for internal types as well for ease of use
 				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
 				const auto& pushConstants = m_Reflections[i].GetPushConstants();
-				// std::unordered_map<uint32, DescriptorSetLayout> sets;
 				const int maxSet = std::max_element(inputs.begin(), inputs.end(), [](const auto& ioDataA, const auto& ioDataB){ return ioDataA.Set < ioDataB.Set; })->Set;
 				std::vector<DescriptorSetLayout> sets(maxSet + 1);
 				for (const auto& input : inputs)

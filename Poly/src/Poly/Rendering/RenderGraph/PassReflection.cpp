@@ -12,6 +12,9 @@ namespace Poly
 		data.Set			= set;
 		data.Binding		= binding;
 		AddIO(data);
+
+		if (!m_ManualSets.contains(set))
+			m_AutoBindedSets.insert(set);
 	}
 
 	void PassReflection::AddOutput(const std::string& name)
@@ -164,6 +167,12 @@ namespace Poly
 		}
 
 		POLY_CORE_WARN("[PassReflection]: Tried to set sampler of {}, but that IO does not exist with the given name!", name);
+	}
+
+	void PassReflection::DisableAutoBind(uint32 setIndex)
+	{
+		m_AutoBindedSets.erase(setIndex);
+		m_ManualSets.insert(setIndex);
 	}
 
 	std::vector<IOData> PassReflection::GetIOData(FIOType IOType, FResourceBindPoint excludeFlags) const

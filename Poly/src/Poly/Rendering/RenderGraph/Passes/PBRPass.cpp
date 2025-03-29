@@ -10,11 +10,6 @@ namespace Poly
 {
 	void PBRPass::Compile()
 	{
-		SetAutoBind(0, true);
-		SetAutoBind(1, true);
-		SetAutoBind(2, true);
-		SetAutoBind(3, true);
-		SetAutoBind(4, true);
 		ToggleInstancedSceneRendering(true);
 	}
 
@@ -100,6 +95,6 @@ namespace Poly
 
 	void PBRPass::Execute(const RenderContext& context, const RenderData& renderData)
 	{
-		m_SceneRenderer.Execute(context, renderData.GetScene(), renderData.GetPassReflection(), context.GetImageIndex());
+		m_SceneRenderer.Execute(context);
 	}
 }
