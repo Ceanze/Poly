@@ -148,6 +148,7 @@ project "Poly"
 		"%{prj.name}/libs/imgui",
 		"%{prj.name}/libs/entt/src",
 		"%{prj.name}/libs/yaml-cpp/include",
+		"%{prj.name}/libs/SPIRV-Reflect",
 	}
 
 	-- TODO: Check if just "polypch.h" is enough for windows too
