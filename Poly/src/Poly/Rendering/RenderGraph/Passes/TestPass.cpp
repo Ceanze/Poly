@@ -15,17 +15,52 @@ namespace Poly
 		reflection.AddInput("camera", 0, 0);
 		reflection.SetBindPoint("camera", FResourceBindPoint::UNIFORM);
 
-		reflection.AddSceneInput("vertices", 1, 0, ESceneBinding::VERTEX);
-		reflection.AddSceneInput("instanceBuffer", 1, 1, ESceneBinding::INSTANCE);
+		// Vertex Buffer
+		reflection.AddInput("vertices", 1, 0);
+		reflection.SetBindPoint("vertices", FResourceBindPoint::STORAGE);
+
+		reflection.AddInput("instance", 1, 1);
+		reflection.SetBindPoint("instance", FResourceBindPoint::STORAGE);
 
 		// Fragment shader input
-		reflection.AddSceneInput("materials", 2, 0, ESceneBinding::MATERIAL);
-		reflection.AddSceneInput("albedoTex", 2, 1, ESceneBinding::TEXTURE_ALBEDO);
-		reflection.AddSceneInput("metallicTex", 2, 2, ESceneBinding::TEXTURE_METALLIC);
-		reflection.AddSceneInput("normalTex", 2, 3, ESceneBinding::TEXTURE_NORMAL);
-		reflection.AddSceneInput("roughnessTex", 2, 4, ESceneBinding::TEXTURE_ROUGHNESS);
-		reflection.AddSceneInput("aoTex", 2, 5, ESceneBinding::TEXTURE_AO);
-		reflection.AddSceneInput("combinedTex", 2, 6, ESceneBinding::TEXTURE_COMBINED);
+		reflection.AddInput("material", 2, 0);
+		reflection.SetBindPoint("material", FResourceBindPoint::STORAGE);
+
+		// Albedo
+		reflection.AddInput("albedoTex", 2, 1);
+		reflection.SetFormat("albedoTex", EFormat::R8G8B8A8_UNORM);
+		reflection.SetBindPoint("albedoTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
+		reflection.SetSampler("albedoTex", Sampler::GetDefaultLinearSampler());
+
+		// Metallic
+		reflection.AddInput("metallicTex", 2, 2);
+		reflection.SetFormat("metallicTex", EFormat::R8G8B8A8_UNORM);
+		reflection.SetBindPoint("metallicTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
+		reflection.SetSampler("metallicTex", Sampler::GetDefaultLinearSampler());
+
+		// Normal
+		reflection.AddInput("normalTex", 2, 3);
+		reflection.SetFormat("normalTex", EFormat::R8G8B8A8_UNORM);
+		reflection.SetBindPoint("normalTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
+		reflection.SetSampler("normalTex", Sampler::GetDefaultLinearSampler());
+
+		// Roughness
+		reflection.AddInput("roughnessTex", 2, 4);
+		reflection.SetFormat("roughnessTex", EFormat::R8G8B8A8_UNORM);
+		reflection.SetBindPoint("roughnessTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
+		reflection.SetSampler("roughnessTex", Sampler::GetDefaultLinearSampler());
+
+		// AO
+		reflection.AddInput("aoTex", 2, 5);
+		reflection.SetFormat("aoTex", EFormat::R8G8B8A8_UNORM);
+		reflection.SetBindPoint("aoTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
+		reflection.SetSampler("aoTex", Sampler::GetDefaultLinearSampler());
+
+		// Combined
+		reflection.AddInput("combinedTex", 2, 6);
+		reflection.SetFormat("combinedTex", EFormat::R8G8B8A8_UNORM);
+		reflection.SetBindPoint("combinedTex", FResourceBindPoint::SAMPLER | FResourceBindPoint::SHADER_READ);
+		reflection.SetSampler("combinedTex", Sampler::GetDefaultLinearSampler());
 
 		// Output
 		reflection.AddOutput("out");
