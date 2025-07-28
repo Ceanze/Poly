@@ -35,20 +35,6 @@ namespace Poly
 		AddIO(data);
 	}
 
-	void PassReflection::AddSceneInput(const std::string& name, uint32 set, uint32 binding, ESceneBinding sceneBinding)
-	{
-		FResourceBindPoint bindPoint = GetResourceBindPoint(sceneBinding);
-		IOData data = {};
-		data.Name		= name;
-		data.IOType		= FIOType::INPUT;
-		data.BindPoint	= bindPoint;
-		data.Set		= set;
-		data.Binding	= binding;
-
-		uint32 index = AddIO(data);
-		m_SceneInputIndices[sceneBinding] = index;
-	}
-
 	void PassReflection::AddPushConstant(const std::string& name, FShaderStage shaderStage, uint64 size, uint64 offset)
 	{
 		PushConstantData data = {};
@@ -195,11 +181,6 @@ namespace Poly
 		return *it;
 	}
 
-	const IOData& PassReflection::GetSceneBinding(ESceneBinding sceneBinding) const
-	{
-		uint32 index = m_SceneInputIndices.at(sceneBinding);
-		return m_IOs[index];
-	}
 
 	uint32 PassReflection::AddIO(IOData io)
 	{
@@ -217,22 +198,4 @@ namespace Poly
 		m_IOs.push_back(io);
 		return index;
 	}
-
-	FResourceBindPoint PassReflection::GetResourceBindPoint(ESceneBinding sceneBinding)
-	{
-		switch (sceneBinding)
-		{
-			case ESceneBinding::INSTANCE:		return FResourceBindPoint::SCENE_INSTANCE;
-			case ESceneBinding::MATERIAL:		return FResourceBindPoint::SCENE_MATERIAL;
-			case ESceneBinding::VERTEX:			return FResourceBindPoint::SCENE_VERTEX;
-			case ESceneBinding::TEXTURE_AO:
-			case ESceneBinding::TEXTURE_COMBINED:
-			case ESceneBinding::TEXTURE_METALLIC:
-			case ESceneBinding::TEXTURE_NORMAL:
-			case ESceneBinding::TEXTURE_ROUGHNESS:
-			case ESceneBinding::TEXTURE_ALBEDO:	return FResourceBindPoint::SCENE_TEXTURES;
-			default:							return FResourceBindPoint::NONE;
-		}
-	}
-
 }

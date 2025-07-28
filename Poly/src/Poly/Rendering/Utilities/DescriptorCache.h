@@ -1,32 +1,5 @@
 #pragma once
 
-/**
- * TODO:
- * RenderGraphProgram:
- * 		*- UpdateGraphResource måste kunna hantera offset och index precis som descriptor cache, skapa overload av UpdateGraphResource(const std::string& name, uint64 size, const void* data)
- * 		  behöver nog inte en overload av den andra UpdateGraphResource varianten (den med Ref<Resource>)
- * 		- Gör så att RenderGraphProgram använder sig ut av DescriptorCache
- * 		- Använd autobind som ResourceCache har när descriptors binds i Execute()
- *
- * ResourceCache:
- * 		*- Se till så att rendergraphen även sparar om en resurs ska ha autobind eller inte
- * 		- Tillåt att ha flera resurser per resursnamn (index biten i DescriptorCache och UpdateGraphResource)
- * 		- Synkroniseringen måste även hanteras i detta fall, rimligtvis genom att kolla om ett resursnamn har flera resurser bundet till sig
- * 		  och loopa igenom alla som den har. Borde med denna väg inte behöva göra om RenderGraphCompiler
- *
- * Ide:
- * 		* För att undvika att behöva skapa en Ref<Resource> varje gång jag ska uppdatera en resours så kanske man kan använda sig ut av "view" konceptet
- *
- * TODO:
- * 	- Kan nog strunta i det som står ovan!
- * 	- Inget syns på skärmen (modeller) för att m_SceneBindings i RenderGraphProgram sätts aldrig
- * 		- Enkel lösning: Sätt dem bara
- * 		- Jobbig lösning: Se till så att SCENE_INSTANCE osv inte behövs (hur?)
- * 			- Jo så här! Ta bort SCENE_* från nuvarande enumen och skapa en ny enum bara för dessa.
- * 			  I varje pass finns en vector med de sceneBindings som används (typ struct {set, binding, type})
- * 			  Denna kan sen rendergrafen skicka vidare till scene renderer i Execute()
- */
-
 namespace Poly
 {
 	class DescriptorSet;

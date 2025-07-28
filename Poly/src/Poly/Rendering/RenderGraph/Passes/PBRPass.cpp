@@ -32,12 +32,10 @@ namespace Poly
 		reflection.AddInput("vertices", 4, 0);
 		reflection.SetBindPoint("vertices", FResourceBindPoint::STORAGE);
 
-		//reflection.AddSceneInput("instanceBuffer", 1, 0, ESceneBinding::INSTANCE);
 		reflection.AddInput("instance", 1, 0);
 		reflection.SetBindPoint("instance", FResourceBindPoint::STORAGE);
 
 		// Fragment shader input
-		//reflection.AddSceneInput("materials", 2, 0, ESceneBinding::MATERIAL);
 		reflection.AddInput("material", 2, 0);
 		reflection.SetBindPoint("material", FResourceBindPoint::STORAGE);
 

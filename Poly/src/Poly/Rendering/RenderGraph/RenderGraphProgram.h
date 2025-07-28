@@ -25,12 +25,6 @@ namespace Poly
 	class GraphicsRenderPass;
 	class StagingBufferCache;
 
-	struct SceneBinding
-	{
-		FResourceBindPoint Type = FResourceBindPoint::NONE;
-		uint32 SetIndex = 0;
-		uint32 Binding	= 0;
-	};
 
 	class RenderGraphProgram
 	{
