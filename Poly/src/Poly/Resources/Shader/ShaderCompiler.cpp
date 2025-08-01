@@ -5,19 +5,6 @@
 
 namespace Poly
 {
-	bool ShaderCompiler::s_glslInit = false;
-
-	ShaderCompiler::~ShaderCompiler()
-	{
-		// Destructor is never called
-		// TODO: Another class should call init and finalize on glsl (ResourceManager/loader?)
-		if (s_glslInit)
-		{
-			glslang::FinalizeProcess();
-			s_glslInit = false;
-		}
-	}
-
 	const std::vector<char> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
 	{
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
