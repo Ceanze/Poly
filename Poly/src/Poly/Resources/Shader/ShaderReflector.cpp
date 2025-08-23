@@ -27,4 +27,20 @@ namespace Poly
 	ShaderReflector::ShaderReflector()
 	{
 	}
+
+	ShaderReflector& ShaderReflector::AddReflect(FShaderStage shaderStage, const std::string& path)
+	{
+		m_ReflectionStages.push_back({ shaderStage, path });
+		return *this;
+	}
+
+	ShaderReflector& ShaderReflector::AddReflect(FShaderStage shaderStage, const std::vector<char>& data)
+	{
+		return *this;
+	}
+
+	ShaderReflection ShaderReflector::GenerateReflection()
+	{
+		return ShaderReflection();
+	}
 }

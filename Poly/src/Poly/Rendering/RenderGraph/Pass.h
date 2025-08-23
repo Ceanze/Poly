@@ -80,13 +80,13 @@ namespace Poly
 		 * @param shaderStage - stage of shader
 		 * @param pShader - shader
 		 */
-		void SetShader(FShaderStage shaderStage, Ref<Shader> pShader) { p_ShaderStages[shaderStage] = pShader; }
+		void SetShaderID(FShaderStage shaderStage, PolyID shaderID) { p_ShaderStages[shaderStage] = shaderID; }
 
 		/**
 		 * @param shaderStage - stage of shader
 		 * @return shader of desired shader type
 		 */
-		Ref<Shader> GetShader(FShaderStage shaderStage) const { return p_ShaderStages.at(shaderStage); }
+		PolyID GetShaderID(FShaderStage shaderStage) const { return p_ShaderStages.at(shaderStage); }
 
 		/**
 		* @return true if instanced scene rendering is enabled - see `ToggleInstancedSceneRendering` for more info
@@ -131,7 +131,7 @@ namespace Poly
 		friend class RenderGraph;
 		std::string	p_Name	= "";
 		Pass::Type	p_Type	= Pass::Type::NONE;
-		std::unordered_map<FShaderStage, Ref<Shader>> p_ShaderStages;
+		std::unordered_map<FShaderStage, PolyID> p_ShaderStages;
 		bool m_IsInstancedSceneRenderingEnabled = false;
 
 		// Pair structure: first: External resource name (src), second: Render pass input name (dst)

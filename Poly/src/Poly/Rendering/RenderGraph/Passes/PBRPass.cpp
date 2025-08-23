@@ -3,6 +3,7 @@
 #include "../RenderData.h"
 #include "../RenderContext.h"
 #include "Poly/Resources/ResourceLoader.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
 
 #include "Platform/API/Sampler.h"
 
@@ -85,8 +86,11 @@ namespace Poly
 		reflection.SetBindPoint("depth", FResourceBindPoint::DEPTH_STENCIL);
 		reflection.SetFormat("depth", EFormat::DEPTH_STENCIL);
 
-		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("shaders/pbr.vert", FShaderStage::VERTEX));
-		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("shaders/pbr.frag", FShaderStage::FRAGMENT));
+		PolyID vertShader = ShaderManager::CreateShader("shaders/pbr.vert", FShaderStage::VERTEX);
+		PolyID fragShader = ShaderManager::CreateShader("shaders/pbr.frag", FShaderStage::FRAGMENT);
+
+		SetShaderID(FShaderStage::VERTEX, vertShader);
+		SetShaderID(FShaderStage::FRAGMENT, fragShader);
 
 		return reflection;
 	}

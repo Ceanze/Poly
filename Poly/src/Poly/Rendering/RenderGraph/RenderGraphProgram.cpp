@@ -22,6 +22,7 @@
 #include "Platform/API/PipelineLayout.h"
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/GraphicsRenderPass.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
 namespace Poly
@@ -612,10 +613,11 @@ namespace Poly
 			desc.ColorBlendState	= colorBlend;
 			desc.DepthStencil		= depthStencil;
 		}
+
 		desc.pPipelineLayout	= m_PipelineLayouts[passIndex].get();
 		desc.pRenderPass		= m_GraphicsRenderPasses[passIndex].get();
-		desc.pVertexShader		= pPass->GetShader(FShaderStage::VERTEX).get();
-		desc.pFragmentShader	= pPass->GetShader(FShaderStage::FRAGMENT).get();
+		desc.pVertexShader		= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).get();
+		desc.pFragmentShader	= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).get();
 
 		m_GraphicsPipelines[passIndex] = RenderAPI::CreateGraphicsPipeline(&desc);
 

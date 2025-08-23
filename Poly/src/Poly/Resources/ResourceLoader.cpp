@@ -121,9 +121,9 @@ namespace Poly
 	}
 
 
-	Ref<Shader> ResourceLoader::LoadShader(const std::string& path, FShaderStage shaderStage)
+	Ref<Shader> ResourceLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
 	{
-		std::string relativePath = IOManager::GetAssetsFolder() + path;
+		std::string relativePath = IOManager::GetAssetsFolder() + std::string(path);
 		if (!s_GLSLInit)
 		{
 			POLY_CORE_ERROR("[ResourceLoader]: Failed to load shader, GLSL is not correctly initilized!");
@@ -157,8 +157,11 @@ namespace Poly
 			return {};
 		}
 
-		std::vector<byte> image(texWidth * texHeight * channels);
-		memcpy(image.data(), data, texWidth * texHeight * channels);
+		const uint32 size = texWidth * texHeight * channels;
+		std::vector<byte> image(size);
+		memcpy(image.data(), data, size);
+
+		stbi_image_free(data);
 
 		return image;
 	}
