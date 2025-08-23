@@ -14,10 +14,11 @@ The general purpose of this project is as a learning exerice for Vulkan, render 
   - Abstracted graphics layer
   - Render Graph (Alpha)
   - ImGui
+  - Shader reflection
   
 ## Currently planned features
-  - SPIR-V reflection to automatically generate a more usable interaction with shaders to avoid knowing sets and bindings
   - ImGui implementation with the render graph to allow for a more visual creation of it
+  - Shader graph & graphing library
   
 ## Installation
 Make sure you have the latest [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)
