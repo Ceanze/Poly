@@ -38,6 +38,10 @@ function generate_yamlcpp()
 	include("premake/yaml-cpp.lua")
 end
 
+function generate_spirv_reflect()
+	include("premake/spirv-reflect.lua")
+end
+
 vkPath = get_vk_sdk_path()
 
 workspace "Poly"
@@ -89,6 +93,7 @@ generate_glslang()
 generate_assimp()
 generate_imgui()
 generate_yamlcpp()
+generate_spirv_reflect()
 
 -- Include all src files in the project
 function srcFiles()
@@ -132,7 +137,8 @@ project "Poly"
 		"glslang",
 		"SPIRV",
 		"imgui",
-		"yaml-cpp"
+		"yaml-cpp",
+		"SPIRV-Reflect"
 	}
 
 	includedirs
@@ -148,6 +154,7 @@ project "Poly"
 		"%{prj.name}/libs/imgui",
 		"%{prj.name}/libs/entt/src",
 		"%{prj.name}/libs/yaml-cpp/include",
+		"%{prj.name}/libs/SPIRV-Reflect",
 	}
 
 	-- TODO: Check if just "polypch.h" is enough for windows too

@@ -1,32 +1,14 @@
 #include "polypch.h"
 #include "ShaderCompiler.h"
 
+#include "Poly/Resources/GLSLang.h"
+
 #include <fstream>
 
 namespace Poly
 {
-	bool ShaderCompiler::s_glslInit = false;
-
-	ShaderCompiler::~ShaderCompiler()
+	const std::vector<byte> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
 	{
-		// Destructor is never called
-		// TODO: Another class should call init and finalize on glsl (ResourceManager/loader?)
-		if (s_glslInit)
-		{
-			glslang::FinalizeProcess();
-			s_glslInit = false;
-		}
-	}
-
-	const std::vector<char> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
-	{
-		if (!s_glslInit)
-		{
-			// Might want to call this somewhere else
-			glslang::InitializeProcess();
-			s_glslInit = true;
-		}
-
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
 		// Load and transfer content to string
@@ -80,14 +62,7 @@ namespace Poly
 		glslang::GlslangToSpv(*program.getIntermediate(shaderType), sprirv, &logger, &spvOptions);
 
 		const uint32_t sourceSize = static_cast<uint32_t>(sprirv.size()) * sizeof(uint32_t);
-		std::vector<char> correctType = std::vector<char>(reinterpret_cast<char*>(sprirv.data()), reinterpret_cast<char*>(sprirv.data()) + sourceSize);
-
-		// Temp. work around to avoid memory leaks (takes a lot more time but can't fix until resourceloader is implemented)
-		if (s_glslInit)
-		{
-			glslang::FinalizeProcess();
-			s_glslInit = false;
-		}
+		std::vector<byte> correctType = std::vector<byte>(reinterpret_cast<byte*>(sprirv.data()), reinterpret_cast<byte*>(sprirv.data()) + sourceSize);
 
 		// TODO: Return shader or other object instead?
 		return correctType;

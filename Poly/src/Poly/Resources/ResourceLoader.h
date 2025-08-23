@@ -37,7 +37,7 @@ namespace Poly
 		static void Init();
 		static void Release();
 
-		static Ref<Shader> LoadShader(const std::string& path, FShaderStage shaderStage);
+		static std::vector<byte> LoadShader(std::string_view path, FShaderStage shaderStage);
 
 		static std::vector<byte> LoadRawImage(const std::string& path);
 

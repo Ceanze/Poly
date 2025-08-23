@@ -91,13 +91,12 @@ public:
 
 		m_pProgram->SetScene(m_pScene);
 
+		Poly::SceneSerializer sceneSerializer(m_pScene);
+		sceneSerializer.Deserialize("CubeScene.polyscene");
 
-		//Poly::SceneSerializer sceneSerializer(m_pScene);
-		//sceneSerializer.Deserialize("CubeScene.polyscene");
-
-		 Poly::Entity cubeEntity = m_pScene->CreateEntity();
+		 //Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);

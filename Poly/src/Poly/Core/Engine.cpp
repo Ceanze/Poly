@@ -9,6 +9,7 @@
 
 #include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/ResourceManager.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
 
 #include <GLFW/glfw3.h>
 
@@ -24,6 +25,7 @@ namespace Poly
 
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, s_pWindow);
 
+		ShaderManager::Init();
 		ResourceLoader::Init();
 		ResourceManager::Init();
 	}
@@ -58,6 +60,7 @@ namespace Poly
 
 	void Engine::Release()
 	{
+		ShaderManager::Release();
 		ResourceLoader::Release();
 		ResourceManager::Release();
 

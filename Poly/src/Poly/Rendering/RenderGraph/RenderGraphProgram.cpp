@@ -22,6 +22,7 @@
 #include "Platform/API/PipelineLayout.h"
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/GraphicsRenderPass.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
 namespace Poly
@@ -366,19 +367,6 @@ namespace Poly
 
 	void RenderGraphProgram::InitPipelineLayouts()
 	{
-		auto SelectDescriptorType = [](FResourceBindPoint input){
-			if (BitsSet(input, FResourceBindPoint::SCENE_INSTANCE))
-				return EDescriptorType::STORAGE_BUFFER;
-			else if (BitsSet(input, FResourceBindPoint::SCENE_VERTEX))
-				return EDescriptorType::STORAGE_BUFFER;
-			else if (BitsSet(input, FResourceBindPoint::SCENE_TEXTURES))
-				return EDescriptorType::COMBINED_IMAGE_SAMPLER;
-			else if (BitsSet(input, FResourceBindPoint::SCENE_MATERIAL))
-				return EDescriptorType::STORAGE_BUFFER;
-			else
-				return ConvertBindpointToDescriptorType(input);
-		};
-
 		for (uint32 i = 0; i < m_Reflections.size(); i++)
 		{
 			if (m_Passes[i]->GetPassType() != Pass::Type::SYNC)
@@ -395,7 +383,7 @@ namespace Poly
 					DescriptorSetBinding binding = {};
 					binding.Binding			= input.Binding;
 					binding.DescriptorCount	= 1;
-					binding.DescriptorType	= SelectDescriptorType(input.BindPoint);
+					binding.DescriptorType	= ConvertBindpointToDescriptorType(input.BindPoint);
 					binding.ShaderStage		= FShaderStage::VERTEX | FShaderStage::FRAGMENT;
 					binding.pSampler		= input.pSampler.get();
 					sets[input.Set].DescriptorSetBindings.push_back(binding);
@@ -612,10 +600,11 @@ namespace Poly
 			desc.ColorBlendState	= colorBlend;
 			desc.DepthStencil		= depthStencil;
 		}
+
 		desc.pPipelineLayout	= m_PipelineLayouts[passIndex].get();
 		desc.pRenderPass		= m_GraphicsRenderPasses[passIndex].get();
-		desc.pVertexShader		= pPass->GetShader(FShaderStage::VERTEX).get();
-		desc.pFragmentShader	= pPass->GetShader(FShaderStage::FRAGMENT).get();
+		desc.pVertexShader		= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).get();
+		desc.pFragmentShader	= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).get();
 
 		m_GraphicsPipelines[passIndex] = RenderAPI::CreateGraphicsPipeline(&desc);
 
@@ -628,7 +617,7 @@ namespace Poly
 		if (!mappedResource.HasResource())
 			return ResourceGUID::Invalid();
 
-		const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+		const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
 		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const IOData& data){ return data.Name == mappedResource.GetResourceName(); });
 		if (itr == reflections.end())
 			return ResourceGUID::Invalid();

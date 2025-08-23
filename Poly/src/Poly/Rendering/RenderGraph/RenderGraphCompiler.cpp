@@ -117,7 +117,7 @@ namespace Poly
 
 		for (const auto& passData : m_OrderedPasses)
 		{
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES | FResourceBindPoint::INTERNAL_USE);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::INTERNAL_USE);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (uint32 i = 0; i < inputs.size(); i++)
@@ -164,7 +164,7 @@ namespace Poly
 			auto& passData = m_OrderedPasses[passID];
 
 			// Register outputs
-			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::NONE);
 			for (auto& output : outputs)
 			{
 				ResourceGUID resourceGUID(passData.pPass->GetName(), output.Name);
@@ -189,7 +189,7 @@ namespace Poly
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::ALL_SCENES);
+			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
 			for (auto& input : inputs)
 			{
 				ResourceGUID resourceGUID(passData.pPass->GetName(), input.Name);

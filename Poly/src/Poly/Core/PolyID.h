@@ -11,8 +11,22 @@ namespace Poly
 
 		static PolyID None() { return PolyID(0); }
 
-		operator uint64() { return m_Id; }
 		operator const uint64() const { return m_Id; }
+
+		bool operator<(const PolyID& other) const noexcept
+		{
+			return m_Id < other.m_Id;
+		}
+
+		bool operator==(const PolyID& other) const noexcept
+		{
+			return m_Id == other.m_Id;
+		}
+
+		bool operator!=(const PolyID& other) const noexcept
+		{
+			return !(*this == other);
+		}
 
 	private:
 		uint64 m_Id;

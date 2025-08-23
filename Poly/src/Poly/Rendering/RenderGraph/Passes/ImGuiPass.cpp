@@ -11,6 +11,7 @@
 #include "Platform/API/Texture.h"
 #include "Platform/API/TextureView.h"
 #include "Poly/Resources/ResourceLoader.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
@@ -45,8 +46,11 @@ namespace Poly
 		reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
 		reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
 
-		SetShader(FShaderStage::VERTEX, ResourceLoader::LoadShader("shaders/imgui/ui.vert", FShaderStage::VERTEX));
-		SetShader(FShaderStage::FRAGMENT, ResourceLoader::LoadShader("shaders/imgui/ui.frag", FShaderStage::FRAGMENT));
+		PolyID vertShader = ShaderManager::CreateShader("shaders/imgui/ui.vert", FShaderStage::VERTEX);
+		PolyID fragShader = ShaderManager::CreateShader("shaders/imgui/ui.frag", FShaderStage::FRAGMENT);
+
+		SetShaderID(FShaderStage::VERTEX, vertShader);
+		SetShaderID(FShaderStage::FRAGMENT, fragShader);
 
 		return reflection;
 	}
