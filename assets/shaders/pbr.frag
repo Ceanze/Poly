@@ -30,10 +30,10 @@ struct PointLight
 };
 
 // Sets
-layout(set = 0, binding = 0) uniform Camera { mat4 camera; vec4 camPos; };
-layout(set = 0, binding = 1) buffer Lights { vec4 lightsCount; PointLight pointLights[]; };
+layout(set = 0, binding = 0) uniform Camera { mat4 mat; vec4 camPos; } camera;
+layout(set = 0, binding = 1) buffer Lights { vec4 lightsCount; PointLight pointLights[]; } lights;
 
-layout(set = 2, binding = 0) buffer MaterialProperties { MaterialValues material[]; };
+layout(set = 2, binding = 0) buffer MaterialProperties { MaterialValues material[]; } materialProps;
 layout(set = 3, binding = 0) uniform sampler2D albedoTex;
 layout(set = 3, binding = 1) uniform sampler2D metallicTex;
 layout(set = 3, binding = 2) uniform sampler2D normalTex;
@@ -90,10 +90,10 @@ float GeometrySmith(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness)
 
 void main()
 {
-	MaterialValues mat = material[in_MaterialIndex];
+	MaterialValues mat = materialProps.material[in_MaterialIndex];
 	vec3 albedo		= (mat.Albedo * texture(albedoTex, in_TexCoord)).rgb;
 	vec3 normal		= GenerateNormal(in_TBN);
-	vec3 viewDir	= normalize(camPos.xyz - in_WorldPos);
+	vec3 viewDir	= normalize(camera.camPos.xyz - in_WorldPos);
 
 	float metallic	= 0.f;
 	float roughness	= 0.f;
@@ -117,14 +117,14 @@ void main()
 	vec3 Lo = vec3(0.0f);
 	vec3 F0	= vec3(0.04f);
 	F0		= mix(F0, albedo, metallic);
-	for (uint i = 0; i < lightsCount.x; i++)
+	for (uint i = 0; i < lights.lightsCount.x; i++)
 	{
-		vec3 lightDir	= normalize(pointLights[i].Position.xyz - in_WorldPos);
+		vec3 lightDir	= normalize(lights.pointLights[i].Position.xyz - in_WorldPos);
 		vec3 halfway	= normalize(viewDir + lightDir);
 
-		float distance		= length(pointLights[i].Position.xyz - in_WorldPos);
+		float distance		= length(lights.pointLights[i].Position.xyz - in_WorldPos);
 		float attenuation	= 1.0f / (distance * distance);
-		vec3 radiance		= pointLights[i].Color.xyz * attenuation;
+		vec3 radiance		= lights.pointLights[i].Color.xyz * attenuation;
 
 		// Fresnel, normal distribution function, and geometry
 		vec3 F		= FresnelSchlick(max(dot(halfway, viewDir), 0.0f), F0);

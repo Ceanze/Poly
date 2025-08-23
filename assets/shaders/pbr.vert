@@ -18,23 +18,23 @@ struct Vertex
 };
 
 // Sets
-layout(set = 0, binding = 0) uniform Camera { mat4 camera; vec4 camPos; };
-layout(set = 4, binding = 0) buffer Vertices { Vertex vertex[]; };
-layout(set = 1, binding = 0) buffer Transforms { mat4 transform[]; };
+layout(set = 0, binding = 0) uniform Camera { mat4 mat; vec4 camPos; } camera;
+layout(set = 4, binding = 0) buffer Vertices { Vertex vertex[]; } vertices;
+layout(set = 1, binding = 0) buffer Transforms { mat4 transform[]; } transforms;
 
 void main() {
-	vec4 worldPosition = transform[gl_InstanceIndex] * vec4(vertex[gl_VertexIndex].Position.xyz, 1.0f);
+	vec4 worldPosition = transforms.transform[gl_InstanceIndex] * vec4(vertices.vertex[gl_VertexIndex].Position.xyz, 1.0f);
 
-	vec3 normal		= normalize(transform[gl_InstanceIndex] * vertex[gl_VertexIndex].Normal).xyz;
-	vec3 tangent	= normalize(transform[gl_InstanceIndex] * vertex[gl_VertexIndex].Tangent).xyz;
+	vec3 normal		= normalize(transforms.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Normal).xyz;
+	vec3 tangent	= normalize(transforms.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Tangent).xyz;
 	vec3 bitangent	= normalize(cross(normal, tangent));
 	mat3 TBN		= mat3(tangent, bitangent, normal);
 
-	out_TexCoord		= vertex[gl_VertexIndex].TexCoord.xy;
-	out_Normal			= vertex[gl_VertexIndex].Normal.xyz;
+	out_TexCoord		= vertices.vertex[gl_VertexIndex].TexCoord.xy;
+	out_Normal			= vertices.vertex[gl_VertexIndex].Normal.xyz;
 	out_TBN				= TBN;
 	out_WorldPos		= worldPosition.xyz;
 	out_MaterialIndex	= gl_InstanceIndex;
 
-	gl_Position = camera * worldPosition;
+	gl_Position = camera.mat * worldPosition;
 }
