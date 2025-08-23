@@ -9,7 +9,7 @@ namespace Poly
 	{
 		std::string			EntryPoint	= "main";
 		FShaderStage		ShaderStage	= FShaderStage::NONE;
-		std::vector<char>	ShaderCode;
+		std::vector<byte>	ShaderCode;
 	};
 
 	class Shader

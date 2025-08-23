@@ -5,7 +5,7 @@
 
 namespace Poly
 {
-	const std::vector<char> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
+	const std::vector<byte> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
 	{
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
@@ -60,7 +60,7 @@ namespace Poly
 		glslang::GlslangToSpv(*program.getIntermediate(shaderType), sprirv, &logger, &spvOptions);
 
 		const uint32_t sourceSize = static_cast<uint32_t>(sprirv.size()) * sizeof(uint32_t);
-		std::vector<char> correctType = std::vector<char>(reinterpret_cast<char*>(sprirv.data()), reinterpret_cast<char*>(sprirv.data()) + sourceSize);
+		std::vector<byte> correctType = std::vector<byte>(reinterpret_cast<char*>(sprirv.data()), reinterpret_cast<char*>(sprirv.data()) + sourceSize);
 
 		// TODO: Return shader or other object instead?
 		return correctType;

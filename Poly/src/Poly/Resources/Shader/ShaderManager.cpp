@@ -1,5 +1,7 @@
 #include "ShaderManager.h"
 
+#include "Platform/API/Shader.h"
+#include "Poly/Core/RenderAPI.h"
 #include "Poly/Resources/ResourceLoader.h"
 
 namespace Poly
@@ -23,7 +25,14 @@ namespace Poly
 		if (s_Shaders.contains(hash))
 			return hash;
 
-		Ref<Shader> shader = ResourceLoader::LoadShader(path, shaderStage);
+		const std::vector<byte> shaderData = ResourceLoader::LoadShader(path, shaderStage);
+
+		ShaderDesc desc = {};
+		desc.EntryPoint = "main"; // TODO: Make customizable
+		desc.ShaderCode = shaderData;
+		desc.ShaderStage = shaderStage;
+		Ref<Shader> shader = RenderAPI::CreateShader(&desc);
+
 		s_Shaders[hash] = { shader };
 
 		return hash;

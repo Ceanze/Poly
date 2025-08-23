@@ -3,7 +3,6 @@
 #include "ResourceLoader.h"
 #include "ResourceManager.h"
 #include "Shader/ShaderCompiler.h"
-#include "Platform/API/Shader.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/Semaphore.h"
@@ -121,27 +120,21 @@ namespace Poly
 	}
 
 
-	Ref<Shader> ResourceLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
+	std::vector<byte> ResourceLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
 	{
 		std::string relativePath = IOManager::GetAssetsFolder() + std::string(path);
 		if (!s_GLSLInit)
 		{
 			POLY_CORE_ERROR("[ResourceLoader]: Failed to load shader, GLSL is not correctly initilized!");
-			return nullptr;
+			return {};
 		}
 
 		std::string folder = IOManager::GetFolderFromPath(relativePath);
 		std::string filename = IOManager::GetFilenameFromPath(relativePath);
 
-		const std::vector<char> data = ShaderCompiler::CompileGLSL(filename, folder, shaderStage);
+		const std::vector<byte> data = ShaderCompiler::CompileGLSL(filename, folder, shaderStage);
 
-		ShaderDesc desc = {};
-		desc.EntryPoint		= "main"; // TODO: Make customizable
-		desc.ShaderCode		= data;
-		desc.ShaderStage	= shaderStage;
-		Ref<Shader> polyShader = RenderAPI::CreateShader(&desc);
-
-		return polyShader;
+		return data;
 	}
 
 	std::vector<byte> ResourceLoader::LoadRawImage(const std::string& path)
