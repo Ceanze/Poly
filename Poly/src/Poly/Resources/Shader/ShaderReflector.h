@@ -3,16 +3,20 @@
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Resources/Shader/ShaderReflection.h"
 
+class SpvReflectShaderModule;
+
 namespace Poly
 {
-	class Pass;
-
 	class ShaderReflector
 	{
 	public:
-		ShaderReflector() = default;
-		~ShaderReflector() = default;
+		ShaderReflector(const std::vector<byte>& data);
+		~ShaderReflector();
 
-		static ShaderReflection Reflect(FShaderStage shaderStage, const std::vector<byte>& data);
+		ShaderReflection Reflect();
+
+	private:
+		bool m_isValid = false;
+		Unique<SpvReflectShaderModule> m_Module;
 	};
 }

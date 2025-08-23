@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
+#include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
-#include "Poly/Resources/GLSLang.h"
+#include <string>
 
 namespace Poly
 {
