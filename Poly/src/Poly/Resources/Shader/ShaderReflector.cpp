@@ -72,6 +72,26 @@ namespace Poly
             }
         }
 
+        // Outputs (stage outputs e.g. textures)
+        {
+            uint32_t count = 0;
+            spvReflectEnumerateOutputVariables(module, &count, nullptr);
+            std::vector<SpvReflectInterfaceVariable*> outputs(count);
+            spvReflectEnumerateOutputVariables(module, &count, outputs.data());
+
+            for (auto* output : outputs)
+            {
+                // skip built-ins like gl_Position
+                if (output->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN)
+                    continue;
+
+                result.Outputs.push_back({
+                    output->name ? output->name : "",
+                    output->location
+                    });
+            }
+        }
+
         // Descriptor bindings
         {
             uint32_t count = 0;

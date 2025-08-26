@@ -2,7 +2,7 @@
 
 namespace Poly
 {
-    struct ShaderInput
+    struct ShaderInputOutput
     {
         std::string Name;
         uint32      Location;
@@ -26,7 +26,8 @@ namespace Poly
 
     struct ShaderReflection
     {
-        std::vector<ShaderInput>        Inputs;
+        std::vector<ShaderInputOutput>  Inputs;
+        std::vector<ShaderInputOutput>  Outputs;
         std::vector<ShaderBinding>      Bindings;
         std::vector<ShaderPushConstant> PushConstants;
     };
