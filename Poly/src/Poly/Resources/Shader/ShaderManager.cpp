@@ -7,7 +7,7 @@
 
 namespace Poly
 {
-	std::map<PolyID, ShaderManager::ShaderData> ShaderManager::s_Shaders = {};
+	std::map<PolyID, ShaderData> ShaderManager::s_Shaders = {};
 
 	void ShaderManager::Init()
 	{
@@ -53,27 +53,23 @@ namespace Poly
 		//	POLY_TRACE("-------------------------");
 		//}
 
-		s_Shaders[hash] = { shader, reflection };
+		s_Shaders[hash] = { shaderStage, shader, reflection };
 
 		return hash;
 	}
 
-	Ref<Shader> ShaderManager::GetShader(PolyID shaderID)
+	bool ShaderManager::ShaderExists(PolyID shaderID)
 	{
-		if (const auto& shader = s_Shaders.find(shaderID); shader != s_Shaders.end())
-			return shader->second.pShader;
-
-		POLY_CORE_ERROR("Shader cannot be gotten, shaderID {} is invalid", shaderID);
-		return nullptr;
+		return s_Shaders.contains(shaderID);
 	}
 
-	const ShaderReflection& ShaderManager::GetReflection(PolyID shaderID)
+	const ShaderData& ShaderManager::GetShader(PolyID shaderID)
 	{
 		const auto& shaderData = s_Shaders.find(shaderID);
 		const bool exist = shaderData != s_Shaders.end();
-		POLY_VALIDATE(exist, "Shader reflection cannot be gotten, shaderID {} is invalid", shaderID);
+		POLY_VALIDATE(exist, "Shader data cannot be gotten, shaderID {} is invalid", shaderID);
 
 		if (exist)
-			return shaderData->second.reflection;
+			return shaderData->second;
 	}
 }
