@@ -1,5 +1,7 @@
 #include "PassReflection.h"
 
+#include "Poly/Resources/Shader/ShaderManager.h"
+
 #include <ranges>
 
 namespace Poly
@@ -22,6 +24,22 @@ namespace Poly
 	PassField& PassReflection::AddPassthrough(std::string name)
 	{
 		return AddField(std::move(name), FFieldVisibility::IN_OUT);
+	}
+
+	void PassReflection::AddShader(PolyID shaderID)
+	{
+		if (!ShaderManager::ShaderExists(shaderID))
+		{
+			POLY_CORE_WARN("Shader {} added to Pass Reflection has not been created or is invalid", shaderID);
+			return;
+		}
+
+		const ShaderData& shader = ShaderManager::GetShader(shaderID);
+		
+		AddShaderBindings(shader);
+		AddShaderInputs(shader);
+		AddShaderOutputs(shader);
+		AddShaderPushConstants(shader);
 	}
 
 	bool PassReflection::HasField(std::string_view fieldName) const
@@ -109,5 +127,38 @@ namespace Poly
 
 		m_Fields.push_back({ name, visibility });
 		return m_Fields.back();
+	}
+
+	void PassReflection::AddShaderBindings(const ShaderData& shader)
+	{
+		for (const auto& binding : shader.Reflection.Bindings)
+		{
+			AddField(binding.Name, FFieldVisibility::INPUT)
+				.Set(binding.Set)
+				.Binding(binding.Binding)
+				.BindPoint(binding.DescriptorType);
+		}
+	}
+
+	void PassReflection::AddShaderPushConstants(const ShaderData& shader)
+	{
+		for (const auto& pc : shader.Reflection.PushConstants)
+		{
+			AddPushConstant(pc.Name, shader.ShaderStage, pc.Size, pc.Offset);
+		}
+	}
+
+	void PassReflection::AddShaderInputs(const ShaderData& shader)
+	{
+		// NOT SUPPORTED YET
+		// TODO: Support this
+	}
+
+	void PassReflection::AddShaderOutputs(const ShaderData& shader)
+	{
+		for (const auto& output : shader.Reflection.Outputs)
+		{
+			AddField(output.Name, FFieldVisibility::OUTPUT);
+		}
 	}
 }

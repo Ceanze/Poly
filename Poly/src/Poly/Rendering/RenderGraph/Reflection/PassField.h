@@ -29,7 +29,7 @@ namespace Poly
 
 		PassField& Format(EFormat format);
 		PassField& TextureLayout(ETextureLayout textureLayout);
-		PassField& Bindpoint(FResourceBindPoint bindPoint);
+		PassField& BindPoint(FResourceBindPoint bindPoint);
 		PassField& SetSampler(Ref<Sampler> pSampler);
 
 		const std::string& GetName() const;

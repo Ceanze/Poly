@@ -54,7 +54,7 @@ namespace Poly
 		return *this;
 	}
 
-	PassField& PassField::Bindpoint(FResourceBindPoint bindPoint)
+	PassField& PassField::BindPoint(FResourceBindPoint bindPoint)
 	{
 		m_BindPoint = bindPoint;
 		return *this;
