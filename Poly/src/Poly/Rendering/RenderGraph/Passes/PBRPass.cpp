@@ -22,6 +22,15 @@ namespace Poly
 		//reflector.Reflect("pbt.frag");
 		//return reflector.GetReflection();
 
+		// Reflection will always be called. When using code it will be the actual values. When called 
+		// together with an editor, it will be the defaults (unless locked, not MVP).
+		// Steps:
+		//	1. Create shader
+		//	2. Get ShaderReflection
+		//	3. Combine all shader reflection data (vert + frag) into a PassReflection
+		//	4. Setup missing data, such as texture EFormat, Sampler, and optionally BindPoint (color_attachment, depth_stencil)
+		//	5. Return a PassReflection
+
 		// Vertex shader input
 		reflection.AddInput("camera", 0, 0);
 		reflection.SetBindPoint("camera", FResourceBindPoint::UNIFORM);
