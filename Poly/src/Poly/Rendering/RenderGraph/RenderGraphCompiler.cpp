@@ -117,13 +117,15 @@ namespace Poly
 
 		for (const auto& passData : m_OrderedPasses)
 		{
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::INTERNAL_USE);
+			const std::vector<const PassField*> inputs = passData.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
 			const auto& externalResources = passData.pPass->GetExternalResources();
-			for (uint32 i = 0; i < inputs.size(); i++)
+
+			for (const PassField* input : inputs)
 			{
-				ResourceGUID dstGUID(passData.pPass->GetName(), inputs[i].Name);
+				ResourceGUID dstGUID(passData.pPass->GetName(), input->GetName());
 				bool valid = false;
+
 				for (auto edgeID : incommingEdges)
 				{
 					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
@@ -133,6 +135,7 @@ namespace Poly
 						break;
 					}
 				}
+
 				if (!valid)
 				{
 					for (const Pass::ExternalResourceData& externalResource : externalResources)
@@ -144,7 +147,7 @@ namespace Poly
 						}
 					}
 				}
-				// Let the user know, continue the loop to find if more are missing
+
 				if (!valid)
 					POLY_CORE_WARN("Input resource {} did not have a link to it", dstGUID.GetFullName());
 			}
@@ -164,35 +167,34 @@ namespace Poly
 			auto& passData = m_OrderedPasses[passID];
 
 			// Register outputs
-			const auto& outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::NONE);
-			for (auto& output : outputs)
+			for (PassField* output : passData.Reflection.GetFields(FFieldVisibility::OUTPUT))
 			{
-				ResourceGUID resourceGUID(passData.pPass->GetName(), output.Name);
+				ResourceGUID resourceGUID(passData.pPass->GetName(), output->GetName());
 
 				// Check if resource is being used, as the graph allows outputs to be non-linked, go to next output if not used
 				bool isMarkedOutput = IsResourceGraphOutput(resourceGUID, passData.NodeIndex);
 				bool isUsed = IsResourceUsed(resourceGUID, passData.NodeIndex);
-				bool isDepthStencil = BitsSet(FResourceBindPoint::DEPTH_STENCIL, output.BindPoint);
+				bool isDepthStencil = BitsSet(FResourceBindPoint::DEPTH_STENCIL, output->GetBindPoint());
 				if (!isUsed && !isMarkedOutput && !isDepthStencil)
 					continue;
 
 				if (isDepthStencil)
 					static_cast<RenderPass*>(passData.pPass.get())->SetDepthStenctilUse(true);
 
-				if (isMarkedOutput && !BitsSet(output.IOType, FIOType::INPUT)) // Create alias to backbuffer
+				if (isMarkedOutput && !BitsSet(output->GetVisibility(), FFieldVisibility::INPUT)) // Create alias to backbuffer
 				{
-					m_pResourceCache->MarkOutput(resourceGUID, output);
-					passData.Reflection.SetFormat(output.Name, EFormat::B8G8R8A8_UNORM);
+					m_pResourceCache->MarkOutput(resourceGUID, *output);
+					output->Format(EFormat::B8G8R8A8_UNORM);
 				}
-				else if (!BitsSet(output.IOType, FIOType::INPUT) && !BitsSet(output.BindPoint, FResourceBindPoint::INTERNAL_USE)) // Only register new resource if it wasn't an input (passthrough)
-					m_pResourceCache->RegisterResource(resourceGUID, passID, output);
+				else if (!BitsSet(output->GetVisibility(), FFieldVisibility::INPUT) && !BitsSet(output->GetBindPoint(), FResourceBindPoint::INTERNAL_USE)) // Only register new resource if it wasn't an input (passthrough)
+					m_pResourceCache->RegisterResource(resourceGUID, passID, *output);
 			}
 
 			// Make aliases of the inputs
-			const auto& inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
-			for (auto& input : inputs)
+			const auto& inputs = passData.Reflection.GetFields(FFieldVisibility::INPUT);
+			for (PassField* input : inputs)
 			{
-				ResourceGUID resourceGUID(passData.pPass->GetName(), input.Name);
+				ResourceGUID resourceGUID(passData.pPass->GetName(), input->GetName());
 				ResourceGUID aliasGUID = ResourceGUID::Invalid();
 
 				const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
@@ -220,18 +222,18 @@ namespace Poly
 					}
 				}
 
-				if (!aliasGUID.HasResource() && !BitsSet(input.BindPoint, FResourceBindPoint::INTERNAL_USE))
+				if (!aliasGUID.HasResource() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 				{
 					POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceGUID.GetFullName());
 					return;
 				}
 
-				m_pResourceCache->RegisterResource(resourceGUID, passID, input, aliasGUID);
+				m_pResourceCache->RegisterResource(resourceGUID, passID, *input, aliasGUID);
 
 				if (IsResourceGraphOutput(resourceGUID, passData.NodeIndex))
 				{
-					m_pResourceCache->MarkOutput(resourceGUID, input);
-					passData.Reflection.SetFormat(input.Name, EFormat::B8G8R8A8_UNORM);
+					m_pResourceCache->MarkOutput(resourceGUID, *input);
+					input->Format(EFormat::B8G8R8A8_UNORM);
 				}
 			}
 		}
@@ -274,35 +276,35 @@ namespace Poly
 		for (const auto& passData : m_OrderedPasses)
 		{
 			// Create invalidates for inputs
-			auto inputs = passData.Reflection.GetIOData(FIOType::INPUT, FResourceBindPoint::INTERNAL_USE);
-			for (const auto& input : inputs)
+			auto inputs = passData.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
+			for (const PassField* input : inputs)
 			{
 				HalfBarrier barrier = {};
-				barrier.AccessMask		= GetAccessFlag(input.BindPoint, true);
-				barrier.PipelineStage	= GetPipelineStage(input.BindPoint);
-				barrier.TextureLayout	= input.TextureLayout;
-				barrier.Name			= input.Name;
+				barrier.AccessMask		= GetAccessFlag(input->GetBindPoint(), true);
+				barrier.PipelineStage	= GetPipelineStage(input->GetBindPoint());
+				barrier.TextureLayout	= input->GetTextureLayout();
+				barrier.Name			= input->GetName();
 				m_Invalidates[passData.NodeIndex].push_back(barrier);
 			}
 
 			// Create flushes for output. Save as attachments
-			auto outputs = passData.Reflection.GetIOData(FIOType::OUTPUT, FResourceBindPoint::INTERNAL_USE);
+			auto outputs = passData.Reflection.GetFieldsFiltered(FFieldVisibility::OUTPUT, FResourceBindPoint::INTERNAL_USE);
 			uint32 index = 0;
-			for (const auto& output : outputs)
+			for (const PassField* output : outputs)
 			{
 				HalfBarrier barrier = {};
-				barrier.AccessMask		= GetAccessFlag(output.BindPoint, false);
-				barrier.PipelineStage	= GetPipelineStage(output.BindPoint);
-				barrier.TextureLayout	= output.TextureLayout;
-				barrier.Name			= output.Name;
+				barrier.AccessMask		= GetAccessFlag(output->GetBindPoint(), false);
+				barrier.PipelineStage	= GetPipelineStage(output->GetBindPoint());
+				barrier.TextureLayout	= output->GetTextureLayout();
+				barrier.Name			= output->GetName();
 				m_Flushes[passData.NodeIndex].push_back(barrier);
 
 				// At this stage we can guarantee that the order of attachments are correct (should be given in the correct order at reflect)
-				if (passData.pPass->GetPassType() == Pass::Type::RENDER && output.TextureLayout != ETextureLayout::UNDEFINED)
+				if (passData.pPass->GetPassType() == Pass::Type::RENDER && output->GetTextureLayout() != ETextureLayout::UNDEFINED)
 				{
 					// Assume the data will be cleared for now
-					static_cast<RenderPass*>(passData.pPass.get())->AddAttachment(output.Name, output.TextureLayout, index++, output.Format);
-					static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(output.Name, ETextureLayout::UNDEFINED);
+					static_cast<RenderPass*>(passData.pPass.get())->AddAttachment(output->GetName(), output->GetTextureLayout(), index++, output->GetFormat());
+					static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(output->GetName(), ETextureLayout::UNDEFINED);
 				}
 			}
 		}
@@ -322,7 +324,7 @@ namespace Poly
 				// Check if it is a texture or a buffer
 				if (itr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
 				{
-					if (!BitsSet(passData.Reflection.GetIOData(dstGUID.GetResourceName()).IOType, FIOType::OUTPUT))
+					if (!BitsSet(passData.Reflection.GetField(dstGUID.GetResourceName()).GetVisibility(), FFieldVisibility::OUTPUT))
 						continue;
 
 					if (BitsSet(itr->AccessMask, FAccessFlag::COLOR_ATTACHMENT_WRITE | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE | FAccessFlag::SHADER_WRITE)) // Write
@@ -395,6 +397,9 @@ namespace Poly
 					auto srcItr = std::find_if(flushBarriers.begin(), flushBarriers.end(), [&srcGUID](const HalfBarrier& b){ return b.Name == srcGUID.GetResourceName(); });
 					auto& invalidateBarriers = m_Invalidates[passData.NodeIndex];
 					auto dstItr = std::find_if(invalidateBarriers.begin(), invalidateBarriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
+
+					POLY_VALIDATE(srcItr != flushBarriers.end(), "No required flush barrier found for connection '{}'->'{}'", srcGUID.GetFullName(), dstGUID.GetFullName());
+					POLY_VALIDATE(dstItr != invalidateBarriers.end(), "No required invalidate barrier found for connection '{}'->'{}'", srcGUID.GetFullName(), dstGUID.GetFullName());
 
 					if (dstItr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
 					{

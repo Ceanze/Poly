@@ -4,7 +4,7 @@
 
 #include <ranges>
 
-namespace PolyTest
+namespace Poly
 {
 	PassField& PassReflection::AddInput(std::string name, uint32 set, uint32 binding)
 	{
@@ -52,7 +52,7 @@ namespace PolyTest
 		return it != m_Fields.end();
 	}
 
-	const PassField& PassReflection::GetField(std::string_view fieldName) const
+	PassField& PassReflection::GetField(std::string_view fieldName)
 	{
 		auto it = std::find_if(m_Fields.begin(), m_Fields.end(), [fieldName](const PassField& field) { return field.GetName() == fieldName; });
 		POLY_VALIDATE(it != m_Fields.end(), "Reflection with field name {} could not be found", fieldName);
@@ -60,20 +60,64 @@ namespace PolyTest
 		return *it;
 	}
 
-	auto PassReflection::GetFields(FFieldVisibility visibility) const
+	const PassField& PassReflection::GetField(std::string_view fieldName) const
 	{
-		return m_Fields
-			| std::views::filter([&visibility](const PassField& field) {
-				return field.GetVisibility() == visibility;
-			});
+		const auto it = std::find_if(m_Fields.begin(), m_Fields.end(), [fieldName](const PassField& field) { return field.GetName() == fieldName; });
+		POLY_VALIDATE(it != m_Fields.end(), "Reflection with field name {} could not be found", fieldName);
+
+		return *it;
 	}
 
-	auto PassReflection::GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion) const
+	std::vector<PassField*> PassReflection::GetFields(FFieldVisibility visibility)
 	{
-		return m_Fields
-			| std::views::filter([&visibility, &exclusion](const PassField& field) {
-				return field.GetVisibility() == visibility && (field.GetBindPoint() & exclusion) == FResourceBindPoint::NONE;
-			});
+		std::vector<PassField*> result;
+
+		for (auto& field : m_Fields)
+		{
+			if (BitsSet(field.GetVisibility(), visibility))
+				result.push_back(&field);
+		}
+
+		return result;
+	}
+
+	std::vector<const PassField*> PassReflection::GetFields(FFieldVisibility visibility) const
+	{
+		std::vector<const PassField*> result;
+
+		for (auto& field : m_Fields)
+		{
+			if (BitsSet(field.GetVisibility(), visibility))
+				result.push_back(&field);
+		}
+
+		return result;
+	}
+
+	std::vector<PassField*> PassReflection::GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion)
+	{
+		std::vector<PassField*> result;
+
+		for (auto& field : m_Fields)
+		{
+			if (BitsSet(field.GetVisibility(), visibility) && !BitsSet(field.GetBindPoint(), exclusion))
+				result.push_back(&field);
+		}
+
+		return result;
+	}
+
+	std::vector<const PassField*> PassReflection::GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion) const
+	{
+		std::vector<const PassField*> result;
+
+		for (auto& field : m_Fields)
+		{
+			if (BitsSet(field.GetVisibility(), visibility) && !BitsSet(field.GetBindPoint(), exclusion))
+				result.push_back(&field);
+		}
+
+		return result;
 	}
 
 	void PassReflection::AddPushConstant(std::string name, FShaderStage shaderStage, uint64 size, uint64 offset)
@@ -114,14 +158,14 @@ namespace PolyTest
 		m_ManualSets.insert(setIndex);
 	}
 
-	auto PassReflection::GetAutobindedSets() const
+	const std::set<uint32>& PassReflection::GetAutoBindedSets() const
 	{
-		return m_AutoBindedSets | std::views::all;
+		return m_AutoBindedSets;
 	}
 
-	auto PassReflection::GetNonAutobindedSets() const
+	const std::set<uint32>& PassReflection::GetNonAutoBindedSets() const
 	{
-		return m_ManualSets | std::views::all;
+		return m_ManualSets;
 	}
 
 	void PassReflection::PrintDebug() const
@@ -182,9 +226,7 @@ namespace PolyTest
 	{
 		for (const auto& binding : shader.Reflection.Bindings)
 		{
-			AddField(binding.Name, FFieldVisibility::INPUT)
-				.Set(binding.Set)
-				.Binding(binding.Binding)
+			AddInput(binding.Name, binding.Set, binding.Binding)
 				.BindPoint(binding.DescriptorType);
 		}
 	}

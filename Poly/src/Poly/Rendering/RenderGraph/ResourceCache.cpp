@@ -31,7 +31,7 @@ namespace Poly
 		}
 	}
 
-	void ResourceCache::RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, IOData iodata, const ResourceGUID& aliasGUID)
+	void ResourceCache::RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, PassField passField, const ResourceGUID& aliasGUID)
 	{
 		if (m_NameToIndex.contains(resourceGUID))
 		{
@@ -53,7 +53,7 @@ namespace Poly
 			ResourceData data = {};
 			data.Lifetime		= {timepoint, timepoint};
 			data.ResourceGUID	= resourceGUID;
-			data.IOInfo			= iodata;
+			data.PassField		= passField;
 			m_Resources.push_back(data);
 		}
 		else // Aliased resource
@@ -62,7 +62,7 @@ namespace Poly
 			{
 				uint32 index = m_NameToIndex[aliasGUID];
 				m_NameToIndex[resourceGUID] = index;
-				m_Resources[index].IOInfo.Merge(iodata);
+				m_Resources[index].PassField.Merge(passField);
 				CalcLifetime(m_Resources[index].Lifetime, timepoint);
 			}
 			else
@@ -91,12 +91,12 @@ namespace Poly
 		}
 	}
 
-	void ResourceCache::MarkOutput(const ResourceGUID& resourceGUID, IOData iodata)
+	void ResourceCache::MarkOutput(const ResourceGUID& resourceGUID, PassField passField)
 	{
 		// auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.Name == name; });
 		if (!m_NameToIndex.contains(resourceGUID)) // Register resource if it hasn't been that already
 		{
-			RegisterResource(resourceGUID, 0, iodata);
+			RegisterResource(resourceGUID, 0, passField);
 			m_Resources.back().IsOutput = true;
 		}
 		else
@@ -122,7 +122,7 @@ namespace Poly
 			if (resourceData.IsOutput)
 				continue;
 
-			FResourceBindPoint bindPoint = resourceData.IOInfo.BindPoint;
+			FResourceBindPoint bindPoint = resourceData.PassField.GetBindPoint();
 			if (BitsSet(bindPoint, FResourceBindPoint::INTERNAL_USE))
 				continue;
 
@@ -131,7 +131,7 @@ namespace Poly
 				BufferDesc desc = {};
 				desc.BufferUsage	= bindPoint == FResourceBindPoint::STORAGE ? FBufferUsage::STORAGE_BUFFER : FBufferUsage::UNIFORM_BUFFER;
 				desc.MemUsage		= EMemoryUsage::GPU_ONLY; // TODO: Check if staging buffers should/can be created here
-				desc.Size			= resourceData.IOInfo.Size;
+				desc.Size			= resourceData.PassField.GetSize();
 
 				resourceData.pResource = Resource::Create(RenderAPI::CreateBuffer(&desc), resourceData.ResourceGUID.GetResourceName());
 			}
@@ -139,21 +139,21 @@ namespace Poly
 					|| BitsSet(bindPoint, FResourceBindPoint::SAMPLER) || BitsSet(bindPoint, FResourceBindPoint::SHADER_READ))
 			{
 				TextureDesc desc = {};
-				desc.Width			= resourceData.IOInfo.Width == 0 ? m_DefaultParams.TextureWidth : resourceData.IOInfo.Width;
-				desc.Height			= resourceData.IOInfo.Height == 0 ? m_DefaultParams.TextureHeight : resourceData.IOInfo.Height;
-				desc.Depth			= 1;
+				desc.Width			= resourceData.PassField.GetWidth() == 0 ? m_DefaultParams.TextureWidth : resourceData.PassField.GetWidth();
+				desc.Height			= resourceData.PassField.GetHeight() == 0 ? m_DefaultParams.TextureHeight : resourceData.PassField.GetHeight();
+				desc.Depth			= resourceData.PassField.GetDepth() == 0 ? m_DefaultParams.TextureDepth : resourceData.PassField.GetDepth();
 				desc.ArrayLayers	= 1;
 				desc.MipLevels		= 1; // TODO: Add support for mips
 				desc.SampleCount	= 1;
 				desc.TextureDim		= ETextureDim::DIM_2D;
 				desc.TextureUsage	= ConvertResourceBindPointToTextureUsage(bindPoint);
-				desc.Format			= resourceData.IOInfo.Format;
+				desc.Format			= resourceData.PassField.GetFormat();
 				Ref<Texture> pTexture = RenderAPI::CreateTexture(&desc);
 
 				TextureViewDesc desc2 = {};
 				desc2.ArrayLayer		= 0;
 				desc2.ArrayLayerCount	= 1;
-				desc2.Format			= resourceData.IOInfo.Format;
+				desc2.Format			= resourceData.PassField.GetFormat();
 				desc2.ImageViewFlag		= bindPoint == FResourceBindPoint::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
 				desc2.ImageViewType		= EImageViewType::TYPE_2D;
 				desc2.MipLevel			= 0;
@@ -162,7 +162,7 @@ namespace Poly
 				Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&desc2);
 
 				resourceData.pResource = Resource::Create(pTexture, pTextureView, resourceData.ResourceGUID.GetResourceName());
-				resourceData.pResource->SetSampler(resourceData.IOInfo.pSampler ? resourceData.IOInfo.pSampler : m_DefaultParams.pSampler);
+				resourceData.pResource->SetSampler(resourceData.PassField.GetSampler() ? resourceData.PassField.GetSampler() : m_DefaultParams.pSampler);
 			}
 		}
 	}

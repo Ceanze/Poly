@@ -3,7 +3,6 @@
 #include "../Resource.h"
 #include "../RenderData.h"
 #include "../RenderContext.h"
-#include "../PassReflection.h"
 #include "../RenderGraphProgram.h"
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/Sampler.h"
@@ -35,22 +34,34 @@ namespace Poly
 	{
 		PassReflection reflection;
 
-		reflection.AddInput("FontTexture", 0, 0);
-		reflection.SetBindPoint("FontTexture", FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE);
-		reflection.SetFormat("FontTexture", EFormat::R8G8B8A8_UNORM);
-		reflection.SetSampler("FontTexture", m_pFontSampler);
-
-		reflection.AddPushConstant("pushConstant", FShaderStage::VERTEX, sizeof(PushConstantBlock), 0);
-
-		reflection.AddPassThrough("out");
-		reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
-		reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
-
 		PolyID vertShader = ShaderManager::CreateShader("shaders/imgui/ui.vert", FShaderStage::VERTEX);
 		PolyID fragShader = ShaderManager::CreateShader("shaders/imgui/ui.frag", FShaderStage::FRAGMENT);
 
 		SetShaderID(FShaderStage::VERTEX, vertShader);
 		SetShaderID(FShaderStage::FRAGMENT, fragShader);
+
+		reflection.AddShader(vertShader);
+		reflection.AddShader(fragShader);
+
+		reflection.GetField("sTexture")
+			.BindPoint(FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE)
+			.Format(EFormat::R8G8B8A8_UNORM)
+			.SetSampler(m_pFontSampler);
+
+		reflection.AddPassthrough("fColor")
+			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT)
+			.Format(EFormat::B8G8R8A8_UNORM);
+
+		//reflection.AddInput("FontTexture", 0, 0);
+		//reflection.SetBindPoint("FontTexture", FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE);
+		//reflection.SetFormat("FontTexture", EFormat::R8G8B8A8_UNORM);
+		//reflection.SetSampler("FontTexture", m_pFontSampler);
+
+		//reflection.AddPushConstant("pushConstant", FShaderStage::VERTEX, sizeof(PushConstantBlock), 0);
+
+		//reflection.AddPassThrough("out");
+		//reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
+		//reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
 
 		return reflection;
 	}
@@ -70,9 +81,9 @@ namespace Poly
 		static bool first = true;
 		if (first)
 		{
-			Ref<Resource> pRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "FontTexture");
+			Ref<Resource> pRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "sTexture");
 			pRes->SetSampler(m_pFontSampler);
-			context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.FontTexture" }, pRes.get());
+			context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pRes.get());
 			first = false;
 		}
 		// TODO: Should probably not call Render() here

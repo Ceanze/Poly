@@ -1,9 +1,9 @@
 #pragma once
 
 #include "RenderGraphTypes.h"
-#include "PassReflection.h"
 #include "ResourceView.h"
 #include "ResourceGUID.h"
+#include "Reflection/PassReflection.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 

@@ -73,12 +73,12 @@ public:
 		m_pGraph->AddLink({ "$.scene:aoTex" }, { "pbrPass.aoTex" });
 		m_pGraph->AddLink({ "$.scene:combinedTex" }, { "pbrPass.combinedTex" });
 		m_pGraph->AddLink({ "$.scene:vertices" }, { "pbrPass.vertices" });
-		m_pGraph->AddLink({ "$.scene:instance" }, { "pbrPass.instance" });
-		m_pGraph->AddLink({ "$.scene:material" }, { "pbrPass.material" });
+		m_pGraph->AddLink({ "$.scene:instance" }, { "pbrPass.instances" });
+		m_pGraph->AddLink({ "$.scene:material" }, { "pbrPass.materialProps" });
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
-		m_pGraph->AddLink({ "pbrPass.out" }, { "ImGuiPass.out" });
-		m_pGraph->MarkOutput({ "ImGuiPass.out" });
+		m_pGraph->AddLink({ "pbrPass.out_Color" }, { "ImGuiPass.fColor" });
+		m_pGraph->MarkOutput({ "ImGuiPass.fColor" });
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();

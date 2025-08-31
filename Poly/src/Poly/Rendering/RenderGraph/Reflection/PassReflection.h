@@ -10,10 +10,6 @@ namespace Poly
 {
 	class Sampler;
 	class ShaderData;
-}
-
-namespace PolyTest {
-	using namespace Poly;
 
 	class PassReflection
 	{
@@ -32,9 +28,12 @@ namespace PolyTest {
 		void AddShader(PolyID shaderID);
 
 		bool HasField(std::string_view fieldName) const;
+		PassField& GetField(std::string_view fieldName);
 		const PassField& GetField(std::string_view fieldName) const;
-		auto GetFields(FFieldVisibility visibility) const;
-		auto GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint excluded) const;
+		std::vector<PassField*> GetFields(FFieldVisibility visibility);
+		std::vector<const PassField*> GetFields(FFieldVisibility visibility) const;
+		std::vector<PassField*> GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion);
+		std::vector<const PassField*> GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion) const;
 
 		void AddPushConstant(std::string name, FShaderStage shaderStage, uint64 size, uint64 offset);
 
@@ -43,8 +42,8 @@ namespace PolyTest {
 		std::span<const PushConstantData> GetPushConstants() const;
 
 		void DisableAutoBindForSet(uint32 setIndex);
-		auto GetAutobindedSets() const;
-		auto GetNonAutobindedSets() const;
+		const std::set<uint32>& GetAutoBindedSets() const;
+		const std::set<uint32>& GetNonAutoBindedSets() const;
 
 		void PrintDebug() const;
 

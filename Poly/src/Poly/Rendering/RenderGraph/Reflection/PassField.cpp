@@ -1,6 +1,6 @@
 #include "PassField.h"
 
-namespace PolyTest
+namespace Poly
 {
 	PassField::PassField(std::string name, FFieldVisibility visibility)
 		: m_Name(std::move(name)), m_Visibility(visibility) {}
@@ -64,6 +64,21 @@ namespace PolyTest
 	{
 		m_pSampler = pSampler;
 		return *this;
+	}
+
+	void PassField::Merge(const PassField& other)
+	{
+		if (m_Format != other.m_Format)
+		{
+			POLY_CORE_WARN("Cannot merge PassField of {} with {}, different formats!", m_Name, other.m_Name);
+			return;
+		}
+		if (m_Height != other.m_Height || m_Width != other.m_Width || m_Depth != other.m_Depth)
+		{
+			POLY_CORE_WARN("Cannot merge PassField of {} with {}, height, width and/or depth does not match!", m_Name, other.m_Name);
+			return;
+		}
+		m_BindPoint |= other.m_BindPoint;
 	}
 
 	const std::string& PassField::GetName() const
@@ -133,7 +148,7 @@ namespace PolyTest
 
 	void PassField::TryToSetTextureLayout()
 	{
-		if (m_TextureLayout == ETextureLayout::UNDEFINED || m_Format == EFormat::UNDEFINED)
+		if (m_TextureLayout != ETextureLayout::UNDEFINED || m_Format == EFormat::UNDEFINED)
 			return;
 
 

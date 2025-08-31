@@ -6,11 +6,6 @@
 namespace Poly
 {
 	class Sampler;
-}
-
-namespace PolyTest
-{
-	using namespace Poly;
 
 	struct PushConstantData
 	{
@@ -24,6 +19,7 @@ namespace PolyTest
 	{
 	public:
 		PassField(std::string name, FFieldVisibility visibility);
+		PassField() = default;
 
 		PassField& Set(uint32 set);
 		PassField& Binding(uint32 binding);
@@ -36,6 +32,8 @@ namespace PolyTest
 		PassField& TextureLayout(ETextureLayout textureLayout);
 		PassField& BindPoint(FResourceBindPoint bindPoint);
 		PassField& SetSampler(Ref<Sampler> pSampler);
+
+		void Merge(const PassField& other);
 
 		const std::string& GetName() const;
 		FFieldVisibility GetVisibility() const;
