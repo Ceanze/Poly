@@ -6,14 +6,19 @@
 namespace Poly
 {
 	class Sampler;
+}
 
-		struct PushConstantData
-		{
-			std::string		Name = "";
-			uint64			Size = 0;
-			uint64			Offset = 0;
-			FShaderStage	ShaderStage = FShaderStage::NONE;
-		};
+namespace PolyTest
+{
+	using namespace Poly;
+
+	struct PushConstantData
+	{
+		std::string		Name = "";
+		uint64			Size = 0;
+		uint64			Offset = 0;
+		FShaderStage	ShaderStage = FShaderStage::NONE;
+	};
 
 	class PassField
 	{
@@ -48,6 +53,8 @@ namespace Poly
 		auto operator <=>(const PassField& other) const;
 
 	private:
+		friend class PassReflection;
+
 		void TryToSetTextureLayout();
 
 		std::string	m_Name				= "";

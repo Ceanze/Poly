@@ -1,6 +1,6 @@
 #include "PassField.h"
 
-namespace Poly
+namespace PolyTest
 {
 	PassField::PassField(std::string name, FFieldVisibility visibility)
 		: m_Name(std::move(name)), m_Visibility(visibility) {}

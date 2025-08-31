@@ -10,6 +10,10 @@ namespace Poly
 {
 	class Sampler;
 	class ShaderData;
+}
+
+namespace PolyTest {
+	using namespace Poly;
 
 	class PassReflection
 	{
@@ -41,6 +45,8 @@ namespace Poly
 		void DisableAutoBindForSet(uint32 setIndex);
 		auto GetAutobindedSets() const;
 		auto GetNonAutobindedSets() const;
+
+		void PrintDebug() const;
 
 	private:
 		PassField& AddField(std::string name, FFieldVisibility visibility);

@@ -5,6 +5,8 @@
 #include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 
+#include "Poly/Rendering/RenderGraph/Reflection/PassReflection.h"
+
 #include "Platform/API/Sampler.h"
 
 namespace Poly
@@ -100,6 +102,11 @@ namespace Poly
 
 		SetShaderID(FShaderStage::VERTEX, vertShader);
 		SetShaderID(FShaderStage::FRAGMENT, fragShader);
+
+		PolyTest::PassReflection pr;
+		pr.AddShader(vertShader);
+		pr.AddShader(fragShader);
+		pr.PrintDebug();
 
 		return reflection;
 	}

@@ -4,9 +4,9 @@
 
 #include <ranges>
 
-namespace Poly
+namespace PolyTest
 {
-	PassField& Poly::PassReflection::AddInput(std::string name, uint32 set, uint32 binding)
+	PassField& PassReflection::AddInput(std::string name, uint32 set, uint32 binding)
 	{
 		PassField& field = AddField(std::move(name), FFieldVisibility::INPUT);
 
@@ -38,8 +38,11 @@ namespace Poly
 		
 		AddShaderBindings(shader);
 		AddShaderInputs(shader);
-		AddShaderOutputs(shader);
 		AddShaderPushConstants(shader);
+
+		// Only outputs from fragment shader is currently out of interest
+		if (BitsSet(shader.ShaderStage, FShaderStage::FRAGMENT))
+			AddShaderOutputs(shader);
 	}
 
 	bool PassReflection::HasField(std::string_view fieldName) const
@@ -121,9 +124,55 @@ namespace Poly
 		return m_ManualSets | std::views::all;
 	}
 
+	void PassReflection::PrintDebug() const
+	{
+		for (const auto& field : m_Fields)
+		{
+			std::string visStr;
+			FFieldVisibility vis = field.GetVisibility();
+			if (BitsSet(vis, FFieldVisibility::INPUT))
+				visStr = "INPUT";
+			else if (BitsSet(vis, FFieldVisibility::OUTPUT))
+				visStr = "OUTPUT";
+			else if (BitsSet(vis, FFieldVisibility::IN_OUT))
+				visStr = "PASSTHROUGH";
+
+			POLY_CORE_TRACE("Field: {}", field.GetName());
+			POLY_CORE_TRACE("  Set {}", field.GetSet());
+			POLY_CORE_TRACE("  Binding {}", field.GetBinding());
+			POLY_CORE_TRACE("  BindPoint {}", static_cast<int>(field.GetBindPoint()));
+			POLY_CORE_TRACE("  Size {}", field.GetSize());
+			POLY_CORE_TRACE("  Width {}", field.GetWidth());
+			POLY_CORE_TRACE("  Height {}", field.GetHeight());
+			POLY_CORE_TRACE("  Depth {}", field.GetDepth());
+			POLY_CORE_TRACE("  Format {}", static_cast<int>(field.GetFormat()));
+			POLY_CORE_TRACE("  Texture Layout {}", static_cast<int>(field.GetTextureLayout()));
+			POLY_CORE_TRACE("  Sampler? {}", field.GetSampler().get() != nullptr);
+			POLY_CORE_TRACE("  Visibility {}", visStr);
+		}
+	}
+
 	PassField& PassReflection::AddField(std::string name, FFieldVisibility visibility)
 	{
-		POLY_VALIDATE(!HasField(name), "Tried adding field {}, but field name already exists", name);
+		// If field exist, merge visibilities - if not possible, error
+		auto itr = std::ranges::find_if(m_Fields, [name](const PassField& field) { return field.GetName() == name; });
+		if (itr != m_Fields.end())
+		{
+			const FFieldVisibility existingVis = itr->GetVisibility();
+			bool validExistingVisibility = BitsSet(existingVis, FFieldVisibility::IN_OUT);
+			bool validRequestedVisibility = BitsSet(visibility, FFieldVisibility::IN_OUT);
+
+			if (validExistingVisibility && validRequestedVisibility)
+			{
+				itr->m_Visibility = visibility | existingVis;
+			}
+			else
+			{
+				POLY_CORE_ERROR("Cannot merge field {} with already existing field, visibilites of {} and {} are not valid to merge", name, static_cast<int>(visibility), static_cast<int>(existingVis));
+			}
+
+			return *itr;
+		}
 
 		m_Fields.push_back({ name, visibility });
 		return m_Fields.back();
