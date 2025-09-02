@@ -52,17 +52,6 @@ namespace Poly
 			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT)
 			.Format(EFormat::B8G8R8A8_UNORM);
 
-		//reflection.AddInput("FontTexture", 0, 0);
-		//reflection.SetBindPoint("FontTexture", FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE);
-		//reflection.SetFormat("FontTexture", EFormat::R8G8B8A8_UNORM);
-		//reflection.SetSampler("FontTexture", m_pFontSampler);
-
-		//reflection.AddPushConstant("pushConstant", FShaderStage::VERTEX, sizeof(PushConstantBlock), 0);
-
-		//reflection.AddPassThrough("out");
-		//reflection.SetBindPoint("out", FResourceBindPoint::COLOR_ATTACHMENT);
-		//reflection.SetFormat("out", EFormat::B8G8R8A8_UNORM);
-
 		return reflection;
 	}
 
