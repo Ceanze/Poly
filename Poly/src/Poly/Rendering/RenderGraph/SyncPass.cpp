@@ -16,14 +16,15 @@ namespace Poly
 
 	PassReflection SyncPass::Reflect()
 	{
-		PassReflection reflect = {};
+		PassReflection reflection;
+
 		// Every resource that a sync pass handles is a passthrough
 		for (const auto& syncData : m_SyncData)
 		{
-			reflect.AddPassThrough(syncData.ResourceName);
+			reflection.AddPassthrough(syncData.ResourceName);
 		}
 
-		return reflect;
+		return reflection;
 	}
 
 	void SyncPass::Execute(const RenderContext& context, const RenderData& renderData)

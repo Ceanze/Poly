@@ -20,13 +20,13 @@ struct Vertex
 // Sets
 layout(set = 0, binding = 0) uniform Camera { mat4 mat; vec4 camPos; } camera;
 layout(set = 4, binding = 0) buffer Vertices { Vertex vertex[]; } vertices;
-layout(set = 1, binding = 0) buffer Transforms { mat4 transform[]; } transforms;
+layout(set = 1, binding = 0) buffer Instances { mat4 transform[]; } instances;
 
 void main() {
-	vec4 worldPosition = transforms.transform[gl_InstanceIndex] * vec4(vertices.vertex[gl_VertexIndex].Position.xyz, 1.0f);
+	vec4 worldPosition = instances.transform[gl_InstanceIndex] * vec4(vertices.vertex[gl_VertexIndex].Position.xyz, 1.0f);
 
-	vec3 normal		= normalize(transforms.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Normal).xyz;
-	vec3 tangent	= normalize(transforms.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Tangent).xyz;
+	vec3 normal		= normalize(instances.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Normal).xyz;
+	vec3 tangent	= normalize(instances.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Tangent).xyz;
 	vec3 bitangent	= normalize(cross(normal, tangent));
 	mat3 TBN		= mat3(tangent, bitangent, normal);
 

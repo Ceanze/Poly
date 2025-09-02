@@ -9,6 +9,13 @@ namespace Poly
 {
 	class Shader;
 
+	struct ShaderData
+	{
+		FShaderStage ShaderStage;
+		Ref<Shader> pShader;
+		ShaderReflection Reflection;
+	};
+
 	class ShaderManager
 	{
 	public:
@@ -18,18 +25,13 @@ namespace Poly
 		static void Release();
 
 		static PolyID CreateShader(std::string_view path, FShaderStage shaderStage);
-		static Ref<Shader> GetShader(PolyID shaderID);
-		static const ShaderReflection& GetReflection(PolyID shaderID);
+
+		static bool ShaderExists(PolyID shaderID);
+		static const ShaderData& GetShader(PolyID shaderID);
 
 		// TODO: Add a "onShaderUpdated" callback/notifier
 
 	private:
-		struct ShaderData
-		{
-			Ref<Shader> pShader;
-			ShaderReflection reflection;
-		};
-
 		static std::map<PolyID, ShaderData> s_Shaders;
 	};
 }

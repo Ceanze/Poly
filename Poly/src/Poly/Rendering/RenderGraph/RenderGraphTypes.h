@@ -25,6 +25,7 @@ namespace Poly
 	{
 		uint32 TextureWidth			= 0;
 		uint32 TextureHeight		= 0;
+		uint32 TextureDepth			= 1;
 		uint32 MaxBackbufferCount	= 3;
 		Ref<Sampler> pSampler		= nullptr;
 	};

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ResourceGUID.h"
-#include "PassReflection.h"
 #include "RenderGraphTypes.h"
+#include "Reflection/PassReflection.h"
 
 namespace Poly
 {
@@ -16,7 +16,7 @@ namespace Poly
 			std::pair<uint32, uint32>	Lifetime		= {0, 0};
 			Ref<Resource>				pResource		= nullptr;
 			ResourceGUID				ResourceGUID	= ResourceGUID::Invalid();
-			IOData						IOInfo			= {};
+			PassField					PassField		= {};
 			bool						IsOutput		= false;
 		};
 
@@ -42,7 +42,7 @@ namespace Poly
 		 * @param iodata - IOData for the resource
 		 * @param alias - [optional] informs that the resource is going by another name added previously
 		 */
-		void RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, IOData iodata, const ResourceGUID& aliasGUID = ResourceGUID::Invalid());
+		void RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, PassField iodata, const ResourceGUID& aliasGUID = ResourceGUID::Invalid());
 
 		void RegisterSyncResource(const ResourceGUID& resourceGUID, const ResourceGUID& aliasGUID);
 
@@ -52,7 +52,7 @@ namespace Poly
 		 * @param name - name of resource following renderPass.resourceName format
 		 * @param iodata - IOData for that resource
 		 */
-		void MarkOutput(const ResourceGUID& resourceGUID, IOData iodata);
+		void MarkOutput(const ResourceGUID& resourceGUID, PassField iodata);
 
 		/**
 		 * Sets the current backbuffer resource for this frame to be used

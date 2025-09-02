@@ -54,15 +54,15 @@ namespace Poly
 				continue;
 			}
 
-			const auto& reflections = m_Reflections[passIndex].GetAllIOs();
+			const auto& reflections = m_Reflections[passIndex].GetFields(FFieldVisibility::IN_OUT);
 			if (!reflections.empty())
 			{
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 				for (const auto& reflection : reflections)
 				{
 					// Only update graph resource if a resource is already valid, otherwise skip
-					if (m_pResourceCache->HasResource({ pPass->GetName(), reflection.Name }))
-						UpdateGraphResource({ pPass->GetName(), reflection.Name }, nullptr);
+					if (m_pResourceCache->HasResource({ pPass->GetName(), reflection->GetName()}))
+						UpdateGraphResource({ pPass->GetName(), reflection->GetName()}, nullptr);
 				}
 			}
 			passIndex++;
@@ -149,7 +149,7 @@ namespace Poly
 					renderContext.SetSceneBatch(&batches[batchIndex]);
 					renderContext.SetBatchIndex(batchIndex);
 
-					const std::set<uint32>& setIndices = m_Reflections[passIndex].GetAutoBindedSetIndices();
+					const std::set<uint32>& setIndices = m_Reflections[passIndex].GetAutoBindedSets();
 					for (uint32 setIndex : setIndices)
 					{
 						const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, batchIndex, DescriptorCache::EAction::GET);
@@ -255,13 +255,13 @@ namespace Poly
 				continue;
 
 			// Resource is being used in pass, update corresponding descriptor
-			const IOData& inputRes = m_Reflections[passIndex].GetIOData(mappedResource.GetResourceName());
-			if (BitsSet(inputRes.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
+			const PassField& inputRes = m_Reflections[passIndex].GetField(mappedResource.GetResourceName());
+			if (BitsSet(inputRes.GetBindPoint(), FResourceBindPoint::COLOR_ATTACHMENT))
 				continue;
 
 			Resource* pResource = nullptr;
 			bool hasProvidedResource = view.HasBuffer() || view.HasTextureView();
-			if (!hasProvidedResource && BitsSet(inputRes.BindPoint, FResourceBindPoint::INTERNAL_USE))
+			if (!hasProvidedResource && BitsSet(inputRes.GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 				return;
 
 			if (!hasProvidedResource)
@@ -276,13 +276,13 @@ namespace Poly
 			if (!m_DescriptorCaches.contains(passIndex))
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
 
-			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.Set, index, static_cast<uint32>(view.GetOffset()), static_cast<uint32>(view.GetSpan()));
+			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.GetSet(), index, static_cast<uint32>(view.GetOffset()), static_cast<uint32>(view.GetSpan()));
 
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
 				const Buffer* pBuffer = (pResource && pResource->IsBuffer()) ? pResource->GetAsBuffer() : view.GetBuffer();
 				const uint64 span = view.GetSpan() > 0 ? view.GetSpan() : pBuffer->GetSize();
-				pNewSet->UpdateBufferBinding(inputRes.Binding, pBuffer, 0, span);
+				pNewSet->UpdateBufferBinding(inputRes.GetBinding(), pBuffer, 0, span);
 			}
 			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
 			{
@@ -290,8 +290,8 @@ namespace Poly
 
 				// Set sampler if it hasn't been set before from the reflection
 				if (pResource && !pResource->GetAsSampler())
-					pResource->SetSampler(inputRes.pSampler);
-				pNewSet->UpdateTextureBinding(inputRes.Binding, inputRes.TextureLayout, pTextureView, pResource ? pResource->GetAsSampler() : inputRes.pSampler.get());
+					pResource->SetSampler(inputRes.GetSampler());
+				pNewSet->UpdateTextureBinding(inputRes.GetBinding(), inputRes.GetTextureLayout(), pTextureView, pResource ? pResource->GetAsSampler() : inputRes.GetSampler().get());
 			}
 		}
 	}
@@ -372,21 +372,28 @@ namespace Poly
 			if (m_Passes[i]->GetPassType() != Pass::Type::SYNC)
 			{
 				// Note that the layout creates the bindings for internal types as well for ease of use
-				const auto inputs = m_Reflections[i].GetIOData(FIOType::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
+				const PassReflection& reflection = m_Reflections[i];
+				const std::vector<const PassField*> inputs = reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
 				const auto& pushConstants = m_Reflections[i].GetPushConstants();
-				const int maxSet = std::max_element(inputs.begin(), inputs.end(), [](const auto& ioDataA, const auto& ioDataB){ return ioDataA.Set < ioDataB.Set; })->Set;
-				std::vector<DescriptorSetLayout> sets(maxSet + 1);
-				for (const auto& input : inputs)
+				uint32 maxSet = 0;
+				for (const PassField* input : inputs)
 				{
-					if (BitsSet(input.BindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
+					if (input->GetSet() > maxSet)
+						maxSet = input->GetSet();
+				}
+
+				std::vector<DescriptorSetLayout> sets(maxSet + 1);
+				for (const PassField* input : inputs)
+				{
+					if (BitsSet(input->GetBindPoint(), FResourceBindPoint::COLOR_ATTACHMENT))
 						continue;
 					DescriptorSetBinding binding = {};
-					binding.Binding			= input.Binding;
+					binding.Binding			= input->GetBinding();
 					binding.DescriptorCount	= 1;
-					binding.DescriptorType	= ConvertBindpointToDescriptorType(input.BindPoint);
+					binding.DescriptorType	= ConvertBindpointToDescriptorType(input->GetBindPoint());
 					binding.ShaderStage		= FShaderStage::VERTEX | FShaderStage::FRAGMENT;
-					binding.pSampler		= input.pSampler.get();
-					sets[input.Set].DescriptorSetBindings.push_back(binding);
+					binding.pSampler		= input->GetSampler().get();
+					sets[input->GetSet()].DescriptorSetBindings.push_back(binding);
 				}
 
 				std::vector<PushConstantRange> ranges;
@@ -603,8 +610,8 @@ namespace Poly
 
 		desc.pPipelineLayout	= m_PipelineLayouts[passIndex].get();
 		desc.pRenderPass		= m_GraphicsRenderPasses[passIndex].get();
-		desc.pVertexShader		= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).get();
-		desc.pFragmentShader	= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).get();
+		desc.pVertexShader		= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).pShader.get();
+		desc.pFragmentShader	= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).pShader.get();
 
 		m_GraphicsPipelines[passIndex] = RenderAPI::CreateGraphicsPipeline(&desc);
 
@@ -617,8 +624,9 @@ namespace Poly
 		if (!mappedResource.HasResource())
 			return ResourceGUID::Invalid();
 
-		const auto& reflections = m_Reflections[passIndex].GetIOData(FIOType::INPUT, FResourceBindPoint::NONE);
-		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const IOData& data){ return data.Name == mappedResource.GetResourceName(); });
+		const PassReflection& reflection = m_Reflections[passIndex];
+		const std::vector<const PassField*> reflections = reflection.GetFields(FFieldVisibility::INPUT);
+		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const PassField* data){ return data->GetName() == mappedResource.GetResourceName(); });
 		if (itr == reflections.end())
 			return ResourceGUID::Invalid();
 

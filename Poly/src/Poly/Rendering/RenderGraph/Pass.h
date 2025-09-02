@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ResourceGUID.h"
-#include "PassReflection.h"
+#include "Reflection/PassReflection.h"
 #include "RenderGraphTypes.h"
 
 namespace Poly
