@@ -24,7 +24,8 @@ namespace Poly
 			.TextureWidth		= window->GetWidth(),
 			.TextureHeight		= window->GetHeight(),
 			.MaxBackbufferCount	= 3,
-			.pSampler			= Sampler::GetDefaultLinearSampler()
+			.pSampler			= Sampler::GetDefaultLinearSampler(),
+			.Format				= EFormat::R8G8B8A8_UNORM // Currently not used
 		};
 	}
 
@@ -288,17 +289,5 @@ namespace Poly
 		POLY_VALIDATE(m_Passes.contains(nodeID), "Cannot get pass with ID {}, ID does not exist in graph", nodeID);
 
 		return m_Passes.at(nodeID);
-	}
-
-	void RenderGraph::SetDefaultParams(RenderGraphDefaultParams* pDefaultParams)
-	{
-		if (pDefaultParams->TextureHeight)
-			m_DefaultParams.TextureHeight = pDefaultParams->TextureHeight;
-		if (pDefaultParams->TextureWidth)
-			m_DefaultParams.TextureWidth = pDefaultParams->TextureWidth;
-		if (pDefaultParams->MaxBackbufferCount)
-			m_DefaultParams.MaxBackbufferCount = pDefaultParams->MaxBackbufferCount;
-		if (pDefaultParams->pSampler)
-			m_DefaultParams.pSampler = pDefaultParams->pSampler;
 	}
 }

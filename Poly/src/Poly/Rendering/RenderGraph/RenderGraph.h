@@ -154,13 +154,6 @@ namespace Poly
 		const Ref<Pass>& GetPass(uint32 nodeID) const;
 
 		/**
-		 * Sets the default params of the render graph. Members with default
-		 * params set will not change. E.g. if "TextureWidth = 0" and the previous
-		 * default was 1280 then it will stay 1280, since 0 is default and non valid for texture width
-		 */
-		void SetDefaultParams(RenderGraphDefaultParams* pDefaultParams);
-
-		/**
 		 * @return Default params of the render graph
 		 */
 		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }

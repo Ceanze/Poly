@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PassData.h"
 #include "RenderGraphTypes.h"
 #include "Reflection/PassReflection.h"
 
@@ -15,16 +16,6 @@ namespace Poly
 
 	class RenderGraphCompiler
 	{
-	private:
-		struct PassData
-		{
-			Ref<Pass>		pPass;
-			uint32			NodeIndex;
-			PassReflection	Reflection;
-
-			bool operator== (const PassData& other) const { return NodeIndex == other.NodeIndex; }
-		};
-
 	public:
 		RenderGraphCompiler() = default;
 		~RenderGraphCompiler() = default;

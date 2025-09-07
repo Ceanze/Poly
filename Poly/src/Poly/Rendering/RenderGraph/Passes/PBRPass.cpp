@@ -34,8 +34,7 @@ namespace Poly
 		{
 			if (output->GetSet() == 3)
 			{
-				output->Format(EFormat::R8G8B8A8_UNORM)
-					.SetSampler(Sampler::GetDefaultLinearSampler());
+				output->Format(EFormat::R8G8B8A8_UNORM);
 			}
 		}
 

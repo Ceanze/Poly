@@ -28,6 +28,7 @@ namespace Poly
 		uint32 TextureDepth			= 1;
 		uint32 MaxBackbufferCount	= 3;
 		Ref<Sampler> pSampler		= nullptr;
+		EFormat Format				= EFormat::UNDEFINED;
 	};
 
 	struct ResourceInfo
