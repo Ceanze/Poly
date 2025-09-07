@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PassData.h"
 #include "RenderGraphTypes.h"
 #include "ResourceView.h"
 #include "ResourceGUID.h"
@@ -29,7 +30,7 @@ namespace Poly
 	class RenderGraphProgram
 	{
 	public:
-		RenderGraphProgram(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams);
+		RenderGraphProgram(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes);
 		~RenderGraphProgram() = default;
 
 		/**
@@ -40,7 +41,7 @@ namespace Poly
 		/**
 		 * USED BY THE RENDER GRAPH COMPILER
 		 */
-		static Ref<RenderGraphProgram> Create(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams);
+		static Ref<RenderGraphProgram> Create(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes);
 
 		/**
 		 * USED BY THE RENDERER
@@ -112,9 +113,6 @@ namespace Poly
 		const Scene* GetScene() const { return m_pScene.get(); }
 
 	private:
-		friend class RenderGraphCompiler;
-
-		void AddPass(Ref<Pass> pPass); // Used by render graph compiler
 		void InitCommandBuffers();
 		void InitPipelineLayouts();
 		GraphicsRenderPass* GetGraphicsRenderPass(const Ref<Pass>& pPass, uint32 passIndex);
@@ -128,11 +126,9 @@ namespace Poly
 		Ref<StagingBufferCache> m_pStagingBufferCache;
 
 		// Render Graph specific types
-		std::vector<Ref<Pass>>		m_Passes;
+		std::vector<PassData>		m_Passes;
 		Ref<ResourceCache>			m_pResourceCache;
 		RenderGraphDefaultParams	m_DefaultParams;
-		RenderGraph*				m_pRenderGraph;
-		std::unordered_map<uint32, PassReflection>	m_Reflections;
 
 		// Rendering specific types
 		uint32														m_ImageIndex = 0;

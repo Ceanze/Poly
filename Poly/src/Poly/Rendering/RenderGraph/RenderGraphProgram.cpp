@@ -27,34 +27,28 @@
 
 namespace Poly
 {
-	RenderGraphProgram::RenderGraphProgram(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
-	{
-		m_pRenderGraph = pRenderGraph;
-		m_pResourceCache = pResourceCache;
-		m_DefaultParams = defaultParams;
-	}
+	RenderGraphProgram::RenderGraphProgram(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes)
+		: m_pResourceCache(pResourceCache)
+		, m_DefaultParams(defaultParams)
+		, m_Passes(passes) {}
 
 	void RenderGraphProgram::Init()
 	{
-		for (uint32 i = 0; i < m_Passes.size(); i++)
-		{
-			if (!m_Reflections.contains(i))
-				m_Reflections[i] = m_Passes[i]->Reflect();
-		}
+		for (uint32 passIndex = 0; auto& passData : m_Passes)
+			passData.PassIndex = passIndex++;
 
 		InitCommandBuffers();
 		InitPipelineLayouts();
 
 		// Update all resources in the beginning
-		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
+		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
 		{
 			if (pPass->GetPassType() == Pass::Type::SYNC)
 			{
-				passIndex++;
 				continue;
 			}
 
-			const auto& reflections = m_Reflections[passIndex].GetFields(FFieldVisibility::IN_OUT);
+			const auto& reflections = reflection.GetFields(FFieldVisibility::IN_OUT);
 			if (!reflections.empty())
 			{
 				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
@@ -65,15 +59,14 @@ namespace Poly
 						UpdateGraphResource({ pPass->GetName(), reflection->GetName()}, nullptr);
 				}
 			}
-			passIndex++;
 		}
 
 		m_pStagingBufferCache = StagingBufferCache::Create();
 	}
 
-	Ref<RenderGraphProgram> RenderGraphProgram::Create(RenderGraph* pRenderGraph, Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams)
+	Ref<RenderGraphProgram> RenderGraphProgram::Create(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes)
 	{
-		return CreateRef<RenderGraphProgram>(pRenderGraph, pResourceCache, defaultParams);
+		return CreateRef<RenderGraphProgram>(pResourceCache, defaultParams, passes);
 	}
 
 	void RenderGraphProgram::Execute(uint32 imageIndex)
@@ -87,7 +80,7 @@ namespace Poly
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
 		renderContext.SetImageIndex(m_ImageIndex);
 		renderData.SetScene(m_pScene.get());
-		for (uint32 passIndex = 0; const auto& pPass : m_Passes)
+		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
 		{
 			// Clear old descriptors
 			if (m_DescriptorCaches.contains(passIndex))
@@ -149,7 +142,7 @@ namespace Poly
 					renderContext.SetSceneBatch(&batches[batchIndex]);
 					renderContext.SetBatchIndex(batchIndex);
 
-					const std::set<uint32>& setIndices = m_Reflections[passIndex].GetAutoBindedSets();
+					const std::set<uint32>& setIndices = reflection.GetAutoBindedSets();
 					for (uint32 setIndex : setIndices)
 					{
 						const DescriptorSet* pSet = m_DescriptorCaches[passIndex].GetDescriptorSet(setIndex, batchIndex, DescriptorCache::EAction::GET);
@@ -177,7 +170,6 @@ namespace Poly
 
 			// Only graphics queue at the moment
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(currentCommandBuffer, nullptr, nullptr, nullptr);
-			passIndex++;
 		}
 
 		m_pStagingBufferCache->Update(m_ImageIndex);
@@ -242,10 +234,8 @@ namespace Poly
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index)
 	{
 		// Go through each pass and find where resource is being used
-		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
+		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
 		{
-			auto& pPass = m_Passes[passIndex];
-
 			if (pPass->GetPassType() == Pass::Type::SYNC)
 				continue;
 
@@ -255,7 +245,7 @@ namespace Poly
 				continue;
 
 			// Resource is being used in pass, update corresponding descriptor
-			const PassField& inputRes = m_Reflections[passIndex].GetField(mappedResource.GetResourceName());
+			const PassField& inputRes = reflection.GetField(mappedResource.GetResourceName());
 			if (BitsSet(inputRes.GetBindPoint(), FResourceBindPoint::COLOR_ATTACHMENT))
 				continue;
 
@@ -287,11 +277,12 @@ namespace Poly
 			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
 			{
 				const TextureView* pTextureView = (pResource && pResource->IsTexture()) ? pResource->GetAsTextureView() : view.GetTextureView();
+				Sampler* pSampler = pResource ? pResource->GetAsSampler() : (inputRes.GetSampler() ? inputRes.GetSampler().get() : m_DefaultParams.pSampler.get());
 
 				// Set sampler if it hasn't been set before from the reflection
 				if (pResource && !pResource->GetAsSampler())
-					pResource->SetSampler(inputRes.GetSampler());
-				pNewSet->UpdateTextureBinding(inputRes.GetBinding(), inputRes.GetTextureLayout(), pTextureView, pResource ? pResource->GetAsSampler() : inputRes.GetSampler().get());
+					pResource->SetSampler(inputRes.GetSampler() ? inputRes.GetSampler() : m_DefaultParams.pSampler);
+				pNewSet->UpdateTextureBinding(inputRes.GetBinding(), inputRes.GetTextureLayout(), pTextureView, pSampler);
 			}
 		}
 	}
@@ -345,11 +336,6 @@ namespace Poly
 		pScene->CreateRenderScene(*this);
 	}
 
-	void RenderGraphProgram::AddPass(Ref<Pass> pPass)
-	{
-		m_Passes.push_back(pPass);
-	}
-
 	void RenderGraphProgram::InitCommandBuffers()
 	{
 		m_CommandPools[FQueueType::GRAPHICS] = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::RESET_COMMAND_BUFFERS);
@@ -367,14 +353,13 @@ namespace Poly
 
 	void RenderGraphProgram::InitPipelineLayouts()
 	{
-		for (uint32 i = 0; i < m_Reflections.size(); i++)
+		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
 		{
-			if (m_Passes[i]->GetPassType() != Pass::Type::SYNC)
+			if (pPass->GetPassType() != Pass::Type::SYNC)
 			{
 				// Note that the layout creates the bindings for internal types as well for ease of use
-				const PassReflection& reflection = m_Reflections[i];
 				const std::vector<const PassField*> inputs = reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
-				const auto& pushConstants = m_Reflections[i].GetPushConstants();
+				const auto& pushConstants = reflection.GetPushConstants();
 				uint32 maxSet = 0;
 				for (const PassField* input : inputs)
 				{
@@ -412,7 +397,7 @@ namespace Poly
 				for (const auto& set : sets)
 					desc.DescriptorSetLayouts.push_back(set);
 
-				m_PipelineLayouts[i] = RenderAPI::CreatePipelineLayout(&desc);
+				m_PipelineLayouts[passIndex] = RenderAPI::CreatePipelineLayout(&desc);
 			}
 		}
 	}
@@ -624,7 +609,7 @@ namespace Poly
 		if (!mappedResource.HasResource())
 			return ResourceGUID::Invalid();
 
-		const PassReflection& reflection = m_Reflections[passIndex];
+		const PassReflection& reflection = m_Passes[passIndex].Reflection;
 		const std::vector<const PassField*> reflections = reflection.GetFields(FFieldVisibility::INPUT);
 		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const PassField* data){ return data->GetName() == mappedResource.GetResourceName(); });
 		if (itr == reflections.end())

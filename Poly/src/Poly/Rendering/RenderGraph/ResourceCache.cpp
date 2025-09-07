@@ -147,13 +147,13 @@ namespace Poly
 				desc.SampleCount	= 1;
 				desc.TextureDim		= ETextureDim::DIM_2D;
 				desc.TextureUsage	= ConvertResourceBindPointToTextureUsage(bindPoint);
-				desc.Format			= resourceData.PassField.GetFormat();
+				desc.Format			= resourceData.PassField.GetFormat() != EFormat::UNDEFINED ? resourceData.PassField.GetFormat() : m_DefaultParams.Format;
 				Ref<Texture> pTexture = RenderAPI::CreateTexture(&desc);
 
 				TextureViewDesc desc2 = {};
 				desc2.ArrayLayer		= 0;
 				desc2.ArrayLayerCount	= 1;
-				desc2.Format			= resourceData.PassField.GetFormat();
+				desc2.Format			= resourceData.PassField.GetFormat() != EFormat::UNDEFINED ? resourceData.PassField.GetFormat() : m_DefaultParams.Format;
 				desc2.ImageViewFlag		= bindPoint == FResourceBindPoint::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
 				desc2.ImageViewType		= EImageViewType::TYPE_2D;
 				desc2.MipLevel			= 0;

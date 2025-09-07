@@ -36,9 +36,7 @@ namespace Poly
 			ValidateGraph();
 		}
 
-		Ref<RenderGraphProgram> program = RenderGraphProgram::Create(m_pRenderGraph, m_pResourceCache, m_DefaultParams);
-		for (const auto& passData : m_OrderedPasses)
-			program->AddPass(passData.pPass);
+		Ref<RenderGraphProgram> program = RenderGraphProgram::Create(m_pResourceCache, m_DefaultParams, m_OrderedPasses);
 		return program;
 	}
 
