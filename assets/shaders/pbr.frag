@@ -30,10 +30,10 @@ struct PointLight
 };
 
 // Sets
-layout(set = 0, binding = 0) uniform Camera { mat4 mat; vec4 camPos; } camera;
-layout(set = 0, binding = 1) buffer Lights { vec4 lightsCount; PointLight pointLights[]; } lights;
+readonly layout(set = 0, binding = 0) uniform Camera { mat4 mat; vec4 camPos; } camera;
+readonly layout(set = 0, binding = 1) buffer Lights { vec4 lightsCount; PointLight pointLights[]; } lights;
 
-layout(set = 2, binding = 0) buffer MaterialProperties { MaterialValues material[]; } materialProps;
+readonly layout(set = 2, binding = 0) buffer MaterialProperties { MaterialValues material[]; } materialProps;
 layout(set = 3, binding = 0) uniform sampler2D albedoTex;
 layout(set = 3, binding = 1) uniform sampler2D metallicTex;
 layout(set = 3, binding = 2) uniform sampler2D normalTex;
