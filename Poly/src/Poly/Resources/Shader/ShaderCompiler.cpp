@@ -2,6 +2,7 @@
 #include "ShaderCompiler.h"
 
 #include "Poly/Resources/GLSLang.h"
+#include "Poly/Resources/IOManager.h"
 
 #include <fstream>
 
@@ -9,11 +10,20 @@ namespace Poly
 {
 	const std::vector<byte> ShaderCompiler::CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage)
 	{
+		if (IOManager::GetFileExtension(filename) == "spv")
+		{ 
+			std::ifstream file(folder + filename, std::ios_base::binary);
+
+			std::string spvFile((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+			std::vector<byte> correctType = std::vector<byte>(reinterpret_cast<byte*>(spvFile.data()), reinterpret_cast<byte*>(spvFile.data()) + spvFile.length());
+			return correctType;
+		}
+
 		EShLanguage shaderType = ConvertShaderStageGLSLang(shaderStage);
 
-		// Load and transfer content to string
 		std::ifstream file(folder + filename);
 
+		// Load and transfer content to string
 		POLY_VALIDATE(file.is_open(), "Failed to open shader file: {0} \n at path: {1}", filename, folder);
 
 		const std::string inputGLSL((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -21,12 +31,13 @@ namespace Poly
 
 		// Setup glslang shader
 		glslang::TShader shader(shaderType);
+		shader.setDebugInfo(true);
 
 		shader.setStrings(&pInputCString, 1);
 
 		// Setup resources (might save values elsewhere or as constants)
 		int clientInputSemanticsVersion = 100;
-		glslang::EShTargetClientVersion vulkanClientVersion	= glslang::EShTargetVulkan_1_2; // VULKAN 1.2 (latest)
+		glslang::EShTargetClientVersion vulkanClientVersion	= glslang::EShTargetVulkan_1_3; // VULKAN 1.2 (latest)
 		glslang::EShTargetLanguageVersion targetVersion		= glslang::EShTargetSpv_1_5; // SPV 1.5 (latest)
 		const TBuiltInResource* pResources					= GetDefaultBuiltInResources();
 		EShMessages messages								= static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDefault);
@@ -59,6 +70,7 @@ namespace Poly
 		std::vector<uint32_t> sprirv;
 		spv::SpvBuildLogger logger;
 		glslang::SpvOptions spvOptions;
+		spvOptions.generateDebugInfo = true;
 		glslang::GlslangToSpv(*program.getIntermediate(shaderType), sprirv, &logger, &spvOptions);
 
 		const uint32_t sourceSize = static_cast<uint32_t>(sprirv.size()) * sizeof(uint32_t);
