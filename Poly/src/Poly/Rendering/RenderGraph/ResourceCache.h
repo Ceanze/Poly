@@ -13,11 +13,12 @@ namespace Poly
 	private:
 		struct ResourceData
 		{
-			std::pair<uint32, uint32>	Lifetime		= {0, 0};
-			Ref<Resource>				pResource		= nullptr;
-			ResourceGUID				ResourceGUID	= ResourceGUID::Invalid();
-			PassField					PassField		= {};
-			bool						IsOutput		= false;
+			std::pair<uint32, uint32>	Lifetime			= {0, 0};
+			Ref<Resource>				pResource			= nullptr;
+			ResourceGUID				ResourceGUID		= ResourceGUID::Invalid();
+			PassField					PassField			= {};
+			bool						IsOutput			= false;
+			bool						IsBackbufferBound	= false;
 		};
 
 	public:
@@ -66,6 +67,11 @@ namespace Poly
 		void AllocateResources();
 
 		/**
+		* Reallocate the previously registed backbuffer bound resources, needed when a resize has happened
+		*/
+		void ReallocateBackbufferBoundResources();
+
+		/**
 		 * Get a resource's existance
 		 * @param resourceGUID - resource name
 		 *
@@ -111,6 +117,7 @@ namespace Poly
 
 	private:
 		void CalcLifetime(std::pair<uint32, uint32>& lifetime, uint32 newTimepoint);
+		void AllocateResource(ResourceData& resourceData);
 
 		RenderGraphDefaultParams m_DefaultParams;
 

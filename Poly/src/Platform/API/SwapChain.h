@@ -23,6 +23,18 @@ namespace Poly
 
 	};
 
+	enum class PresentResult
+	{
+		// Normal, expected result
+		SUCCESS,
+
+		// Swapchain failed to present for unknown reason (validaton layer error should clarify)
+		FAIL,
+
+		// Swapchain has been recreated, probably due to a resize of the window
+		RECREATED_SWAPCHAIN
+	};
+
 	class SwapChain
 	{
 	public:
@@ -46,7 +58,7 @@ namespace Poly
 		 * @param commandBufers - (optional) Additional buffers to submit before presentation
 		 * @param pWaitSemaphore - (optional) Semaphore to wait on before present
 		 */
-		virtual void Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) = 0;
+		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) = 0;
 
 		/**
 		 * Get the texture

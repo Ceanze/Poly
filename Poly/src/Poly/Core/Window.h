@@ -25,16 +25,20 @@ namespace Poly {
 
 		GLFWwindow* GetNative() const;
 
+		void AddWindowResizeCallback(std::function<void(int width, int height)>&& callback);
+
 	private:
 		unsigned m_Height = 720;
 		unsigned m_Width = 1280;
 		std::string m_Title = "";
 		GLFWwindow* m_pWindow = nullptr;
+		std::vector<std::function<void(int, int)>> m_ResizeCallbacks;
 
 		// Callbacks
 		static void CloseWindowCallback(GLFWwindow* pWindow);
 		static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods);
 		static void MouseMoveCallback(GLFWwindow* pWindow, double x, double y);
 		static void MouseButtonCallback(GLFWwindow* pWindow, int button, int action, int mods);
+		static void FrameBufferSizeCallback(GLFWwindow* pWindow, int width, int height);
 	};
 }

@@ -15,27 +15,17 @@ namespace Poly
 {
 	PVKSwapChain::~PVKSwapChain()
 	{
-		for (uint32 i = 0; i < p_SwapchainDesc.BufferCount; i++)
-		{
-			m_TextureViews[i].reset();
-			m_Textures[i].reset();
-
-			delete m_ImagesInFlight[i];
-			delete m_RenderSemaphores[i];
-			delete m_AcquireSemaphores[i];
-		}
-		m_TextureViews.clear();
-		m_Textures.clear();
 		m_ImagesInFlight.clear();
 		m_RenderSemaphores.clear();
 		m_AcquireSemaphores.clear();
-
-		vkDestroySwapchainKHR(PVKInstance::GetDevice(), m_SwapChain, nullptr);
+		Cleanup();
 	}
 
 	void PVKSwapChain::Init(const SwapChainDesc* pDesc)
 	{
 		p_SwapchainDesc = *pDesc;
+
+		p_SwapchainDesc.pWindow->AddWindowResizeCallback([this](int, int) { m_ResizeRequired = true; });
 
 		CreateSyncObjects();
 		CreateSwapChain();
@@ -48,26 +38,29 @@ namespace Poly
 
 	}
 
-	void PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore)
+	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore)
 	{
-		m_ImagesInFlight[m_FrameIndex]->Reset();
+		if (!m_ResizeRequired)
+		{
+			m_ImagesInFlight[m_FrameIndex]->Reset();
 
-		p_SwapchainDesc.pQueue->Submit(commandBuffers, pWaitSemaphore, m_RenderSemaphores[m_FrameIndex], m_ImagesInFlight[m_FrameIndex]);
+			p_SwapchainDesc.pQueue->Submit(commandBuffers, pWaitSemaphore, m_RenderSemaphores[m_FrameIndex].get(), m_ImagesInFlight[m_FrameIndex].get());
 
-		VkSemaphore waitSemaphore = m_RenderSemaphores[m_FrameIndex]->GetNativeVK();
-		VkSwapchainKHR swapChains[] = { m_SwapChain };
+			VkSemaphore waitSemaphore = m_RenderSemaphores[m_FrameIndex]->GetNativeVK();
+			VkSwapchainKHR swapChains[] = { m_SwapChain };
 
-		VkPresentInfoKHR presentInfo = {};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &waitSemaphore;
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &m_ImageIndex;
-		presentInfo.pResults = nullptr; // Optional
-		PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
+			VkPresentInfoKHR presentInfo = {};
+			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			presentInfo.waitSemaphoreCount = 1;
+			presentInfo.pWaitSemaphores = &waitSemaphore;
+			presentInfo.swapchainCount = 1;
+			presentInfo.pSwapchains = swapChains;
+			presentInfo.pImageIndices = &m_ImageIndex;
+			presentInfo.pResults = nullptr; // Optional
+			PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
+		}
 
-		AcquireNextImage();
+		return AcquireNextImage();
 	}
 
 	void PVKSwapChain::CreateSwapChain()
@@ -117,6 +110,13 @@ namespace Poly
 
 		// Create the swap chain
 		PVK_CHECK(vkCreateSwapchainKHR(PVKInstance::GetDevice(), &createInfo, nullptr, &m_SwapChain), "Failed to create swap chain!");
+	}
+
+	void PVKSwapChain::Cleanup()
+	{
+		m_TextureViews.clear();
+		m_Textures.clear();
+		vkDestroySwapchainKHR(PVKInstance::GetDevice(), m_SwapChain, nullptr);
 	}
 
 	SwapChainSupportDetails PVKSwapChain::QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device)
@@ -254,26 +254,48 @@ namespace Poly
 
 		for (uint32 i = 0; i < p_SwapchainDesc.BufferCount; i++)
 		{
-			m_RenderSemaphores[i] = new PVKSemaphore();
+			m_RenderSemaphores[i] = CreateUnique<PVKSemaphore>();
 			m_RenderSemaphores[i]->Init();
-			m_AcquireSemaphores[i] = new PVKSemaphore();
+			m_AcquireSemaphores[i] = CreateUnique<PVKSemaphore>();
 			m_AcquireSemaphores[i]->Init();
 
-			m_ImagesInFlight[i] = new PVKFence();
+			m_ImagesInFlight[i] = CreateUnique<PVKFence>();
 			m_ImagesInFlight[i]->Init(FFenceFlag::SIGNALED);
 		}
 	}
 
-	void PVKSwapChain::AcquireNextImage()
+	PresentResult PVKSwapChain::AcquireNextImage()
 	{
 		m_FrameIndex = (m_FrameIndex + 1) % p_SwapchainDesc.BufferCount;
 
 		m_ImagesInFlight[m_FrameIndex]->Wait(UINT64_MAX);
 
-		PVK_CHECK(vkAcquireNextImageKHR(PVKInstance::GetDevice(), m_SwapChain, UINT64_MAX, m_AcquireSemaphores[m_FrameIndex]->GetNativeVK(), VK_NULL_HANDLE, &m_ImageIndex), "Failed to acquire image!");
+		VkResult result = vkAcquireNextImageKHR(PVKInstance::GetDevice(), m_SwapChain, UINT64_MAX, m_AcquireSemaphores[m_FrameIndex]->GetNativeVK(), VK_NULL_HANDLE, &m_ImageIndex);
+		if (result == VkResult::VK_ERROR_OUT_OF_DATE_KHR || result == VkResult::VK_SUBOPTIMAL_KHR || m_ResizeRequired) // VK_SUBOPTIMAL_KHR could be considered successful, currently it is not, and a recreate will be done for those too
+		{
+			m_ResizeRequired = false;
+			RecreateSwapChain();
+			return PresentResult::RECREATED_SWAPCHAIN;
+		}
+
+		PVK_CHECK(result, "Failed to acquire image!");
 
 		m_AcquireSemaphores[m_FrameIndex]->AddWaitStageMask(FPipelineStage::TOP_OF_PIPE);
-		reinterpret_cast<PVKCommandQueue*>(p_SwapchainDesc.pQueue)->AddWaitSemaphore(m_AcquireSemaphores[m_FrameIndex]);
+		reinterpret_cast<PVKCommandQueue*>(p_SwapchainDesc.pQueue)->AddWaitSemaphore(m_AcquireSemaphores[m_FrameIndex].get());
+
+		return PresentResult::SUCCESS;
+	}
+
+	void PVKSwapChain::RecreateSwapChain()
+	{
+		vkDeviceWaitIdle(PVKInstance::GetDevice());
+
+		Cleanup();
+
+		CreateSyncObjects();
+		CreateSwapChain();
+		CreateImageViews();
+		AcquireNextImage();
 	}
 
 }

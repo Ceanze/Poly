@@ -42,11 +42,13 @@ public:
 
 	TestLayer()
 	{
+		Poly::Window* pWindow = Poly::RenderAPI::GetWindow();
 		pCamera = new Poly::Camera();
-		pCamera->SetAspect(1280.f / 720.f);
+		pCamera->SetAspect(static_cast<float>(pWindow->GetWidth()) / pWindow->GetHeight());
 		pCamera->SetMouseSense(2.f);
 		pCamera->SetMovementSpeed(1.f);
 		pCamera->SetSprintSpeed(5.f);
+		pWindow->AddWindowResizeCallback([this](int width, int height) {pCamera->SetAspect(static_cast<float>(width) / height); });
 
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
@@ -91,12 +93,12 @@ public:
 
 		m_pProgram->SetScene(m_pScene);
 
-		Poly::SceneSerializer sceneSerializer(m_pScene);
-		sceneSerializer.Deserialize("CubeScene.polyscene");
+		//Poly::SceneSerializer sceneSerializer(m_pScene);
+		//sceneSerializer.Deserialize("CubeScene.polyscene");
 
-		 //Poly::Entity cubeEntity = m_pScene->CreateEntity();
+		 Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		//Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
 		m_pRenderer->SetRenderGraph(m_pProgram);

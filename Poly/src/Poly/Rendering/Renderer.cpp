@@ -27,12 +27,7 @@ namespace Poly
 		};
 		m_pSwapChain = RenderAPI::CreateSwapChain(&swapChainDesc);
 
-		m_BackbufferResources.reserve(BUFFER_COUNT);
-		for (uint32 i = 0; i < BUFFER_COUNT; i++)
-		{
-			std::string name = "Backbuffer " + std::to_string(i);
-			m_BackbufferResources.push_back(Resource::Create(m_pSwapChain->GetTexture(i), m_pSwapChain->GetTextureView(i), name));
-		}
+		CreateBackbufferResources();
 	}
 
 	Renderer::~Renderer()
@@ -56,6 +51,24 @@ namespace Poly
 		m_pRenderGraphProgram->Execute(m_pSwapChain->GetBackbufferIndex());
 
 		std::vector<CommandBuffer*> emptyCommandbuffers;
-		m_pSwapChain->Present(emptyCommandbuffers, nullptr);
+		PresentResult res = m_pSwapChain->Present(emptyCommandbuffers, nullptr);
+		if (res == PresentResult::RECREATED_SWAPCHAIN)
+			CreateBackbufferResources();
+	}
+
+	void Renderer::CreateBackbufferResources()
+	{
+		const bool recreateResources = !m_BackbufferResources.empty();
+
+		m_BackbufferResources.clear();
+		m_BackbufferResources.reserve(BUFFER_COUNT);
+		for (uint32 i = 0; i < BUFFER_COUNT; i++)
+		{
+			std::string name = "Backbuffer " + std::to_string(i);
+			m_BackbufferResources.push_back(Resource::Create(m_pSwapChain->GetTexture(i), m_pSwapChain->GetTextureView(i), name));
+		}
+
+		if (recreateResources && m_pRenderGraphProgram)
+			m_pRenderGraphProgram->RecreateResources();
 	}
 }
