@@ -330,6 +330,12 @@ namespace Poly
 		m_pResourceCache->SetBackbuffer(pResource);
 	}
 
+	void RenderGraphProgram::RecreateResources()
+	{
+		m_Framebuffers.clear();
+		m_pResourceCache->ReallocateBackbufferBoundResources();
+	}
+
 	void RenderGraphProgram::SetScene(const Ref<Scene>& pScene)
 	{
 		m_pScene = pScene;

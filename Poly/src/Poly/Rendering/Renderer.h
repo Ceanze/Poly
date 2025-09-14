@@ -29,6 +29,9 @@ namespace Poly
 		// void ResizeCallback()
 
 	private:
+		void CreateBackbufferResources();
+
+		bool						m_HandleResize = false;
 		Ref<SwapChain>				m_pSwapChain;
 		Ref<RenderGraphProgram>		m_pRenderGraphProgram;
 		std::vector<Ref<Resource>>	m_BackbufferResources;

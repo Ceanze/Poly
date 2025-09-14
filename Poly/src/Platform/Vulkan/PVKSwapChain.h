@@ -10,7 +10,8 @@ namespace Poly
 	class PVKFence;
 	class PVKSemaphore;
 
-	struct SwapChainSupportDetails {
+	struct SwapChainSupportDetails
+	{
 		VkSurfaceCapabilitiesKHR capabilities;
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
@@ -29,7 +30,7 @@ namespace Poly
 		virtual void Init(const SwapChainDesc* pDesc) override final;
 
 		virtual void Resize(uint32 width, uint32 height) override final;
-		virtual void Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) override final;
+		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) override final;
 
 		uint64			GetNative() const { return reinterpret_cast<uint64>(m_SwapChain); }
 		VkSwapchainKHR	GetNativeVK() const { return m_SwapChain; }
@@ -45,25 +46,28 @@ namespace Poly
 
 	private:
 		void CreateSwapChain();
+		void Cleanup();
 		SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		void CreateImageViews();
 		void CreateSyncObjects();
-		void AcquireNextImage();
+		PresentResult AcquireNextImage();
+		void RecreateSwapChain();
 
-		VkSwapchainKHR						m_SwapChain		= VK_NULL_HANDLE;
-		VkFormat							m_FormatVK		= VK_FORMAT_UNDEFINED;
-		VkExtent2D							m_Extent		= {0, 0};
-		uint32								m_ImageIndex	= 0;
-		uint32								m_FrameIndex	= 0;
+		VkSwapchainKHR						m_SwapChain			= VK_NULL_HANDLE;
+		VkFormat							m_FormatVK			= VK_FORMAT_UNDEFINED;
+		VkExtent2D							m_Extent			= {0, 0};
+		uint32								m_ImageIndex		= 0;
+		uint32								m_FrameIndex		= 0;
 		std::vector<Ref<PVKTexture>>		m_Textures;
 		std::vector<Ref<PVKTextureView>>	m_TextureViews;
+		bool								m_ResizeRequired	= false;
 
 		// Sync
-		std::vector<PVKSemaphore*>		m_RenderSemaphores;
-		std::vector<PVKSemaphore*>		m_AcquireSemaphores;
-		std::vector<PVKFence*>			m_ImagesInFlight;
+		std::vector<Unique<PVKSemaphore>>		m_RenderSemaphores;
+		std::vector<Unique<PVKSemaphore>>		m_AcquireSemaphores;
+		std::vector<Unique<PVKFence>>			m_ImagesInFlight;
 	};
 }

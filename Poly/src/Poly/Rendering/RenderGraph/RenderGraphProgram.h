@@ -101,6 +101,11 @@ namespace Poly
 		void SetBackbuffer(Ref<Resource> pResource);
 
 		/**
+		* USED BY THE RENDERER - Used when window is resized
+		*/
+		void RecreateResources();
+
+		/**
 		 * Sets the active scene that can be accessed with the render data in render graph passes to be rendered
 		 * @param pScene - scene to target
 		 */

@@ -19,8 +19,7 @@ namespace Poly
 		// Tell GLFW not to make an OpenGL context
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-		// Disable window resize until vulkan renderer can handle it
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		m_pWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 		if (!m_pWindow) {
@@ -37,11 +36,14 @@ namespace Poly
 
 		glfwMakeContextCurrent(m_pWindow);
 
+		glfwSetWindowUserPointer(m_pWindow, this);
+
 		// Set callbacks
 		glfwSetWindowCloseCallback(m_pWindow, CloseWindowCallback);
 		glfwSetKeyCallback(m_pWindow, KeyCallback);
 		glfwSetCursorPosCallback(m_pWindow, MouseMoveCallback);
 		glfwSetMouseButtonCallback(m_pWindow, MouseButtonCallback);
+		glfwSetFramebufferSizeCallback(m_pWindow, FrameBufferSizeCallback);
 	}
 
 	Window::~Window()
@@ -63,6 +65,11 @@ namespace Poly
 	GLFWwindow* Window::GetNative() const
 	{
 		return m_pWindow;
+	}
+
+	void Window::AddWindowResizeCallback(std::function<void(int width, int height)>&& callback)
+	{
+		m_ResizeCallbacks.emplace_back(std::move(callback));
 	}
 
 	void Window::CloseWindowCallback(GLFWwindow* pWindow)
@@ -111,5 +118,16 @@ namespace Poly
 			Input::SetKeyPressed(keyCode);
 		else if (action == GLFW_RELEASE)
 			Input::SetKeyReleased(keyCode);
+	}
+
+	void Window::FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height)
+	{
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+		
+		pWindow->m_Width = width;
+		pWindow->m_Height = height;
+
+		for (const auto& callback : pWindow->m_ResizeCallbacks)
+			callback(width, height);
 	}
 }
