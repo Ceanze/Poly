@@ -124,6 +124,12 @@ namespace Poly
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
 		
+		while (width == 0 || height == 0)
+		{
+			glfwGetFramebufferSize(pGLFWWindow, &width, &height);
+			glfwWaitEvents();
+		}
+
 		pWindow->m_Width = width;
 		pWindow->m_Height = height;
 
