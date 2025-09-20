@@ -7,6 +7,7 @@
 #include "Timestamp.h"
 #include "Application.h"
 
+#include "Poly/Core/Input/InputManager.h"
 #include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
@@ -43,6 +44,8 @@ namespace Poly
 
 			// Every frame
 			{
+				InputManager::Update();
+
 				glfwPollEvents();
 				pApp->Update(dt);
 			}

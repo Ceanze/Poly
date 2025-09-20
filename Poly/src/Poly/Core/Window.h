@@ -10,7 +10,15 @@ struct GLFWwindow;
  * As with all "public" classes they should not use any platform specific function/members
  */
 
-namespace Poly {
+namespace Poly
+{
+	enum class EMouseMode
+	{
+		NORMAL,
+		HIDDEN,
+		DISABLED
+	};
+
 	class Window
 	{
 	public:
@@ -30,6 +38,8 @@ namespace Poly {
 
 		void ToggleBorderlessFullscreen(bool enable);
 		void ToggleExclusiveFullscreen(bool enable);
+
+		void SetMouseMode(EMouseMode mouseMode);
 
 		unsigned GetWidth() const;
 		unsigned GetHeight() const;
