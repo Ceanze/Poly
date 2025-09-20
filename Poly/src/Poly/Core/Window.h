@@ -11,14 +11,25 @@ struct GLFWwindow;
  */
 
 namespace Poly {
-
 	class Window
 	{
+	public:
+		struct Properties
+		{
+			int Height = 0;
+			int Width = 0;
+			int PosX = 0;
+			int PosY = 0;
+		};
+
 	public:
 		Window(int width, int height, const std::string& name);
 		~Window();
 		Window(const Window&) = delete;
 		Window& operator=(const Window&) = delete;
+
+		void ToggleBorderlessFullscreen(bool enable);
+		void ToggleExclusiveFullscreen(bool enable);
 
 		unsigned GetWidth() const;
 		unsigned GetHeight() const;
@@ -28,17 +39,20 @@ namespace Poly {
 		void AddWindowResizeCallback(std::function<void(int width, int height)>&& callback);
 
 	private:
-		unsigned m_Height = 720;
-		unsigned m_Width = 1280;
+		Properties m_CurrentProperties;
+		Properties m_SavedProperties;
 		std::string m_Title = "";
 		GLFWwindow* m_pWindow = nullptr;
 		std::vector<std::function<void(int, int)>> m_ResizeCallbacks;
 
+		void SetFullscreen(GLFWwindow* window, bool enable, bool exclusive);
+
 		// Callbacks
-		static void CloseWindowCallback(GLFWwindow* pWindow);
-		static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods);
-		static void MouseMoveCallback(GLFWwindow* pWindow, double x, double y);
-		static void MouseButtonCallback(GLFWwindow* pWindow, int button, int action, int mods);
-		static void FrameBufferSizeCallback(GLFWwindow* pWindow, int width, int height);
+		static void CloseWindowCallback(GLFWwindow* pGLFWWindow);
+		static void KeyCallback(GLFWwindow* pGLFWWindow, int key, int scancode, int action, int mods);
+		static void MouseMoveCallback(GLFWwindow* pGLFWWindow, double x, double y);
+		static void MouseButtonCallback(GLFWwindow* pGLFWWindow, int button, int action, int mods);
+		static void FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height);
+		static void WindowPosCallback(GLFWwindow* pGLFWWindow, int posX, int posY);
 	};
 }
