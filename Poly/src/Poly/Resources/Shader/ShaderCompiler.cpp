@@ -31,7 +31,6 @@ namespace Poly
 
 		// Setup glslang shader
 		glslang::TShader shader(shaderType);
-		shader.setDebugInfo(true);
 
 		shader.setStrings(&pInputCString, 1);
 
@@ -70,7 +69,6 @@ namespace Poly
 		std::vector<uint32_t> sprirv;
 		spv::SpvBuildLogger logger;
 		glslang::SpvOptions spvOptions;
-		spvOptions.generateDebugInfo = true;
 		glslang::GlslangToSpv(*program.getIntermediate(shaderType), sprirv, &logger, &spvOptions);
 
 		const uint32_t sourceSize = static_cast<uint32_t>(sprirv.size()) * sizeof(uint32_t);
