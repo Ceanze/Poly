@@ -1,7 +1,9 @@
 #include "polypch.h"
+
 #include "Window.h"
 #include "Poly/Events/EventBus.h"
-#include "Poly/Core/Input/Input.h"
+#include "Poly/Core/Input/InputManager.h"
+#include "Poly/Core/Input/KeyCode.h"
 #include "Platform/GLFW/GLFWTypes.h"
 
 #define GLFW_INCLUDE_VULKAN
@@ -61,6 +63,19 @@ namespace Poly
 	void Window::ToggleExclusiveFullscreen(bool enable)
 	{
 		SetFullscreen(m_pWindow, enable, true);
+	}
+
+	void Window::SetMouseMode(EMouseMode mouseMode)
+	{
+		int glfwMouseMode = 0;
+		switch (mouseMode)
+		{
+		case EMouseMode::NORMAL: glfwMouseMode = GLFW_CURSOR_NORMAL; break;
+		case EMouseMode::HIDDEN: glfwMouseMode = GLFW_CURSOR_HIDDEN; break;
+		case EMouseMode::DISABLED: glfwMouseMode = GLFW_CURSOR_DISABLED; break;
+		}
+
+		glfwSetInputMode(m_pWindow, GLFW_CURSOR, glfwMouseMode);
 	}
 
 	unsigned Window::GetWidth() const
@@ -123,30 +138,16 @@ namespace Poly
 		EKey polyKey = ConvertToPolyKey(key);
 		FKeyModifier polyMod = ConvertToPolyModifier(mods);
 		KeyCode keyCode(polyKey, polyMod);
+
 		if (action == GLFW_PRESS)
-			Input::SetKeyPressed(keyCode);
+			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::PRESS);
 		else if (action == GLFW_RELEASE)
-			Input::SetKeyReleased(keyCode);
+			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::RELEASE);
 	}
 
 	void Window::MouseMoveCallback(GLFWwindow* pGLFWWindow, double x, double y)
 	{
-		// TODO: This function should only update the necessary values!
-
-		// Only record mouse movement when toggled
-		if (Input::IsKeyToggled(KeyCode(EKey::C))) {
-			int width, height;
-			glfwGetWindowSize(pGLFWWindow, &width, &height);
-			glfwSetCursorPos(pGLFWWindow, static_cast<double>(width) * 0.5, static_cast<double>(height) * 0.5);
-			glfwSetInputMode(pGLFWWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-			// Send cursor offset from centre of window
-			Input::SetMouseDelta(x - static_cast<double>(width) * 0.5, y - static_cast<double>(height) * 0.5);
-		}
-		else {
-			glfwSetInputMode(pGLFWWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			Input::SetMouseDelta(0.0, 0.0);
-		}
-		Input::SetMousePosition(x, y);
+		InputManager::MouseCallback(x, y);
 	}
 
 	void Window::MouseButtonCallback(GLFWwindow* pGLFWWindow, int button, int action, int mods)
@@ -154,10 +155,11 @@ namespace Poly
 		EKey polyKey = ConvertToPolyKey(button);
 		FKeyModifier polyMod = ConvertToPolyModifier(mods);
 		KeyCode keyCode(polyKey, polyMod);
+
 		if (action == GLFW_PRESS)
-			Input::SetKeyPressed(keyCode);
+			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::PRESS);
 		else if (action == GLFW_RELEASE)
-			Input::SetKeyReleased(keyCode);
+			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::RELEASE);
 	}
 
 	void Window::FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height)

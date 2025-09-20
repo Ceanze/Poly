@@ -2,6 +2,12 @@
 
 namespace Poly
 {
+	enum class EKeyAction : uint8
+	{
+		PRESS,
+		RELEASE
+	};
+
 	enum class FKeyModifier : uint16
 	{
 		NONE		= FLAG(0),
@@ -147,12 +153,12 @@ namespace Poly
 		GAMEPAD_BACK			= 128,
 		GAMEPAD_GUIDE			= 129,
 		GAMEPAD_START			= 130,
-		GAMEPAD_LEFT_STICK		= 131, // Xbox naming
-		GAMEPAD_RIGHT_STICK		= 132, // Xbox naming
+		GAMEPAD_LEFT_STICK		= 131,
+		GAMEPAD_RIGHT_STICK		= 132,
 		GAMEPAD_LEFT_BUMPER		= 133, // Xbox naming
 		GAMEPAD_RIGHT_BUMPER	= 134, // Xbox naming
-		GAMEPAD_LEFT_TRIGGER	= 135,
-		GAMEPAD_RIGHT_TRIGGER	= 136,
+		GAMEPAD_LEFT_TRIGGER	= 135, // Xbox naming
+		GAMEPAD_RIGHT_TRIGGER	= 136, // Xbox naming
 		GAMEPAD_L1				= GAMEPAD_LEFT_BUMPER,		// PlayStation naming
 		GAMEPAD_L2				= GAMEPAD_LEFT_TRIGGER,		// PlayStation naming
 		GAMEPAD_R1				= GAMEPAD_RIGHT_BUMPER,		// PlayStation naming

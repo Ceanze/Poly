@@ -15,7 +15,7 @@
 #include "Poly/Resources/ResourceManager.h"
 
 #include <imgui/imgui.h>
-#include "Poly/Core/Input/Input.h"
+#include "Poly/Core/Input/InputManager.h"
 
 #include "Poly/Scene/SceneSerializer.h"
 
@@ -90,7 +90,6 @@ public:
 
 		//m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
 
-
 		m_pProgram->SetScene(m_pScene);
 
 		//Poly::SceneSerializer sceneSerializer(m_pScene);
@@ -105,14 +104,20 @@ public:
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+		pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(width, height); });
 	};
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(Poly::Input::GetMousePosition().x, Poly::Input::GetMousePosition().y);
-		io.MouseDown[0] = Poly::Input::IsKeyPressed(Poly::KeyCode(Poly::EKey::MOUSE_LEFT));
-		io.MouseDown[1] = Poly::Input::IsKeyPressed(Poly::KeyCode(Poly::EKey::MOUSE_RIGHT));
+		io.MousePos = ImVec2(Poly::InputManager::GetMouseX(), Poly::InputManager::GetMouseY());
+		io.MouseDown[0] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_LEFT);
+		io.MouseDown[1] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_RIGHT);
+
+		if (Poly::InputManager::IsKeyPressed(Poly::EKey::MOUSE_RIGHT))
+			Poly::RenderAPI::GetWindow()->SetMouseMode(Poly::EMouseMode::DISABLED);
+		else if (Poly::InputManager::IsKeyReleased(Poly::EKey::MOUSE_RIGHT))
+			Poly::RenderAPI::GetWindow()->SetMouseMode(Poly::EMouseMode::NORMAL);
 
 		ImGui::NewFrame();
 

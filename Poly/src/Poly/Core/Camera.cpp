@@ -1,7 +1,7 @@
 #include "polypch.h"
 #include "Camera.h"
 
-#include "input/Input.h"
+#include "Poly/Core/Input/InputManager.h"
 #include <GLFW/glfw3.h>
 
 namespace Poly
@@ -25,28 +25,29 @@ namespace Poly
 
 	void Camera::Update(Timestamp dt)
 	{
-		glm::vec2 mouseDelta = Input::GetMouseDelta();
-
 		float dtSeconds = float(dt.Seconds());
 
-		m_Yaw += mouseDelta.x * dtSeconds * m_MouseSense;
-		m_Pitch += mouseDelta.y * dtSeconds * m_MouseSense;
+		if (InputManager::IsKeyDown(EKey::MOUSE_RIGHT))
+		{
+			m_Yaw += InputManager::GetMouseDeltaX() * dtSeconds * m_MouseSense;
+			m_Pitch += InputManager::GetMouseDeltaY() * dtSeconds * m_MouseSense;
+		}
 
 		float extraSpeed = 0.0f;
-		if (Input::IsKeyPressed(KeyCode(EKey::LSHIFT)))
+		if (InputManager::IsKeyDown(EKey::LSHIFT))
 			extraSpeed = m_SprintSpeed;
 
-		if (Input::IsKeyPressed(KeyCode(EKey::W)))
+		if (InputManager::IsKeyDown(EKey::W))
 			m_Pos += m_Forward * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(KeyCode(EKey::S)))
+		if (InputManager::IsKeyDown(EKey::S))
 			m_Pos -= m_Forward * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(KeyCode(EKey::A)))
+		if (InputManager::IsKeyDown(EKey::A))
 			m_Pos += m_Right * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(KeyCode(EKey::D)))
+		if (InputManager::IsKeyDown(EKey::D))
 			m_Pos -= m_Right * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(KeyCode(EKey::SPACE)))
+		if (InputManager::IsKeyDown(EKey::SPACE))
 			m_Pos += m_GlobalUp * dtSeconds * (m_MovementSpeed + extraSpeed);
-		if (Input::IsKeyPressed(KeyCode(EKey::LCTRL)))
+		if (InputManager::IsKeyDown(EKey::LCTRL))
 			m_Pos -= m_GlobalUp * dtSeconds * (m_MovementSpeed + extraSpeed);
 
 		UpdateView();
