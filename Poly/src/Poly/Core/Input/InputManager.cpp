@@ -17,26 +17,17 @@ namespace Poly
 
 	bool InputManager::IsKeyDown(EKey key)
 	{
-		const auto& currKeys = s_KeyProperties.CurrentKeys;
-		const auto itr = currKeys.find(key);
-
-		return itr != currKeys.end() && itr->second;
+		return s_KeyProperties.CurrentKeys[ENUM_CAST(EKey, key)];
 	}
 
 	bool InputManager::IsKeyPressed(EKey key)
 	{
-		const auto& prevKeys = s_KeyProperties.PreviousKeys;
-		const auto prevKeysItr = prevKeys.find(key);
-
-		return IsKeyDown(key) && (prevKeysItr == prevKeys.end() || !prevKeysItr->second);
+		return IsKeyDown(key) && !s_KeyProperties.PreviousKeys[ENUM_CAST(EKey, key)];
 	}
 
 	bool InputManager::IsKeyReleased(EKey key)
 	{
-		const auto& prevKeys = s_KeyProperties.PreviousKeys;
-		const auto prevKeysItr = prevKeys.find(key);
-
-		return !IsKeyDown(key) && (prevKeysItr != prevKeys.end() && prevKeysItr->second);
+		return !IsKeyDown(key) && s_KeyProperties.PreviousKeys[ENUM_CAST(EKey, key)];
 	}
 
 	bool InputManager::IsModifier(FKeyModifier mod)
@@ -76,7 +67,7 @@ namespace Poly
 
 	void InputManager::KeyCallback(EKey key, FKeyModifier mods, EKeyAction action)
 	{
-		s_KeyProperties.CurrentKeys[key] = action == EKeyAction::PRESS;
+		s_KeyProperties.CurrentKeys[ENUM_CAST(EKey, key)] = action == EKeyAction::PRESS;
 		s_KeyProperties.CurrentMods = mods;
 	}
 

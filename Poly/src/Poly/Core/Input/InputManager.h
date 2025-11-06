@@ -2,6 +2,8 @@
 
 #include "Keys.h"
 
+#include <bitset>
+
 namespace Poly
 {
 	class InputManager
@@ -38,8 +40,8 @@ namespace Poly
 
 		struct KeyProperties
 		{
-			std::unordered_map<EKey, bool> CurrentKeys;
-			std::unordered_map<EKey, bool> PreviousKeys;
+			std::bitset<256> CurrentKeys;
+			std::bitset<256> PreviousKeys;
 			FKeyModifier CurrentMods;
 		};
 
