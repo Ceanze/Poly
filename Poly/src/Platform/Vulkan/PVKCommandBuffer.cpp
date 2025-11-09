@@ -187,8 +187,6 @@ namespace Poly
 
 	void PVKCommandBuffer::SetViewport(const ViewportDesc* pViewport)
 	{
-		// TODO: Allow for multiple viewports
-
 		VkViewport viewport = {};
 		viewport.height		= pViewport->Height;
 		viewport.width		= pViewport->Width;
@@ -198,6 +196,24 @@ namespace Poly
 		viewport.maxDepth	= pViewport->MaxDepth;
 
 		vkCmdSetViewport(m_Buffer, 0, 1, &viewport);
+	}
+
+	void PVKCommandBuffer::SetViewports(const std::vector<ViewportDesc>& viewports)
+	{
+		std::vector<VkViewport> vkViewports;
+		vkViewports.reserve(viewports.size());
+		for (const auto& viewport : viewports)
+		{
+			VkViewport vkViewport = {};
+			vkViewport.height	= viewport.Height;
+			vkViewport.width	= viewport.Width;
+			vkViewport.x		= viewport.PosX;
+			vkViewport.y		= viewport.PosY;
+			vkViewport.minDepth	= viewport.MinDepth;
+			vkViewport.maxDepth	= viewport.MaxDepth;
+		}
+
+		vkCmdSetViewport(m_Buffer, 0, vkViewports.size(), vkViewports.data());
 	}
 
 	void PVKCommandBuffer::SetScissor(const ScissorDesc* pScissor)

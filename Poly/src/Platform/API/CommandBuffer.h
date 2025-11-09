@@ -179,6 +179,12 @@ namespace Poly
 		virtual void SetViewport(const ViewportDesc* pViewport) = 0;
 
 		/**
+		 * Set dynamic viewports
+		 * @param viewports - viewport structs in a vector
+		 */
+		virtual void SetViewports(const std::vector<ViewportDesc>& viewports) = 0;
+
+		/**
 		 * Set dynamic scissor rect
 		 * @param scissor - scissor struct
 		 */
