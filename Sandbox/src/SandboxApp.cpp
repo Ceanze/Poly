@@ -113,6 +113,8 @@ public:
 		io.MousePos = ImVec2(Poly::InputManager::GetMouseX(), Poly::InputManager::GetMouseY());
 		io.MouseDown[0] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_LEFT);
 		io.MouseDown[1] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_RIGHT);
+		io.MouseWheel = Poly::InputManager::GetScrollDeltaY();
+		io.MouseWheelH = Poly::InputManager::GetScrollDeltaX();
 
 		if (Poly::InputManager::IsKeyPressed(Poly::EKey::MOUSE_RIGHT))
 			Poly::RenderAPI::GetWindow()->SetMouseMode(Poly::EMouseMode::DISABLED);
