@@ -39,6 +39,8 @@ namespace Poly
 
 		virtual void SetViewport(const ViewportDesc* pViewport) override final;
 
+		virtual void SetViewports(const std::vector<ViewportDesc>& viewports) override final;
+
 		virtual void SetScissor(const ScissorDesc* pScissor) override final;
 
 		virtual void DrawInstanced(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance) override final;
