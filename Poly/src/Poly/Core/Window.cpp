@@ -45,6 +45,7 @@ namespace Poly
 		glfwSetKeyCallback(m_pWindow, KeyCallback);
 		glfwSetCursorPosCallback(m_pWindow, MouseMoveCallback);
 		glfwSetMouseButtonCallback(m_pWindow, MouseButtonCallback);
+		glfwSetScrollCallback(m_pWindow, MouseScrollCallback);
 		glfwSetFramebufferSizeCallback(m_pWindow, FrameBufferSizeCallback);
 		glfwSetWindowPosCallback(m_pWindow, WindowPosCallback);
 	}
@@ -160,6 +161,11 @@ namespace Poly
 			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::PRESS);
 		else if (action == GLFW_RELEASE)
 			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::RELEASE);
+	}
+
+	void Window::MouseScrollCallback(GLFWwindow* pGLFWWindow, double x, double y)
+	{
+		InputManager::ScrollCallback(x, y);
 	}
 
 	void Window::FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height)

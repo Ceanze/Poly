@@ -12,6 +12,7 @@
 #include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "Poly/Core/RenderAPI.h"
+#include "Poly/Core/Input/InputManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 
 #include <imgui.h>
@@ -20,13 +21,12 @@ namespace Poly
 {
 	ImGuiPass::ImGuiPass()
 	{
-		// TODO: Should probably not init ImGui here
 		ImGui::CreateContext();
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	}
 
 	ImGuiPass::~ImGuiPass()
 	{
-		// TODO: Should probably not destroy ImGui here
 		ImGui::DestroyContext();
 	}
 
