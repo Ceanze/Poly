@@ -1,14 +1,13 @@
 #include "polypch.h"
 #include "PVKInstance.h"
 #include "VulkanCommon.h"
-#include "Poly/Core/Window.h"
 
 #include <cstdint>
 // Required for VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
 #include <vulkan/vulkan_beta.h>
 
-// API Specific objects
 #include <cstring>
+#include <vector>
 
 #include "PVKFence.h"
 #include "PVKShader.h"
@@ -23,7 +22,6 @@
 #include "PVKCommandPool.h"
 #include "PVKCommandQueue.h"
 #include "PVKDescriptorSet.h"
-#include "PVKCommandBuffer.h"
 #include "PVKPipelineLayout.h"
 #include "PVKGraphicsPipeline.h"
 

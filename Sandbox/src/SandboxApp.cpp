@@ -7,10 +7,6 @@
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Rendering/RenderGraph/Passes/ImGuiPass.h"
 #include "Poly/Rendering/RenderGraph/Passes/PBRPass.h"
-#include "Poly/Core/RenderAPI.h"
-#include "Poly/Rendering/RenderGraph/Resource.h"
-#include "Platform/API/TextureView.h"
-#include "Platform/API/Texture.h"
 #include "Platform/API/Buffer.h"
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Core/Window.h"
@@ -105,17 +101,17 @@ public:
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
-		m_pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(width, height); });
+		m_pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height)); });
 	};
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(Poly::InputManager::GetMouseX(), Poly::InputManager::GetMouseY());
+		io.MousePos = ImVec2(static_cast<float>(Poly::InputManager::GetMouseX()), static_cast<float>(Poly::InputManager::GetMouseY()));
 		io.MouseDown[0] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_LEFT);
 		io.MouseDown[1] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_RIGHT);
-		io.MouseWheel = Poly::InputManager::GetScrollDeltaY();
-		io.MouseWheelH = Poly::InputManager::GetScrollDeltaX();
+		io.MouseWheel = static_cast<float>(Poly::InputManager::GetScrollDeltaY());
+		io.MouseWheelH = static_cast<float>(Poly::InputManager::GetScrollDeltaX());
 
 		if (Poly::InputManager::IsKeyPressed(Poly::EKey::MOUSE_RIGHT))
 			m_pWindow->SetMouseMode(Poly::EMouseMode::DISABLED);

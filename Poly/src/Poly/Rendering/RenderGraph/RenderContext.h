@@ -9,7 +9,7 @@ namespace Poly
 	class PipelineLayout;
 	class DescriptorCache;
 	class RenderGraphProgram;
-	class SceneBatch;
+	struct SceneBatch;
 
 	class RenderContext
 	{
