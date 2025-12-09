@@ -1,6 +1,7 @@
 #include "polypch.h"
 #include "PVKSwapChain.h"
 
+#include "VulkanCommon.h"
 #include "PVKFence.h"
 #include "PVKTexture.h"
 #include "PVKInstance.h"
@@ -27,6 +28,7 @@ namespace Poly
 
 		p_SwapchainDesc.pWindow->AddWindowResizeCallback([this](int, int) { m_ResizeRequired = true; });
 
+		SetupPresentQueue();
 		CreateSyncObjects();
 		CreateSwapChain();
 		CreateImageViews();
@@ -57,10 +59,19 @@ namespace Poly
 			presentInfo.pSwapchains = swapChains;
 			presentInfo.pImageIndices = &m_ImageIndex;
 			presentInfo.pResults = nullptr; // Optional
-			PVK_CHECK(vkQueuePresentKHR(PVKInstance::GetPresentQueue().queue, &presentInfo), "Failed to present image!");
+			PVK_CHECK(vkQueuePresentKHR(m_PresentQueue, &presentInfo), "Failed to present image!");
 		}
 
 		return AcquireNextImage();
+	}
+
+	void PVKSwapChain::SetupPresentQueue()
+	{
+		const std::vector<PVKQueue>& queues = PVKInstance::GetAllQueues();
+		uint32_t presentFamily = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface()).PresentFamily.value();
+		
+		const auto it = std::find_if(queues.begin(), queues.end(), [&presentFamily](const PVKQueue& queue) { return queue.queueFamilyIndex == presentFamily; });
+		m_PresentQueue = it->queue;
 	}
 
 	void PVKSwapChain::CreateSwapChain()
@@ -95,9 +106,9 @@ namespace Poly
 		createInfo.oldSwapchain = VK_NULL_HANDLE; // If swap chain is recreated during runtime, having the previous swap chain can help
 
 		// If we have several queues (rare) then specify on how to use them
-		QueueFamilyIndices indices = findQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
-		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-		if (indices.graphicsFamily != indices.presentFamily) {
+		QueueFamilyIndices indices = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
+		uint32_t queueFamilyIndices[] = {indices.GraphicsFamily.value(), indices.PresentFamily.value()};
+		if (indices.GraphicsFamily != indices.PresentFamily) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -127,9 +138,10 @@ namespace Poly
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
 		// Check if the current physical device supports presentation for the surface
-		QueueFamilyIndices families = findQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
+		QueueFamilyIndices families = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, families.presentFamily.value(), surface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, families.PresentFamily.value(), surface, &presentSupport);
+		POLY_VALIDATE(presentSupport, "Cannot create swapchain, no present support");
 
 		// Get the formats of the device and surface
 		unsigned formatCount;

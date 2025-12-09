@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "PVKTypes.h"
 #include "Platform/API/GraphicsInstance.h"
+#include "VulkanCommon.h"
 
 #include "VmaInclude.h"
 
@@ -47,18 +48,13 @@ namespace Poly
 
 		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) override final;
 
-		// Sets how many queues should be created for that queue type. Must be called before init.
-		// Default queue count per queue is 1. If the requested queue count is higher than the available, the
-		// most available will be set.
-		static void SetQueueCount(FQueueType queue, uint32_t count);
-
 		static VkFormat FindDepthFormat();
 
 		static VkDevice			GetDevice() { return s_Device; }
 		static VkPhysicalDevice	GetPhysicalDevice() { return s_PhysicalDevice; }
 		static VkInstance		GetInstance() { return s_Instance; }
-		static PVKQueue&		GetPresentQueue() { return s_PresentQueue; }
 		static PVKQueue&		GetQueue(FQueueType queueType, uint32_t index = 0);
+		static const std::vector<PVKQueue>& GetAllQueues();
 		static VkSurfaceKHR		GetSurface() { return s_Surface; }
 		static VmaAllocator		GetAllocator() { return s_VmaAllocator; }
 
@@ -101,20 +97,17 @@ namespace Poly
 		void CreateLogicalDevice();
 		void CreateVmaAllocator();
 		std::vector<const char*> GetRequiredExtensions();
-		void GetAllQueues(std::set<unsigned> queueFamiliesUsed);
+		void PopulateQueues(const std::vector<QueueSpec>& queueSpecs);
 
-		VkDebugUtilsMessengerEXT	m_DebugMessenger;
-		static VkInstance			s_Instance;
-		static VkPhysicalDevice		s_PhysicalDevice;
-		static VkDevice				s_Device;
-		static PVKQueue				s_PresentQueue; // TODO: Should maybe be in the queue map
-		static VkSurfaceKHR			s_Surface;
-		static uint32_t				s_GraphicsQueueCount;
-		static uint32_t				s_ComputeQueueCount;
-		static uint32_t				s_TransferQueueCount;
-		static std::unordered_map<Poly::FQueueType, std::vector<Poly::PVKQueue>> s_Queues;
+		VkDebugUtilsMessengerEXT			m_DebugMessenger;
+		inline static VkInstance			s_Instance				= VK_NULL_HANDLE;
+		inline static VkPhysicalDevice		s_PhysicalDevice		= VK_NULL_HANDLE;
+		inline static VkDevice				s_Device				= VK_NULL_HANDLE;
+		inline static VkSurfaceKHR			s_Surface				= VK_NULL_HANDLE;
+		inline static std::vector<PVKQueue> s_Queues;
+		inline static std::unordered_map<FQueueType, std::vector<uint32_t>> s_QueueMappings;
 
-		static VmaAllocator s_VmaAllocator;
+		inline static VmaAllocator s_VmaAllocator = VK_NULL_HANDLE;
 
 		#ifdef POLY_DEBUG
 				const bool m_EnableValidationLayers = true;

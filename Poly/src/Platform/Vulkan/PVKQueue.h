@@ -6,11 +6,9 @@ namespace Poly
 {
 	struct PVKQueue
 	{
-		PVKQueue() : queue(VK_NULL_HANDLE), queueIndex(0), queueFamilyIndex(0) {};
-
-		VkQueue queue;
-		uint32_t queueIndex;
-		uint32_t queueFamilyIndex;
+		VkQueue queue				= VK_NULL_HANDLE;
+		uint32_t queueIndex			= 0;
+		uint32_t queueFamilyIndex	= 0;
 	};
 
 }

@@ -12,7 +12,7 @@ namespace Poly
 
 	struct SwapChainSupportDetails
 	{
-		VkSurfaceCapabilitiesKHR capabilities;
+		VkSurfaceCapabilitiesKHR capabilities = {};
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
 	};
@@ -45,6 +45,7 @@ namespace Poly
 
 
 	private:
+		void SetupPresentQueue();
 		void CreateSwapChain();
 		void Cleanup();
 		SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
@@ -64,6 +65,7 @@ namespace Poly
 		std::vector<Ref<PVKTexture>>		m_Textures;
 		std::vector<Ref<PVKTextureView>>	m_TextureViews;
 		bool								m_ResizeRequired	= false;
+		VkQueue								m_PresentQueue		= VK_NULL_HANDLE;
 
 		// Sync
 		std::vector<Unique<PVKSemaphore>>		m_RenderSemaphores;

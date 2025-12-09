@@ -57,22 +57,8 @@ namespace
 
 namespace Poly
 {
-	VkInstance			PVKInstance::s_Instance				= VK_NULL_HANDLE;
-	VkDevice			PVKInstance::s_Device				= VK_NULL_HANDLE;
-	VkPhysicalDevice	PVKInstance::s_PhysicalDevice		= VK_NULL_HANDLE;
-	VkSurfaceKHR		PVKInstance::s_Surface				= VK_NULL_HANDLE;
-	PVKQueue			PVKInstance::s_PresentQueue			= {};
-	uint32_t			PVKInstance::s_GraphicsQueueCount	= 1;
-	uint32_t 			PVKInstance::s_ComputeQueueCount	= 1;
-	uint32_t 			PVKInstance::s_TransferQueueCount	= 1;
-	std::unordered_map<Poly::FQueueType, std::vector<Poly::PVKQueue>> PVKInstance::s_Queues;
-	VmaAllocator PVKInstance::s_VmaAllocator = VK_NULL_HANDLE;
-
 	PVKInstance::PVKInstance()
-		: m_DebugMessenger(VK_NULL_HANDLE)
-	{
-
-	}
+		: m_DebugMessenger(VK_NULL_HANDLE) {}
 
 	PVKInstance::~PVKInstance()
 	{
@@ -275,22 +261,6 @@ namespace Poly
 		return pNewSet;
 	}
 
-
-	void PVKInstance::SetQueueCount(FQueueType queue, uint32_t count)
-	{
-		switch (queue) {
-		case FQueueType::GRAPHICS:
-			s_GraphicsQueueCount = count;
-			break;
-		case FQueueType::COMPUTE:
-			s_ComputeQueueCount = count;
-			break;
-		case FQueueType::TRANSFER:
-			s_TransferQueueCount = count;
-			break;
-		}
-	}
-
 	VkFormat PVKInstance::FindDepthFormat()
 	{
 		std::vector<VkFormat> formats;
@@ -307,17 +277,26 @@ namespace Poly
 
 	PVKQueue& PVKInstance::GetQueue(FQueueType queueType, uint32_t index)
 	{
-		// Check if valid queue and index, return if successful
-		auto it = s_Queues.find(queueType);
-		if (it != s_Queues.end()) {
-			auto& vec = s_Queues[queueType];
-			if (index < vec.size())
-				return s_Queues[queueType][index];
+		if (!s_QueueMappings.contains(queueType))
+		{
+			POLY_CORE_ERROR("Requested queue with index {} could not be gotten! Returned standard graphics queue instead", index);
+			POLY_VALIDATE(s_QueueMappings.contains(FQueueType::GRAPHICS), "Graphics queue does not exist");
+			POLY_VALIDATE(!s_QueueMappings[FQueueType::GRAPHICS].empty(), "Graphics queue type does not have any queues created");
+			return s_Queues[s_QueueMappings[FQueueType::GRAPHICS].front()];
 		}
 
-		// Return default graphics queue if the requested is not supported
-		POLY_CORE_WARN("Requested queue with index {} could not be gotten! Returned standard graphics queue instead", index);
-		return s_Queues[FQueueType::GRAPHICS][0];
+		index = std::min(index, static_cast<uint32_t>(s_QueueMappings[queueType].size()));
+
+		POLY_VALIDATE(index >= 0, "Graphics queue type does not have any queues created");
+
+		uint32_t mappedIndex = s_QueueMappings[queueType][index];
+
+		return s_Queues[mappedIndex];
+	}
+
+	const std::vector<PVKQueue>& PVKInstance::GetAllQueues()
+	{
+		return s_Queues;
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::DebugCallback(
@@ -534,7 +513,7 @@ namespace Poly
 			POLY_VALIDATE(extensionsSupported, "Required extensions are not supported!");
 
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && findQueueFamilies(d, s_Surface).isComplete() && deviceFeatures.samplerAnisotropy) {
+			if (score > bestScore && deviceFeatures.samplerAnisotropy) {
 				bestScore = score;
 				s_PhysicalDevice = d;
 				pickedDeviceName = deviceProperties.deviceName;
@@ -566,32 +545,20 @@ namespace Poly
 	void PVKInstance::CreateLogicalDevice()
 	{
 		// Create info for queues on the device
-		QueueFamilyIndices indices = findQueueFamilies(s_PhysicalDevice, s_Surface);
-		std::pair<uint32_t, uint32_t> graphicsQueueIndex = findQueueIndex(VK_QUEUE_GRAPHICS_BIT, s_PhysicalDevice);
-		std::pair<uint32_t, uint32_t> computeQueueIndex = findQueueIndex(VK_QUEUE_COMPUTE_BIT, s_PhysicalDevice);
-		std::pair<uint32_t, uint32_t> transferQueueIndex = findQueueIndex(VK_QUEUE_TRANSFER_BIT, s_PhysicalDevice);
+		std::vector<QueueSpec> queueSpecs = FindAllQueues(s_PhysicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<unsigned> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value(), computeQueueIndex.first, transferQueueIndex.first };
-
-		// Update queue count to match what the program can create
-		s_GraphicsQueueCount	= std::min(s_GraphicsQueueCount, graphicsQueueIndex.second);
-		s_ComputeQueueCount		= std::min(s_ComputeQueueCount, graphicsQueueIndex.second);
-		s_TransferQueueCount	= std::min(s_TransferQueueCount, graphicsQueueIndex.second);
-
-		std::unordered_map<uint32_t, uint32_t> queueCounts;
-		queueCounts[indices.presentFamily.value()]	= 1;
-		queueCounts[indices.graphicsFamily.value()] = s_GraphicsQueueCount;
-		queueCounts[computeQueueIndex.first]		= s_ComputeQueueCount;
-		queueCounts[transferQueueIndex.first]		= s_TransferQueueCount;
 
 		float queuePriority = 1.0f;
-		for (unsigned queueFamily : uniqueQueueFamilies) {
+		std::vector<std::vector<float>> allPriorities;
+		for (const QueueSpec& queueSpec : queueSpecs) {
+			allPriorities.emplace_back(queueSpec.QueueCount, 1.0f);
+
 			VkDeviceQueueCreateInfo queueCreateInfo = {};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = queueCounts[queueFamily];
-			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfo.queueFamilyIndex = queueSpec.QueueFamily;
+			queueCreateInfo.queueCount = queueSpec.QueueCount;
+			queueCreateInfo.pQueuePriorities = allPriorities.back().data();;
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
@@ -623,12 +590,7 @@ namespace Poly
 		// Create the logical device, bound to the physical device
 		PVK_CHECK(vkCreateDevice(s_PhysicalDevice, &createInfo, nullptr, &s_Device), "Failed to create logical device!");
 
-		//graphicsQueue.queueIndex = indices.graphicsFamily.value();
-		s_PresentQueue.queueIndex = indices.presentFamily.value();
-
-		//vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue.queue);
-		GetAllQueues(uniqueQueueFamilies); // This function does not check for present support, hence seperate functions
-		vkGetDeviceQueue(s_Device, indices.presentFamily.value(), 0, &s_PresentQueue.queue);
+		PopulateQueues(queueSpecs);
 	}
 
 	void PVKInstance::CreateVmaAllocator()
@@ -685,44 +647,41 @@ namespace Poly
 		return extensions;
 	}
 
-	void PVKInstance::GetAllQueues(std::set<unsigned> queueFamiliesUsed)
+	void PVKInstance::PopulateQueues(const std::vector<QueueSpec>& queueSpecs)
 	{
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(s_PhysicalDevice, &queueFamilyCount, nullptr);
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(s_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
+		for (uint32_t fIndex = 0; fIndex < queueSpecs.size(); fIndex++)
+		{
+			for (uint32_t qIndex = 0; qIndex < queueSpecs[fIndex].QueueCount; qIndex++)
+			{
+				const QueueSpec& queueSpec = queueSpecs[fIndex];
 
-		for (uint32_t fIndex = 0; fIndex < queueFamilyCount; fIndex++) {
-			// Only get the queues that we have assigned to the logical device
-			if (!queueFamiliesUsed.contains(fIndex)) {
-				continue;
-			}
+				// Get queue from device
+				VkQueue queue;
+				VkDeviceQueueInfo2 desc = {};
+				desc.sType				= VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2;
+				desc.queueFamilyIndex	= fIndex;
+				desc.queueIndex			= qIndex;
+				vkGetDeviceQueue2(s_Device, &desc, &queue);
+				s_Queues.push_back(PVKQueue{ queue, qIndex, fIndex });
 
-			// Graphics queue
-			if (VK_QUEUE_GRAPHICS_BIT & queueFamilies[fIndex].queueFlags) {
-				s_Queues[FQueueType::GRAPHICS].resize(s_GraphicsQueueCount);
-				for (uint32_t qIndex = 0; qIndex < s_GraphicsQueueCount; qIndex++) {
-					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::GRAPHICS][qIndex].queue);
-					s_Queues[FQueueType::GRAPHICS][qIndex].queueFamilyIndex = fIndex;
-				}
-			}
-
-			// Compute queue
-			if (VK_QUEUE_COMPUTE_BIT & queueFamilies[fIndex].queueFlags) {
-				s_Queues[FQueueType::COMPUTE].resize(s_ComputeQueueCount);
-				for (uint32_t qIndex = 0; qIndex < s_ComputeQueueCount; qIndex++) {
-					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::COMPUTE][qIndex].queue);
-					s_Queues[FQueueType::COMPUTE][qIndex].queueFamilyIndex = fIndex;
-				}
-			}
-
-			// Transfer queue
-			if (VK_QUEUE_TRANSFER_BIT & queueFamilies[fIndex].queueFlags) {
-				s_Queues[FQueueType::TRANSFER].resize(s_TransferQueueCount);
-				for (uint32_t qIndex = 0; qIndex < s_TransferQueueCount; qIndex++) {
-					vkGetDeviceQueue(s_Device, fIndex, qIndex, &s_Queues[FQueueType::TRANSFER][qIndex].queue);
-					s_Queues[FQueueType::TRANSFER][qIndex].queueFamilyIndex = fIndex;
-				}
+				// Map queue
+				uint32_t index = static_cast<uint32_t>(s_Queues.size() - 1);
+				if (VK_QUEUE_GRAPHICS_BIT & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::GRAPHICS].push_back(index);
+				else if (VK_QUEUE_COMPUTE_BIT & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::COMPUTE].push_back(index);
+				else if (VK_QUEUE_VIDEO_DECODE_BIT_KHR & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::VIDEO_DECODE].push_back(index);
+				else if (VK_QUEUE_VIDEO_ENCODE_BIT_KHR & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::VIDEO_ENCODE].push_back(index);
+				else if (VK_QUEUE_OPTICAL_FLOW_BIT_NV & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::OPTICAL_FLOW].push_back(index);
+				else if (VK_QUEUE_DATA_GRAPH_BIT_ARM & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::DATA_GRAPH].push_back(index);
+				else if (VK_QUEUE_TRANSFER_BIT & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::TRANSFER].push_back(index);
+				else if (VK_QUEUE_SPARSE_BINDING_BIT & queueSpec.QueueFlags)
+					s_QueueMappings[FQueueType::SPARSE_BINDING].push_back(index);
 			}
 		}
 	}

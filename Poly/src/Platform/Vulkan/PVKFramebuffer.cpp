@@ -25,7 +25,7 @@ namespace Poly
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType			= VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass		= reinterpret_cast<PVKRenderPass*>(pDesc->pRenderPass)->GetNativeVK();
-		framebufferInfo.attachmentCount	= imageViews.size();
+		framebufferInfo.attachmentCount	= static_cast<uint32_t>(imageViews.size());
 		framebufferInfo.pAttachments	= imageViews.data();
 		framebufferInfo.width			= pDesc->Width;
 		framebufferInfo.height			= pDesc->Height;
