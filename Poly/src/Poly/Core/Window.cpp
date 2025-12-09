@@ -14,10 +14,6 @@ namespace Poly
 	Window::Window(int width, int height, const std::string& title)
 		: m_Title(title)
 	{
-		// Create window and init glfw
-		if (!glfwInit())
-			POLY_CORE_FATAL("GLFW could not be initalized!");
-
 		// Tell GLFW not to make an OpenGL context
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -54,6 +50,11 @@ namespace Poly
 	{
 		glfwDestroyWindow(m_pWindow);
 		glfwTerminate();
+	}
+
+	Unique<Window> Window::Create(int width, int height, const std::string& name)
+	{
+		return CreateUnique<Window>(width, height, name);
 	}
 
 	void Window::ToggleBorderlessFullscreen(bool enable)

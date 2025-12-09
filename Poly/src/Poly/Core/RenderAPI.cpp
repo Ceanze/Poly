@@ -8,15 +8,14 @@
 
 namespace Poly
 {
-	void RenderAPI::Init(BackendAPI backendAPI, Window* pWindow)
+	void RenderAPI::Init(BackendAPI backendAPI)
 	{
-		m_pWindow = pWindow;
 		switch (backendAPI)
 		{
 		case BackendAPI::VULKAN:
 		{
 			m_pGraphicsInstance = new PVKInstance();
-			m_pGraphicsInstance->Init(pWindow);
+			m_pGraphicsInstance->Init();
 			break;
 		}
 		default:

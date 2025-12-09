@@ -103,7 +103,7 @@ namespace Poly
 		/**
 		* USED BY THE RENDERER - Used when window is resized
 		*/
-		void RecreateResources();
+		void RecreateResources(uint32 width, uint32 height);
 
 		/**
 		 * Sets the active scene that can be accessed with the render data in render graph passes to be rendered

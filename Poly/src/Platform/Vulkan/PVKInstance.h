@@ -25,7 +25,7 @@ namespace Poly
 
 		static PVKInstance* Get();
 
-		virtual void Init(Window* pWindow) override final;
+		virtual void Init() override final;
 
 		/*
 		* GraphicsInstance functions
@@ -55,7 +55,6 @@ namespace Poly
 		static VkInstance		GetInstance() { return s_Instance; }
 		static PVKQueue&		GetQueue(FQueueType queueType, uint32_t index = 0);
 		static const std::vector<PVKQueue>& GetAllQueues();
-		static VkSurfaceKHR		GetSurface() { return s_Surface; }
 		static VmaAllocator		GetAllocator() { return s_VmaAllocator; }
 
 	private:
@@ -103,7 +102,6 @@ namespace Poly
 		inline static VkInstance			s_Instance				= VK_NULL_HANDLE;
 		inline static VkPhysicalDevice		s_PhysicalDevice		= VK_NULL_HANDLE;
 		inline static VkDevice				s_Device				= VK_NULL_HANDLE;
-		inline static VkSurfaceKHR			s_Surface				= VK_NULL_HANDLE;
 		inline static std::vector<PVKQueue> s_Queues;
 		inline static std::unordered_map<FQueueType, std::vector<uint32_t>> s_QueueMappings;
 

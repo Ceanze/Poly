@@ -7,7 +7,6 @@
 #include "Platform/API/TextureView.h"
 #include "Platform/API/CommandQueue.h"
 #include "Resource.h"
-#include "Poly/Core/Window.h"
 
 namespace Poly
 {
@@ -113,16 +112,16 @@ namespace Poly
 	{
 		for (auto& resourceData : m_Resources)
 		{
-			AllocateResource(resourceData);
+			AllocateResource(resourceData, m_DefaultParams.TextureWidth, m_DefaultParams.TextureHeight);
 		}
 	}
 
-	void ResourceCache::ReallocateBackbufferBoundResources()
+	void ResourceCache::ReallocateBackbufferBoundResources(uint32 width, uint32 height)
 	{
 		for (auto& resourceData : m_Resources)
 		{
 			if (resourceData.IsBackbufferBound)
-				AllocateResource(resourceData);
+				AllocateResource(resourceData, width, height);
 		}
 	}
 
@@ -247,7 +246,7 @@ namespace Poly
 			lifetime.second = newTimepoint;
 	}
 
-	void ResourceCache::AllocateResource(ResourceData& resourceData)
+	void ResourceCache::AllocateResource(ResourceData& resourceData, uint32 backbufferWidth, uint32 backbufferHeight)
 	{
 		// Skip resource marked as output - these are handled separate as they will use externally allocated backbuffer
 		if (resourceData.IsOutput)
@@ -269,17 +268,16 @@ namespace Poly
 		else if (BitsSet(bindPoint, FResourceBindPoint::COLOR_ATTACHMENT) || BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL)
 			|| BitsSet(bindPoint, FResourceBindPoint::SAMPLER) || BitsSet(bindPoint, FResourceBindPoint::SHADER_READ))
 		{
-			Window* pWindow = RenderAPI::GetWindow();
 			uint32 width = resourceData.PassField.GetWidth() == 0 ? m_DefaultParams.TextureWidth : resourceData.PassField.GetWidth();
 			uint32 height = resourceData.PassField.GetHeight() == 0 ? m_DefaultParams.TextureHeight : resourceData.PassField.GetHeight();
 
 			if (BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL))
 				resourceData.IsBackbufferBound = true;
 
-			if (resourceData.IsBackbufferBound && pWindow)
+			if (resourceData.IsBackbufferBound)
 			{
-				width = pWindow->GetWidth();
-				height = pWindow->GetHeight();
+				width = backbufferWidth;
+				height = backbufferHeight;
 			}
 
 			TextureDesc desc = {};

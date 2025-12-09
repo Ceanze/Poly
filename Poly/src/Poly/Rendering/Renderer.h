@@ -5,14 +5,15 @@ namespace Poly
 	class Resource;
 	class SwapChain;
 	class RenderGraphProgram;
+	class Window;
 
 	class Renderer
 	{
 	public:
-		Renderer();
+		Renderer(Window* pWindow);
 		~Renderer();
 
-		static Ref<Renderer> Create();
+		static Ref<Renderer> Create(Window* pWindow);
 
 		/**
 		 * Sets the currently used render graph program
@@ -26,8 +27,6 @@ namespace Poly
 		 */
 		void Render();
 
-		// void ResizeCallback()
-
 	private:
 		void CreateBackbufferResources();
 
@@ -35,5 +34,6 @@ namespace Poly
 		Ref<SwapChain>				m_pSwapChain;
 		Ref<RenderGraphProgram>		m_pRenderGraphProgram;
 		std::vector<Ref<Resource>>	m_BackbufferResources;
+		Window*						m_pWindow = nullptr;
 	};
 }

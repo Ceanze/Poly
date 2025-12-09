@@ -36,6 +36,8 @@ namespace Poly
 		Window(const Window&) = delete;
 		Window& operator=(const Window&) = delete;
 
+		static Unique<Window> Create(int width, int height, const std::string& name);
+
 		void ToggleBorderlessFullscreen(bool enable);
 		void ToggleExclusiveFullscreen(bool enable);
 

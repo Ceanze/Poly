@@ -46,6 +46,7 @@ namespace Poly
 
 	private:
 		void SetupPresentQueue();
+		void CreateSurface();
 		void CreateSwapChain();
 		void Cleanup();
 		SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
@@ -58,6 +59,7 @@ namespace Poly
 		void RecreateSwapChain();
 
 		VkSwapchainKHR						m_SwapChain			= VK_NULL_HANDLE;
+		VkSurfaceKHR						m_Surface			= VK_NULL_HANDLE;
 		VkFormat							m_FormatVK			= VK_FORMAT_UNDEFINED;
 		VkExtent2D							m_Extent			= {0, 0};
 		uint32								m_ImageIndex		= 0;

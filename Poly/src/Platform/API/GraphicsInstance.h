@@ -42,7 +42,7 @@ namespace Poly
 	public:
 		CLASS_ABSTRACT(GraphicsInstance);
 
-		virtual void Init(Window* pWindow) = 0;
+		virtual void Init() = 0;
 
 		virtual Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc) = 0;
 		virtual Ref<Texture>			CreateTexture(const TextureDesc* pDesc) = 0;

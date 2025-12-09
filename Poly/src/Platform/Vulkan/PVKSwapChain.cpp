@@ -28,6 +28,7 @@ namespace Poly
 
 		p_SwapchainDesc.pWindow->AddWindowResizeCallback([this](int, int) { m_ResizeRequired = true; });
 
+		CreateSurface();
 		SetupPresentQueue();
 		CreateSyncObjects();
 		CreateSwapChain();
@@ -68,16 +69,21 @@ namespace Poly
 	void PVKSwapChain::SetupPresentQueue()
 	{
 		const std::vector<PVKQueue>& queues = PVKInstance::GetAllQueues();
-		uint32_t presentFamily = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface()).PresentFamily.value();
+		uint32_t presentFamily = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface).PresentFamily.value();
 		
 		const auto it = std::find_if(queues.begin(), queues.end(), [&presentFamily](const PVKQueue& queue) { return queue.queueFamilyIndex == presentFamily; });
 		m_PresentQueue = it->queue;
 	}
 
+	void PVKSwapChain::CreateSurface()
+	{
+		PVK_CHECK(glfwCreateWindowSurface(PVKInstance::GetInstance(), p_SwapchainDesc.pWindow->GetNative(), nullptr, &m_Surface), "Failed to create window surface!");
+	}
+
 	void PVKSwapChain::CreateSwapChain()
 	{
 		// Use the predefined functions to choose and query everything
-		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(PVKInstance::GetSurface(), PVKInstance::GetPhysicalDevice());
+		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_Surface, PVKInstance::GetPhysicalDevice());
 		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
 		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
 		m_Extent = ChooseSwapExtent(swapChainSupport.capabilities);
@@ -92,7 +98,7 @@ namespace Poly
 		// Info for swap chain constructions
 		VkSwapchainCreateInfoKHR createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = PVKInstance::GetSurface();
+		createInfo.surface = m_Surface;
 		createInfo.minImageCount = imageCount;
 		createInfo.imageFormat = surfaceFormat.format;
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -106,7 +112,7 @@ namespace Poly
 		createInfo.oldSwapchain = VK_NULL_HANDLE; // If swap chain is recreated during runtime, having the previous swap chain can help
 
 		// If we have several queues (rare) then specify on how to use them
-		QueueFamilyIndices indices = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
+		QueueFamilyIndices indices = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface);
 		uint32_t queueFamilyIndices[] = {indices.GraphicsFamily.value(), indices.PresentFamily.value()};
 		if (indices.GraphicsFamily != indices.PresentFamily) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -128,6 +134,7 @@ namespace Poly
 		m_TextureViews.clear();
 		m_Textures.clear();
 		vkDestroySwapchainKHR(PVKInstance::GetDevice(), m_SwapChain, nullptr);
+		vkDestroySurfaceKHR(PVKInstance::GetInstance(), m_Surface, nullptr);
 	}
 
 	SwapChainSupportDetails PVKSwapChain::QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device)
@@ -138,7 +145,7 @@ namespace Poly
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
 		// Check if the current physical device supports presentation for the surface
-		QueueFamilyIndices families = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), PVKInstance::GetSurface());
+		QueueFamilyIndices families = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface);
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, families.PresentFamily.value(), surface, &presentSupport);
 		POLY_VALIDATE(presentSupport, "Cannot create swapchain, no present support");
@@ -304,6 +311,7 @@ namespace Poly
 
 		Cleanup();
 
+		CreateSurface();
 		CreateSyncObjects();
 		CreateSwapChain();
 		CreateImageViews();

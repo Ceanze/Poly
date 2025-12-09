@@ -69,7 +69,7 @@ namespace Poly
 		/**
 		* Reallocate the previously registed backbuffer bound resources, needed when a resize has happened
 		*/
-		void ReallocateBackbufferBoundResources();
+		void ReallocateBackbufferBoundResources(uint32 width, uint32 height);
 
 		/**
 		 * Get a resource's existance
@@ -117,7 +117,7 @@ namespace Poly
 
 	private:
 		void CalcLifetime(std::pair<uint32, uint32>& lifetime, uint32 newTimepoint);
-		void AllocateResource(ResourceData& resourceData);
+		void AllocateResource(ResourceData& resourceData, uint32 backbufferWidth, uint32 backbufferHeight);
 
 		RenderGraphDefaultParams m_DefaultParams;
 

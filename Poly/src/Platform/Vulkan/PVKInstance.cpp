@@ -64,8 +64,6 @@ namespace Poly
 	{
 		vkDeviceWaitIdle(s_Device);
 
-		vkDestroySurfaceKHR(s_Instance, s_Surface, nullptr);
-
 		if (m_EnableValidationLayers)
 			DestroyDebugUtilsMessengerEXT(s_Instance, m_DebugMessenger, nullptr);
 
@@ -81,12 +79,10 @@ namespace Poly
 		return s_PVKInstance;
 	}
 
-	void PVKInstance::Init(Window* pWindow)
+	void PVKInstance::Init()
 	{
 		CreateInstance();
 		SetupDebugMessenger();
-
-		PVK_CHECK(glfwCreateWindowSurface(s_Instance, pWindow->GetNative(), nullptr, &s_Surface), "Failed to create window surface!");
 
 		PickPhysicalDevice();
 		CreateLogicalDevice();
@@ -510,10 +506,10 @@ namespace Poly
 
 			// Make sure the device has support for the requested extensions
 			const bool extensionsSupported = CheckDeviceExtensionSupport(d);
-			POLY_VALIDATE(extensionsSupported, "Required extensions are not supported!");
+			//POLY_VALIDATE(extensionsSupported, "Required extensions are not supported!");
 
 			// Save the device with the best score and is complete with its queues
-			if (score > bestScore && deviceFeatures.samplerAnisotropy) {
+			if (extensionsSupported && score > bestScore && deviceFeatures.samplerAnisotropy) {
 				bestScore = score;
 				s_PhysicalDevice = d;
 				pickedDeviceName = deviceProperties.deviceName;

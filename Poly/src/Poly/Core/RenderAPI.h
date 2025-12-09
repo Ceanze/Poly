@@ -55,12 +55,10 @@ namespace Poly
 
 		CLASS_STATIC(RenderAPI);
 
-		static void Init(BackendAPI backendAPI, Window* pWindow);
+		static void Init(BackendAPI backendAPI);
 		static void Release();
 
 		static CommandQueue*		GetCommandQueue(FQueueType queue);
-
-		static Window*				GetWindow() { return m_pWindow; }
 
 		static GraphicsInstance*	GetGraphicsInstance() { return m_pGraphicsInstance; }
 
@@ -96,7 +94,6 @@ namespace Poly
 
 	private:
 		inline static GraphicsInstance*	m_pGraphicsInstance	= nullptr;
-		inline static Window*			m_pWindow			= nullptr;
 
 		// Queue types [TODO: Support multiple queues per type]
 		inline static Ref<CommandQueue>	m_pGraphicsQueue	= nullptr;

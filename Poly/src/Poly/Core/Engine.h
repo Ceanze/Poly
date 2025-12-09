@@ -16,8 +16,5 @@ namespace Poly
 		static void Run(Application* pApp);
 
 		static void Release();
-
-	private:
-		inline static Window* s_pWindow = nullptr;
 	};
 }
