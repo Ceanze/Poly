@@ -136,7 +136,7 @@ namespace Poly
 				const std::vector<SceneBatch>& batches = m_pScene->GetRenderScene()->GetBatches();
 				uint32 batchSize = 1;
 				if (pPass->IsInstancedSceneRenderingEnabled())
-					batchSize = batches.size();
+					batchSize = static_cast<uint32>(batches.size());
 
 				for (uint32 batchIndex = 0; batchIndex < batchSize; batchIndex++) {
 					renderContext.SetSceneBatch(&batches[batchIndex]);

@@ -3,8 +3,8 @@
 namespace Poly
 {
 	class Buffer;
-	class BufferRegion;
 	class CommandBuffer;
+	struct BufferRegion;
 
 	class StagingBufferCache
 	{

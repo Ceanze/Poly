@@ -11,7 +11,7 @@ namespace Poly
 
 	struct ShaderData
 	{
-		FShaderStage ShaderStage;
+		FShaderStage ShaderStage = FShaderStage::NONE;
 		Ref<Shader> pShader;
 		ShaderReflection Reflection;
 	};

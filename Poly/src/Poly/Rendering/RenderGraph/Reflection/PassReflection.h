@@ -9,7 +9,7 @@
 namespace Poly
 {
 	class Sampler;
-	class ShaderData;
+	struct ShaderData;
 
 	class PassReflection
 	{

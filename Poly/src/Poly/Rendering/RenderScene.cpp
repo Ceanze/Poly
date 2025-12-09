@@ -36,7 +36,7 @@ namespace Poly
 			}
 			else
 			{
-				m_InstanceHashToIndex[hash] = m_SceneBatches.size();
+				m_InstanceHashToIndex[hash] = static_cast<uint32>(m_SceneBatches.size());
 				m_SceneBatches.push_back({ meshInstance, 1, { transform.GetTransform()}});
 			}
 
