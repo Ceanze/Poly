@@ -5,17 +5,16 @@
 #include <optional>
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <fstream>
 
 namespace Poly {
 
 	// Struct to keep track of the different queue families
 	struct QueueFamilyIndices {
-		std::optional<unsigned> graphicsFamily;
-		std::optional<unsigned> presentFamily;
+		std::optional<unsigned> GraphicsFamily;
+		std::optional<unsigned> PresentFamily;
 
 		bool isComplete() {
-			return graphicsFamily.has_value() && presentFamily.has_value();
+			return GraphicsFamily.has_value() && PresentFamily.has_value();
 		}
 	};
 
@@ -39,13 +38,13 @@ namespace Poly {
 		unsigned i = 0;
 		for (const auto& queueFamily : queueFamilies) {
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				indices.graphicsFamily = i;
+				indices.GraphicsFamily = i;
 			}
 
 			VkBool32 presentSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
 			if (presentSupport) {
-				indices.presentFamily = i;
+				indices.PresentFamily = i;
 			}
 
 			if (indices.isComplete()) {
@@ -108,42 +107,5 @@ namespace Poly {
 			queueSpecs.push_back(QueueSpec{ static_cast<uint32_t>(i), queueFamilies[i].queueCount, queueFamilies[i].queueFlags});
 
 		return queueSpecs;
-	}
-
-	// Reads the given file in a binary format
-	static std::vector<char> readFile(const std::string& filename)
-	{
-		std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-		if (!file.is_open()) {
-			throw std::runtime_error("failed to open file!");
-		}
-
-		// Get size
-		size_t fileSize = static_cast<size_t>(file.tellg());
-		std::vector<char> buffer(fileSize);
-
-		// Read file
-		file.seekg(0);
-		file.read(buffer.data(), fileSize);
-
-		file.close();
-
-		return buffer;
-	}
-
-	static uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
-	{
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
-			}
-		}
-
-		POLY_VALIDATE(false, "Failed to find suitable memory type!");
-		return 0;
 	}
 }

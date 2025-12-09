@@ -665,22 +665,23 @@ namespace Poly
 				s_Queues.push_back(PVKQueue{ queue, qIndex, fIndex });
 
 				// Map queue
+				uint32_t index = static_cast<uint32_t>(s_Queues.size() - 1);
 				if (VK_QUEUE_GRAPHICS_BIT & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::GRAPHICS].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::GRAPHICS].push_back(index);
 				else if (VK_QUEUE_COMPUTE_BIT & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::COMPUTE].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::COMPUTE].push_back(index);
 				else if (VK_QUEUE_VIDEO_DECODE_BIT_KHR & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::VIDEO_DECODE].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::VIDEO_DECODE].push_back(index);
 				else if (VK_QUEUE_VIDEO_ENCODE_BIT_KHR & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::VIDEO_ENCODE].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::VIDEO_ENCODE].push_back(index);
 				else if (VK_QUEUE_OPTICAL_FLOW_BIT_NV & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::OPTICAL_FLOW].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::OPTICAL_FLOW].push_back(index);
 				else if (VK_QUEUE_DATA_GRAPH_BIT_ARM & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::DATA_GRAPH].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::DATA_GRAPH].push_back(index);
 				else if (VK_QUEUE_TRANSFER_BIT & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::TRANSFER].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::TRANSFER].push_back(index);
 				else if (VK_QUEUE_SPARSE_BINDING_BIT & queueSpec.QueueFlags)
-					s_QueueMappings[FQueueType::SPARSE_BINDING].push_back(s_Queues.size() - 1);
+					s_QueueMappings[FQueueType::SPARSE_BINDING].push_back(index);
 			}
 		}
 	}
