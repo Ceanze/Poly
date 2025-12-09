@@ -19,7 +19,13 @@ namespace Poly {
 		}
 	};
 
-	static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+	struct QueueSpec {
+		uint32_t QueueFamily;
+		uint32_t QueueCount;
+		uint32_t QueueFlags;
+	};
+
+	static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 	{
 		QueueFamilyIndices indices;
 
@@ -53,7 +59,7 @@ namespace Poly {
 	}
 
 	// Find the desired queues index in the list of families. Returns a pair containing the queueIndex and queueCount
-	static std::pair<uint32_t, uint32_t> findQueueIndex(VkQueueFlagBits queueFamily, VkPhysicalDevice device)
+	static QueueSpec FindQueueIndex(VkQueueFlagBits queueFamily, VkPhysicalDevice device)
 	{
 		// Get the queue families.
 		uint32_t queueFamilyCount = 0;
@@ -62,15 +68,14 @@ namespace Poly {
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
 		// Backup queue if no unique desired queue was found
-		std::pair<uint32_t, uint32_t> backupQueue;
+		QueueSpec backupQueue;
 		bool backupQueueSet = false;
 
 		for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilies.size()); i++) {
-
 			VkQueueFlags desiredQueue = queueFamilies[i].queueFlags & queueFamily;
 			VkQueueFlags graphicsCheck = queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
 
-			if (((queueFamily & VK_QUEUE_GRAPHICS_BIT) == 1) && (queueFamilies[i].queueFlags & queueFamily))
+			if (((queueFamily & VK_QUEUE_GRAPHICS_BIT) == 1) && desiredQueue)
 				return { i, queueFamilies[i].queueCount };
 			// If not requesting graphics queue, should return a queue without graphics support (to avoid non-unique queue)
 			else if ((desiredQueue) && (graphicsCheck == 0))
@@ -88,6 +93,21 @@ namespace Poly {
 
 		POLY_VALIDATE(false, "Failed to find queue index for queue family {}!", static_cast<uint32>(queueFamily));
 		return {0, 0};
+	}
+
+	static std::vector<QueueSpec> FindAllQueues(VkPhysicalDevice device)
+	{
+		// Get the queue families.
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+		std::vector<QueueSpec> queueSpecs;
+		for (size_t i = 0; i < queueFamilies.size(); i++)
+			queueSpecs.push_back(QueueSpec{ static_cast<uint32_t>(i), queueFamilies[i].queueCount, queueFamilies[i].queueFlags});
+
+		return queueSpecs;
 	}
 
 	// Reads the given file in a binary format
