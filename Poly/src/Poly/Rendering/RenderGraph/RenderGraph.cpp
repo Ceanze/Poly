@@ -19,10 +19,9 @@ namespace Poly
 	{
 		m_pGraph = DirectedGraph::Create();
 
-		Window* window = RenderAPI::GetWindow();
 		m_DefaultParams = {
-			.TextureWidth		= window->GetWidth(),
-			.TextureHeight		= window->GetHeight(),
+			.TextureWidth		= 1080,
+			.TextureHeight		= 720,
 			.MaxBackbufferCount	= 3,
 			.pSampler			= Sampler::GetDefaultLinearSampler(),
 			.Format				= EFormat::R8G8B8A8_UNORM // Currently not used

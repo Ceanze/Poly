@@ -1,11 +1,10 @@
 #include "polypch.h"
+
 #include "Renderer.h"
 #include "Poly/Core/Window.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Platform/API/SwapChain.h"
 #include "Platform/API/CommandQueue.h"
-#include "Platform/API/Texture.h"
-#include "Platform/API/TextureView.h"
 #include "RenderGraph/RenderGraphProgram.h"
 #include "RenderGraph/Resource.h"
 
@@ -13,10 +12,9 @@ namespace Poly
 {
 	constexpr const uint32 BUFFER_COUNT = 3;
 
-	Renderer::Renderer()
+	Renderer::Renderer(Window* pWindow)
+		: m_pWindow(pWindow)
 	{
-		Window* pWindow = RenderAPI::GetWindow();
-
 		SwapChainDesc swapChainDesc = {
 			.pWindow		= pWindow,
 			.pQueue			= RenderAPI::GetCommandQueue(FQueueType::GRAPHICS),
@@ -35,14 +33,15 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 	}
 
-	Ref<Renderer> Renderer::Create()
+	Ref<Renderer> Renderer::Create(Window* pWindow)
 	{
-		return CreateRef<Renderer>();
+		return CreateRef<Renderer>(pWindow);
 	}
 
 	void Renderer::SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram)
 	{
 		m_pRenderGraphProgram = pRenderGraphProgram;
+		m_pRenderGraphProgram->RecreateResources(m_pWindow->GetWidth(), m_pWindow->GetHeight());
 	}
 
 	void Renderer::Render()
@@ -58,8 +57,6 @@ namespace Poly
 
 	void Renderer::CreateBackbufferResources()
 	{
-		const bool recreateResources = !m_BackbufferResources.empty();
-
 		m_BackbufferResources.clear();
 		m_BackbufferResources.reserve(BUFFER_COUNT);
 		for (uint32 i = 0; i < BUFFER_COUNT; i++)
@@ -68,7 +65,7 @@ namespace Poly
 			m_BackbufferResources.push_back(Resource::Create(m_pSwapChain->GetTexture(i), m_pSwapChain->GetTextureView(i), name));
 		}
 
-		if (recreateResources && m_pRenderGraphProgram)
-			m_pRenderGraphProgram->RecreateResources();
+		if (m_pRenderGraphProgram)
+			m_pRenderGraphProgram->RecreateResources(m_pWindow->GetWidth(), m_pWindow->GetHeight());
 	}
 }

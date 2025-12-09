@@ -13,6 +13,7 @@
 #include "Platform/API/Texture.h"
 #include "Platform/API/Buffer.h"
 #include "Poly/Resources/ResourceManager.h"
+#include "Poly/Core/Window.h"
 
 #include <imgui/imgui.h>
 #include "Poly/Core/Input/InputManager.h"
@@ -42,16 +43,16 @@ public:
 
 	TestLayer()
 	{
-		Poly::Window* pWindow = Poly::RenderAPI::GetWindow();
+		m_pWindow = Poly::Window::Create(1280, 720, "Test Window");
 		pCamera = new Poly::Camera();
-		pCamera->SetAspect(static_cast<float>(pWindow->GetWidth()) / pWindow->GetHeight());
+		pCamera->SetAspect(static_cast<float>(m_pWindow->GetWidth()) / m_pWindow->GetHeight());
 		pCamera->SetMouseSense(2.f);
 		pCamera->SetMovementSpeed(1.f);
 		pCamera->SetSprintSpeed(5.f);
-		pWindow->AddWindowResizeCallback([this](int width, int height) {pCamera->SetAspect(static_cast<float>(width) / height); });
+		m_pWindow->AddWindowResizeCallback([this](int width, int height) {pCamera->SetAspect(static_cast<float>(width) / height); });
 
 		// Creation
-		m_pRenderer = Poly::Renderer::Create();
+		m_pRenderer = Poly::Renderer::Create(m_pWindow.get());
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
@@ -104,7 +105,7 @@ public:
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
-		pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(width, height); });
+		m_pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(width, height); });
 	};
 
 	void OnUpdate(Poly::Timestamp dt) override
@@ -117,9 +118,9 @@ public:
 		io.MouseWheelH = Poly::InputManager::GetScrollDeltaX();
 
 		if (Poly::InputManager::IsKeyPressed(Poly::EKey::MOUSE_RIGHT))
-			Poly::RenderAPI::GetWindow()->SetMouseMode(Poly::EMouseMode::DISABLED);
+			m_pWindow->SetMouseMode(Poly::EMouseMode::DISABLED);
 		else if (Poly::InputManager::IsKeyReleased(Poly::EKey::MOUSE_RIGHT))
-			Poly::RenderAPI::GetWindow()->SetMouseMode(Poly::EMouseMode::NORMAL);
+			m_pWindow->SetMouseMode(Poly::EMouseMode::NORMAL);
 
 		ImGui::NewFrame();
 
@@ -139,6 +140,7 @@ public:
 	}
 
 private:
+	Poly::Unique<Poly::Window> m_pWindow = nullptr;
 	Poly::Camera* pCamera = nullptr;
 	Poly::Ref<Poly::Scene> m_pScene = nullptr;
 	Poly::Ref<Poly::Buffer> m_pCambuffer = nullptr;

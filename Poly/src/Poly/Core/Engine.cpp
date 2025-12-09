@@ -2,7 +2,6 @@
 #include "Engine.h"
 
 #include "Timer.h"
-#include "Window.h"
 #include "RenderAPI.h"
 #include "Timestamp.h"
 #include "Application.h"
@@ -22,9 +21,13 @@ namespace Poly
 	{
 		Poly::Logger::init();
 
-		s_pWindow = new Window(1280, 720, "Test Window");
+		if (!glfwInit())
+		{
+			POLY_CORE_FATAL("GLFW could not be initalized!");
+			return;
+		}
 
-		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN, s_pWindow);
+		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
 		ShaderManager::Init();
 		ResourceLoader::Init();
@@ -66,9 +69,7 @@ namespace Poly
 		ShaderManager::Release();
 		ResourceLoader::Release();
 		ResourceManager::Release();
-
-		delete s_pWindow;
-
 		RenderAPI::Release();
+		glfwTerminate();
 	}
 }
