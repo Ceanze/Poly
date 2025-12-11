@@ -48,7 +48,8 @@ public:
 		m_pWindow->AddWindowResizeCallback([this](int width, int height) {pCamera->SetAspect(static_cast<float>(width) / height); });
 
 		// Creation
-		m_pRenderer = Poly::Renderer::Create(m_pWindow.get());
+		m_pRenderer = Poly::Renderer::Create();
+		m_pRenderer->AddWindow(m_pWindow.get());
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
