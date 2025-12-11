@@ -46,7 +46,7 @@ namespace Poly
 		/**
 		 * USED BY THE RENDERER
 		 */
-		void Execute(uint32 imageIndex);
+		void Execute(PolyID windowID, uint32 imageIndex);
 
 		/**
 		* Creates a new resource, if not already existing, for the given resource GUID, and tranfers the optionally provided data
@@ -98,7 +98,7 @@ namespace Poly
 		/**
 		 * USED BY THE RENDERER
 		 */
-		void SetBackbuffer(Ref<Resource> pResource);
+		void SetBackbuffer(PolyID windowID, uint32 imageIndex, Ref<Resource> pResource);
 
 		/**
 		* USED BY THE RENDERER - Used when window is resized

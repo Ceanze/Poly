@@ -356,6 +356,10 @@ MigrationBackup/
 # Mac
 .DS_Store
 
+# AI
+GEMINI.md
+CLAUDE.md
+
 # CMake
 # This projects generates the cmake files from premake - therefore it is not necessary to include those files
 *.cmake

@@ -69,12 +69,13 @@ namespace Poly
 		return CreateRef<RenderGraphProgram>(pResourceCache, defaultParams, passes);
 	}
 
-	void RenderGraphProgram::Execute(uint32 imageIndex)
+	void RenderGraphProgram::Execute(PolyID windowID, uint32 imageIndex)
 	{
 		// TODO: When adding conditional passes then that should be checked in this loop
 		//		For RenderPasses with a GraphicsRenderPass dependency they should execute just
 		//		the GraphicsRenderPass to resolve it, but ignore the rest of the pass.
 		m_ImageIndex = imageIndex;
+		m_pResourceCache->SetCurrentBackbufferIndices(windowID, imageIndex);
 
 		RenderContext renderContext = RenderContext();
 		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
@@ -325,9 +326,9 @@ namespace Poly
 		//}
 	}
 
-	void RenderGraphProgram::SetBackbuffer(Ref<Resource> pResource)
+	void RenderGraphProgram::SetBackbuffer(PolyID windowID, uint32 imageIndex, Ref<Resource> pResource)
 	{
-		m_pResourceCache->SetBackbuffer(pResource);
+		m_pResourceCache->SetBackbuffer(windowID, imageIndex, pResource);
 	}
 
 	void RenderGraphProgram::RecreateResources(uint32 width, uint32 height)
