@@ -37,7 +37,7 @@ namespace Poly
 		for (uint32 passIndex = 0; auto& passData : m_Passes)
 			passData.PassIndex = passIndex++;
 
-		InitCommandBuffers();
+		InitCommandPools();
 		InitPipelineLayouts();
 
 		// Update all resources in the beginning
@@ -51,7 +51,7 @@ namespace Poly
 			const auto& reflections = reflection.GetFields(FFieldVisibility::IN_OUT);
 			if (!reflections.empty())
 			{
-				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
+				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PassResources[passIndex].PipelineLayout.get());
 				for (const auto& reflection : reflections)
 				{
 					// Only update graph resource if a resource is already valid, otherwise skip
@@ -88,10 +88,10 @@ namespace Poly
 				m_DescriptorCaches[passIndex].Update();
 
 			// Set inital pass values
-			CommandBuffer* currentCommandBuffer = m_CommandBuffers[passIndex][imageIndex];
+			CommandBuffer* currentCommandBuffer = GetCommandBuffer(passIndex);
 			renderContext.SetCommandBuffer(currentCommandBuffer);
 			renderContext.SetActivePassIndex(passIndex);
-			renderContext.SetActivePipelineLayout(m_PipelineLayouts[passIndex].get());
+			renderContext.SetActivePipelineLayout(m_PassResources[passIndex].PipelineLayout.get());
 			renderContext.SetRenderGraphProgram(this);
 			renderContext.SetDescriptorCache(&(m_DescriptorCaches[passIndex]));
 			renderData.SetRenderPassName(pPass->GetName());
@@ -265,7 +265,7 @@ namespace Poly
 			}
 
 			if (!m_DescriptorCaches.contains(passIndex))
-				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PipelineLayouts[passIndex].get());
+				m_DescriptorCaches[passIndex].SetPipelineLayout(m_PassResources[passIndex].PipelineLayout.get());
 
 			DescriptorSet* pNewSet = m_DescriptorCaches[passIndex].GetDescriptorSetCopy(inputRes.GetSet(), index, static_cast<uint32>(view.GetOffset()), static_cast<uint32>(view.GetSpan()));
 
@@ -333,7 +333,9 @@ namespace Poly
 
 	void RenderGraphProgram::RecreateResources(uint32 width, uint32 height)
 	{
-		m_Framebuffers.clear();
+		for (auto& [passIndex, passRes] : m_PassResources)
+			for (PassWindowResources& windowData : passRes.PassWindowResources)
+				windowData.Framebuffers.clear();
 		m_pResourceCache->ReallocateBackbufferBoundResources(width, height);
 	}
 
@@ -341,21 +343,6 @@ namespace Poly
 	{
 		m_pScene = pScene;
 		pScene->CreateRenderScene(*this);
-	}
-
-	void RenderGraphProgram::InitCommandBuffers()
-	{
-		m_CommandPools[FQueueType::GRAPHICS] = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::RESET_COMMAND_BUFFERS);
-
-		m_CommandBuffers.resize(m_Passes.size());
-		for (uint32 passIndex = 0; passIndex < m_Passes.size(); passIndex++)
-		{
-			m_CommandBuffers[passIndex].resize(m_DefaultParams.MaxBackbufferCount);
-			for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
-			{
-				m_CommandBuffers[passIndex][imageIndex] = m_CommandPools[FQueueType::GRAPHICS]->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
-			}
-		}
 	}
 
 	void RenderGraphProgram::InitPipelineLayouts()
@@ -404,9 +391,36 @@ namespace Poly
 				for (const auto& set : sets)
 					desc.DescriptorSetLayouts.push_back(set);
 
-				m_PipelineLayouts[passIndex] = RenderAPI::CreatePipelineLayout(&desc);
+				m_PassResources[passIndex].PipelineLayout = RenderAPI::CreatePipelineLayout(&desc);
 			}
 		}
+	}
+
+	void RenderGraphProgram::InitCommandPools()
+	{
+		m_CommandPools[FQueueType::GRAPHICS] = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::RESET_COMMAND_BUFFERS);
+	}
+
+	CommandBuffer* RenderGraphProgram::GetCommandBuffer(uint32 passIndex)
+	{
+		PassResources& passRes = m_PassResources[passIndex];
+		if (m_WindowIndex < passRes.PassWindowResources.size())
+		{
+			if (!passRes.PassWindowResources[m_WindowIndex].CommandBuffers.empty())
+				return passRes.PassWindowResources[m_WindowIndex].CommandBuffers[m_ImageIndex];
+		}
+		else
+			passRes.PassWindowResources.resize(passIndex + 1);
+
+		std::vector<CommandBuffer*>& commandBuffers = passRes.PassWindowResources[m_WindowIndex].CommandBuffers;
+		
+		commandBuffers.resize(m_DefaultParams.MaxBackbufferCount);
+		for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
+		{
+			commandBuffers[imageIndex] = m_CommandPools[FQueueType::GRAPHICS]->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+		}
+
+		return commandBuffers[m_ImageIndex];
 	}
 
 	GraphicsRenderPass* RenderGraphProgram::GetGraphicsRenderPass(const Ref<Pass>& pPass, uint32 passIndex)
@@ -417,8 +431,8 @@ namespace Poly
 			return nullptr;
 		}
 
-		if (m_GraphicsRenderPasses.contains(passIndex))
-			return m_GraphicsRenderPasses[passIndex].get();
+		if (const auto itr = m_PassResources.find(passIndex); itr != m_PassResources.end() && itr->second.GraphicsRenderPass)
+			return itr->second.GraphicsRenderPass.get();
 
 		// If it does not exist yet, create it
 		RenderPass* pRenderPass = static_cast<RenderPass*>(pPass.get());
@@ -472,9 +486,9 @@ namespace Poly
 		renderPassDesc.Subpasses			= { subpassDesc };
 		renderPassDesc.SubpassDependencies	= { depDesc };
 
-		m_GraphicsRenderPasses[passIndex] = RenderAPI::CreateGraphicsRenderPass(&renderPassDesc);
+		m_PassResources[passIndex].GraphicsRenderPass = RenderAPI::CreateGraphicsRenderPass(&renderPassDesc);
 
-		return m_GraphicsRenderPasses[passIndex].get();
+		return m_PassResources[passIndex].GraphicsRenderPass.get();
 	}
 
 	Framebuffer* RenderGraphProgram::GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex)
@@ -486,15 +500,22 @@ namespace Poly
 		}
 
 		// If we have already created it, return it
-		if (m_Framebuffers.contains(passIndex))
+		auto passResItr = m_PassResources.find(passIndex);
+		if (passResItr != m_PassResources.end() && m_WindowIndex < passResItr->second.PassWindowResources.size())
 		{
-			if (m_Framebuffers[passIndex][m_ImageIndex]) // Check if current image index has a created framebuffer
-				return m_Framebuffers[passIndex][m_ImageIndex].get();
+			std::vector<Ref<Framebuffer>> framebuffers = passResItr->second.PassWindowResources[m_WindowIndex].Framebuffers;
+			if (m_ImageIndex < framebuffers.size() && framebuffers[m_ImageIndex]) // Check if current image index has a created framebuffer
+				return framebuffers[m_ImageIndex].get();
 		}
+		
+		PassResources& passRes = m_PassResources[passIndex];
+		if (m_WindowIndex >= passRes.PassWindowResources.size())
+			passRes.PassWindowResources.resize(m_WindowIndex + 1);
+
+		std::vector<Ref<Framebuffer>>& framebuffers = passRes.PassWindowResources[m_WindowIndex].Framebuffers;
 
 		// Allocate array for future each image index - only first time pass does not have a framebuffer
-		if (!m_Framebuffers.contains(passIndex))
-			m_Framebuffers[passIndex].resize(m_DefaultParams.MaxBackbufferCount);
+		framebuffers.resize(m_DefaultParams.MaxBackbufferCount);
 
 		// Create it (get it from the cache)
 		RenderPass* renderPass = static_cast<RenderPass*>(pPass.get());
@@ -522,16 +543,27 @@ namespace Poly
 		}
 
 		Ref<Framebuffer> framebuffer = RenderAPI::GetFramebuffer(attachments, pDepthAttachment, GetGraphicsRenderPass(pPass, passIndex), width, height);
-		m_Framebuffers[passIndex][m_ImageIndex] = framebuffer;
+		framebuffers[m_ImageIndex] = framebuffer;
 
-		return m_Framebuffers[passIndex][m_ImageIndex].get();
+		return framebuffers[m_ImageIndex].get();
 	}
 
 	GraphicsPipeline* RenderGraphProgram::GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex)
 	{
 		// Return if we already have created it
-		if (m_GraphicsPipelines.contains(passIndex))
-			return m_GraphicsPipelines[passIndex].get();
+		auto passResItr = m_PassResources.find(passIndex);
+		if (passResItr != m_PassResources.end())
+		{
+			if (passResItr->second.GraphicsPipeline)
+			return passResItr->second.GraphicsPipeline.get();
+		}
+		else
+		{
+			POLY_CORE_ERROR("Cannot get/create graphics pipeline, pipeline layout and/or renderpass has not been created for the pass index");
+			return nullptr;
+		}
+
+		PassResources& passRes = passResItr->second;
 
 		// Create it if it didn't exist TODO: Make this more programmable
 		InputAssemblyDesc assembly = {};
@@ -600,14 +632,14 @@ namespace Poly
 			desc.DepthStencil		= depthStencil;
 		}
 
-		desc.pPipelineLayout	= m_PipelineLayouts[passIndex].get();
-		desc.pRenderPass		= m_GraphicsRenderPasses[passIndex].get();
+		desc.pPipelineLayout	= passRes.PipelineLayout.get();
+		desc.pRenderPass		= passRes.GraphicsRenderPass.get();
 		desc.pVertexShader		= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).pShader.get();
 		desc.pFragmentShader	= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).pShader.get();
 
-		m_GraphicsPipelines[passIndex] = RenderAPI::CreateGraphicsPipeline(&desc);
+		passRes.GraphicsPipeline = RenderAPI::CreateGraphicsPipeline(&desc);
 
-		return m_GraphicsPipelines[passIndex].get();
+		return passRes.GraphicsPipeline.get();
 	}
 
 	ResourceGUID RenderGraphProgram::GetMappedResourceGUID(const ResourceGUID& resourceGUID, const Ref<Pass>& pPass, uint32 passIndex)

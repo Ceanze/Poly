@@ -4,11 +4,12 @@
 #include "RenderGraphTypes.h"
 #include "ResourceView.h"
 #include "ResourceGUID.h"
+#include "PassResources.h"
 #include "Reflection/PassReflection.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 
-#include <set>
+#include <map>
 
 namespace Poly
 {
@@ -118,8 +119,9 @@ namespace Poly
 		const Scene* GetScene() const { return m_pScene.get(); }
 
 	private:
-		void InitCommandBuffers();
 		void InitPipelineLayouts();
+		void InitCommandPools();
+		CommandBuffer* GetCommandBuffer(uint32 passIndex);
 		GraphicsRenderPass* GetGraphicsRenderPass(const Ref<Pass>& pPass, uint32 passIndex);
 		Framebuffer* GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex);
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
@@ -137,12 +139,10 @@ namespace Poly
 
 		// Rendering specific types
 		uint32														m_ImageIndex = 0;
-		std::vector<std::vector<CommandBuffer*>>					m_CommandBuffers; // buffs[passIndex][imageIndex]
+		uint32														m_WindowIndex = 0;
 		std::unordered_map<FQueueType, Ref<CommandPool>>			m_CommandPools;
-		std::unordered_map<uint32, Ref<GraphicsRenderPass>>			m_GraphicsRenderPasses; // key: passIndex
-		std::unordered_map<uint32, std::vector<Ref<Framebuffer>>>	m_Framebuffers; // key: passIndex, index: imageIndex
-		std::unordered_map<uint32, Ref<PipelineLayout>>				m_PipelineLayouts; // key: passIndex
-		std::unordered_map<uint32, Ref<GraphicsPipeline>>			m_GraphicsPipelines; // key: passIndex
 		std::unordered_map<uint32, DescriptorCache>					m_DescriptorCaches;
+
+		std::map<uint32, PassResources>	m_PassResources;
 	};
 }
