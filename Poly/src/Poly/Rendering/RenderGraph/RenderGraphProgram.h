@@ -138,10 +138,10 @@ namespace Poly
 		RenderGraphDefaultParams	m_DefaultParams;
 
 		// Rendering specific types
-		uint32														m_ImageIndex = 0;
-		uint32														m_WindowIndex = 0;
-		std::unordered_map<FQueueType, Ref<CommandPool>>			m_CommandPools;
-		std::unordered_map<uint32, DescriptorCache>					m_DescriptorCaches;
+		uint32												m_ImageIndex = 0;
+		PolyID												m_WindowID = 0;
+		std::unordered_map<FQueueType, Ref<CommandPool>>	m_CommandPools;
+		std::unordered_map<uint32, DescriptorCache>			m_DescriptorCaches;
 
 		std::map<uint32, PassResources>	m_PassResources;
 	};

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <unordered_map>
+
+#include "Poly/Core/PolyID.h"
+
 namespace Poly
 {
 	class CommandBuffer;
@@ -19,6 +23,6 @@ namespace Poly
 		Ref<GraphicsRenderPass>				GraphicsRenderPass;
 		Ref<PipelineLayout>					PipelineLayout;
 		Ref<GraphicsPipeline>				GraphicsPipeline;
-		std::vector<PassWindowResources>	PassWindowResources;
+		std::unordered_map<PolyID, PassWindowResources>	PassWindowResources;
 	};
 }

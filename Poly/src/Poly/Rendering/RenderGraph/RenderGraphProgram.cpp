@@ -75,6 +75,7 @@ namespace Poly
 		//		For RenderPasses with a GraphicsRenderPass dependency they should execute just
 		//		the GraphicsRenderPass to resolve it, but ignore the rest of the pass.
 		m_ImageIndex = imageIndex;
+		m_WindowID = windowID;
 		m_pResourceCache->SetCurrentBackbufferIndices(windowID, imageIndex);
 
 		RenderContext renderContext = RenderContext();
@@ -334,7 +335,7 @@ namespace Poly
 	void RenderGraphProgram::RecreateResources(uint32 width, uint32 height)
 	{
 		for (auto& [passIndex, passRes] : m_PassResources)
-			for (PassWindowResources& windowData : passRes.PassWindowResources)
+			for (auto& [windowID, windowData] : passRes.PassWindowResources)
 				windowData.Framebuffers.clear();
 		m_pResourceCache->ReallocateBackbufferBoundResources(width, height);
 	}
@@ -404,15 +405,11 @@ namespace Poly
 	CommandBuffer* RenderGraphProgram::GetCommandBuffer(uint32 passIndex)
 	{
 		PassResources& passRes = m_PassResources[passIndex];
-		if (m_WindowIndex < passRes.PassWindowResources.size())
-		{
-			if (!passRes.PassWindowResources[m_WindowIndex].CommandBuffers.empty())
-				return passRes.PassWindowResources[m_WindowIndex].CommandBuffers[m_ImageIndex];
-		}
-		else
-			passRes.PassWindowResources.resize(passIndex + 1);
+		PassWindowResources& passWindowRes = passRes.PassWindowResources[m_WindowID];
+		if (!passWindowRes.CommandBuffers.empty())
+			return passWindowRes.CommandBuffers[m_ImageIndex];
 
-		std::vector<CommandBuffer*>& commandBuffers = passRes.PassWindowResources[m_WindowIndex].CommandBuffers;
+		std::vector<CommandBuffer*>& commandBuffers = passWindowRes.CommandBuffers;
 		
 		commandBuffers.resize(m_DefaultParams.MaxBackbufferCount);
 		for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
@@ -500,19 +497,11 @@ namespace Poly
 		}
 
 		// If we have already created it, return it
-		auto passResItr = m_PassResources.find(passIndex);
-		if (passResItr != m_PassResources.end() && m_WindowIndex < passResItr->second.PassWindowResources.size())
-		{
-			std::vector<Ref<Framebuffer>> framebuffers = passResItr->second.PassWindowResources[m_WindowIndex].Framebuffers;
-			if (m_ImageIndex < framebuffers.size() && framebuffers[m_ImageIndex]) // Check if current image index has a created framebuffer
-				return framebuffers[m_ImageIndex].get();
-		}
-		
 		PassResources& passRes = m_PassResources[passIndex];
-		if (m_WindowIndex >= passRes.PassWindowResources.size())
-			passRes.PassWindowResources.resize(m_WindowIndex + 1);
-
-		std::vector<Ref<Framebuffer>>& framebuffers = passRes.PassWindowResources[m_WindowIndex].Framebuffers;
+		PassWindowResources& passWindowRes = passRes.PassWindowResources[m_WindowID];
+		std::vector<Ref<Framebuffer>>& framebuffers = passWindowRes.Framebuffers;
+		if (m_ImageIndex < framebuffers.size() && framebuffers[m_ImageIndex]) // Check if current image index has a created framebuffer
+			return framebuffers[m_ImageIndex].get();
 
 		// Allocate array for future each image index - only first time pass does not have a framebuffer
 		framebuffers.resize(m_DefaultParams.MaxBackbufferCount);
