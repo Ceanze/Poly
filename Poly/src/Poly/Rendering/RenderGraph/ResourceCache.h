@@ -1,8 +1,10 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "ResourceGUID.h"
 #include "RenderGraphTypes.h"
-#include "Reflection/PassReflection.h"
+#include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
 
 namespace Poly
 {
@@ -56,10 +58,20 @@ namespace Poly
 		void MarkOutput(const ResourceGUID& resourceGUID, PassField iodata);
 
 		/**
-		 * Sets the current backbuffer resource for this frame to be used
+		 * Sets the backbuffer resource for the specified window/imageIndex pair.
+		 * NOTE: Needs to be re-set each time a the backbuffer becomes stale (e.g. when resizing the window)
+		 * @param windowID - the window to set the backbuffer for
+		 * @param imageIndex - the image index for the specified window to set the backbuffer for
 		 * @param pResource - current backbuffer
 		 */
-		void SetBackbuffer(Ref<Resource> pResource);
+		void SetBackbuffer(PolyID windowID, uint32 imageIndex, Ref<Resource> pResource);
+
+		/**
+		* Sets the current back buffer indices
+		* @param windowId - the current window ID
+		* @param imageIndex - the current image index for the specified window
+		*/
+		void SetCurrentBackbufferIndices(PolyID windowID, uint32 imageIndex);
 
 		/**
 		 * Allocated the previously registered resoruces
@@ -125,5 +137,9 @@ namespace Poly
 		std::vector<ResourceData> m_Resources;
 		std::unordered_map<ResourceGUID, uint32, ResourceGUIDHasher> m_NameToExternalIndex;
 		std::vector<ResourceInfo> m_ExternalResources;
+		std::vector<std::vector<Ref<Resource>>> m_Backbuffers;
+		std::unordered_map<PolyID, uint32> m_WindowIDtoIndex;
+		uint32 m_CurrentWindowIndex = 0;
+		uint32 m_CurrentImageIndex = 0;
 	};
 }

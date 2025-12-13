@@ -1,6 +1,7 @@
 #pragma once
 
 #include <polypch.h>
+#include "PolyID.h"
 
 struct GLFWwindow;
 
@@ -46,11 +47,14 @@ namespace Poly
 		unsigned GetWidth() const;
 		unsigned GetHeight() const;
 
+		PolyID GetID() const;
+
 		GLFWwindow* GetNative() const;
 
 		void AddWindowResizeCallback(std::function<void(int width, int height)>&& callback);
 
 	private:
+		PolyID m_ID;
 		Properties m_CurrentProperties;
 		Properties m_SavedProperties;
 		std::string m_Title = "";

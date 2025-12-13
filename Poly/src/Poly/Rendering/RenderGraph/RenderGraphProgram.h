@@ -4,11 +4,11 @@
 #include "RenderGraphTypes.h"
 #include "ResourceView.h"
 #include "ResourceGUID.h"
-#include "Reflection/PassReflection.h"
+#include "PassResources.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 
-#include <set>
+#include <map>
 
 namespace Poly
 {
@@ -46,7 +46,7 @@ namespace Poly
 		/**
 		 * USED BY THE RENDERER
 		 */
-		void Execute(uint32 imageIndex);
+		void Execute(PolyID windowID, uint32 imageIndex);
 
 		/**
 		* Creates a new resource, if not already existing, for the given resource GUID, and tranfers the optionally provided data
@@ -98,7 +98,7 @@ namespace Poly
 		/**
 		 * USED BY THE RENDERER
 		 */
-		void SetBackbuffer(Ref<Resource> pResource);
+		void SetBackbuffer(PolyID windowID, uint32 imageIndex, Ref<Resource> pResource);
 
 		/**
 		* USED BY THE RENDERER - Used when window is resized
@@ -118,8 +118,9 @@ namespace Poly
 		const Scene* GetScene() const { return m_pScene.get(); }
 
 	private:
-		void InitCommandBuffers();
 		void InitPipelineLayouts();
+		void InitCommandPools();
+		CommandBuffer* GetCommandBuffer(uint32 passIndex);
 		GraphicsRenderPass* GetGraphicsRenderPass(const Ref<Pass>& pPass, uint32 passIndex);
 		Framebuffer* GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex);
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
@@ -136,13 +137,11 @@ namespace Poly
 		RenderGraphDefaultParams	m_DefaultParams;
 
 		// Rendering specific types
-		uint32														m_ImageIndex = 0;
-		std::vector<std::vector<CommandBuffer*>>					m_CommandBuffers; // buffs[passIndex][imageIndex]
-		std::unordered_map<FQueueType, Ref<CommandPool>>			m_CommandPools;
-		std::unordered_map<uint32, Ref<GraphicsRenderPass>>			m_GraphicsRenderPasses; // key: passIndex
-		std::unordered_map<uint32, std::vector<Ref<Framebuffer>>>	m_Framebuffers; // key: passIndex, index: imageIndex
-		std::unordered_map<uint32, Ref<PipelineLayout>>				m_PipelineLayouts; // key: passIndex
-		std::unordered_map<uint32, Ref<GraphicsPipeline>>			m_GraphicsPipelines; // key: passIndex
-		std::unordered_map<uint32, DescriptorCache>					m_DescriptorCaches;
+		uint32												m_ImageIndex = 0;
+		PolyID												m_WindowID = 0;
+		std::unordered_map<FQueueType, Ref<CommandPool>>	m_CommandPools;
+		std::unordered_map<uint32, DescriptorCache>			m_DescriptorCaches;
+
+		std::map<uint32, PassResources>	m_PassResources;
 	};
 }

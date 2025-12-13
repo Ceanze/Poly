@@ -101,11 +101,37 @@ namespace Poly
 		resData.IsBackbufferBound = true;
 	}
 
-	void ResourceCache::SetBackbuffer(Ref<Resource> pResource)
+	void ResourceCache::SetBackbuffer(PolyID windowID, uint32 imageIndex, Ref<Resource> pResource)
 	{
-		auto itr = std::find_if(m_Resources.begin(), m_Resources.end(), [&](const ResourceData& data){ return data.IsOutput; });
-		if (itr != m_Resources.end())
-			itr->pResource = pResource;
+		uint32 windowIndex = 0;
+		if (auto itr = m_WindowIDtoIndex.find(windowID); itr == m_WindowIDtoIndex.end())
+		{
+			windowIndex = m_Backbuffers.size();
+			m_WindowIDtoIndex[windowID] = windowIndex;
+		}
+		else
+			windowIndex = itr->second;
+
+		if (windowIndex >= m_Backbuffers.size())
+			m_Backbuffers.resize(windowIndex + 1);
+
+		if (imageIndex >= m_Backbuffers[windowIndex].size())
+			m_Backbuffers[windowIndex].resize(imageIndex + 1);
+
+		m_Backbuffers[windowIndex][imageIndex] = std::move(pResource);
+	}
+
+	void ResourceCache::SetCurrentBackbufferIndices(PolyID windowID, uint32 imageIndex)
+	{
+		if (auto itr = m_WindowIDtoIndex.find(windowID); itr == m_WindowIDtoIndex.end())
+		{
+			m_CurrentWindowIndex = m_Backbuffers.size();
+			m_WindowIDtoIndex[windowID] = m_CurrentWindowIndex;
+		}
+		else
+			m_CurrentWindowIndex = itr->second;
+
+		m_CurrentImageIndex = imageIndex;
 	}
 
 	void ResourceCache::AllocateResources()
@@ -120,6 +146,9 @@ namespace Poly
 	{
 		for (auto& resourceData : m_Resources)
 		{
+			if (resourceData.IsOutput)
+				continue;
+
 			if (resourceData.IsBackbufferBound)
 				AllocateResource(resourceData, width, height);
 		}
@@ -127,10 +156,19 @@ namespace Poly
 
 	bool ResourceCache::HasResource(const ResourceGUID& resourceGUID) const
 	{
-		bool exist = false;
-		exist |= m_NameToIndex.contains(resourceGUID) && m_Resources[m_NameToIndex.at(resourceGUID)].pResource;
-		exist |= m_NameToExternalIndex.contains(resourceGUID) && m_ExternalResources[m_NameToExternalIndex.at(resourceGUID)].pResource;
-		return exist;
+		if (const auto itr = m_NameToIndex.find(resourceGUID); itr != m_NameToIndex.end())
+		{
+			const ResourceData& resData = m_Resources[m_NameToIndex.at(resourceGUID)];
+			return resData.IsOutput || resData.pResource != nullptr;
+		}
+
+		if (const auto itr = m_NameToExternalIndex.find(resourceGUID); itr != m_NameToExternalIndex.end())
+		{
+			const ResourceInfo& resInfo = m_ExternalResources[m_NameToExternalIndex.at(resourceGUID)];
+			return resInfo.pResource != nullptr;
+		}
+
+		return false;
 	}
 
 	bool ResourceCache::IsResourceRegistered(const ResourceGUID& resourceGUID) const
@@ -147,7 +185,13 @@ namespace Poly
 		}
 
 		if (m_NameToIndex.contains(resourceGUID))
-			return m_Resources[m_NameToIndex[resourceGUID]].pResource.get();
+		{
+			ResourceData& data = m_Resources[m_NameToIndex[resourceGUID]];
+			if (data.IsOutput)
+				return m_Backbuffers[m_CurrentWindowIndex][m_CurrentImageIndex].get();
+			else
+				return m_Resources[m_NameToIndex[resourceGUID]].pResource.get();
+		}
 		else
 			return m_ExternalResources[m_NameToExternalIndex[resourceGUID]].pResource.get();
 	}

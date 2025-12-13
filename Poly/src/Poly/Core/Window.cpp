@@ -90,6 +90,11 @@ namespace Poly
 		return m_CurrentProperties.Height;
 	}
 
+	PolyID Window::GetID() const
+	{
+		return m_ID;
+	}
+
 	GLFWwindow* Window::GetNative() const
 	{
 		return m_pWindow;
