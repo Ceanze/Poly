@@ -7,10 +7,12 @@ namespace Poly
 {
 	void DescriptorCache::Update()
 	{
+		// TODO: this should not rely on a "DeadTimer", as it does not scale with multiple windows.
+		// Either use per-frame fences, or timeline semaphores to properly check "death" of a descriptor
 		for (auto& removableDescriptor : m_RemovableDescriptors)
 			removableDescriptor.DeadTimer++;
 
-		auto it = std::remove_if(m_RemovableDescriptors.begin(), m_RemovableDescriptors.end(), [](const RemovableDescriptorSet& info) { return info.DeadTimer > 3; });
+		auto it = std::remove_if(m_RemovableDescriptors.begin(), m_RemovableDescriptors.end(), [](const RemovableDescriptorSet& info) { return info.DeadTimer > 6; });
 		m_RemovableDescriptors.erase(it, m_RemovableDescriptors.end());
 	}
 

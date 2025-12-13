@@ -5,7 +5,6 @@
 #include "ResourceView.h"
 #include "ResourceGUID.h"
 #include "PassResources.h"
-#include "Reflection/PassReflection.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 

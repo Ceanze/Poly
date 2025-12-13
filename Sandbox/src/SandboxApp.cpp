@@ -40,7 +40,7 @@ public:
 	TestLayer()
 	{
 		m_pWindow = Poly::Window::Create(1280, 720, "Test Window");
-		//m_pWindow2 = Poly::Window::Create(1280, 720, "Test Window");
+		m_pWindow2 = Poly::Window::Create(1280, 720, "Test Window");
 		pCamera = new Poly::Camera();
 		pCamera->SetAspect(static_cast<float>(m_pWindow->GetWidth()) / m_pWindow->GetHeight());
 		pCamera->SetMouseSense(2.f);
@@ -51,7 +51,7 @@ public:
 		// Creation
 		m_pRenderer = Poly::Renderer::Create();
 		m_pRenderer->AddWindow(m_pWindow.get());
-		//m_pRenderer->AddWindow(m_pWindow2.get());
+		m_pRenderer->AddWindow(m_pWindow2.get());
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
