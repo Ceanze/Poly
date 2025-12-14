@@ -6,8 +6,6 @@
 namespace Poly
 {
 	class Window;
-	class Texture;
-	class Semaphore;
 	class TextureView;
 	class CommandQueue;
 	class CommandBuffer;
@@ -47,18 +45,10 @@ namespace Poly
 		virtual void Init(const SwapChainDesc* pDesc) = 0;
 
 		/**
-		 * Resize the buffers of the swapchain.
-		 * @param width		- new width of buffers
-		 * @param height	- new height of buffers
-		 */
-		virtual void Resize(uint32 width, uint32 height) = 0;
-
-		/**
 		 * Present the current buffer to the surface
 		 * @param commandBufers - (optional) Additional buffers to submit before presentation
-		 * @param pWaitSemaphore - (optional) Semaphore to wait on before present
 		 */
-		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) = 0;
+		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers) = 0;
 
 		/**
 		 * Get the texture

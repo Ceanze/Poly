@@ -1,11 +1,11 @@
 #include "polypch.h"
 
-#include "PVKSemaphore.h"
+#include "PVKBinarySemaphore.h"
 #include "PVKInstance.h"
 
 namespace Poly
 {
-	PVKSemaphore::~PVKSemaphore()
+	PVKBinarySemaphore::~PVKBinarySemaphore()
 	{
 		// TODO: Make sure semaphore isn't being used at the moment
 		// Alternative: be clear that the user needs to handle that
@@ -13,7 +13,7 @@ namespace Poly
 		m_Semaphore = VK_NULL_HANDLE;
 	}
 
-	void PVKSemaphore::Init()
+	void PVKBinarySemaphore::Init()
 	{
 		VkSemaphoreCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -23,7 +23,7 @@ namespace Poly
 		PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &createInfo, nullptr, &m_Semaphore), "Failed to create semaphore");
 	}
 
-	void PVKSemaphore::AddWaitStageMask(FPipelineStage stage)
+	void PVKBinarySemaphore::AddWaitStageMask(FPipelineStage stage)
 	{
 		m_WaitStage |= stage;
 	}

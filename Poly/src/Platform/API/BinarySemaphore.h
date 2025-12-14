@@ -5,14 +5,14 @@
 
 namespace Poly
 {
-	class Semaphore
+	class BinarySemaphore
 	{
 	public:
-		CLASS_ABSTRACT(Semaphore);
+		CLASS_ABSTRACT(BinarySemaphore);
 
 		/**
-		 * Init the Buffer object
-		 * @param desc	Buffer creation description
+		 * Init the BinarySemaphore object
+		 * @param desc - BinarySemaphore creation description
 		*/
 		virtual void Init() = 0;
 

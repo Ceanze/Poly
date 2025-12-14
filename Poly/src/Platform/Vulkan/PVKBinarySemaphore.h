@@ -2,16 +2,16 @@
 
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
-#include "Platform/API/Semaphore.h"
+#include "Platform/API/BinarySemaphore.h"
 #include "PVKTypes.h"
 
 namespace Poly
 {
-	class PVKSemaphore : public Semaphore
+	class PVKBinarySemaphore : public BinarySemaphore
 	{
 	public:
-		PVKSemaphore() = default;
-		~PVKSemaphore();
+		PVKBinarySemaphore() = default;
+		~PVKBinarySemaphore();
 
 		virtual void Init() override final;
 

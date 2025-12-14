@@ -26,7 +26,6 @@ namespace Poly
 	class Window;
 	class Sampler;
 	class Texture;
-	class Semaphore;
 	class SwapChain;
 	class Framebuffer;
 	class TextureView;
@@ -34,6 +33,7 @@ namespace Poly
 	class CommandQueue;
 	class DescriptorSet;
 	class PipelineLayout;
+	class BinarySemaphore;
 	class GraphicsPipeline;
 	class GraphicsRenderPass;
 
@@ -50,7 +50,7 @@ namespace Poly
 		virtual Ref<TextureView>		CreateTextureView(const TextureViewDesc* pDesc) = 0;
 		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) = 0;
 		virtual Ref<Fence>				CreateFence(FFenceFlag flag) = 0;
-		virtual Ref<Semaphore>			CreateSemaphore() = 0;
+		virtual Ref<BinarySemaphore>	CreateBinarySemaphore() = 0;
 		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) = 0;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) = 0;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) = 0;

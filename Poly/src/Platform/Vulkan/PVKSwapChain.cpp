@@ -5,7 +5,7 @@
 #include "PVKFence.h"
 #include "PVKTexture.h"
 #include "PVKInstance.h"
-#include "PVKSemaphore.h"
+#include "PVKBinarySemaphore.h"
 #include "PVKTextureView.h"
 #include "PVKCommandQueue.h"
 #include "PVKCommandBuffer.h"
@@ -36,18 +36,19 @@ namespace Poly
 		AcquireNextImage();
 	}
 
-	void PVKSwapChain::Resize(uint32 width, uint32 height)
-	{
-
-	}
-
-	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore)
+	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers)
 	{
 		if (!m_ResizeRequired)
 		{
 			m_ImagesInFlight[m_FrameIndex]->Reset();
 
-			p_SwapchainDesc.pQueue->Submit(commandBuffers, pWaitSemaphore, m_RenderSemaphores[m_FrameIndex].get(), m_ImagesInFlight[m_FrameIndex].get());
+			// TODO: Change pFence to use timeline semaphores (SyncPoint) instead
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = commandBuffers;
+			submitDesc.SignalSemaphores = { m_RenderSemaphores[m_FrameIndex].get() };
+			submitDesc.WaitSemaphores = { m_AcquireSemaphores[m_FrameIndex].get() };
+			submitDesc.pFence = m_ImagesInFlight[m_FrameIndex].get();
+			p_SwapchainDesc.pQueue->Submit(submitDesc);
 
 			VkSemaphore waitSemaphore = m_RenderSemaphores[m_FrameIndex]->GetNativeVK();
 			VkSwapchainKHR swapChains[] = { m_SwapChain };
@@ -273,9 +274,9 @@ namespace Poly
 
 		for (uint32 i = 0; i < p_SwapchainDesc.BufferCount; i++)
 		{
-			m_RenderSemaphores[i] = CreateUnique<PVKSemaphore>();
+			m_RenderSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
 			m_RenderSemaphores[i]->Init();
-			m_AcquireSemaphores[i] = CreateUnique<PVKSemaphore>();
+			m_AcquireSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
 			m_AcquireSemaphores[i]->Init();
 
 			m_ImagesInFlight[i] = CreateUnique<PVKFence>();
@@ -300,7 +301,7 @@ namespace Poly
 		PVK_CHECK(result, "Failed to acquire image!");
 
 		m_AcquireSemaphores[m_FrameIndex]->AddWaitStageMask(FPipelineStage::TOP_OF_PIPE);
-		reinterpret_cast<PVKCommandQueue*>(p_SwapchainDesc.pQueue)->AddWaitSemaphore(m_AcquireSemaphores[m_FrameIndex].get());
+		//reinterpret_cast<PVKCommandQueue*>(p_SwapchainDesc.pQueue)->AddWaitSemaphore(m_AcquireSemaphores[m_FrameIndex].get());
 
 		return PresentResult::SUCCESS;
 	}

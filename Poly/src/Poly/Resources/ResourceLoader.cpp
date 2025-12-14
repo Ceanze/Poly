@@ -5,7 +5,7 @@
 #include "Shader/ShaderCompiler.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
-#include "Platform/API/Semaphore.h"
+#include "Platform/API/BinarySemaphore.h"
 #include "Platform/API/CommandPool.h"
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/CommandBuffer.h"
@@ -78,13 +78,6 @@ namespace {
 
 namespace Poly
 {
-	bool				ResourceLoader::s_GLSLInit				= false;
-	Ref<CommandPool>	ResourceLoader::s_TransferCommandPool	= nullptr;
-	CommandBuffer*		ResourceLoader::s_TransferCommandBuffer	= nullptr;
-	Ref<CommandPool>	ResourceLoader::s_GraphicsCommandPool	= nullptr;
-	CommandBuffer*		ResourceLoader::s_GraphicsCommandBuffer	= nullptr;
-	Ref<Semaphore>		ResourceLoader::s_Semaphore				= nullptr;
-
 	void ResourceLoader::Init()
 	{
 		// GLSL
@@ -100,7 +93,7 @@ namespace Poly
 		s_GraphicsCommandBuffer	= s_GraphicsCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
 		// Semaphore
-		s_Semaphore				= RenderAPI::CreateSemaphore();
+		s_Semaphore				= RenderAPI::CreateBinarySemaphore();
 	}
 
 	void ResourceLoader::Release()
@@ -249,10 +242,15 @@ namespace Poly
 
 		// 4. Semaphore to make sure the transfer is done before acquire
 		s_Semaphore->ClearWaitStageMask();
-		s_Semaphore->AddWaitStageMask(FPipelineStage::FRAGMENT_SHADER);
+		s_Semaphore->AddWaitStageMask(FPipelineStage::ALL_COMMANDS);
 
 		// 5. Submit to transfer queue
-		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(s_TransferCommandBuffer, nullptr, s_Semaphore.get(), nullptr);
+		{
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = { s_TransferCommandBuffer };
+			submitDesc.SignalSemaphores = { s_Semaphore.get() };
+			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(submitDesc);
+		}
 
 		// 6. Acquire texture to graphics queue
 		s_GraphicsCommandPool->Reset();
@@ -274,7 +272,12 @@ namespace Poly
 		s_GraphicsCommandBuffer->End();
 
 		// 7. Submit to graphics queue
-		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(s_GraphicsCommandBuffer, s_Semaphore.get(), nullptr, nullptr);
+		{
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = { s_GraphicsCommandBuffer };
+			submitDesc.WaitSemaphores = { s_Semaphore.get() };
+			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
+		}
 
 		// 8. Wait on both queues (or something better, this is the simple approach)
 		// TODO: Use semaphore here instead!
@@ -566,10 +569,15 @@ namespace Poly
 
 		// Semaphore to make sure the transfer is done before acquire
 		s_Semaphore->ClearWaitStageMask();
-		s_Semaphore->AddWaitStageMask(FPipelineStage::VERTEX_SHADER);
+		s_Semaphore->AddWaitStageMask(FPipelineStage::ALL_COMMANDS);
 
 		// Submit to transfer queue
-		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(s_TransferCommandBuffer, nullptr, s_Semaphore.get(), nullptr);
+		{
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = { s_TransferCommandBuffer };
+			submitDesc.SignalSemaphores = { s_Semaphore.get() };
+			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(submitDesc);
+		}
 
 		// Acquire texture to graphics queue
 		s_GraphicsCommandPool->Reset();
@@ -585,7 +593,12 @@ namespace Poly
 		s_GraphicsCommandBuffer->End();
 
 		// Submit to graphics queue
-		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(s_GraphicsCommandBuffer, s_Semaphore.get(), nullptr, nullptr);
+		{
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = { s_GraphicsCommandBuffer };
+			submitDesc.WaitSemaphores = { s_Semaphore.get() };
+			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
+		}
 
 		// Wait on both queues (or something better, this is the simple approach)
 		// TODO: Use semaphore here instead!

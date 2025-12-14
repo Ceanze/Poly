@@ -98,9 +98,9 @@ namespace Poly
 		return m_pGraphicsInstance->CreateFence(flag);
 	}
 
-	Ref<Semaphore> RenderAPI::CreateSemaphore()
+	Ref<BinarySemaphore> RenderAPI::CreateBinarySemaphore()
 	{
-		return m_pGraphicsInstance->CreateSemaphore();
+		return m_pGraphicsInstance->CreateBinarySemaphore();
 	}
 
 	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)

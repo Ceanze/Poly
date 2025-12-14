@@ -62,7 +62,7 @@ namespace Poly
 			m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
 
 			std::vector<CommandBuffer*> emptyCommandbuffers;
-			PresentResult res = windowCtx.pSwapChain->Present(emptyCommandbuffers, nullptr);
+			PresentResult res = windowCtx.pSwapChain->Present(emptyCommandbuffers);
 			if (res == PresentResult::RECREATED_SWAPCHAIN)
 				CreateBackbufferResources(windowCtx);
 		}
