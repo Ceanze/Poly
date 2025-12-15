@@ -84,9 +84,14 @@ namespace Poly
 		renderData.SetScene(m_pScene.get());
 		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
 		{
+			std::vector<SyncPointValue> signalSyncPoints;
+
 			// Clear old descriptors
-			if (m_DescriptorCaches.contains(passIndex))
-				m_DescriptorCaches[passIndex].Update();
+			if (auto itr = m_DescriptorCaches.find(passIndex); itr != m_DescriptorCaches.end())
+			{
+				itr->second.Update();
+				signalSyncPoints.push_back(itr->second.GetSignalSyncPointValue());
+			}
 
 			// Set inital pass values
 			CommandBuffer* currentCommandBuffer = GetCommandBuffer(passIndex);
@@ -173,6 +178,7 @@ namespace Poly
 			// Only graphics queue at the moment
 			SubmitDesc submitDesc = {};
 			submitDesc.CommandBuffers = { currentCommandBuffer };
+			submitDesc.SignalSyncPoints = signalSyncPoints;
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
 		}
 

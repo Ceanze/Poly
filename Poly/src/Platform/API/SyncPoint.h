@@ -41,8 +41,7 @@ namespace Poly
 		virtual uint64 GetValue() const = 0;
 
 		/**
-		* Add where the sync point should wait, given that it is submitted as a wait sync point.
-		* Value is ignored if submitted as a signal sync point
+		* Add where the sync point should wait or signal, depending what it is submitted as.
 		* @param stage - the pipeline stage to wait for. Pipeline stage needs to be available on the current queue for proper use
 		*/
 		virtual void AddWaitStageMask(FPipelineStage stage) = 0;
