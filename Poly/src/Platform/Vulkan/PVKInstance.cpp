@@ -9,7 +9,6 @@
 #include <cstring>
 #include <vector>
 
-#include "PVKFence.h"
 #include "PVKShader.h"
 #include "PVKBuffer.h"
 #include "PVKTexture.h"
@@ -137,13 +136,6 @@ namespace Poly
 		Ref<PVKSwapChain> pSwapChain = CreateRef<PVKSwapChain>();
 		pSwapChain->Init(pDesc);
 		return pSwapChain;
-	}
-
-	Ref<Fence> PVKInstance::CreateFence(FFenceFlag flag)
-	{
-		Ref<PVKFence> pFence = CreateRef<PVKFence>();
-		pFence->Init(flag);
-		return pFence;
 	}
 
 	Ref<BinarySemaphore> PVKInstance::CreateBinarySemaphore()

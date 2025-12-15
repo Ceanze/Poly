@@ -20,7 +20,6 @@ namespace Poly
 	struct GraphicsRenderPassDesc;
 
 	// Classes
-	class Fence;
 	class Shader;
 	class Buffer;
 	class Window;
@@ -50,7 +49,6 @@ namespace Poly
 		virtual Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex) = 0;
 		virtual Ref<TextureView>		CreateTextureView(const TextureViewDesc* pDesc) = 0;
 		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) = 0;
-		virtual Ref<Fence>				CreateFence(FFenceFlag flag) = 0;
 		virtual Ref<BinarySemaphore>	CreateBinarySemaphore() = 0;
 		virtual Ref<SyncPoint>			CreateSyncPoint() = 0;
 		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) = 0;

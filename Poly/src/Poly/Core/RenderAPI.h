@@ -31,13 +31,13 @@ namespace Poly
 	struct GraphicsPipelineDesc;
 	struct GraphicsRenderPassDesc;
 
-	class Fence;
 	class Shader;
 	class Buffer;
 	class Window;
 	class Sampler;
 	class Texture;
 	class SwapChain;
+	class SyncPoint;
 	class Framebuffer;
 	class TextureView;
 	class CommandPool;
@@ -68,8 +68,8 @@ namespace Poly
 		static Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex);
 		static Ref<TextureView>			CreateTextureView(const TextureViewDesc* pDesc);
 		static Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc);
-		static Ref<Fence>				CreateFence(FFenceFlag flag);
 		static Ref<BinarySemaphore>		CreateBinarySemaphore();
+		static Ref<SyncPoint>			CreateSyncPoint();
 		static Ref<CommandPool>			CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags);
 		static Ref<Sampler>				CreateSampler(const SamplerDesc* pDesc);
 		static Ref<Shader>				CreateShader(const ShaderDesc* pDesc);

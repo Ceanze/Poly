@@ -8,7 +8,6 @@
 
 namespace Poly
 {
-	class Fence;
 	class SyncPoint;
 	class CommandBuffer;
 	class BinarySemaphore;
@@ -23,9 +22,6 @@ namespace Poly
 		// Legacy semaphore for Vulkan - prefer SyncPoints instead when possible
 		std::vector<BinarySemaphore*> WaitSemaphores;
 		std::vector<BinarySemaphore*> SignalSemaphores;
-
-		// TODO: Remove fence from API - prefer SyncPoints instead
-		Fence* pFence = nullptr;
 	};
 
 	class CommandQueue

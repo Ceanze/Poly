@@ -1,7 +1,6 @@
 #include "polypch.h"
 #include "PVKCommandQueue.h"
 
-#include "PVKFence.h"
 #include "PVKInstance.h"
 #include "PVKSyncPoint.h"
 #include "PVKBinarySemaphore.h"
@@ -100,7 +99,7 @@ namespace Poly
 		submitInfo.waitSemaphoreInfoCount	= waitSemaphoreInfos.size();
 		submitInfo.pNext					= nullptr;
 
-		PVK_CHECK(vkQueueSubmit2(m_Queue.queue, 1, &submitInfo, submitDesc.pFence ? reinterpret_cast<PVKFence*>(submitDesc.pFence)->GetNativeVK() : VK_NULL_HANDLE), "Failed to submit to {} queue with index {}", GetQueueName(), m_Queue.queueIndex);
+		PVK_CHECK(vkQueueSubmit2(m_Queue.queue, 1, &submitInfo, VK_NULL_HANDLE), "Failed to submit to {} queue with index {}", GetQueueName(), m_Queue.queueIndex);
 	}
 
 	void PVKCommandQueue::Wait()

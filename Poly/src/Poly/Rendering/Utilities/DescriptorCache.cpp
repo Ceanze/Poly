@@ -8,7 +8,7 @@ namespace Poly
 	void DescriptorCache::Update()
 	{
 		// TODO: this should not rely on a "DeadTimer", as it does not scale with multiple windows.
-		// Either use per-frame fences, or timeline semaphores to properly check "death" of a descriptor
+		// Use timeline semaphores to properly check "death" of a descriptor
 		for (auto& removableDescriptor : m_RemovableDescriptors)
 			removableDescriptor.DeadTimer++;
 
