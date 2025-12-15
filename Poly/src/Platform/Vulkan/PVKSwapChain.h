@@ -6,7 +6,7 @@
 
 namespace Poly
 {
-	class PVKFence;
+	class SyncPoint;
 	class PVKBinarySemaphore;
 
 	struct SwapChainSupportDetails
@@ -70,6 +70,7 @@ namespace Poly
 		// Sync
 		std::vector<Unique<PVKBinarySemaphore>>	m_RenderSemaphores;
 		std::vector<Unique<PVKBinarySemaphore>>	m_AcquireSemaphores;
-		std::vector<Unique<PVKFence>>			m_ImagesInFlight;
+		Ref<SyncPoint> m_FrameSyncPoint;
+		uint64 m_FrameSyncValue = 0;
 	};
 }
