@@ -12,7 +12,6 @@ namespace Poly
 
 		/**
 		 * Init the BinarySemaphore object
-		 * @param desc - BinarySemaphore creation description
 		*/
 		virtual void Init() = 0;
 

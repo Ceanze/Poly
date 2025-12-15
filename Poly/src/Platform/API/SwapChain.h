@@ -6,6 +6,7 @@
 namespace Poly
 {
 	class Window;
+	class Texture;
 	class TextureView;
 	class CommandQueue;
 	class CommandBuffer;

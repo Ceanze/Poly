@@ -15,6 +15,7 @@
 #include "PVKTexture.h"
 #include "PVKSampler.h"
 #include "PVKSwapChain.h"
+#include "PVKSyncPoint.h"
 #include "PVKRenderPass.h"
 #include "PVKFramebuffer.h"
 #include "PVKTextureView.h"
@@ -150,6 +151,13 @@ namespace Poly
 		Ref<PVKBinarySemaphore> pSemaphore = CreateRef<PVKBinarySemaphore>();
 		pSemaphore->Init();
 		return pSemaphore;
+	}
+
+	Ref<SyncPoint> PVKInstance::CreateSyncPoint()
+	{
+		Ref<PVKSyncPoint> pSyncPoint = CreateRef<PVKSyncPoint>();
+		pSyncPoint->Init();
+		return pSyncPoint;
 	}
 
 	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)

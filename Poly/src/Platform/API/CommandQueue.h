@@ -4,6 +4,7 @@
 
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Platform/API/SyncPoint.h"
 
 namespace Poly
 {
@@ -11,12 +12,6 @@ namespace Poly
 	class SyncPoint;
 	class CommandBuffer;
 	class BinarySemaphore;
-
-	struct SyncPointValue
-	{
-		SyncPoint*	pSyncPoint;
-		uint64		Value;
-	};
 
 	struct SubmitDesc
 	{

@@ -3,6 +3,7 @@
 
 #include "PVKFence.h"
 #include "PVKInstance.h"
+#include "PVKSyncPoint.h"
 #include "PVKBinarySemaphore.h"
 #include "PVKCommandBuffer.h"
 
@@ -28,11 +29,11 @@ namespace Poly
 		commandBufferInfos.reserve(submitDesc.CommandBuffers.size());
 		for (const auto& pCommandBuffer : submitDesc.CommandBuffers)
 		{
-			VkCommandBufferSubmitInfo commandBufferInfo;
+			VkCommandBufferSubmitInfo commandBufferInfo = {};
 			commandBufferInfo.sType			= VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
 			commandBufferInfo.commandBuffer	= reinterpret_cast<PVKCommandBuffer*>(pCommandBuffer)->GetNativeVK();
-			commandBufferInfo.pNext = nullptr;
-			commandBufferInfo.deviceMask = 0;
+			commandBufferInfo.pNext			= nullptr;
+			commandBufferInfo.deviceMask	= 0;
 			commandBufferInfos.push_back(commandBufferInfo);
 		}
 
@@ -41,58 +42,63 @@ namespace Poly
 		waitSemaphoreInfos.reserve(submitDesc.WaitSemaphores.size() + submitDesc.WaitSyncPoints.size());
 		for (const auto& pWaitSemaphore : submitDesc.WaitSemaphores)
 		{
-			VkSemaphoreSubmitInfo semaphoreInfo;
-			semaphoreInfo.sType		= VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-			semaphoreInfo.semaphore	= reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetNativeVK();
-			semaphoreInfo.stageMask	= reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetWaitStageMaskVK();
-			semaphoreInfo.pNext = nullptr;
-			semaphoreInfo.deviceIndex = 0;
+			VkSemaphoreSubmitInfo semaphoreInfo = {};
+			semaphoreInfo.sType			= VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+			semaphoreInfo.semaphore		= reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetNativeVK();
+			semaphoreInfo.stageMask		= reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetWaitStageMaskVK();
+			semaphoreInfo.pNext			= nullptr;
+			semaphoreInfo.deviceIndex	= 0;
 			waitSemaphoreInfos.push_back(semaphoreInfo);
 		}
 
-		//for (const auto& pWaitSemaphore : submitDesc.WaitSyncPoints)
-		//{
-		//	VkSemaphoreSubmitInfo semaphoreInfo;
-		//	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-		//	semaphoreInfo.semaphore = reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetNativeVK();
-		//	semaphoreInfo.stageMask = reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetWaitStageMaskVK();
-		//  waitSemaphoreInfos.push_back(semaphoreInfo);
-		//}
+		for (const auto& waitSemaphore : submitDesc.WaitSyncPoints)
+		{
+			VkSemaphoreSubmitInfo semaphoreInfo = {};
+			semaphoreInfo.sType			= VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+			semaphoreInfo.semaphore		= reinterpret_cast<PVKSyncPoint*>(waitSemaphore.pSyncPoint)->GetNativeVK();
+			semaphoreInfo.stageMask		= reinterpret_cast<PVKSyncPoint*>(waitSemaphore.pSyncPoint)->GetWaitStageMaskVK();
+			semaphoreInfo.pNext			= nullptr;
+			semaphoreInfo.deviceIndex	= 0;
+			semaphoreInfo.value			= waitSemaphore.Value;
+			waitSemaphoreInfos.push_back(semaphoreInfo);
+		}
 
 		// Signal binary/timeline semaphores
 		std::vector<VkSemaphoreSubmitInfo> signalSemaphoreInfos;
 		signalSemaphoreInfos.reserve(submitDesc.SignalSemaphores.size() + submitDesc.SignalSyncPoints.size());
 		for (const auto& pSignalSemaphore : submitDesc.SignalSemaphores)
 		{
-			VkSemaphoreSubmitInfo semaphoreInfo;
-			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-			semaphoreInfo.semaphore = reinterpret_cast<PVKBinarySemaphore*>(pSignalSemaphore)->GetNativeVK();
-			semaphoreInfo.stageMask = reinterpret_cast<PVKBinarySemaphore*>(pSignalSemaphore)->GetWaitStageMaskVK();
-			semaphoreInfo.pNext = nullptr;
-			semaphoreInfo.deviceIndex = 0;
+			VkSemaphoreSubmitInfo semaphoreInfo = {};
+			semaphoreInfo.sType			= VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+			semaphoreInfo.semaphore		= reinterpret_cast<PVKBinarySemaphore*>(pSignalSemaphore)->GetNativeVK();
+			semaphoreInfo.stageMask		= reinterpret_cast<PVKBinarySemaphore*>(pSignalSemaphore)->GetWaitStageMaskVK();
+			semaphoreInfo.pNext			= nullptr;
+			semaphoreInfo.deviceIndex	= 0;
 			signalSemaphoreInfos.push_back(semaphoreInfo);
 		}
 
-		//for (const auto& pWaitSemaphore : submitDesc.WaitSyncPoints)
-		//{
-		//	VkSemaphoreSubmitInfo semaphoreInfo;
-		//	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-		//	semaphoreInfo.semaphore = reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetNativeVK();
-		//	semaphoreInfo.stageMask = reinterpret_cast<PVKBinarySemaphore*>(pWaitSemaphore)->GetWaitStageMaskVK();
-		//  signalSemaphoreInfos.push_back(semaphoreInfo);
-		//}
-
+		for (const auto& signalSemaphore : submitDesc.SignalSyncPoints)
+		{
+			VkSemaphoreSubmitInfo semaphoreInfo = {};
+			semaphoreInfo.sType			= VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+			semaphoreInfo.semaphore		= reinterpret_cast<PVKSyncPoint*>(signalSemaphore.pSyncPoint)->GetNativeVK();
+			semaphoreInfo.stageMask		= reinterpret_cast<PVKSyncPoint*>(signalSemaphore.pSyncPoint)->GetWaitStageMaskVK();
+			semaphoreInfo.pNext			= nullptr;
+			semaphoreInfo.deviceIndex	= 0;
+			semaphoreInfo.value			= signalSemaphore.Value;
+			signalSemaphoreInfos.push_back(semaphoreInfo);
+		}
 
 		// Submit
 		VkSubmitInfo2 submitInfo = {};
-		submitInfo.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
-		submitInfo.pCommandBufferInfos = commandBufferInfos.data();
-		submitInfo.commandBufferInfoCount = commandBufferInfos.size();
-		submitInfo.pSignalSemaphoreInfos = signalSemaphoreInfos.data();
-		submitInfo.signalSemaphoreInfoCount = signalSemaphoreInfos.size();
-		submitInfo.pWaitSemaphoreInfos = waitSemaphoreInfos.data();
-		submitInfo.waitSemaphoreInfoCount = waitSemaphoreInfos.size();
-		submitInfo.pNext = nullptr;
+		submitInfo.sType					= VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+		submitInfo.pCommandBufferInfos		= commandBufferInfos.data();
+		submitInfo.commandBufferInfoCount	= commandBufferInfos.size();
+		submitInfo.pSignalSemaphoreInfos	= signalSemaphoreInfos.data();
+		submitInfo.signalSemaphoreInfoCount	= signalSemaphoreInfos.size();
+		submitInfo.pWaitSemaphoreInfos		= waitSemaphoreInfos.data();
+		submitInfo.waitSemaphoreInfoCount	= waitSemaphoreInfos.size();
+		submitInfo.pNext					= nullptr;
 
 		PVK_CHECK(vkQueueSubmit2(m_Queue.queue, 1, &submitInfo, submitDesc.pFence ? reinterpret_cast<PVKFence*>(submitDesc.pFence)->GetNativeVK() : VK_NULL_HANDLE), "Failed to submit to {} queue with index {}", GetQueueName(), m_Queue.queueIndex);
 	}
