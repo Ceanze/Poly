@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Platform/API/CommandQueue.h"
@@ -9,25 +7,21 @@
 
 namespace Poly
 {
-	class Semaphore;
-	class PVKSemaphore;
+	class BinarySemaphore;
+	class PVKBinarySemaphore;
 	class CommandBuffer;
 
 	class PVKCommandQueue : public CommandQueue
 	{
 	public:
 		PVKCommandQueue() = default;
-		~PVKCommandQueue();
+		~PVKCommandQueue() = default;
 
 		virtual void Init(FQueueType queueType, uint32 queueIndex) override final;
 
-		virtual void SubmitIdle(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) override final;
+		virtual void SubmitIdle(const SubmitDesc& submitDesc) override final;
 
-		virtual void Submit(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence) override final;
-
-		virtual void Submit(CommandBuffer* pCommandBuffer, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence) override final;
-
-		virtual void AddWaitSemaphore(Semaphore* pWaitSemaphore) override final;
+		virtual void Submit(const SubmitDesc& submitDesc) override final;
 
 		virtual void Wait() override final;
 
@@ -39,7 +33,6 @@ namespace Poly
 	private:
 		std::string GetQueueName();
 
-		std::vector<PVKSemaphore*> m_WaitSemaphores;
 		PVKQueue m_Queue;
 		FQueueType m_QueueType	= FQueueType::NONE;
 	};

@@ -235,13 +235,6 @@ namespace Poly
 	};
 	ENABLE_BITMASK_OPERATORS(FCommandBufferFlag);
 
-	enum class FFenceFlag
-	{
-		NONE		= 0,
-		SIGNALED	= FLAG(1)
-	};
-	ENABLE_BITMASK_OPERATORS(FFenceFlag);
-
 	enum class EFilter
 	{
 		NONE	= 0,

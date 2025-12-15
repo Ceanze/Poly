@@ -199,13 +199,6 @@ namespace Poly
 		return mask;
 	}
 
-	inline VkFenceCreateFlags ConvertFenceFlagsVK(FFenceFlag fenceFlag)
-	{
-		VkFenceCreateFlags mask = 0;
-		FLAG_CHECK(fenceFlag & FFenceFlag::SIGNALED, mask |= VK_FENCE_CREATE_SIGNALED_BIT);
-		return mask;
-	}
-
 	inline VkFilter ConvertFilterVK(EFilter filter)
 	{
 		switch (filter)

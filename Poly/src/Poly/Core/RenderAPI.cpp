@@ -2,7 +2,6 @@
 #include "RenderAPI.h"
 
 #include "Platform/Vulkan/PVKInstance.h"
-#include "Poly/Core/Window.h"
 #include "Platform/API/Sampler.h"
 #include "Platform/API/CommandQueue.h"
 
@@ -93,14 +92,14 @@ namespace Poly
 		return m_pGraphicsInstance->CreateSwapChain(pDesc);
 	}
 
-	Ref<Fence> RenderAPI::CreateFence(FFenceFlag flag)
+	Ref<BinarySemaphore> RenderAPI::CreateBinarySemaphore()
 	{
-		return m_pGraphicsInstance->CreateFence(flag);
+		return m_pGraphicsInstance->CreateBinarySemaphore();
 	}
 
-	Ref<Semaphore> RenderAPI::CreateSemaphore()
+	Ref<SyncPoint> RenderAPI::CreateSyncPoint()
 	{
-		return m_pGraphicsInstance->CreateSemaphore();
+		return m_pGraphicsInstance->CreateSyncPoint();;
 	}
 
 	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)

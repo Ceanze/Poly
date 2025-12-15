@@ -1,14 +1,13 @@
 #pragma once
 
-#include "VulkanCommon.h"
 #include "Platform/API/SwapChain.h"
 #include "Platform/Vulkan/PVKTexture.h"
 #include "Platform/Vulkan/PVKTextureView.h"
 
 namespace Poly
 {
-	class PVKFence;
-	class PVKSemaphore;
+	class SyncPoint;
+	class PVKBinarySemaphore;
 
 	struct SwapChainSupportDetails
 	{
@@ -29,8 +28,7 @@ namespace Poly
 
 		virtual void Init(const SwapChainDesc* pDesc) override final;
 
-		virtual void Resize(uint32 width, uint32 height) override final;
-		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) override final;
+		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers) override final;
 
 		uint64			GetNative() const { return reinterpret_cast<uint64>(m_SwapChain); }
 		VkSwapchainKHR	GetNativeVK() const { return m_SwapChain; }
@@ -70,8 +68,9 @@ namespace Poly
 		VkQueue								m_PresentQueue		= VK_NULL_HANDLE;
 
 		// Sync
-		std::vector<Unique<PVKSemaphore>>		m_RenderSemaphores;
-		std::vector<Unique<PVKSemaphore>>		m_AcquireSemaphores;
-		std::vector<Unique<PVKFence>>			m_ImagesInFlight;
+		std::vector<Unique<PVKBinarySemaphore>>	m_RenderSemaphores;
+		std::vector<Unique<PVKBinarySemaphore>>	m_AcquireSemaphores;
+		Ref<SyncPoint> m_FrameSyncPoint;
+		uint64 m_FrameSyncValue = 0;
 	};
 }

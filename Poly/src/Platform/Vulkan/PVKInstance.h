@@ -35,8 +35,8 @@ namespace Poly
 		virtual Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex) override final;
 		virtual Ref<TextureView>		CreateTextureView(const TextureViewDesc* pDesc) override final;
 		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) override final;
-		virtual Ref<Fence>				CreateFence(FFenceFlag flag) override final;
-		virtual Ref<Semaphore>			CreateSemaphore() override final;
+		virtual Ref<BinarySemaphore>	CreateBinarySemaphore() override final;
+		virtual Ref<SyncPoint>			CreateSyncPoint() override final;
 		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) override final;
 		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) override final;
 		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) override final;

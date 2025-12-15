@@ -171,7 +171,9 @@ namespace Poly
 			currentCommandBuffer->End();
 
 			// Only graphics queue at the moment
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(currentCommandBuffer, nullptr, nullptr, nullptr);
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = { currentCommandBuffer };
+			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
 		}
 
 		m_pStagingBufferCache->Update(m_ImageIndex);

@@ -2,13 +2,13 @@
 #include "PVKSwapChain.h"
 
 #include "VulkanCommon.h"
-#include "PVKFence.h"
 #include "PVKTexture.h"
 #include "PVKInstance.h"
-#include "PVKSemaphore.h"
+#include "PVKBinarySemaphore.h"
 #include "PVKTextureView.h"
 #include "PVKCommandQueue.h"
 #include "PVKCommandBuffer.h"
+#include "PVKSyncPoint.h"
 
 #include "Poly/Core/Window.h"
 
@@ -16,7 +16,6 @@ namespace Poly
 {
 	PVKSwapChain::~PVKSwapChain()
 	{
-		m_ImagesInFlight.clear();
 		m_RenderSemaphores.clear();
 		m_AcquireSemaphores.clear();
 		Cleanup();
@@ -36,18 +35,16 @@ namespace Poly
 		AcquireNextImage();
 	}
 
-	void PVKSwapChain::Resize(uint32 width, uint32 height)
-	{
-
-	}
-
-	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore)
+	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers)
 	{
 		if (!m_ResizeRequired)
 		{
-			m_ImagesInFlight[m_FrameIndex]->Reset();
-
-			p_SwapchainDesc.pQueue->Submit(commandBuffers, pWaitSemaphore, m_RenderSemaphores[m_FrameIndex].get(), m_ImagesInFlight[m_FrameIndex].get());
+			SubmitDesc submitDesc = {};
+			submitDesc.CommandBuffers = commandBuffers;
+			submitDesc.SignalSemaphores = { m_RenderSemaphores[m_FrameIndex].get() };
+			submitDesc.WaitSemaphores = { m_AcquireSemaphores[m_FrameIndex].get() };
+			submitDesc.SignalSyncPoints = { {m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
+			p_SwapchainDesc.pQueue->Submit(submitDesc);
 
 			VkSemaphore waitSemaphore = m_RenderSemaphores[m_FrameIndex]->GetNativeVK();
 			VkSwapchainKHR swapChains[] = { m_SwapChain };
@@ -269,25 +266,30 @@ namespace Poly
 	{
 		m_RenderSemaphores.resize(p_SwapchainDesc.BufferCount);
 		m_AcquireSemaphores.resize(p_SwapchainDesc.BufferCount);
-		m_ImagesInFlight.resize(p_SwapchainDesc.BufferCount);
 
 		for (uint32 i = 0; i < p_SwapchainDesc.BufferCount; i++)
 		{
-			m_RenderSemaphores[i] = CreateUnique<PVKSemaphore>();
+			m_RenderSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
 			m_RenderSemaphores[i]->Init();
-			m_AcquireSemaphores[i] = CreateUnique<PVKSemaphore>();
+			m_AcquireSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
 			m_AcquireSemaphores[i]->Init();
-
-			m_ImagesInFlight[i] = CreateUnique<PVKFence>();
-			m_ImagesInFlight[i]->Init(FFenceFlag::SIGNALED);
 		}
+
+		m_FrameSyncPoint = CreateRef<PVKSyncPoint>();
+		m_FrameSyncPoint->Init();
+		m_FrameSyncValue = 0;
 	}
 
 	PresentResult PVKSwapChain::AcquireNextImage()
 	{
 		m_FrameIndex = (m_FrameIndex + 1) % p_SwapchainDesc.BufferCount;
 
-		m_ImagesInFlight[m_FrameIndex]->Wait(UINT64_MAX);
+		// + 1 to wait for the coming frames submit, and not the previous one
+		const uint64 waitValue =
+			(m_FrameSyncValue + 1) >= p_SwapchainDesc.BufferCount
+			? (m_FrameSyncValue + 1) - p_SwapchainDesc.BufferCount
+			: 0;
+		m_FrameSyncPoint->Wait(waitValue);
 
 		VkResult result = vkAcquireNextImageKHR(PVKInstance::GetDevice(), m_SwapChain, UINT64_MAX, m_AcquireSemaphores[m_FrameIndex]->GetNativeVK(), VK_NULL_HANDLE, &m_ImageIndex);
 		if (result == VkResult::VK_ERROR_OUT_OF_DATE_KHR || result == VkResult::VK_SUBOPTIMAL_KHR || m_ResizeRequired) // VK_SUBOPTIMAL_KHR could be considered successful, currently it is not, and a recreate will be done for those too
@@ -299,8 +301,7 @@ namespace Poly
 
 		PVK_CHECK(result, "Failed to acquire image!");
 
-		m_AcquireSemaphores[m_FrameIndex]->AddWaitStageMask(FPipelineStage::TOP_OF_PIPE);
-		reinterpret_cast<PVKCommandQueue*>(p_SwapchainDesc.pQueue)->AddWaitSemaphore(m_AcquireSemaphores[m_FrameIndex].get());
+		m_AcquireSemaphores[m_FrameIndex]->AddWaitStageMask(FPipelineStage::COLOR_ATTACHMENT_OUTPUT);
 
 		return PresentResult::SUCCESS;
 	}

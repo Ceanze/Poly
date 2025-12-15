@@ -9,13 +9,12 @@
 #include <cstring>
 #include <vector>
 
-#include "PVKFence.h"
 #include "PVKShader.h"
 #include "PVKBuffer.h"
 #include "PVKTexture.h"
 #include "PVKSampler.h"
 #include "PVKSwapChain.h"
-#include "PVKSemaphore.h"
+#include "PVKSyncPoint.h"
 #include "PVKRenderPass.h"
 #include "PVKFramebuffer.h"
 #include "PVKTextureView.h"
@@ -23,6 +22,7 @@
 #include "PVKCommandQueue.h"
 #include "PVKDescriptorSet.h"
 #include "PVKPipelineLayout.h"
+#include "PVKBinarySemaphore.h"
 #include "PVKGraphicsPipeline.h"
 
 namespace
@@ -138,18 +138,18 @@ namespace Poly
 		return pSwapChain;
 	}
 
-	Ref<Fence> PVKInstance::CreateFence(FFenceFlag flag)
+	Ref<BinarySemaphore> PVKInstance::CreateBinarySemaphore()
 	{
-		Ref<PVKFence> pFence = CreateRef<PVKFence>();
-		pFence->Init(flag);
-		return pFence;
-	}
-
-	Ref<Semaphore> PVKInstance::CreateSemaphore()
-	{
-		Ref<PVKSemaphore> pSemaphore = CreateRef<PVKSemaphore>();
+		Ref<PVKBinarySemaphore> pSemaphore = CreateRef<PVKBinarySemaphore>();
 		pSemaphore->Init();
 		return pSemaphore;
+	}
+
+	Ref<SyncPoint> PVKInstance::CreateSyncPoint()
+	{
+		Ref<PVKSyncPoint> pSyncPoint = CreateRef<PVKSyncPoint>();
+		pSyncPoint->Init();
+		return pSyncPoint;
 	}
 
 	Ref<CommandPool> PVKInstance::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)
@@ -561,6 +561,16 @@ namespace Poly
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+		VkPhysicalDeviceVulkan13Features vulkan13Features = {};
+		vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+		vulkan13Features.synchronization2 = VK_TRUE;
+		vulkan13Features.pNext = nullptr;
+
+		VkPhysicalDeviceVulkan12Features vulkan12Features = {};
+		vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		vulkan12Features.timelineSemaphore = VK_TRUE;
+		vulkan12Features.pNext = &vulkan13Features;
+
 		// Create info for the logical device
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -569,6 +579,7 @@ namespace Poly
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = static_cast<unsigned>(m_DeviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
+		createInfo.pNext = &vulkan12Features;
 
 		// Used for older implementations of vulkan
 		if (m_EnableValidationLayers) {

@@ -18,9 +18,9 @@ namespace Poly
 	class Shader;
 	class Buffer;
 	class Texture;
-	class Semaphore;
 	class CommandPool;
 	class CommandBuffer;
+	class BinarySemaphore;
 
 	struct MeshMaterialRefPair
 	{
@@ -56,12 +56,12 @@ namespace Poly
 		static void TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer);
 		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
 
-		static bool s_GLSLInit;
+		inline static bool s_GLSLInit = false;;
 
-		static Ref<CommandPool>		s_TransferCommandPool;
-		static CommandBuffer*		s_TransferCommandBuffer;
-		static Ref<CommandPool>		s_GraphicsCommandPool;
-		static CommandBuffer*		s_GraphicsCommandBuffer;
-		static Ref<Semaphore>		s_Semaphore;
+		inline static Ref<CommandPool>		s_TransferCommandPool;
+		inline static CommandBuffer*		s_TransferCommandBuffer = nullptr;
+		inline static Ref<CommandPool>		s_GraphicsCommandPool;
+		inline static CommandBuffer*		s_GraphicsCommandBuffer = nullptr;
+		inline static Ref<BinarySemaphore>	s_Semaphore;
 	};
 }

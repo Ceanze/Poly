@@ -4,12 +4,25 @@
 
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Platform/API/SyncPoint.h"
 
 namespace Poly
 {
-	class Fence;
-	class Semaphore;
+	class SyncPoint;
 	class CommandBuffer;
+	class BinarySemaphore;
+
+	struct SubmitDesc
+	{
+		std::vector<CommandBuffer*> CommandBuffers;
+
+		std::vector<SyncPointValue> WaitSyncPoints;
+		std::vector<SyncPointValue> SignalSyncPoints;
+
+		// Legacy semaphore for Vulkan - prefer SyncPoints instead when possible
+		std::vector<BinarySemaphore*> WaitSemaphores;
+		std::vector<BinarySemaphore*> SignalSemaphores;
+	};
 
 	class CommandQueue
 	{
@@ -31,7 +44,7 @@ namespace Poly
 		 * @param commandBuffers - Vector of command buffer pointers to be submited
 		 * @param pWaitSemaphore - (optional) Semaphore to wait on
 		 */
-		virtual void SubmitIdle(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore) = 0;
+		virtual void SubmitIdle(const SubmitDesc& submitDesc) = 0;
 
 		/**
 		 * Submit the command buffers with optional wait and signal semaphores
@@ -39,21 +52,7 @@ namespace Poly
 		 * @param pWaitSemaphore	- Pointer to semaphore to wait for before submiting
 		 * @param pSignalSemaphore	- Pointer to semaphore to signal when submission is complete
 		 */
-		virtual void Submit(const std::vector<CommandBuffer*>& commandBuffers, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence) = 0;
-
-		/**
-		 * Submit the command buffer with optional wait and signal semaphores
-		 * @param commandBuffer		- Command buffer to be submited
-		 * @param pWaitSemaphore	- Pointer to semaphore to wait for before submiting
-		 * @param pSignalSemaphore	- Pointer to semaphore to signal when submission is complete
-		 */
-		virtual void Submit(CommandBuffer* pCommandBuffer, Semaphore* pWaitSemaphore, Semaphore* pSignalSemaphore, Fence* pFence) = 0;
-
-		/**
-		 * Adds a wait semaphore that the next submit to this queue will wait for
-		 * @param pWaitSemaphore - Pointer to the semaphore to wait for
-		 */
-		virtual void AddWaitSemaphore(Semaphore* pWaitSemaphore) = 0;
+		virtual void Submit(const SubmitDesc& submitDesc) = 0;
 
 		/**
 		 * Waits for the queue to be idle
