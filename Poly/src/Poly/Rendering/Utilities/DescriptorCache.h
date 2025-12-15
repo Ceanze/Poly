@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Platform/API/SyncPoint.h"
+
 namespace Poly
 {
 	class DescriptorSet;
@@ -10,20 +12,26 @@ namespace Poly
 	private:
 		struct RemovableDescriptorSet
 		{
-			RemovableDescriptorSet(Ref<DescriptorSet> pSet) : pSet(pSet) {}
+			RemovableDescriptorSet(Ref<DescriptorSet> pSet, uint64 currentSyncPointValue) : pSet(pSet), SyncPointValue(currentSyncPointValue) {}
 
 			Ref<DescriptorSet> pSet = nullptr;
-			uint8 DeadTimer			= 0;
+			uint64 SyncPointValue	= 0;
 		};
 
 	public:
-		DescriptorCache() = default;
+		DescriptorCache();
 		~DescriptorCache() = default;
 
 		enum class EAction {
 			GET,
 			GET_OR_CREATE
 		};
+
+		/**
+		* Used to clear up the cache correctely. Call this ONCE per frame submit to make sure the cache gets notified when a frame is done.
+		* @return SyncPoint
+		*/
+		SyncPointValue GetSignalSyncPointValue();
 
 		/**
 		 * Needs to be called every frame to delete any old descriptor sets.
@@ -86,7 +94,8 @@ namespace Poly
 
 		PipelineLayout* m_pPipelineLayout = nullptr;
 		std::unordered_map<uint32, std::vector<std::vector<Ref<DescriptorSet>>>> m_Descriptors;
-		// std::unordered_map<uint32, std::vector<Ref<DescriptorSet>>> m_DescriptorsToBeDeleted;
 		std::vector<RemovableDescriptorSet> m_RemovableDescriptors;
+		Ref<SyncPoint> m_pSyncPoint;
+		uint64 m_SyncPointValue = 0;
 	};
 }

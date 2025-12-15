@@ -5,14 +5,22 @@
 
 namespace Poly
 {
+	DescriptorCache::DescriptorCache()
+	{
+		m_pSyncPoint = RenderAPI::CreateSyncPoint();
+	}
+
+	SyncPointValue DescriptorCache::GetSignalSyncPointValue()
+	{
+		return { m_pSyncPoint.get(), m_SyncPointValue };
+	}
+
 	void DescriptorCache::Update()
 	{
-		// TODO: this should not rely on a "DeadTimer", as it does not scale with multiple windows.
-		// Use timeline semaphores to properly check "death" of a descriptor
-		for (auto& removableDescriptor : m_RemovableDescriptors)
-			removableDescriptor.DeadTimer++;
+		m_SyncPointValue++;
+		const uint64 currentSignaledValue = m_pSyncPoint->GetValue();
 
-		auto it = std::remove_if(m_RemovableDescriptors.begin(), m_RemovableDescriptors.end(), [](const RemovableDescriptorSet& info) { return info.DeadTimer > 6; });
+		auto it = std::remove_if(m_RemovableDescriptors.begin(), m_RemovableDescriptors.end(), [currentSignaledValue](const RemovableDescriptorSet& info) { return info.SyncPointValue < currentSignaledValue; });
 		m_RemovableDescriptors.erase(it, m_RemovableDescriptors.end());
 	}
 
@@ -29,8 +37,7 @@ namespace Poly
 		Ref<DescriptorSet> pNewDescriptor = RenderAPI::CreateDescriptorSetCopy(pOldDescriptor);
 		m_Descriptors[set][index][offset] = pNewDescriptor;
 
-		// m_DescriptorsToBeDeleted[frameIndex].push_back(pOldDescriptor);
-		m_RemovableDescriptors.push_back(RemovableDescriptorSet(pOldDescriptor));
+		m_RemovableDescriptors.push_back(RemovableDescriptorSet(pOldDescriptor, m_SyncPointValue));
 
 		return pNewDescriptor.get();
 	}
