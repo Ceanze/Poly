@@ -49,7 +49,6 @@ namespace Poly
 			{
 				InputManager::Update();
 
-				glfwPollEvents();
 				pApp->Update(dt);
 			}
 

@@ -3,14 +3,15 @@
 #include "Poly/Events/EventBus.h"
 #include "Window.h"
 
-#include <GLFW/glfw3.h>
-
 namespace Poly
 {
+	Application* Application::s_Instance = nullptr;
 
 	Application::Application()
 	{
 		POLY_EVENT_SUB(Application, OnCloseWindowEvent);
+
+		s_Instance = this;
 	}
 
 	Application::~Application()
@@ -18,8 +19,25 @@ namespace Poly
 		POLY_EVENT_UNSUB(Application, OnCloseWindowEvent);
 	}
 
+	void Application::Init()
+	{
+		if (std::optional<Window::Properties> windowProps = GetWindowProperties())
+		{
+			m_pWindow = Window::Create(windowProps.value());
+		}
+
+		OnInit();
+	}
+
+	Application& Application::Get()
+	{
+		return *s_Instance;
+	}
+
 	void Application::Update(Timestamp dt)
 	{
+		m_pWindow->Update();
+
 		for (auto layer : m_LayerStack)
 			layer->OnUpdate(dt);
 	}
@@ -44,6 +62,11 @@ namespace Poly
 	bool Application::IsRunning()
 	{
 		return m_Running;
+	}
+
+	Window* Application::GetWindow() const
+	{
+		return m_pWindow.get();
 	}
 
 	void Application::OnCloseWindowEvent(CloseWindowEvent* e)
