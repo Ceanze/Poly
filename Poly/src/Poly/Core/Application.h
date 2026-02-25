@@ -1,14 +1,16 @@
 #pragma once
 
-#include "LayerStack.h"
+#include "Poly/Core/LayerStack.h"
 #include "Poly/Events/EventBus.h"
-#include "Timestamp.h"
+#include "Poly/Core/Timestamp.h"
 #include "Poly/Core/Window.h"
 
 #include <optional>
 
 namespace Poly
 {
+	class Renderer;
+
 	class Application
 	{
 	public:
@@ -28,6 +30,7 @@ namespace Poly
 		bool IsRunning();
 
 		Window* GetWindow() const;
+		Renderer* GetRenderer() const;
 
 	protected:
 		virtual void OnInit() = 0;
@@ -40,6 +43,7 @@ namespace Poly
 		bool m_Running = true;
 		LayerStack m_LayerStack;
 		Unique<Window> m_pWindow;
+		Unique<Renderer> m_pRenderer;
 
 		void OnCloseWindowEvent(CloseWindowEvent* e);
 	};

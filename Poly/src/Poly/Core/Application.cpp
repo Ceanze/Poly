@@ -1,7 +1,10 @@
 #include "polypch.h"
-#include "Application.h"
+
+#include "Poly/Core/Application.h"
+
 #include "Poly/Events/EventBus.h"
-#include "Window.h"
+#include "Poly/Rendering/Renderer.h"
+#include "Poly/Core/Window.h"
 
 namespace Poly
 {
@@ -21,10 +24,14 @@ namespace Poly
 
 	void Application::Init()
 	{
+		m_pRenderer = Renderer::Create();
+
 		if (std::optional<Window::Properties> windowProps = GetWindowProperties())
 		{
 			m_pWindow = Window::Create(windowProps.value());
+			m_pRenderer->AddWindow(m_pWindow.get());
 		}
+
 
 		OnInit();
 	}
@@ -36,10 +43,14 @@ namespace Poly
 
 	void Application::Update(Timestamp dt)
 	{
-		m_pWindow->Update();
+		if (m_pWindow)
+			m_pWindow->Update();
 
 		for (auto layer : m_LayerStack)
 			layer->OnUpdate(dt);
+
+		if (m_pRenderer)
+			m_pRenderer->Render();
 	}
 
 	void Application::FixedUpdate(Timestamp dt)
@@ -67,6 +78,11 @@ namespace Poly
 	Window* Application::GetWindow() const
 	{
 		return m_pWindow.get();
+	}
+
+	Renderer* Application::GetRenderer() const
+	{
+		return m_pRenderer.get();
 	}
 
 	void Application::OnCloseWindowEvent(CloseWindowEvent* e)

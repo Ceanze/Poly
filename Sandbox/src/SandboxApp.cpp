@@ -51,8 +51,6 @@ public:
 		pWindow->AddWindowResizeCallback([this](int width, int height) { pCamera->SetAspect(static_cast<float>(width) / height); });
 
 		// Creation
-		m_pRenderer = Poly::Renderer::Create();
-		m_pRenderer->AddWindow(pWindow);
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
@@ -101,7 +99,7 @@ public:
 		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
-		m_pRenderer->SetRenderGraph(m_pProgram);
+		Poly::Application::Get().GetRenderer()->SetRenderGraph(m_pProgram);
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
@@ -133,7 +131,6 @@ public:
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
 		m_pProgram->UpdateGraphResource({ "camera" }, sizeof(CameraBuffer), &data);
-		m_pRenderer->Render();
 	};
 
 	void OnDetach() override
@@ -145,7 +142,6 @@ private:
 	Poly::Camera* pCamera = nullptr;
 	Poly::Ref<Poly::Scene> m_pScene = nullptr;
 	Poly::Ref<Poly::Buffer> m_pCambuffer = nullptr;
-	Poly::Ref<Poly::Renderer> m_pRenderer = nullptr;
 	Poly::Ref<Poly::RenderGraph> m_pGraph = nullptr;
 	Poly::Ref<Poly::RenderGraphProgram> m_pProgram = nullptr;
 };
@@ -160,8 +156,8 @@ public:
 		PushLayer(new TestLayer());
 	}
 
-protected:
-	std::optional<Poly::Window::Properties> GetWindowProperties() const { return Poly::Window::Properties{ 1280, 720, "Poly Engine" }; }
+private:
+	std::optional<Poly::Window::Properties> GetWindowProperties() const override { return Poly::Window::Properties{ 1280, 720, "Poly Engine" }; }
 
 };
 

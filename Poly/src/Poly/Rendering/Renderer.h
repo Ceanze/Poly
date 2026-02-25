@@ -13,7 +13,7 @@ namespace Poly
 		Renderer();
 		~Renderer();
 
-		static Ref<Renderer> Create();
+		static Unique<Renderer> Create();
 
 		/**
 		 * Sets the currently used render graph program

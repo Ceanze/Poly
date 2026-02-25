@@ -19,9 +19,9 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 	}
 
-	Ref<Renderer> Renderer::Create()
+	Unique<Renderer> Renderer::Create()
 	{
-		return CreateRef<Renderer>();
+		return CreateUnique<Renderer>();
 	}
 
 	void Renderer::SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram)
