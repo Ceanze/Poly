@@ -37,21 +37,20 @@ public:
 		PointLight PointLight = {};
 	};
 
-	TestLayer()
+	TestLayer() {}
+
+	void OnAttach() override
 	{
-		m_pWindow = Poly::Window::Create(1280, 720, "Test Window");
-		m_pWindow2 = Poly::Window::Create(1280, 720, "Test Window");
+		Poly::Window* pWindow = Poly::Application::Get().GetWindow();
+
 		pCamera = new Poly::Camera();
-		pCamera->SetAspect(static_cast<float>(m_pWindow->GetWidth()) / m_pWindow->GetHeight());
+		pCamera->SetAspect(static_cast<float>(pWindow->GetWidth()) / pWindow->GetHeight());
 		pCamera->SetMouseSense(2.f);
 		pCamera->SetMovementSpeed(1.f);
 		pCamera->SetSprintSpeed(5.f);
-		m_pWindow->AddWindowResizeCallback([this](int width, int height) {pCamera->SetAspect(static_cast<float>(width) / height); });
+		pWindow->AddWindowResizeCallback([this](int width, int height) { pCamera->SetAspect(static_cast<float>(width) / height); });
 
 		// Creation
-		m_pRenderer = Poly::Renderer::Create();
-		m_pRenderer->AddWindow(m_pWindow.get());
-		m_pRenderer->AddWindow(m_pWindow2.get());
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
 		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
@@ -95,20 +94,22 @@ public:
 		//Poly::SceneSerializer sceneSerializer(m_pScene);
 		//sceneSerializer.Deserialize("CubeScene.polyscene");
 
-		 Poly::Entity cubeEntity = m_pScene->CreateEntity();
+		Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
 		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		// Set active render graph program
-		m_pRenderer->SetRenderGraph(m_pProgram);
+		Poly::Application::Get().GetRenderer()->SetRenderGraph(m_pProgram);
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
-		m_pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height)); });
-	};
+		pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height)); });
+	}
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
+		Poly::Window* pWindow = Poly::Application::Get().GetWindow();
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.MousePos = ImVec2(static_cast<float>(Poly::InputManager::GetMouseX()), static_cast<float>(Poly::InputManager::GetMouseY()));
 		io.MouseDown[0] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_LEFT);
@@ -117,9 +118,9 @@ public:
 		io.MouseWheelH = static_cast<float>(Poly::InputManager::GetScrollDeltaX());
 
 		if (Poly::InputManager::IsKeyPressed(Poly::EKey::MOUSE_RIGHT))
-			m_pWindow->SetMouseMode(Poly::EMouseMode::DISABLED);
+			pWindow->SetMouseMode(Poly::EMouseMode::DISABLED);
 		else if (Poly::InputManager::IsKeyReleased(Poly::EKey::MOUSE_RIGHT))
-			m_pWindow->SetMouseMode(Poly::EMouseMode::NORMAL);
+			pWindow->SetMouseMode(Poly::EMouseMode::NORMAL);
 
 		ImGui::NewFrame();
 
@@ -130,7 +131,6 @@ public:
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
 		m_pProgram->UpdateGraphResource({ "camera" }, sizeof(CameraBuffer), &data);
-		m_pRenderer->Render();
 	};
 
 	void OnDetach() override
@@ -139,12 +139,9 @@ public:
 	}
 
 private:
-	Poly::Unique<Poly::Window> m_pWindow = nullptr;
-	Poly::Unique<Poly::Window> m_pWindow2 = nullptr;
 	Poly::Camera* pCamera = nullptr;
 	Poly::Ref<Poly::Scene> m_pScene = nullptr;
 	Poly::Ref<Poly::Buffer> m_pCambuffer = nullptr;
-	Poly::Ref<Poly::Renderer> m_pRenderer = nullptr;
 	Poly::Ref<Poly::RenderGraph> m_pGraph = nullptr;
 	Poly::Ref<Poly::RenderGraphProgram> m_pProgram = nullptr;
 };
@@ -152,15 +149,16 @@ private:
 class Sandbox : public Poly::Application
 {
 public:
-	Sandbox()
+	Sandbox() {}
+
+	void OnInit() override
 	{
 		PushLayer(new TestLayer());
 	}
 
-	~Sandbox()
-	{
+private:
+	std::optional<Poly::Window::Properties> GetWindowProperties() const override { return Poly::Window::Properties{ 1280, 720, "Poly Engine" }; }
 
-	}
 };
 
 Poly::Application* Poly::CreateApplication()

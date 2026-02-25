@@ -11,15 +11,15 @@
 
 namespace Poly
 {
-	Window::Window(int width, int height, const std::string& title)
-		: m_Title(title)
+	Window::Window(Properties properties)
+		: m_Properties(std::move(properties))
 	{
 		// Tell GLFW not to make an OpenGL context
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-		m_pWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		m_pWindow = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title.c_str(), nullptr, nullptr);
 		if (!m_pWindow) {
 			glfwTerminate();
 			POLY_CORE_FATAL("Could not create a GLFW window!");
@@ -52,9 +52,14 @@ namespace Poly
 		glfwTerminate();
 	}
 
-	Unique<Window> Window::Create(int width, int height, const std::string& name)
+	Unique<Window> Window::Create(Properties properties)
 	{
-		return CreateUnique<Window>(width, height, name);
+		return CreateUnique<Window>(std::move(properties));
+	}
+
+	void Window::Update()
+	{
+		glfwPollEvents();
 	}
 
 	void Window::ToggleBorderlessFullscreen(bool enable)
@@ -109,7 +114,7 @@ namespace Poly
 	{
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		Properties& props = m_SavedProperties;
+		StateProperties& props = m_SavedProperties;
 
 		if (enable) {
 			// Save current window position/size

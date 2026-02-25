@@ -25,19 +25,20 @@ namespace Poly
 	public:
 		struct Properties
 		{
-			int Height = 0;
-			int Width = 0;
-			int PosX = 0;
-			int PosY = 0;
+			int Width;
+			int Height;
+			std::string Title;
 		};
 
 	public:
-		Window(int width, int height, const std::string& name);
+		Window(Properties properties);
 		~Window();
 		Window(const Window&) = delete;
 		Window& operator=(const Window&) = delete;
 
-		static Unique<Window> Create(int width, int height, const std::string& name);
+		static Unique<Window> Create(Properties properties);
+
+		void Update();
 
 		void ToggleBorderlessFullscreen(bool enable);
 		void ToggleExclusiveFullscreen(bool enable);
@@ -54,10 +55,18 @@ namespace Poly
 		void AddWindowResizeCallback(std::function<void(int width, int height)>&& callback);
 
 	private:
+		struct StateProperties
+		{
+			int Height = 0;
+			int Width = 0;
+			int PosX = 0;
+			int PosY = 0;
+		};
+
 		PolyID m_ID;
-		Properties m_CurrentProperties;
-		Properties m_SavedProperties;
-		std::string m_Title = "";
+		StateProperties m_CurrentProperties;
+		StateProperties m_SavedProperties;
+		Properties m_Properties;
 		GLFWwindow* m_pWindow = nullptr;
 		std::vector<std::function<void(int, int)>> m_ResizeCallbacks;
 

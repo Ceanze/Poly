@@ -20,6 +20,7 @@ int main()
 	Poly::Engine::Init();
 
 	Poly::Application* app = Poly::CreateApplication();
+	app->Init();
 
 	Poly::Engine::Run(app);
 
