@@ -19,16 +19,9 @@
 
 namespace Poly
 {
-	ImGuiPass::ImGuiPass()
-	{
-		ImGui::CreateContext();
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	}
+	ImGuiPass::ImGuiPass() = default;
 
-	ImGuiPass::~ImGuiPass()
-	{
-		ImGui::DestroyContext();
-	}
+	ImGuiPass::~ImGuiPass() = default;
 
 	PassReflection ImGuiPass::Reflect()
 	{
@@ -57,6 +50,9 @@ namespace Poly
 
 	void ImGuiPass::Compile()
 	{
+		if (!ImGui::GetCurrentContext())
+			return;
+
 		SetupCustomPipeline();
 		SetupFont();
 
@@ -65,6 +61,9 @@ namespace Poly
 
 	void ImGuiPass::Update(const RenderContext& context)
 	{
+		if (!ImGui::GetCurrentContext())
+			return;
+
 		m_BuffersToBeDestroyed[context.GetImageIndex()].clear();
 
 		static bool first = true;
@@ -75,6 +74,7 @@ namespace Poly
 			context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pRes.get());
 			first = false;
 		}
+		
 		// TODO: Should probably not call Render() here
 		ImGui::Render();
 		UpdateBuffers(context.GetImageIndex());
@@ -85,6 +85,9 @@ namespace Poly
 
 	void ImGuiPass::Execute(const RenderContext& context, const RenderData& renderData)
 	{
+		if (!ImGui::GetCurrentContext())
+			return;
+
 		CommandBuffer* pCommandBuffer = context.GetCommandBuffer();
 
 		ImGuiIO& io = ImGui::GetIO();

@@ -13,6 +13,8 @@ struct GLFWwindow;
 
 namespace Poly
 {
+	class Event;
+
 	enum class EMouseMode
 	{
 		NORMAL,
@@ -52,7 +54,7 @@ namespace Poly
 
 		GLFWwindow* GetNative() const;
 
-		void AddWindowResizeCallback(std::function<void(int width, int height)>&& callback);
+		void SetEventCallback(std::function<void(Event&)> callback);
 
 	private:
 		struct StateProperties
@@ -68,13 +70,14 @@ namespace Poly
 		StateProperties m_SavedProperties;
 		Properties m_Properties;
 		GLFWwindow* m_pWindow = nullptr;
-		std::vector<std::function<void(int, int)>> m_ResizeCallbacks;
+		std::function<void(Event&)> m_EventCallback;
 
 		void SetFullscreen(GLFWwindow* window, bool enable, bool exclusive);
 
 		// Callbacks
 		static void CloseWindowCallback(GLFWwindow* pGLFWWindow);
 		static void KeyCallback(GLFWwindow* pGLFWWindow, int key, int scancode, int action, int mods);
+		static void SetCharCallback(GLFWwindow* pGLFWWindow, unsigned key);
 		static void MouseMoveCallback(GLFWwindow* pGLFWWindow, double x, double y);
 		static void MouseButtonCallback(GLFWwindow* pGLFWWindow, int button, int action, int mods);
 		static void MouseScrollCallback(GLFWwindow* pGLFWWindow, double x, double y);

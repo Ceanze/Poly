@@ -25,8 +25,6 @@ namespace Poly
 	{
 		p_SwapchainDesc = *pDesc;
 
-		p_SwapchainDesc.pWindow->AddWindowResizeCallback([this](int, int) { m_ResizeRequired = true; });
-
 		CreateSurface();
 		SetupPresentQueue();
 		CreateSyncObjects();
@@ -61,6 +59,11 @@ namespace Poly
 		}
 
 		return AcquireNextImage();
+	}
+
+	void PVKSwapChain::OnWindowResized(int /*width*/, int /*height*/)
+	{
+		m_ResizeRequired = true;
 	}
 
 	void PVKSwapChain::SetupPresentQueue()

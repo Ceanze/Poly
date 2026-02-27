@@ -10,6 +10,7 @@
 namespace Poly
 {
 	class Renderer;
+	class ImGuiLayer;
 
 	class Application
 	{
@@ -38,14 +39,15 @@ namespace Poly
 		virtual std::optional<Window::Properties> GetWindowProperties() const { return std::nullopt; }
 
 	private:
+		void OnEvent(Event& event);
+
 		static Application* s_Instance;
 
 		bool m_Running = true;
 		LayerStack m_LayerStack;
 		Unique<Window> m_pWindow;
 		Unique<Renderer> m_pRenderer;
-
-		void OnCloseWindowEvent(CloseWindowEvent* e);
+		ImGuiLayer* m_pImGuiLayer = nullptr;
 	};
 
 	Application* CreateApplication();

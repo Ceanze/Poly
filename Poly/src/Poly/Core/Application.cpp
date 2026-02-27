@@ -2,9 +2,15 @@
 
 #include "Poly/Core/Application.h"
 
-#include "Poly/Events/EventBus.h"
+#include "Poly/Events/WindowEvent.h"
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Core/Window.h"
+#include "Poly/ImGui/ImGuiLayer.h"
+
+namespace
+{
+	constexpr bool g_ImGuiEnabled = true;
+}
 
 namespace Poly
 {
@@ -12,15 +18,10 @@ namespace Poly
 
 	Application::Application()
 	{
-		POLY_EVENT_SUB(Application, OnCloseWindowEvent);
-
 		s_Instance = this;
 	}
 
-	Application::~Application()
-	{
-		POLY_EVENT_UNSUB(Application, OnCloseWindowEvent);
-	}
+	Application::~Application() = default;
 
 	void Application::Init()
 	{
@@ -30,8 +31,14 @@ namespace Poly
 		{
 			m_pWindow = Window::Create(windowProps.value());
 			m_pRenderer->AddWindow(m_pWindow.get());
-		}
+			m_pWindow->SetEventCallback([this](Event& event) { OnEvent(event); });
 
+			if (g_ImGuiEnabled)
+			{
+				m_pImGuiLayer = new ImGuiLayer;
+				PushOverlay(m_pImGuiLayer);
+			}
+		}
 
 		OnInit();
 	}
@@ -45,6 +52,9 @@ namespace Poly
 	{
 		if (m_pWindow)
 			m_pWindow->Update();
+
+		if (m_pImGuiLayer)
+			m_pImGuiLayer->BeginFrame();
 
 		for (auto layer : m_LayerStack)
 			layer->OnUpdate(dt);
@@ -85,8 +95,20 @@ namespace Poly
 		return m_pRenderer.get();
 	}
 
-	void Application::OnCloseWindowEvent(CloseWindowEvent* e)
+	void Application::OnEvent(Event& event)
 	{
-		m_Running = false;
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<Events::WindowClosed>([this](Events::WindowClosed&) { m_Running = false; return false; });
+
+		if (m_pRenderer)
+			m_pRenderer->OnEvent(event);
+
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+		{
+			if (event.Handled)
+				break;
+
+			(*it)->OnEvent(event);
+		}
 	}
 }

@@ -81,6 +81,13 @@ namespace Poly
 		virtual uint64 GetNative() const = 0;
 
 		/**
+		* Called when the window has been resized and requires updated backbuffer images
+		* @param width - new width
+		* @param height - new height
+		*/
+		virtual void OnWindowResized(int width, int height) = 0;
+
+		/**
 		 * @return const TextureDesc
 		 */
 		inline const SwapChainDesc& GetDesc() const

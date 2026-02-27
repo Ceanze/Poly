@@ -3,6 +3,7 @@
 #include "Timestamp.h"
 
 namespace Poly {
+	class Event;
 
 	class Layer
 	{
@@ -12,6 +13,7 @@ namespace Poly {
 
 		virtual void OnAttach() {};
 		virtual void OnDetach() {};
+		virtual void OnEvent(Event& event) {};
 		virtual void OnUpdate(Timestamp dt) {};
 	};
 

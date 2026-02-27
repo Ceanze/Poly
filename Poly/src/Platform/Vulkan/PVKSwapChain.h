@@ -30,6 +30,8 @@ namespace Poly
 
 		virtual PresentResult Present(const std::vector<CommandBuffer*>& commandBuffers) override final;
 
+		virtual void OnWindowResized(int width, int height) override final;
+
 		uint64			GetNative() const { return reinterpret_cast<uint64>(m_SwapChain); }
 		VkSwapchainKHR	GetNativeVK() const { return m_SwapChain; }
 		VkFormat		GetFormatVK() const { return m_FormatVK; }
