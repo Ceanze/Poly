@@ -72,15 +72,15 @@ namespace Poly
 	void Renderer::OnEvent(Event& event)
 	{
 		EventDispatcher eventDispatcher(event);
-		eventDispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& event)
-													{
-														for (auto& context : m_Windows)
-														{
-															context.pSwapChain->OnWindowResized(event.GetWidth(), event.GetHeight());
-														}
+		eventDispatcher.Dispatch<Events::WindowResized>([this](Events::WindowResized& event)
+			{
+				for (auto& context : m_Windows)
+				{
+					context.pSwapChain->OnWindowResized(event.GetWidth(), event.GetHeight());
+				}
 
-														return false;
-													});
+				return false;
+			});
 	}
 
 	void Renderer::CreateBackbufferResources(const WindowContext& windowCtx)

@@ -11,6 +11,7 @@
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Core/Window.h"
 #include "Poly/Events/WindowEvent.h"
+#include "Poly/Events/MouseEvent.h"
 
 #include <imgui/imgui.h>
 #include "Poly/Core/Input/InputManager.h"
@@ -107,19 +108,12 @@ public:
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
-		Poly::Window* pWindow = Poly::Application::Get().GetWindow();
-
 		ImGuiIO& io = ImGui::GetIO();
 		io.MousePos = ImVec2(static_cast<float>(Poly::InputManager::GetMouseX()), static_cast<float>(Poly::InputManager::GetMouseY()));
 		io.MouseDown[0] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_LEFT);
 		io.MouseDown[1] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_RIGHT);
 		io.MouseWheel = static_cast<float>(Poly::InputManager::GetScrollDeltaY());
 		io.MouseWheelH = static_cast<float>(Poly::InputManager::GetScrollDeltaX());
-
-		if (Poly::InputManager::IsKeyPressed(Poly::EKey::MOUSE_RIGHT))
-			pWindow->SetMouseMode(Poly::EMouseMode::DISABLED);
-		else if (Poly::InputManager::IsKeyReleased(Poly::EKey::MOUSE_RIGHT))
-			pWindow->SetMouseMode(Poly::EMouseMode::NORMAL);
 
 		ImGui::NewFrame();
 
@@ -140,8 +134,29 @@ public:
 	void OnEvent(Poly::Event& event) override
 	{
 		Poly::EventDispatcher eventDispatcher(event);
-		eventDispatcher.Dispatch<Poly::WindowResizeEvent>([this](Poly::WindowResizeEvent& event) { pCamera->SetAspect(static_cast<float>(event.GetWidth()) / event.GetHeight()); return false; });
-		eventDispatcher.Dispatch<Poly::WindowResizeEvent>([this](Poly::WindowResizeEvent& event) { ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight())); return false; });
+		eventDispatcher.Dispatch<Poly::Events::WindowResized>([this](Poly::Events::WindowResized& event) { return WindowResizeCallback(event); });
+		eventDispatcher.Dispatch<Poly::Events::MouseButtonPressed>([this](Poly::Events::MouseButtonPressed& event) { return MouseButtonCallback(event.GetButton(), true); });
+		eventDispatcher.Dispatch<Poly::Events::MouseButtonReleased>([this](Poly::Events::MouseButtonReleased& event) { return MouseButtonCallback(event.GetButton(), false); });
+	}
+
+	bool WindowResizeCallback(Poly::Events::WindowResized& event)
+	{
+		pCamera->SetAspect(static_cast<float>(event.GetWidth()) / event.GetHeight());
+		ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight()));
+
+		return true;
+	}
+
+	bool MouseButtonCallback(Poly::EKey button, bool pressed)
+	{
+		Poly::Window* pWindow = Poly::Application::Get().GetWindow();
+
+		if (button == Poly::EKey::MOUSE_RIGHT && pressed)
+			pWindow->SetMouseMode(Poly::EMouseMode::DISABLED);
+		else if (button == Poly::EKey::MOUSE_RIGHT && !pressed)
+			pWindow->SetMouseMode(Poly::EMouseMode::NORMAL);
+
+		return true;
 	}
 
 private:

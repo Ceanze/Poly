@@ -77,6 +77,7 @@ namespace Poly
 		// Callbacks
 		static void CloseWindowCallback(GLFWwindow* pGLFWWindow);
 		static void KeyCallback(GLFWwindow* pGLFWWindow, int key, int scancode, int action, int mods);
+		static void SetCharCallback(GLFWwindow* pGLFWWindow, unsigned key);
 		static void MouseMoveCallback(GLFWwindow* pGLFWWindow, double x, double y);
 		static void MouseButtonCallback(GLFWwindow* pGLFWWindow, int button, int action, int mods);
 		static void MouseScrollCallback(GLFWwindow* pGLFWWindow, double x, double y);

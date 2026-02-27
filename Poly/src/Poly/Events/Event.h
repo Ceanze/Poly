@@ -5,8 +5,18 @@ namespace Poly
 	enum class EventType
 	{
 		None = 0,
-		WINDOW_CLOSE,
-		WINDOW_RESIZE
+		WindowClosed,
+		WindowResized,
+		WindowMoved,
+
+		KeyPressed,
+		KeyReleased,
+		KeyTyped,
+
+		MouseButtonPressed,
+		MouseButtonReleased,
+		MouseMoved,
+		MouseScrolled
 	};
 
 #define DEFINE_EVENT(type, eventType)\
@@ -19,7 +29,7 @@ namespace Poly
 	public:
 		virtual ~Event() = default;
 
-		bool Handled;
+		bool Handled = false;
 
 		virtual EventType GetEventType() const = 0;
 		virtual const char* GetName() const = 0;

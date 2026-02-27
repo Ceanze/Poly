@@ -2,26 +2,41 @@
 
 #include "Poly/Events/Event.h"
 
-namespace Poly
+namespace Poly::Events
 {
-	class WindowCloseEvent : public Event
+	class WindowClosed : public Event
 	{
 	public:
-		DEFINE_EVENT(WindowCloseEvent, EventType::WINDOW_CLOSE)
+		DEFINE_EVENT(WindowClosed, EventType::WindowClosed)
 	};
 
-	class WindowResizeEvent : public Event
+	class WindowResized : public Event
 	{
 	public:
-		WindowResizeEvent(unsigned width, unsigned height) : m_Width(width), m_Height(height) {}
+		WindowResized(unsigned width, unsigned height) : m_Width(width), m_Height(height) {}
 
 		unsigned GetWidth() const { return m_Width; }
 		unsigned GetHeight() const { return m_Height; }
 
-		DEFINE_EVENT(WindowResizeEvent, EventType::WINDOW_RESIZE)
+		DEFINE_EVENT(WindowResized, EventType::WindowResized)
 
 	private:
 		const unsigned m_Width;
 		const unsigned m_Height;
+	};
+
+	class WindowMoved : public Event
+	{
+	public:
+		WindowMoved(int x, int y) : m_X(x), m_Y(y) {}
+
+		int GetX() const { return m_X; }
+		int GetY() const { return m_Y; }
+
+		DEFINE_EVENT(WindowMoved, EventType::WindowMoved)
+
+	private:
+		const int m_X;
+		const int m_Y;
 	};
 }

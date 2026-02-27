@@ -2,6 +2,8 @@
 
 #include "Window.h"
 #include "Poly/Events/WindowEvent.h"
+#include "Poly/Events/MouseEvent.h"
+#include "Poly/Events/KeyEvent.h"
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Core/Input/KeyCode.h"
 #include "Platform/GLFW/GLFWTypes.h"
@@ -39,6 +41,7 @@ namespace Poly
 		// Set callbacks
 		glfwSetWindowCloseCallback(m_pWindow, CloseWindowCallback);
 		glfwSetKeyCallback(m_pWindow, KeyCallback);
+		glfwSetCharCallback(m_pWindow, SetCharCallback);
 		glfwSetCursorPosCallback(m_pWindow, MouseMoveCallback);
 		glfwSetMouseButtonCallback(m_pWindow, MouseButtonCallback);
 		glfwSetScrollCallback(m_pWindow, MouseScrollCallback);
@@ -143,42 +146,88 @@ namespace Poly
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
 	
-		WindowCloseEvent event;
+		Events::WindowClosed event;
 		pWindow->m_EventCallback(event);
 	}
 
 	void Window::KeyCallback(GLFWwindow* pGLFWWindow, int key, int scancode, int action, int mods)
 	{
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+
 		EKey polyKey = ConvertToPolyKey(key);
 		FKeyModifier polyMod = ConvertToPolyModifier(mods);
 		KeyCode keyCode(polyKey, polyMod);
 
 		if (action == GLFW_PRESS)
+		{
 			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::PRESS);
+			Events::KeyPressed keyPressedEvent(polyKey, polyMod, false);
+			pWindow->m_EventCallback(keyPressedEvent);
+		}
 		else if (action == GLFW_RELEASE)
+		{
 			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::RELEASE);
+			Events::KeyReleased keyReleasedEvent(polyKey, polyMod);
+			pWindow->m_EventCallback(keyReleasedEvent);
+		}
+		else if (action == GLFW_REPEAT)
+		{
+			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::PRESS);
+			Events::KeyPressed keyPressedEvent(polyKey, polyMod, true);
+			pWindow->m_EventCallback(keyPressedEvent);
+		}
+	}
+
+	void Window::SetCharCallback(GLFWwindow* pGLFWWindow, unsigned key)
+	{
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+
+		EKey polyKey = ConvertToPolyKey(static_cast<int>(key));
+
+		Events::KeyTyped keyTypedEvent(polyKey);
+		pWindow->m_EventCallback(keyTypedEvent);
 	}
 
 	void Window::MouseMoveCallback(GLFWwindow* pGLFWWindow, double x, double y)
 	{
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+
 		InputManager::MouseCallback(x, y);
+
+		Events::MouseMoved mouseMovedEvent(x, y, InputManager::GetMouseDeltaX(), InputManager::GetMouseDeltaY());
+		pWindow->m_EventCallback(mouseMovedEvent);
 	}
 
 	void Window::MouseButtonCallback(GLFWwindow* pGLFWWindow, int button, int action, int mods)
 	{
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+
 		EKey polyKey = ConvertToPolyKey(button);
 		FKeyModifier polyMod = ConvertToPolyModifier(mods);
 		KeyCode keyCode(polyKey, polyMod);
 
 		if (action == GLFW_PRESS)
+		{
 			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::PRESS);
+			Events::MouseButtonPressed mouseButtonPressedEvent(polyKey, polyMod);
+			pWindow->m_EventCallback(mouseButtonPressedEvent);
+		}
 		else if (action == GLFW_RELEASE)
+		{
 			InputManager::KeyCallback(polyKey, polyMod, EKeyAction::RELEASE);
+			Events::MouseButtonReleased mouseButtonReleasedEvent(polyKey, polyMod);
+			pWindow->m_EventCallback(mouseButtonReleasedEvent);
+		}
 	}
 
 	void Window::MouseScrollCallback(GLFWwindow* pGLFWWindow, double x, double y)
 	{
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+
 		InputManager::ScrollCallback(x, y);
+
+		Events::MouseScrolled mouseScrolledEvent(x, y, InputManager::GetScrollDeltaX(), InputManager::GetScrollDeltaY());
+		pWindow->m_EventCallback(mouseScrolledEvent);
 	}
 
 	void Window::FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height)
@@ -194,7 +243,7 @@ namespace Poly
 		pWindow->m_CurrentProperties.Width = width;
 		pWindow->m_CurrentProperties.Height = height;
 
-		WindowResizeEvent event(width, height);
+		Events::WindowResized event(width, height);
 		pWindow->m_EventCallback(event);
 	}
 
@@ -204,5 +253,8 @@ namespace Poly
 		
 		pWindow->m_CurrentProperties.PosX = posX;
 		pWindow->m_CurrentProperties.PosY = posY;
+
+		Events::WindowMoved windowMovedEvent(posX, posY);
+		pWindow->m_EventCallback(windowMovedEvent);
 	}
 }

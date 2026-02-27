@@ -81,7 +81,7 @@ namespace Poly
 	void Application::OnEvent(Event& event)
 	{
 		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) { m_Running = false; return false; });
+		dispatcher.Dispatch<Events::WindowClosed>([this](Events::WindowClosed&) { m_Running = false; return false; });
 
 		if (m_pRenderer)
 			m_pRenderer->OnEvent(event);
