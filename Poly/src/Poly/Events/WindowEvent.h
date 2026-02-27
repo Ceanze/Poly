@@ -8,6 +8,7 @@ namespace Poly::Events
 	{
 	public:
 		DEFINE_EVENT(WindowClosed, EventType::WindowClosed)
+		DEFINE_EVENT_CATEGORY(WindowClosed, EventCategory::Window)
 	};
 
 	class WindowResized : public Event
@@ -19,6 +20,7 @@ namespace Poly::Events
 		unsigned GetHeight() const { return m_Height; }
 
 		DEFINE_EVENT(WindowResized, EventType::WindowResized)
+		DEFINE_EVENT_CATEGORY(WindowResized, EventCategory::Window)
 
 	private:
 		const unsigned m_Width;
@@ -34,6 +36,7 @@ namespace Poly::Events
 		int GetY() const { return m_Y; }
 
 		DEFINE_EVENT(WindowMoved, EventType::WindowMoved)
+		DEFINE_EVENT_CATEGORY(WindowMoved, EventCategory::Window)
 
 	private:
 		const int m_X;

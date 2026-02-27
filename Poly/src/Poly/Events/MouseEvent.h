@@ -14,6 +14,7 @@ namespace Poly::Events
 		FKeyModifier GetButtonModifier() const { return m_ButtonMod; }
 
 		DEFINE_EVENT(MouseButtonPressed, EventType::MouseButtonPressed)
+		DEFINE_EVENT_CATEGORY(MouseButtonPressed, EventCategory::Mouse)
 
 	private:
 		const EKey m_Button;
@@ -29,6 +30,7 @@ namespace Poly::Events
 		FKeyModifier GetButtonModifier() const { return m_ButtonMod; }
 
 		DEFINE_EVENT(MouseButtonReleased, EventType::MouseButtonReleased)
+		DEFINE_EVENT_CATEGORY(MouseButtonReleased, EventCategory::Mouse)
 
 	private:
 		const EKey m_Button;
@@ -46,6 +48,7 @@ namespace Poly::Events
 		double GetDeltaY() const { return m_DeltaY; }
 
 		DEFINE_EVENT(MouseMoved, EventType::MouseMoved)
+		DEFINE_EVENT_CATEGORY(MouseMoved, EventCategory::Mouse)
 
 	private:
 		const double m_X;
@@ -65,6 +68,7 @@ namespace Poly::Events
 		double GetDeltaY() const { return m_DeltaY; }
 
 		DEFINE_EVENT(MouseScrolled, EventType::MouseScrolled)
+		DEFINE_EVENT_CATEGORY(MouseScrolled, EventCategory::Mouse)
 
 	private:
 		const double m_X;

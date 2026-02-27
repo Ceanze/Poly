@@ -101,22 +101,10 @@ public:
 
 		// Set active render graph program
 		Poly::Application::Get().GetRenderer()->SetRenderGraph(m_pProgram);
-
-		// TODO REMOVE - NOT HAVE IT HERE
-		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(static_cast<float>(Poly::InputManager::GetMouseX()), static_cast<float>(Poly::InputManager::GetMouseY()));
-		io.MouseDown[0] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_LEFT);
-		io.MouseDown[1] = Poly::InputManager::IsKeyDown(Poly::EKey::MOUSE_RIGHT);
-		io.MouseWheel = static_cast<float>(Poly::InputManager::GetScrollDeltaY());
-		io.MouseWheelH = static_cast<float>(Poly::InputManager::GetScrollDeltaX());
-
-		ImGui::NewFrame();
-
 		ImGui::ShowDemoWindow();
 
 		m_pScene->Update();
@@ -142,7 +130,6 @@ public:
 	bool WindowResizeCallback(Poly::Events::WindowResized& event)
 	{
 		pCamera->SetAspect(static_cast<float>(event.GetWidth()) / event.GetHeight());
-		ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight()));
 
 		return true;
 	}

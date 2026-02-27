@@ -1,7 +1,16 @@
 #pragma once
 
+#include <functional>
+
 namespace Poly
 {
+	enum class EventCategory
+	{
+		Window,
+		Key,
+		Mouse
+	};
+
 	enum class EventType
 	{
 		None = 0,
@@ -24,6 +33,9 @@ namespace Poly
 	virtual EventType GetEventType() const override { return eventType; }\
 	virtual const char* GetName() const override { return #type; }
 
+#define DEFINE_EVENT_CATEGORY(type, eventCategory)\
+	virtual EventCategory GetEventCategory() const override { return eventCategory; }
+
 	class Event
 	{
 	public:
@@ -32,6 +44,7 @@ namespace Poly
 		bool Handled = false;
 
 		virtual EventType GetEventType() const = 0;
+		virtual EventCategory GetEventCategory() const = 0;
 		virtual const char* GetName() const = 0;
 	};
 
@@ -40,8 +53,8 @@ namespace Poly
 	public:
 		EventDispatcher(Event& event) : m_Event(event) {}
 
-		template <typename Type, typename Func>
-		bool Dispatch(const Func& func)
+		template <typename Type>
+		bool Dispatch(const std::function<bool(Type&)>& func)
 		{
 			if (Type::GetStaticType() == m_Event.GetEventType())
 			{

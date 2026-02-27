@@ -5,6 +5,12 @@
 #include "Poly/Events/WindowEvent.h"
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Core/Window.h"
+#include "Poly/ImGui/ImGuiLayer.h"
+
+namespace
+{
+	constexpr bool g_ImGuiEnabled = true;
+}
 
 namespace Poly
 {
@@ -15,6 +21,8 @@ namespace Poly
 		s_Instance = this;
 	}
 
+	Application::~Application() = default;
+
 	void Application::Init()
 	{
 		m_pRenderer = Renderer::Create();
@@ -24,6 +32,12 @@ namespace Poly
 			m_pWindow = Window::Create(windowProps.value());
 			m_pRenderer->AddWindow(m_pWindow.get());
 			m_pWindow->SetEventCallback([this](Event& event) { OnEvent(event); });
+
+			if (g_ImGuiEnabled)
+			{
+				m_pImGuiLayer = new ImGuiLayer;
+				PushOverlay(m_pImGuiLayer);
+			}
 		}
 
 		OnInit();
@@ -38,6 +52,9 @@ namespace Poly
 	{
 		if (m_pWindow)
 			m_pWindow->Update();
+
+		if (m_pImGuiLayer)
+			m_pImGuiLayer->BeginFrame();
 
 		for (auto layer : m_LayerStack)
 			layer->OnUpdate(dt);

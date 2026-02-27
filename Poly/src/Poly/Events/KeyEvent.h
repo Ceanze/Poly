@@ -15,6 +15,7 @@ namespace Poly::Events
 		bool IsRepeat() const { return m_IsRepeat; }
 
 		DEFINE_EVENT(KeyPressed, EventType::KeyPressed)
+		DEFINE_EVENT_CATEGORY(KeyPressed, EventCategory::Key)
 
 	private:
 		const EKey m_Key;
@@ -31,6 +32,7 @@ namespace Poly::Events
 		FKeyModifier GetKeyModifier() const { return m_KeyMod; }
 
 		DEFINE_EVENT(KeyReleased, EventType::KeyReleased)
+		DEFINE_EVENT_CATEGORY(KeyReleased, EventCategory::Key)
 
 	private:
 		const EKey m_Key;
@@ -45,6 +47,7 @@ namespace Poly::Events
 		EKey GetKey() const { return m_Key; }
 
 		DEFINE_EVENT(KeyTyped, EventType::KeyTyped)
+		DEFINE_EVENT_CATEGORY(KeyTyped, EventCategory::Key)
 
 	private:
 		const EKey m_Key;

@@ -10,12 +10,13 @@
 namespace Poly
 {
 	class Renderer;
+	class ImGuiLayer;
 
 	class Application
 	{
 	public:
 		Application();
-		virtual ~Application() = default;
+		virtual ~Application();
 
 		void Init();
 		
@@ -46,6 +47,7 @@ namespace Poly
 		LayerStack m_LayerStack;
 		Unique<Window> m_pWindow;
 		Unique<Renderer> m_pRenderer;
+		ImGuiLayer* m_pImGuiLayer = nullptr;
 	};
 
 	Application* CreateApplication();
