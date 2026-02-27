@@ -1,7 +1,7 @@
 #include "polypch.h"
 
 #include "Window.h"
-#include "Poly/Events/EventBus.h"
+#include "Poly/Events/WindowEvent.h"
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Core/Input/KeyCode.h"
 #include "Platform/GLFW/GLFWTypes.h"
@@ -105,9 +105,9 @@ namespace Poly
 		return m_pWindow;
 	}
 
-	void Window::AddWindowResizeCallback(std::function<void(int width, int height)>&& callback)
+	void Window::SetEventCallback(std::function<void(Event&)> callback)
 	{
-		m_ResizeCallbacks.emplace_back(std::move(callback));
+		m_EventCallback = std::move(callback);
 	}
 
 	void Window::SetFullscreen(GLFWwindow* pGLFWWindow, bool enable, bool exclusive)
@@ -141,8 +141,10 @@ namespace Poly
 
 	void Window::CloseWindowCallback(GLFWwindow* pGLFWWindow)
 	{
-		CloseWindowEvent e = {};
-		POLY_EVENT_PUB(e);
+		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
+	
+		WindowCloseEvent event;
+		pWindow->m_EventCallback(event);
 	}
 
 	void Window::KeyCallback(GLFWwindow* pGLFWWindow, int key, int scancode, int action, int mods)
@@ -192,8 +194,8 @@ namespace Poly
 		pWindow->m_CurrentProperties.Width = width;
 		pWindow->m_CurrentProperties.Height = height;
 
-		for (const auto& callback : pWindow->m_ResizeCallbacks)
-			callback(width, height);
+		WindowResizeEvent event(width, height);
+		pWindow->m_EventCallback(event);
 	}
 
 	void Window::WindowPosCallback(GLFWwindow* pGLFWWindow, int posX, int posY)

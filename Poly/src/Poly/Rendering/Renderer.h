@@ -6,6 +6,7 @@ namespace Poly
 	class SwapChain;
 	class RenderGraphProgram;
 	class Window;
+	class Event;
 
 	class Renderer
 	{
@@ -38,6 +39,8 @@ namespace Poly
 		 * @param [FUTURE PURPOSE - Scene to render]
 		 */
 		void Render();
+
+		void OnEvent(Event& event);
 
 	private:
 		struct WindowContext

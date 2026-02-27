@@ -10,6 +10,7 @@
 #include "Platform/API/Buffer.h"
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Core/Window.h"
+#include "Poly/Events/WindowEvent.h"
 
 #include <imgui/imgui.h>
 #include "Poly/Core/Input/InputManager.h"
@@ -48,7 +49,6 @@ public:
 		pCamera->SetMouseSense(2.f);
 		pCamera->SetMovementSpeed(1.f);
 		pCamera->SetSprintSpeed(5.f);
-		pWindow->AddWindowResizeCallback([this](int width, int height) { pCamera->SetAspect(static_cast<float>(width) / height); });
 
 		// Creation
 		m_pGraph = Poly::RenderGraph::Create("TestGraph");
@@ -103,7 +103,6 @@ public:
 
 		// TODO REMOVE - NOT HAVE IT HERE
 		ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
-		pWindow->AddWindowResizeCallback([this](int width, int height) { ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height)); });
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
@@ -136,6 +135,13 @@ public:
 	void OnDetach() override
 	{
 		delete pCamera;
+	}
+
+	void OnEvent(Poly::Event& event) override
+	{
+		Poly::EventDispatcher eventDispatcher(event);
+		eventDispatcher.Dispatch<Poly::WindowResizeEvent>([this](Poly::WindowResizeEvent& event) { pCamera->SetAspect(static_cast<float>(event.GetWidth()) / event.GetHeight()); return false; });
+		eventDispatcher.Dispatch<Poly::WindowResizeEvent>([this](Poly::WindowResizeEvent& event) { ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight())); return false; });
 	}
 
 private:

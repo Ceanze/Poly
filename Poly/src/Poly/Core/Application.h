@@ -15,7 +15,7 @@ namespace Poly
 	{
 	public:
 		Application();
-		virtual ~Application();
+		virtual ~Application() = default;
 
 		void Init();
 		
@@ -38,14 +38,14 @@ namespace Poly
 		virtual std::optional<Window::Properties> GetWindowProperties() const { return std::nullopt; }
 
 	private:
+		void OnEvent(Event& event);
+
 		static Application* s_Instance;
 
 		bool m_Running = true;
 		LayerStack m_LayerStack;
 		Unique<Window> m_pWindow;
 		Unique<Renderer> m_pRenderer;
-
-		void OnCloseWindowEvent(CloseWindowEvent* e);
 	};
 
 	Application* CreateApplication();

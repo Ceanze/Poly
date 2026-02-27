@@ -7,6 +7,7 @@
 #include "Platform/API/CommandQueue.h"
 #include "RenderGraph/RenderGraphProgram.h"
 #include "RenderGraph/Resource.h"
+#include "Poly/Events/WindowEvent.h"
 
 namespace Poly
 {
@@ -66,6 +67,20 @@ namespace Poly
 			if (res == PresentResult::RECREATED_SWAPCHAIN)
 				CreateBackbufferResources(windowCtx);
 		}
+	}
+
+	void Renderer::OnEvent(Event& event)
+	{
+		EventDispatcher eventDispatcher(event);
+		eventDispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& event)
+													{
+														for (auto& context : m_Windows)
+														{
+															context.pSwapChain->OnWindowResized(event.GetWidth(), event.GetHeight());
+														}
+
+														return false;
+													});
 	}
 
 	void Renderer::CreateBackbufferResources(const WindowContext& windowCtx)
