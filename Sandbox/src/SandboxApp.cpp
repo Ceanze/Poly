@@ -99,6 +99,9 @@ public:
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
 		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
+		m_TextureID = Poly::ResourceManager::ImportAndLoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
+		m_pTextureView = Poly::ResourceManager::GetTextureView(m_TextureID);
+
 		// Set active render graph program
 		Poly::Application::Get().GetRenderer()->SetRenderGraph(m_pProgram);
 	}
@@ -106,6 +109,14 @@ public:
 	void OnUpdate(Poly::Timestamp dt) override
 	{
 		ImGui::ShowDemoWindow();
+
+		ImGui::Begin("Vulkan Texture Test");
+		if (m_pTextureView)
+		{
+			ImGui::Text("Texture View: %p", m_pTextureView);
+			ImGui::Image((ImTextureID)m_pTextureView, ImVec2(256, 256));
+		}
+		ImGui::End();
 
 		m_pScene->Update();
 
@@ -152,6 +163,9 @@ private:
 	Poly::Ref<Poly::Buffer> m_pCambuffer = nullptr;
 	Poly::Ref<Poly::RenderGraph> m_pGraph = nullptr;
 	Poly::Ref<Poly::RenderGraphProgram> m_pProgram = nullptr;
+
+	Poly::PolyID m_TextureID = Poly::PolyID::None();
+	Poly::TextureView* m_pTextureView = nullptr;
 };
 
 class Sandbox : public Poly::Application

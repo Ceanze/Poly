@@ -14,6 +14,7 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
+#include "Poly/Rendering/Utilities/DescriptorCache.h"
 
 #include <imgui.h>
 
@@ -36,10 +37,11 @@ namespace Poly
 		reflection.AddShader(vertShader);
 		reflection.AddShader(fragShader);
 
-		reflection.GetField("sTexture")
-			.BindPoint(FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE)
+		PassField& textureField = reflection.GetField("sTexture");
+		textureField.BindPoint(FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE)
 			.Format(EFormat::R8G8B8A8_UNORM)
 			.SetSampler(m_pFontSampler);
+		m_TextureSet = textureField.GetSet();
 
 		reflection.AddPassthrough("fColor")
 			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT)
@@ -66,17 +68,44 @@ namespace Poly
 
 		m_BuffersToBeDestroyed[context.GetImageIndex()].clear();
 
-		static bool first = true;
-		if (first)
-		{
-			Ref<Resource> pRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "sTexture");
-			pRes->SetSampler(m_pFontSampler);
-			context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pRes.get());
-			first = false;
-		}
-		
-		// TODO: Should probably not call Render() here
 		ImGui::Render();
+		ImDrawData* pDrawData = ImGui::GetDrawData();
+
+		m_TextureToIndex.clear();
+		uint32 nextIndex = 0;
+
+		// Font is always index 0
+		ImTextureID fontTexID = (ImTextureID)m_pFontTextureView.get();
+		m_TextureToIndex[fontTexID] = nextIndex++;
+
+		Ref<Resource> pFontRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "sTexture");
+		pFontRes->SetSampler(m_pFontSampler);
+		context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pFontRes.get(), 0);
+
+		// Iterate through draw data and find other textures
+		for (int i = 0; i < pDrawData->CmdListsCount; i++)
+		{
+			const ImDrawList* cmdList = pDrawData->CmdLists[i];
+			for (int j = 0; j < cmdList->CmdBuffer.Size; j++)
+			{
+				const ImDrawCmd* pCmd = &cmdList->CmdBuffer[j];
+				ImTextureID texID = pCmd->TexRef.GetTexID();
+				if (texID != ImTextureID_Invalid && m_TextureToIndex.find(texID) == m_TextureToIndex.end())
+				{
+					m_TextureToIndex[texID] = nextIndex++;
+
+					TextureView* pView = (TextureView*)texID;
+					// Use no-op deleter as we don't own these textures (they could be from framebuffers etc.)
+					Ref<Texture> pTexture(pView->GetTexture(), [](auto*){});
+					Ref<TextureView> pTextureView(pView, [](auto*){});
+
+					Ref<Resource> pRes = Resource::Create(pTexture, pTextureView, "sTexture");
+					pRes->SetSampler(m_pFontSampler);
+					context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pRes.get(), m_TextureToIndex[texID]);
+				}
+			}
+		}
+
 		UpdateBuffers(context.GetImageIndex());
 
 		m_pStagingBufferCache->SubmitQueuedBuffers(context.GetCommandBuffer());
@@ -122,6 +151,15 @@ namespace Poly
 					scissor.Width	= static_cast<uint32>(pCmd->ClipRect.z - pCmd->ClipRect.x);
 					scissor.Height	= static_cast<uint32>(pCmd->ClipRect.w - pCmd->ClipRect.y);
 					pCommandBuffer->SetScissor(&scissor);
+
+					ImTextureID texID = pCmd->TexRef.GetTexID();
+					auto it = m_TextureToIndex.find(texID);
+					if (it != m_TextureToIndex.end())
+					{
+						const DescriptorSet* pSet = context.GetDescriptorCache()->GetDescriptorSet(m_TextureSet, it->second, DescriptorCache::EAction::GET);
+						if (pSet)
+							pCommandBuffer->BindDescriptor(context.GetActivePipeline(), pSet);
+					}
 
 					pCommandBuffer->DrawIndexedInstanced(pCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
 					indexOffset += pCmd->ElemCount;
@@ -237,6 +275,8 @@ namespace Poly
 		samplerDesc.AddressModeW	= ESamplerAddressMode::CLAMP_TO_EDGE;
 		samplerDesc.BorderColor		= EBorderColor::FLOAT_OPAQUE_WHITE;
 		m_pFontSampler = RenderAPI::CreateSampler(&samplerDesc);
+
+		io.Fonts->TexID = (ImTextureID)m_pFontTextureView.get();
 	}
 
 	void ImGuiPass::UpdateBuffers(uint32 imageIndex)

@@ -49,5 +49,8 @@ namespace Poly
 		Ref<StagingBufferCache> m_pStagingBufferCache;
 
 		std::unordered_map<uint32, std::vector<Ref<Buffer>>> m_BuffersToBeDestroyed;
+
+		std::unordered_map<uint64, uint32> m_TextureToIndex;
+		uint32 m_TextureSet = 0;
 	};
 }
