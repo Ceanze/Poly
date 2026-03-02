@@ -49,7 +49,8 @@ namespace Poly
 
 		reflection.AddInput("ExternalImages")
 			.SetArray()
-			.BindPoint(FResourceBindPoint::EXTERNAL | FResourceBindPoint::SHADER_READ);
+			.BindPoint(FResourceBindPoint::EXTERNAL | FResourceBindPoint::SHADER_READ)
+			.Format(EFormat::R8G8B8A8_UNORM);
 
 		return reflection;
 	}
