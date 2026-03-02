@@ -39,12 +39,12 @@ namespace Poly
 		{
 			SubmitDesc submitDesc = {};
 			submitDesc.CommandBuffers = commandBuffers;
-			submitDesc.SignalSemaphores = { m_RenderSemaphores[m_FrameIndex].get() };
+			submitDesc.SignalSemaphores = { m_RenderSemaphores[m_ImageIndex].get() };
 			submitDesc.WaitSemaphores = { m_AcquireSemaphores[m_FrameIndex].get() };
 			submitDesc.SignalSyncPoints = { {m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
 			p_SwapchainDesc.pQueue->Submit(submitDesc);
 
-			VkSemaphore waitSemaphore = m_RenderSemaphores[m_FrameIndex]->GetNativeVK();
+			VkSemaphore waitSemaphore = m_RenderSemaphores[m_ImageIndex]->GetNativeVK();
 			VkSwapchainKHR swapChains[] = { m_SwapChain };
 
 			VkPresentInfoKHR presentInfo = {};
@@ -234,6 +234,7 @@ namespace Poly
 		// Create swapchain image views
 		m_TextureViews.resize(imageCount);
 		m_Textures.resize(imageCount);
+		m_RenderSemaphores.resize(imageCount);
 		for (size_t i = 0; i < imageCount; i++) {
 			// Texture
 			TextureDesc textureDesc		= {};
@@ -262,18 +263,19 @@ namespace Poly
 			textureViewDesc.ImageViewType	= EImageViewType::TYPE_2D;
 			m_TextureViews[i] = CreateRef<PVKTextureView>();
 			m_TextureViews[i]->Init(&textureViewDesc);
+
+			// Render semaphore
+			m_RenderSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
+			m_RenderSemaphores[i]->Init();
 		}
 	}
 
 	void PVKSwapChain::CreateSyncObjects()
 	{
-		m_RenderSemaphores.resize(p_SwapchainDesc.BufferCount);
 		m_AcquireSemaphores.resize(p_SwapchainDesc.BufferCount);
 
 		for (uint32 i = 0; i < p_SwapchainDesc.BufferCount; i++)
 		{
-			m_RenderSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
-			m_RenderSemaphores[i]->Init();
 			m_AcquireSemaphores[i] = CreateUnique<PVKBinarySemaphore>();
 			m_AcquireSemaphores[i]->Init();
 		}
