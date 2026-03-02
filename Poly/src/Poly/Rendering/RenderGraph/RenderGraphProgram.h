@@ -66,6 +66,11 @@ namespace Poly
 		bool HasResource(ResourceGUID resourceGUID) const;
 
 		/**
+		* @return resource if it exists, nullptr otherwise
+		*/
+		const Resource* GetResource(ResourceGUID resourceGUID) const;
+
+		/**
 		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
 		 * the name's resouces is a new resource
 		 * @param name - name of resource follow "renderPass.resource" or "$.resource" format, no prefix assumes external

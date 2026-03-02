@@ -20,7 +20,7 @@ namespace Poly
 		m_pGraph = DirectedGraph::Create();
 
 		m_DefaultParams = {
-			.TextureWidth		= 1080,
+			.TextureWidth		= 1280,
 			.TextureHeight		= 720,
 			.MaxBackbufferCount	= 3,
 			.pSampler			= Sampler::GetDefaultLinearSampler(),

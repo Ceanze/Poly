@@ -219,6 +219,11 @@ namespace Poly
 		return m_pResourceCache->HasResource(resourceGUID);
 	}
 
+	const Resource* RenderGraphProgram::GetResource(ResourceGUID resourceGUID) const
+	{
+		return m_pResourceCache->GetResource(resourceGUID);
+	}
+
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
 	{
 		// Note: This function always updates a whole span of a resource - therefore no size or offset is supplied, and views for
@@ -361,7 +366,7 @@ namespace Poly
 			if (pPass->GetPassType() != Pass::Type::SYNC)
 			{
 				// Note that the layout creates the bindings for internal types as well for ease of use
-				const std::vector<const PassField*> inputs = reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX);
+				const std::vector<const PassField*> inputs = reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX | FResourceBindPoint::EXTERNAL);
 				const auto& pushConstants = reflection.GetPushConstants();
 				uint32 maxSet = 0;
 				for (const PassField* input : inputs)
@@ -585,13 +590,24 @@ namespace Poly
 		raster.ClockwiseFrontFace	= false;
 		raster.DepthBiasEnable		= false;
 
-		ColorBlendAttachmentDesc colorBlendAttachment = {};
-		colorBlendAttachment.ColorWriteMask		= FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
-		colorBlendAttachment.BlendEnable		= false;
+		RenderPass* renderPass = static_cast<RenderPass*>(pPass.get());
+		std::vector<ColorBlendAttachmentDesc> colorBlendAttachments;
+
+		for (auto& attachment : renderPass->GetAttachments())
+		{
+			if (attachment.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+				continue;
+
+			ColorBlendAttachmentDesc colorBlendAttachment = {};
+			colorBlendAttachment.ColorWriteMask = FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
+			colorBlendAttachment.BlendEnable = false;
+
+			colorBlendAttachments.push_back(colorBlendAttachment);
+		}
 
 		ColorBlendStateDesc colorBlend = {};
 		colorBlend.LogicOpEnable			= false;
-		colorBlend.ColorBlendAttachments	= { colorBlendAttachment };
+		colorBlend.ColorBlendAttachments	= colorBlendAttachments;
 
 		DepthStencilDesc depthStencil = {};
 		if (static_cast<RenderPass*>(pPass.get())->GetDepthStenctilUse())

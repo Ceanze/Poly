@@ -176,7 +176,7 @@ namespace Poly
 		return m_NameToIndex.contains(resourceGUID) || m_NameToExternalIndex.contains(resourceGUID);
 	}
 
-	Resource* ResourceCache::GetResource(const ResourceGUID& resourceGUID)
+	Resource* ResourceCache::GetResource(const ResourceGUID& resourceGUID) const
 	{
 		if (!HasResource(resourceGUID))
 		{
@@ -186,14 +186,14 @@ namespace Poly
 
 		if (m_NameToIndex.contains(resourceGUID))
 		{
-			ResourceData& data = m_Resources[m_NameToIndex[resourceGUID]];
+			const ResourceData& data = m_Resources[m_NameToIndex.at(resourceGUID)];
 			if (data.IsOutput)
 				return m_Backbuffers[m_CurrentWindowIndex][m_CurrentImageIndex].get();
 			else
-				return m_Resources[m_NameToIndex[resourceGUID]].pResource.get();
+				return m_Resources[m_NameToIndex.at(resourceGUID)].pResource.get();
 		}
 		else
-			return m_ExternalResources[m_NameToExternalIndex[resourceGUID]].pResource.get();
+			return m_ExternalResources[m_NameToExternalIndex.at(resourceGUID)].pResource.get();
 	}
 
 	ResourceGUID ResourceCache::GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName)

@@ -47,6 +47,10 @@ namespace Poly
 			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT)
 			.Format(EFormat::B8G8R8A8_UNORM);
 
+		reflection.AddInput("ExternalImages")
+			.SetArray()
+			.BindPoint(FResourceBindPoint::EXTERNAL | FResourceBindPoint::SHADER_READ);
+
 		return reflection;
 	}
 

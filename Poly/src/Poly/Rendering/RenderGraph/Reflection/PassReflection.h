@@ -16,6 +16,7 @@ namespace Poly
 	public:
 		PassReflection() = default;
 
+		PassField& AddInput(std::string name);
 		PassField& AddInput(std::string name, uint32 set, uint32 binding);
 		PassField& AddOutput(std::string name);
 		PassField& AddPassthrough(std::string name);

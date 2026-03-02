@@ -1,6 +1,9 @@
 #include "polypch.h"
 #include "RenderGraphCompiler.h"
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "SyncPass.h"
 #include "Resource.h"
 #include "RenderPass.h"
@@ -193,45 +196,74 @@ namespace Poly
 			for (PassField* input : inputs)
 			{
 				ResourceGUID resourceGUID(passData.pPass->GetName(), input->GetName());
-				ResourceGUID aliasGUID = ResourceGUID::Invalid();
 
-				const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
-				for (auto edgeID : incommingEdges)
+				if (input->IsArray())
 				{
-					auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
-					if (edgeData.Dst == resourceGUID)
+					uint32 index = 0;
+					const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
+					for (auto edgeID : incommingEdges)
 					{
-						aliasGUID = edgeData.Src;
-						break;
+						auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
+						if (edgeData.Dst == resourceGUID)
+						{
+							ResourceGUID arrayGUID(passData.pPass->GetName(), input->GetName() + "[" + std::to_string(index++) + "]");
+							m_pResourceCache->RegisterResource(arrayGUID, passID, *input, edgeData.Src);
+						}
 					}
-				}
 
-				// If incomming didn't get any match, check for externals
-				if (!aliasGUID.HasResource())
-				{
+					// Also check for externals
 					const auto& externals = passData.pPass->GetExternalResources();
 					for (auto& external : externals)
 					{
 						if (external.DstGUID == resourceGUID)
 						{
-							aliasGUID = ResourceGUID(external.SrcGUID);
-							break;
+							ResourceGUID arrayGUID(passData.pPass->GetName(), input->GetName() + "[" + std::to_string(index++) + "]");
+							m_pResourceCache->RegisterResource(arrayGUID, passID, *input, ResourceGUID(external.SrcGUID));
 						}
 					}
 				}
-
-				if (!aliasGUID.HasResource() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
+				else
 				{
-					POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceGUID.GetFullName());
-					return;
-				}
+					ResourceGUID aliasGUID = ResourceGUID::Invalid();
 
-				m_pResourceCache->RegisterResource(resourceGUID, passID, *input, aliasGUID);
+					const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
+					for (auto edgeID : incommingEdges)
+					{
+						auto& edgeData = m_pRenderGraph->m_Edges[edgeID];
+						if (edgeData.Dst == resourceGUID)
+						{
+							aliasGUID = edgeData.Src;
+							break;
+						}
+					}
 
-				if (IsResourceGraphOutput(resourceGUID, passData.NodeIndex))
-				{
-					m_pResourceCache->MarkOutput(resourceGUID, *input);
-					input->Format(EFormat::B8G8R8A8_UNORM);
+					// If incomming didn't get any match, check for externals
+					if (!aliasGUID.HasResource())
+					{
+						const auto& externals = passData.pPass->GetExternalResources();
+						for (auto& external : externals)
+						{
+							if (external.DstGUID == resourceGUID)
+							{
+								aliasGUID = ResourceGUID(external.SrcGUID);
+								break;
+							}
+						}
+					}
+
+					if (!aliasGUID.HasResource() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
+					{
+						POLY_CORE_ERROR("No resource linkage was found for {}, this should now happen and should have been found earlier", resourceGUID.GetFullName());
+						return;
+					}
+
+					m_pResourceCache->RegisterResource(resourceGUID, passID, *input, aliasGUID);
+
+					if (IsResourceGraphOutput(resourceGUID, passData.NodeIndex))
+					{
+						m_pResourceCache->MarkOutput(resourceGUID, *input);
+						input->Format(EFormat::B8G8R8A8_UNORM);
+					}
 				}
 			}
 		}
@@ -312,12 +344,18 @@ namespace Poly
 		{
 			Ref<SyncPass> syncPass = nullptr;
 			std::unordered_set<uint32> brokenEdges;
+			std::unordered_map<std::string, uint32> arrayInputIndices;
 
 			const auto& externalResources = passData.pPass->GetExternalResources();
 			for (const auto& [srcGUID, dstGUID] : externalResources)
 			{
 				auto& barriers = m_Invalidates[passData.NodeIndex];
 				auto itr = std::find_if(barriers.begin(), barriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
+
+				const PassField& inputField = passData.Reflection.GetField(dstGUID.GetResourceName());
+				std::string syncResourceName = dstGUID.GetResourceName();
+				if (inputField.IsArray())
+					syncResourceName += "[" + std::to_string(arrayInputIndices[syncResourceName]++) + "]";
 
 				// Check if it is a texture or a buffer
 				if (itr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
@@ -328,13 +366,13 @@ namespace Poly
 					if (BitsSet(itr->AccessMask, FAccessFlag::COLOR_ATTACHMENT_WRITE | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE | FAccessFlag::SHADER_WRITE)) // Write
 					{
 						// External resource is a texture and will be written to. We can therefore transition from undefined (handled by render pass) and no barrier is needed
-						static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(itr->Name, ETextureLayout::UNDEFINED);
+						static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, ETextureLayout::UNDEFINED);
 					}
 					else // Read
 					{
 						// External resource is a texture and will be read from, a transition might be needed (handled by render pass) but no barrier is needed
 						// Current implementation assumes all external textures will be in SHADER_READ_ONLY layout for first time use if being read from
-						static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(itr->Name, ETextureLayout::SHADER_READ_ONLY_OPTIMAL);
+						static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, ETextureLayout::SHADER_READ_ONLY_OPTIMAL);
 					}
 				}
 				else // Buffer
@@ -357,6 +395,12 @@ namespace Poly
 				// If external, check if we are reading or writing. If writing and texture, use layout undefined
 				const ResourceGUID& srcGUID = m_pRenderGraph->m_Edges[edgeID].Src;
 				const ResourceGUID& dstGUID = m_pRenderGraph->m_Edges[edgeID].Dst;
+
+				const PassField& inputField = passData.Reflection.GetField(dstGUID.GetResourceName());
+				std::string syncResourceName = dstGUID.GetResourceName();
+				if (inputField.IsArray())
+					syncResourceName += "[" + std::to_string(arrayInputIndices[syncResourceName]++) + "]";
+
 				if (srcGUID.IsExternal()) // External
 				{
 					auto& barriers = m_Invalidates[passData.NodeIndex];
@@ -368,13 +412,13 @@ namespace Poly
 						if (BitsSet(itr->AccessMask, FAccessFlag::COLOR_ATTACHMENT_WRITE | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE | FAccessFlag::SHADER_WRITE)) // Write
 						{
 							// External resource is a texture and will be written to. We can therefore transition from undefined (handled by render pass) and no barrier is needed
-							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(itr->Name, ETextureLayout::UNDEFINED);
+							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, ETextureLayout::UNDEFINED);
 						}
 						else // Read
 						{
 							// External resource is a texture and will be read from, a transition might be needed (handled by render pass) but no barrier is needed
 							// Current implementation assumes all external textures will be in SHADER_READ_ONLY layout for first time use if being read from
-							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(itr->Name, ETextureLayout::SHADER_READ_ONLY_OPTIMAL);
+							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, ETextureLayout::SHADER_READ_ONLY_OPTIMAL);
 						}
 					}
 					else // Buffer
@@ -411,7 +455,7 @@ namespace Poly
 
 							SyncPass::SyncData data = {};
 							data.Type				= SyncPass::SyncType::TEXTURE;
-							data.ResourceName		= dstGUID.GetResourceName();
+							data.ResourceName		= syncResourceName;
 							data.SrcLayout			= srcItr->TextureLayout;
 							data.DstLayout			= dstItr->TextureLayout;
 							data.SrcAccessFlag		= srcItr->AccessMask;
@@ -420,15 +464,15 @@ namespace Poly
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
 
-							m_pResourceCache->RegisterSyncResource({ syncPass->GetName(), dstGUID.GetResourceName()}, srcGUID);
+							m_pResourceCache->RegisterSyncResource({ syncPass->GetName(), syncResourceName}, srcGUID);
 							brokenEdges.insert(edgeID);
 
-							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(dstItr->Name, srcItr->TextureLayout);
+							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, srcItr->TextureLayout);
 						}
 						else // Read after read
 						{
 							// A layout transition might be needed
-							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(dstItr->Name, srcItr->TextureLayout);
+							static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, srcItr->TextureLayout);
 						}
 					}
 					else // Buffer
@@ -440,7 +484,7 @@ namespace Poly
 
 							SyncPass::SyncData data = {};
 							data.Type				= SyncPass::SyncType::BUFFER;
-							data.ResourceName		= dstGUID.GetResourceName();
+							data.ResourceName		= syncResourceName;
 							data.SrcLayout			= srcItr->TextureLayout; // These are undefined for this resource (buffer)
 							data.DstLayout			= dstItr->TextureLayout;
 							data.SrcAccessFlag		= srcItr->AccessMask;
@@ -449,7 +493,7 @@ namespace Poly
 							data.DstPipelineStage	= dstItr->PipelineStage;
 							syncPass->AddSyncData(data);
 
-							m_pResourceCache->RegisterSyncResource({ syncPass->GetName(), dstGUID.GetResourceName()}, srcGUID);
+							m_pResourceCache->RegisterSyncResource({ syncPass->GetName(), syncResourceName}, srcGUID);
 							brokenEdges.insert(edgeID);
 						}
 						else // Read after read
@@ -575,48 +619,52 @@ namespace Poly
 
 	FAccessFlag RenderGraphCompiler::GetAccessFlag(FResourceBindPoint bindPoint, bool isInput)
 	{
-		if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT)
+		if (BitsSet(bindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
 			return isInput ? FAccessFlag::COLOR_ATTACHMENT_READ : FAccessFlag::COLOR_ATTACHMENT_WRITE;
-		if (bindPoint == FResourceBindPoint::DEPTH_STENCIL)
+		if (BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL))
 			return isInput ? FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ : FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE;
-		if (bindPoint == FResourceBindPoint::UNIFORM)
+		if (BitsSet(bindPoint, FResourceBindPoint::UNIFORM))
 			return FAccessFlag::UNIFORM_READ;
-		if (bindPoint == FResourceBindPoint::SAMPLER)
+		if (BitsSet(bindPoint, FResourceBindPoint::SAMPLER))
 			return FAccessFlag::SHADER_READ;
-		if (bindPoint == FResourceBindPoint::STORAGE)
+		if (BitsSet(bindPoint, FResourceBindPoint::STORAGE))
 			return isInput ? FAccessFlag::SHADER_READ : FAccessFlag::SHADER_WRITE; // TODO: Make this not be both READ and WRITE
-		if (bindPoint == FResourceBindPoint::VERTEX)
+		if (BitsSet(bindPoint, FResourceBindPoint::VERTEX))
 			return FAccessFlag::VERTEX_ATTRIBUTE_READ;
-		if (bindPoint == FResourceBindPoint::INDEX)
+		if (BitsSet(bindPoint, FResourceBindPoint::INDEX))
 			return FAccessFlag::INDEX_READ;
-		if (bindPoint == FResourceBindPoint::INDIRECT)
+		if (BitsSet(bindPoint, FResourceBindPoint::INDIRECT))
 			return FAccessFlag::INDIRECT_COMMAND_READ;
-		if (bindPoint == FResourceBindPoint::INPUT_ATTACHMENT)
+		if (BitsSet(bindPoint, FResourceBindPoint::INPUT_ATTACHMENT))
 			return FAccessFlag::INPUT_ATTACHMENT_READ;
+		if (BitsSet(bindPoint, FResourceBindPoint::EXTERNAL))
+			return FAccessFlag::SHADER_READ;
 
 		return FAccessFlag::NONE;
 	}
 
 	FPipelineStage RenderGraphCompiler::GetPipelineStage(FResourceBindPoint bindPoint)
 	{
-		if (bindPoint == FResourceBindPoint::COLOR_ATTACHMENT)
+		if (BitsSet(bindPoint, FResourceBindPoint::COLOR_ATTACHMENT))
 			return FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
-		if (bindPoint == FResourceBindPoint::DEPTH_STENCIL)
+		if (BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL))
 			return FPipelineStage::LATE_FRAGMENT_TEST;
-		if (bindPoint == FResourceBindPoint::UNIFORM)
+		if (BitsSet(bindPoint, FResourceBindPoint::UNIFORM))
 			return FPipelineStage::VERTEX_SHADER;
-		if (bindPoint == FResourceBindPoint::SAMPLER)
+		if (BitsSet(bindPoint, FResourceBindPoint::SAMPLER))
 			return FPipelineStage::FRAGMENT_SHADER;
-		if (bindPoint == FResourceBindPoint::STORAGE)
+		if (BitsSet(bindPoint, FResourceBindPoint::STORAGE))
 			return FPipelineStage::VERTEX_SHADER;
-		if (bindPoint == FResourceBindPoint::VERTEX)
+		if (BitsSet(bindPoint, FResourceBindPoint::VERTEX))
 			return FPipelineStage::VERTEX_SHADER;
-		if (bindPoint == FResourceBindPoint::INDEX)
+		if (BitsSet(bindPoint, FResourceBindPoint::INDEX))
 			return FPipelineStage::BOTTOM_OF_PIPE;
-		if (bindPoint == FResourceBindPoint::INDIRECT)
+		if (BitsSet(bindPoint, FResourceBindPoint::INDIRECT))
 			return FPipelineStage::DRAW_INDIRECT;
-		if (bindPoint == FResourceBindPoint::INPUT_ATTACHMENT)
+		if (BitsSet(bindPoint, FResourceBindPoint::INPUT_ATTACHMENT))
 			return FPipelineStage::VERTEX_INPUT;
+		if (BitsSet(bindPoint, FResourceBindPoint::EXTERNAL))
+			return FPipelineStage::FRAGMENT_SHADER;
 
 		return FPipelineStage::NONE;
 	}
