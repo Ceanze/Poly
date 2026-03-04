@@ -146,6 +146,7 @@ namespace Poly
 
 		INPUT_ATTACHMENT	= FLAG(15),
 		INTERNAL_USE		= FLAG(16),
+		EXTERNAL			= FLAG(17), // External for a pass, does not bind descriptors, TODO better name
 	};
 	ENABLE_BITMASK_OPERATORS(FResourceBindPoint); // TODO: Should this really be a flag?
 

@@ -6,6 +6,11 @@
 
 namespace Poly
 {
+	PassField& PassReflection::AddInput(std::string name)
+	{
+		return AddField(std::move(name), FFieldVisibility::INPUT);
+	}
+
 	PassField& PassReflection::AddInput(std::string name, uint32 set, uint32 binding)
 	{
 		PassField& field = AddField(std::move(name), FFieldVisibility::INPUT);

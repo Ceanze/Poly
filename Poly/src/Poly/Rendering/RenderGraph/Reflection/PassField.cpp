@@ -66,17 +66,41 @@ namespace Poly
 		return *this;
 	}
 
+	PassField& PassField::SetArray(bool isArray)
+	{
+		m_IsArray = isArray;
+		return *this;
+	}
+
 	void PassField::Merge(const PassField& other)
 	{
 		if (m_Format != other.m_Format)
 		{
-			POLY_CORE_WARN("Cannot merge PassField of {} with {}, different formats!", m_Name, other.m_Name);
-			return;
+			if (m_Format == EFormat::UNDEFINED)
+			{
+				m_Format = other.m_Format;
+				TryToSetTextureLayout();
+			}
+			else if (other.m_Format != EFormat::UNDEFINED)
+			{
+				POLY_CORE_WARN("Cannot merge PassField of {} with {}, different formats!", m_Name, other.m_Name);
+				return;
+			}
 		}
-		if (m_Height != other.m_Height || m_Width != other.m_Width || m_Depth != other.m_Depth)
+
+		if ((m_Height != other.m_Height || m_Width != other.m_Width || m_Depth != other.m_Depth))
 		{
-			POLY_CORE_WARN("Cannot merge PassField of {} with {}, height, width and/or depth does not match!", m_Name, other.m_Name);
-			return;
+			if (m_Height == 0 && m_Width == 0 && m_Depth == 0)
+			{
+				m_Height = other.m_Height;
+				m_Width = other.m_Width;
+				m_Depth = other.m_Depth;
+			}
+			else if (other.m_Height != 0 || other.m_Width != 0 || other.m_Depth != 0)
+			{
+				POLY_CORE_WARN("Cannot merge PassField of {} with {}, height, width and/or depth does not match!", m_Name, other.m_Name);
+				return;
+			}
 		}
 		m_BindPoint |= other.m_BindPoint;
 	}
@@ -104,6 +128,11 @@ namespace Poly
 	ETextureLayout PassField::GetTextureLayout() const
 	{
 		return m_TextureLayout;
+	}
+
+	bool PassField::IsArray() const
+	{
+		return m_IsArray;
 	}
 
 	uint32 PassField::GetSize() const

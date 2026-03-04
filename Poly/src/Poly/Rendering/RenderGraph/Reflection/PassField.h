@@ -32,6 +32,7 @@ namespace Poly
 		PassField& TextureLayout(ETextureLayout textureLayout);
 		PassField& BindPoint(FResourceBindPoint bindPoint);
 		PassField& SetSampler(Ref<Sampler> pSampler);
+		PassField& SetArray(bool isArray = true);
 
 		void Merge(const PassField& other);
 
@@ -40,6 +41,7 @@ namespace Poly
 		EFormat GetFormat() const;
 		FResourceBindPoint GetBindPoint() const;
 		ETextureLayout GetTextureLayout() const;
+		bool IsArray() const;
 		uint32 GetSize() const;
 		uint32 GetWidth() const;
 		uint32 GetHeight() const;
@@ -66,6 +68,7 @@ namespace Poly
 		uint32 m_Depth					= 0;
 		uint32 m_Set					= 0;
 		uint32 m_Binding				= 0;
+		bool m_IsArray					= false;
 		Ref<Sampler> m_pSampler			= nullptr;
 	};
 }

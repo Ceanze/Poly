@@ -105,7 +105,7 @@ namespace Poly
 		 * 
 		 * @return pointer to resource
 		 */
-		Resource* GetResource(const ResourceGUID& resourceGUID);
+		Resource* GetResource(const ResourceGUID& resourceGUID) const;
 
 		/**
 		* Gets the mapped resource name, i.e. resource "pass.resource" retruns the mapped name for "passName.resource"
