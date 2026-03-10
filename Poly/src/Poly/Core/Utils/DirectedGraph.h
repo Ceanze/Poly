@@ -111,9 +111,19 @@ namespace Poly
 		const Node* GetNode(uint32 id) const { return m_Nodes.contains(id) ? &(m_Nodes.at(id)) : nullptr; }
 
 		/**
+		 * @return All added nodes
+		 */
+		const std::unordered_map<uint32, Node>& GetAllNodes() const { return m_Nodes; }
+
+		/**
 		 * @return Edge* for the given ID, nullptr if edge does not exist
 		 */
 		const Edge* GetEdge(uint32 id) const { return m_Edges.contains(id) ? &(m_Edges.at(id)) : nullptr; }
+
+		/**
+		 * @return All added edges
+		 */
+		const std::unordered_map<uint32, Edge> GetEdges() const { return m_Edges; }
 
 	private:
 		void RemoveEdges(std::vector<uint32>& edgeIDs, bool incommingEdges);

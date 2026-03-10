@@ -225,6 +225,20 @@ namespace Poly
 			return ResourceGUID::Invalid();
 	}
 
+	uint32 ResourceCache::GetResourceIndex(const ResourceGUID& resourceGUID)
+	{
+		const auto passResourceItr = m_NameToIndex.find(resourceGUID);
+		if (passResourceItr != m_NameToIndex.end())
+			return passResourceItr->second;
+
+		const auto externalResourceItr = m_NameToExternalIndex.find(resourceGUID);
+		if (externalResourceItr != m_NameToExternalIndex.end())
+			return externalResourceItr->second;
+
+		POLY_CORE_ERROR("Called GetResourceIndex with '{}', which is not registered to the cache", resourceGUID.GetFullName());
+		return UINT32_MAX;
+	}
+
 	Resource* ResourceCache::UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size)
 	{
 		if (!HasResource(resourceGUID))

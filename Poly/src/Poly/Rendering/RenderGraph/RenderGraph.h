@@ -159,8 +159,13 @@ namespace Poly
 		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }
 
 	private:
+		// TODO: Clean up friend classes
 		friend class RenderGraphCompiler;
 		friend class RenderGraphProgram;
+		friend class RGCCompiler;
+		friend class RGCValidator;
+		friend class RGCResourceRegister;
+		friend class RGCResourceOutputHandler;
 
 		struct Output
 		{

@@ -19,12 +19,14 @@ namespace Poly
 
 	PassField& PassField::Buffer(uint32 size)
 	{
+		m_Type = EType::Buffer;
 		m_Size = size;
 		return *this;
 	}
 
 	PassField& PassField::Texture2D(uint32 width, uint32 height)
 	{
+		m_Type = EType::Texture;
 		m_Width = width;
 		m_Height = height;
 		return *this;
@@ -32,6 +34,7 @@ namespace Poly
 
 	PassField& PassField::Texture3D(uint32 width, uint32 height, uint32 depth)
 	{
+		m_Type = EType::Texture;
 		m_Width = width;
 		m_Height = height;
 		m_Depth = depth;
@@ -42,6 +45,9 @@ namespace Poly
 	{
 		m_Format = format;
 
+		POLY_VALIDATE(m_Type == EType::None || m_Type == EType::Texture, "Type for field {} must be not set or Texture when calling Format", m_Name);
+		m_Type == EType::Texture;
+
 		// Sets a guessed layout based on the format - does not set if a TextureLayout already is set
 		TryToSetTextureLayout();
 
@@ -51,6 +57,10 @@ namespace Poly
 	PassField& PassField::TextureLayout(ETextureLayout textureLayout)
 	{
 		m_TextureLayout = textureLayout;
+
+		POLY_VALIDATE(m_Type == EType::None || m_Type == EType::Texture, "Type for field {} must be not set or Texture when calling TextureLayout", m_Name);
+		m_Type == EType::Texture;
+
 		return *this;
 	}
 
@@ -63,6 +73,10 @@ namespace Poly
 	PassField& PassField::SetSampler(Ref<Sampler> pSampler)
 	{
 		m_pSampler = pSampler;
+
+		POLY_VALIDATE(m_Type == EType::None || m_Type == EType::Texture, "Type for field {} must be not set or Texture when calling SetSampler", m_Name);
+		m_Type == EType::Texture;
+
 		return *this;
 	}
 
@@ -108,6 +122,11 @@ namespace Poly
 	const std::string& PassField::GetName() const
 	{
 		return m_Name;
+	}
+
+	PassField::EType PassField::GetType() const
+	{
+		return m_Type;
 	}
 
 	FFieldVisibility PassField::GetVisibility() const
