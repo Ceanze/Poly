@@ -54,6 +54,12 @@ namespace Poly
 		static Ref<DirectedGraph> Create();
 
 		/**
+		 * Creates a deep copy of this directed graph with a new underlying object
+		 * @return New Ref<DirectedGraph> with the same nodes, edges, and indices
+		 */
+		Ref<DirectedGraph> Clone() const;
+
+		/**
 		 * Add a node to the graph
 		 * @return unique ID for the node
 		 */

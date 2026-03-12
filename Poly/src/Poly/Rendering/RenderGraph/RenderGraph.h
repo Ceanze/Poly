@@ -39,6 +39,12 @@ namespace Poly
 		static Ref<RenderGraph> Create(std::string name);
 
 		/**
+		 * Creates a deep copy of this render graph, including a new underlying DirectedGraph object
+		 * @return New RenderGraph with the same state but an independent DirectedGraph
+		 */
+		RenderGraph Clone() const;
+
+		/**
 		 * Compiles the rendergraph - all changes to it are final after this point.
 		 * If any changes are required a recompilation will also be needed.
 		 */

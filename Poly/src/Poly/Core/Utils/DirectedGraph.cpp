@@ -8,6 +8,16 @@ namespace Poly
 		return CreateRef<DirectedGraph>();
 	}
 
+	Ref<DirectedGraph> DirectedGraph::Clone() const
+	{
+		Ref<DirectedGraph> clone = CreateRef<DirectedGraph>();
+		clone->m_Nodes				= m_Nodes;
+		clone->m_Edges				= m_Edges;
+		clone->m_CurrentNodeIndex	= m_CurrentNodeIndex;
+		clone->m_CurrentEdgeIndex	= m_CurrentEdgeIndex;
+		return clone;
+	}
+
 	uint32 DirectedGraph::AddNode()
 	{
 		m_Nodes[m_CurrentNodeIndex] = Node();

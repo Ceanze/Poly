@@ -33,6 +33,19 @@ namespace Poly
 		return CreateRef<RenderGraph>(std::move(name));
 	}
 
+	RenderGraph RenderGraph::Clone() const
+	{
+		RenderGraph copy(m_Name);
+		copy.m_pGraph				= m_pGraph->Clone();
+		copy.m_NameToNodeIndex		= m_NameToNodeIndex;
+		copy.m_Passes				= m_Passes;
+		copy.m_Edges				= m_Edges;
+		copy.m_Outputs				= m_Outputs;
+		copy.m_ExternalResources	= m_ExternalResources;
+		copy.m_DefaultParams		= m_DefaultParams;
+		return copy;
+	}
+
 	Ref<RenderGraphProgram> RenderGraph::Compile()
 	{
 		Ref<RenderGraphCompiler> compiler = RenderGraphCompiler::Create();

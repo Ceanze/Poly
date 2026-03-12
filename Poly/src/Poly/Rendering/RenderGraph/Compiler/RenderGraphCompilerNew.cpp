@@ -8,8 +8,7 @@ namespace Poly
 
 	Ref<RenderGraphProgram> RenderGraphCompiler::Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams)
 	{
-		// TODO: Create a copy of the render graph
-		RGCContext ctx(pRenderGraph, defaultParams);
+		RGCContext ctx(pRenderGraph->Clone(), defaultParams);
 
 		m_GraphCompiler.Execute(ctx);
 		if (!m_GraphValidator.Execute(ctx))

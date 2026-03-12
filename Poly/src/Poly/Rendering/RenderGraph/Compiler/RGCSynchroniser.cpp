@@ -8,6 +8,7 @@
 #include "Poly/Rendering/RenderGraph/SyncPass.h"
 #include "Poly/Rendering/RenderGraph/ResourceCache.h"
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
+#include "Poly/Core/Utils/DirectedGraph.h"
 
 namespace Poly
 {
