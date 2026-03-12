@@ -8,6 +8,7 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceRegister.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceOutputHandler.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceAllocator.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCSynchroniser.h"
 
 namespace Poly
 {
@@ -29,6 +30,7 @@ namespace Poly
 		RGCResourceRegister m_GraphResourceRegister;
 		RGCResourceOutputHandler m_GraphResourceOutputHandler;
 		RGCResourceAllocator m_GraphResourceAllocator;
+		RGCSynchroniser m_GraphSynchroniser;
 	};
 }
 

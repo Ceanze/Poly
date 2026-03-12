@@ -166,6 +166,7 @@ namespace Poly
 		friend class RGCValidator;
 		friend class RGCResourceRegister;
 		friend class RGCResourceOutputHandler;
+		friend class RGCSynchroniser;
 
 		struct Output
 		{

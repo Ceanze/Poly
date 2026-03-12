@@ -359,6 +359,7 @@ MigrationBackup/
 # AI
 GEMINI.md
 CLAUDE.md
+.claude
 
 # CMake
 # This projects generates the cmake files from premake - therefore it is not necessary to include those files

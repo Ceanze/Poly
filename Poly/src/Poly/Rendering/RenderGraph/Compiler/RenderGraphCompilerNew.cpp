@@ -18,6 +18,14 @@ namespace Poly
 		m_GraphResourceRegister.Execute(ctx);
 		m_GraphResourceOutputHandler.Execute(ctx);
 		m_GraphResourceAllocator.Execute(ctx);
+		m_GraphSynchroniser.Execute(ctx);
+		if (ctx.IsGraphDirty)
+		{
+			ctx.IsGraphDirty = false;
+			m_GraphCompiler.Execute(ctx);
+			if (!m_GraphValidator.Execute(ctx))
+				return nullptr;
+		}
 
 		return nullptr;
 	}
