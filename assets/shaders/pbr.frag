@@ -12,7 +12,6 @@ layout(location = 4) in mat3 in_TBN;
 
 // Outputs
 layout(location = 0) out vec4 out_Color;
-layout(location = 1) out vec4 out_Color1;
 
 // Structs
 struct MaterialValues
@@ -153,5 +152,4 @@ void main()
 	colorLDR		= pow(colorLDR, vec3(1.0f/2.2f));
 
 	out_Color = vec4(colorLDR, 1.0f);
-	out_Color1 = vec4(colorLDR, 1.0f);
 }

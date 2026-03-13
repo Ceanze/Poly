@@ -12,6 +12,8 @@
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
 #include "Poly/Poly/Format.h"
 
+#include "Compiler/RenderGraphCompilerNew.h"
+
 namespace Poly
 {
 	RenderGraph::RenderGraph(std::string name)
@@ -48,10 +50,19 @@ namespace Poly
 
 	Ref<RenderGraphProgram> RenderGraph::Compile()
 	{
-		Ref<RenderGraphCompiler> compiler = RenderGraphCompiler::Create();
-		Ref<RenderGraphProgram> program = compiler->Compile(this, m_DefaultParams);
-		program->Init();
-		return program;
+		const bool useNewCompiler = true;
+		if (useNewCompiler)
+		{
+			RenderGraphCompilerNew compiler;
+			Ref<RenderGraphProgram> program1 = compiler.Compile(this, m_DefaultParams);
+			program1->Init();
+			return program1;
+		}
+
+		Ref<RenderGraphCompiler> compiler2 = RenderGraphCompiler::Create();
+		Ref<RenderGraphProgram> program2 = compiler2->Compile(this, m_DefaultParams);
+		program2->Init();
+		return program2;
 	}
 
 	bool RenderGraph::AddPass(const Ref<Pass>& pPass, const std::string& name)

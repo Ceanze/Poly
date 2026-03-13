@@ -1,14 +1,17 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RenderGraphCompilerNew.h"
 
 #include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
+#include "Poly/Rendering/RenderGraph/ResourceCache.h"
 
 namespace Poly
 {
-	RenderGraphCompiler::RenderGraphCompiler() {}
+	RenderGraphCompilerNew::RenderGraphCompilerNew() {}
 
-	Ref<RenderGraphProgram> RenderGraphCompiler::Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams)
+	Ref<RenderGraphProgram> RenderGraphCompilerNew::Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams)
 	{
 		RGCContext ctx(pRenderGraph->Clone(), defaultParams);
+
+		ctx.pResourceCache = ResourceCache::Create(defaultParams);
 
 		m_GraphCompiler.Execute(ctx);
 		if (!m_GraphValidator.Execute(ctx))
@@ -26,6 +29,6 @@ namespace Poly
 				return nullptr;
 		}
 
-		return nullptr;
+		return m_GraphProgramCreator.Execute(ctx);
 	}
 }

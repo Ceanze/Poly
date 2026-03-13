@@ -195,6 +195,9 @@ namespace Poly
 					auto* pRenderPass = static_cast<RenderPass*>(compiledPass.pPass.get());
 					pRenderPass->AddAttachment(field->GetName(), layout, attachmentIndex++, field->GetFormat());
 					pRenderPass->SetAttachmentInital(field->GetName(), ETextureLayout::UNDEFINED);
+
+					if (BitsSet(field->GetBindPoint(), FResourceBindPoint::DEPTH_STENCIL))
+						pRenderPass->SetDepthStenctilUse(true);
 				}
 			}
 		}
@@ -468,6 +471,12 @@ namespace Poly
 
 	void RGCSynchroniser::Execute(RGCContext& ctx)
 	{
+		if (!ctx.pResourceCache)
+		{
+			POLY_VALIDATE(false, "No resource cache has been created/provided for the Render Graph Compiler");
+			return;
+		}
+
 		SyncContext syncCtx;
 		InitialiseResourceStates(ctx, syncCtx);
 		SetupPassUsages(ctx, syncCtx);

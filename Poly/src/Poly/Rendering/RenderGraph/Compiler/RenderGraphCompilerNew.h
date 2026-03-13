@@ -9,17 +9,18 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceOutputHandler.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceAllocator.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCSynchroniser.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCProgramCreator.h"
 
 namespace Poly
 {
 	class RenderGraph;
 	class RenderGraphProgram;
 
-	class RenderGraphCompiler
+	class RenderGraphCompilerNew
 	{
 	public:
-		RenderGraphCompiler();
-		~RenderGraphCompiler() = default;
+		RenderGraphCompilerNew();
+		~RenderGraphCompilerNew() = default;
 
 		Ref<RenderGraphProgram> Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams);
 
@@ -30,7 +31,8 @@ namespace Poly
 		RGCResourceRegister m_GraphResourceRegister;
 		RGCResourceOutputHandler m_GraphResourceOutputHandler;
 		RGCResourceAllocator m_GraphResourceAllocator;
-		RGCSynchroniser m_GraphSynchroniser;
+		RGCSynchroniser		m_GraphSynchroniser;
+		RGCProgramCreator	m_GraphProgramCreator;
 	};
 }
 

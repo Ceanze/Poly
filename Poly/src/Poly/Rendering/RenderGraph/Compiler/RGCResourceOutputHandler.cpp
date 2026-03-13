@@ -10,7 +10,7 @@ namespace Poly
 	{
 		if (!ctx.pResourceCache)
 		{
-			POLY_CORE_ERROR("No resource cache has been created/provided for the Render Graph Compiler");
+			POLY_VALIDATE(false, "No resource cache has been created/provided for the Render Graph Compiler");
 			return;
 		}
 
