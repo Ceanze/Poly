@@ -29,6 +29,8 @@ namespace Poly
 				return nullptr;
 		}
 
+		// TODO: Add a RGCResourceLifetimeCalculator to handle the lifetime setting of the resource cache (ignored for now)
+
 		return m_GraphProgramCreator.Execute(ctx);
 	}
 }
