@@ -117,6 +117,17 @@ namespace Poly
 		ResourceGUID GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName);
 
 		/**
+		* Get the index representing a resource. The index is unique, and any aliased resource map to the same index.
+		* For instance, if "pass1.out" is aliased to "pass2.in", calling GetResourceIndex on any resource GUID
+		* will return the same index.
+		* 
+		* @param resourceGUID - the resource GUId to get the index for
+		* 
+		* @return index to resource, UINT32_MAX if not found (invalid)
+		*/
+		uint32 GetResourceIndex(const ResourceGUID& resourceGUID);
+
+		/**
 		* Update a resource size
 		* WARNING: Old data will be deleted when size is changed. 
 		*/

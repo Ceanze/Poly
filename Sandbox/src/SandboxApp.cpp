@@ -81,7 +81,6 @@ public:
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
 		m_pGraph->AddLink({ "pbrPass.out_Color" }, { "ImGuiPass.fColor" });
-		m_pGraph->AddLink({ "pbrPass.out_Color1" }, { "ImGuiPass.ExternalImages" });
 		m_pGraph->MarkOutput({ "ImGuiPass.fColor" });
 
 		// Compile
@@ -117,13 +116,6 @@ public:
 		{
 			ImGui::Text("Texture View: %p", m_pTextureView);
 			ImGui::Image((ImTextureID)m_pTextureView, ImVec2(256, 256));
-		}
-
-		const Poly::Resource* pPBRColor = m_pProgram->GetResource({ "pbrPass.out_Color1" });
-		if (pPBRColor)
-		{
-			ImGui::Text("PBR Color: %p", pPBRColor->GetAsTextureView());
-			ImGui::Image((ImTextureID)pPBRColor->GetAsTextureView(), ImVec2(256, 256));
 		}
 
 		ImGui::End();

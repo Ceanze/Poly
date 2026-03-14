@@ -18,6 +18,13 @@ namespace Poly
 	class PassField
 	{
 	public:
+		enum class EType
+		{
+			None,
+			Texture,
+			Buffer
+		};
+
 		PassField(std::string name, FFieldVisibility visibility);
 		PassField() = default;
 
@@ -37,6 +44,7 @@ namespace Poly
 		void Merge(const PassField& other);
 
 		const std::string& GetName() const;
+		EType GetType() const;
 		FFieldVisibility GetVisibility() const;
 		EFormat GetFormat() const;
 		FResourceBindPoint GetBindPoint() const;
@@ -58,6 +66,7 @@ namespace Poly
 		void TryToSetTextureLayout();
 
 		std::string	m_Name				= "";
+		EType m_Type					= EType::None;
 		FFieldVisibility m_Visibility	= FFieldVisibility::UNKNOWN;
 		EFormat	m_Format				= EFormat::UNDEFINED;
 		FResourceBindPoint m_BindPoint	= FResourceBindPoint::NONE;

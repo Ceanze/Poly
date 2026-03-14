@@ -39,6 +39,12 @@ namespace Poly
 		static Ref<RenderGraph> Create(std::string name);
 
 		/**
+		 * Creates a deep copy of this render graph, including a new underlying DirectedGraph object
+		 * @return New RenderGraph with the same state but an independent DirectedGraph
+		 */
+		RenderGraph Clone() const;
+
+		/**
 		 * Compiles the rendergraph - all changes to it are final after this point.
 		 * If any changes are required a recompilation will also be needed.
 		 */
@@ -159,8 +165,14 @@ namespace Poly
 		const RenderGraphDefaultParams& GetDefaultParams() const { return m_DefaultParams; }
 
 	private:
+		// TODO: Clean up friend classes
 		friend class RenderGraphCompiler;
 		friend class RenderGraphProgram;
+		friend class RGCCompiler;
+		friend class RGCValidator;
+		friend class RGCResourceRegister;
+		friend class RGCResourceOutputHandler;
+		friend class RGCSynchroniser;
 
 		struct Output
 		{

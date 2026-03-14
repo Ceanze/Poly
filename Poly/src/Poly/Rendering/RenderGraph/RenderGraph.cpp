@@ -12,6 +12,8 @@
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
 #include "Poly/Poly/Format.h"
 
+#include "Compiler/RenderGraphCompilerNew.h"
+
 namespace Poly
 {
 	RenderGraph::RenderGraph(std::string name)
@@ -33,12 +35,34 @@ namespace Poly
 		return CreateRef<RenderGraph>(std::move(name));
 	}
 
+	RenderGraph RenderGraph::Clone() const
+	{
+		RenderGraph copy(m_Name);
+		copy.m_pGraph				= m_pGraph->Clone();
+		copy.m_NameToNodeIndex		= m_NameToNodeIndex;
+		copy.m_Passes				= m_Passes;
+		copy.m_Edges				= m_Edges;
+		copy.m_Outputs				= m_Outputs;
+		copy.m_ExternalResources	= m_ExternalResources;
+		copy.m_DefaultParams		= m_DefaultParams;
+		return copy;
+	}
+
 	Ref<RenderGraphProgram> RenderGraph::Compile()
 	{
-		Ref<RenderGraphCompiler> compiler = RenderGraphCompiler::Create();
-		Ref<RenderGraphProgram> program = compiler->Compile(this, m_DefaultParams);
-		program->Init();
-		return program;
+		const bool useNewCompiler = true;
+		if (useNewCompiler)
+		{
+			RenderGraphCompilerNew compiler;
+			Ref<RenderGraphProgram> program1 = compiler.Compile(this, m_DefaultParams);
+			program1->Init();
+			return program1;
+		}
+
+		Ref<RenderGraphCompiler> compiler2 = RenderGraphCompiler::Create();
+		Ref<RenderGraphProgram> program2 = compiler2->Compile(this, m_DefaultParams);
+		program2->Init();
+		return program2;
 	}
 
 	bool RenderGraph::AddPass(const Ref<Pass>& pPass, const std::string& name)

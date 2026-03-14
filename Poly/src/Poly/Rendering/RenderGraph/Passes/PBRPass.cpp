@@ -42,10 +42,6 @@ namespace Poly
 			.Format(EFormat::B8G8R8A8_UNORM)
 			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT);
 
-		reflection.GetField("out_Color1")
-			.Format(EFormat::R8G8B8A8_UNORM)
-			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT);
-
 		reflection.AddOutput("depth")
 			.BindPoint(FResourceBindPoint::DEPTH_STENCIL)
 			.Format(EFormat::DEPTH_STENCIL);
