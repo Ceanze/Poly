@@ -71,7 +71,9 @@ namespace Poly
 		for (uint32 i = 0; i < m_pGraph->CurrentNodeIndex(); i++)
 		{
 			// Graph does not know which indices that are nodes (could be removed), therefore check that
-			if (!m_Visited[i] && m_pGraph->NodeExists(i));
+			const bool visited = m_Visited[i];
+			const bool nodeExist = m_pGraph->NodeExists(i);
+			if (!visited && nodeExist)
 			{
 				VisitNode(i, nodeStack);
 			}
