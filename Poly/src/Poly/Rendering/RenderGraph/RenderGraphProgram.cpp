@@ -24,6 +24,7 @@
 #include "Platform/API/GraphicsRenderPass.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
+#include "Platform/API/TextureView.h"
 
 namespace Poly
 {
@@ -224,6 +225,15 @@ namespace Poly
 		return m_pResourceCache->GetResource(resourceGUID);
 	}
 
+	TextureView* RenderGraphProgram::GetDebugTextureView(const ResourceGUID& guid) const
+	{
+		const Resource* pResource = GetResource(guid);
+		if (!pResource)
+			return nullptr;
+
+		return pResource->GetAsTextureView();
+	}
+
 	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
 	{
 		// Note: This function always updates a whole span of a resource - therefore no size or offset is supplied, and views for
@@ -294,10 +304,13 @@ namespace Poly
 				const TextureView* pTextureView = (pResource && pResource->IsTexture()) ? pResource->GetAsTextureView() : view.GetTextureView();
 				Sampler* pSampler = pResource ? pResource->GetAsSampler() : (inputRes.GetSampler() ? inputRes.GetSampler().get() : m_DefaultParams.pSampler.get());
 
+				// TODO: Evaluate if this is a valid approach - essentially overwriting the texture layout if it is a depth texture coming in, use default otherwise.
+				ETextureLayout textureLayout = BitsSet(pTextureView->GetDesc().ImageViewFlag, FImageViewFlag::DEPTH_STENCIL) ? ETextureLayout::DEPTH_READ_ONLY_OPTIMAL : inputRes.GetTextureLayout();
+
 				// Set sampler if it hasn't been set before from the reflection
 				if (pResource && !pResource->GetAsSampler())
 					pResource->SetSampler(inputRes.GetSampler() ? inputRes.GetSampler() : m_DefaultParams.pSampler);
-				pNewSet->UpdateTextureBinding(inputRes.GetBinding(), inputRes.GetTextureLayout(), pTextureView, pSampler);
+				pNewSet->UpdateTextureBinding(inputRes.GetBinding(), textureLayout, pTextureView, pSampler);
 			}
 		}
 	}
@@ -423,7 +436,7 @@ namespace Poly
 			return passWindowRes.CommandBuffers[m_ImageIndex];
 
 		std::vector<CommandBuffer*>& commandBuffers = passWindowRes.CommandBuffers;
-		
+
 		commandBuffers.resize(m_DefaultParams.MaxBackbufferCount);
 		for (uint32 imageIndex = 0; imageIndex < m_DefaultParams.MaxBackbufferCount; imageIndex++)
 		{

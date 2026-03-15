@@ -46,7 +46,7 @@ namespace Poly
 		m_Format = format;
 
 		POLY_VALIDATE(m_Type == EType::None || m_Type == EType::Texture, "Type for field {} must be not set or Texture when calling Format", m_Name);
-		m_Type == EType::Texture;
+		m_Type = EType::Texture;
 
 		// Sets a guessed layout based on the format - does not set if a TextureLayout already is set
 		TryToSetTextureLayout();
@@ -59,7 +59,7 @@ namespace Poly
 		m_TextureLayout = textureLayout;
 
 		POLY_VALIDATE(m_Type == EType::None || m_Type == EType::Texture, "Type for field {} must be not set or Texture when calling TextureLayout", m_Name);
-		m_Type == EType::Texture;
+		m_Type = EType::Texture;
 
 		return *this;
 	}
@@ -75,7 +75,7 @@ namespace Poly
 		m_pSampler = pSampler;
 
 		POLY_VALIDATE(m_Type == EType::None || m_Type == EType::Texture, "Type for field {} must be not set or Texture when calling SetSampler", m_Name);
-		m_Type == EType::Texture;
+		m_Type = EType::Texture;
 
 		return *this;
 	}

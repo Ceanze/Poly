@@ -26,7 +26,8 @@ namespace Poly
 			.TextureHeight		= 720,
 			.MaxBackbufferCount	= 3,
 			.pSampler			= Sampler::GetDefaultLinearSampler(),
-			.Format				= EFormat::R8G8B8A8_UNORM // Currently not used
+			.Format				= EFormat::R8G8B8A8_UNORM, // Currently not used
+			.EnableDebugTextures = true
 		};
 	}
 

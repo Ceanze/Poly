@@ -15,6 +15,7 @@ namespace Poly
 	class Pass;
 	class Scene;
 	class Resource;
+	class TextureView;
 	class Framebuffer;
 	class RenderGraph;
 	class CommandPool;
@@ -32,6 +33,8 @@ namespace Poly
 	public:
 		RenderGraphProgram(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes);
 		~RenderGraphProgram() = default;
+
+		void SetDebugTextureGUIDs(std::vector<ResourceGUID> guids) { m_DebugTextureGUIDs = std::move(guids); }
 
 		/**
 		 * USED BY THE RENDER GRAPH
@@ -122,6 +125,20 @@ namespace Poly
 		 */
 		const Scene* GetScene() const { return m_pScene.get(); }
 
+		/**
+		 * Returns the TextureView for the given resource GUID to be used as ImTextureID.
+		 * Only valid when the render graph was compiled with EnableDebugTextures = true.
+		 * @param guid - resource GUID following "passName.resourceName" format
+		 * @return TextureView pointer, or nullptr if not found or debug textures are disabled
+		 */
+		TextureView* GetDebugTextureView(const ResourceGUID& guid) const;
+
+		/**
+		 * Returns all resource GUIDs that were made available for debug texture sampling.
+		 * Only populated when the render graph was compiled with EnableDebugTextures = true.
+		 */
+		const std::vector<ResourceGUID>& GetDebugTextureGUIDs() const { return m_DebugTextureGUIDs; }
+
 	private:
 		void InitPipelineLayouts();
 		void InitCommandPools();
@@ -131,6 +148,9 @@ namespace Poly
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
 
 		ResourceGUID GetMappedResourceGUID(const ResourceGUID& resourceGUID, const Ref<Pass>& pPass, uint32 passIndex);
+
+		// Debug textures
+		std::vector<ResourceGUID> m_DebugTextureGUIDs;
 
 		// General
 		Ref<Scene> m_pScene;

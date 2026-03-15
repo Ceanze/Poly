@@ -47,6 +47,10 @@ namespace Poly
 			ResourceGUID resourceGUID(compiledPass.pPass->GetName(), input->GetName());
 			ResourceGUID aliasGUID = GetAliasedResourceGUID(ctx, compiledPass, resourceGUID);
 
+			// Passthroughs (INPUT + OUTPUT) with no provided input are not aliased - they create the resource (and are registed as an Output)
+			if (aliasGUID == ResourceGUID::Invalid() && BitsSet(input->GetVisibility(), FFieldVisibility::OUTPUT))
+				continue;
+
 			if (aliasGUID == ResourceGUID::Invalid() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 			{
 				POLY_CORE_ERROR("Tried to alias resource '{}', but no connection has been made. If a resource is not marked as INTERNAL_USE,"

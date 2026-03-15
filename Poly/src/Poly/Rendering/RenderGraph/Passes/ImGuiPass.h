@@ -25,6 +25,8 @@ namespace Poly
 
 		virtual PassReflection Reflect() override final;
 
+		virtual bool IsDebugConsumer() const override { return true; }
+
 		virtual void Compile() override final;
 
 		virtual void Update(const RenderContext& context) override final;

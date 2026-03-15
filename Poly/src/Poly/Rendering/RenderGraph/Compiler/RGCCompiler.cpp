@@ -18,21 +18,11 @@ namespace Poly
 	{
 		std::unordered_set<uint32> mandatoryNodes;
 
-		// 1. Check all outputs of the graph and traverse backwards
+		// Seed with graph output nodes only. PruneAndSortGraph will then do a backward traversal
+		// from these seeds following all edge types (data and execution), which naturally includes
+		// any pass connected, directly or transitively, to an output. Island connections are excluded.
 		for (const auto& output : ctx.RenderGraph.m_Outputs)
 			mandatoryNodes.insert(output.NodeID);
-
-		// 2. Add all passes which has an execution link, since this might affect other mandatory passes
-		// TODO: Evauluate if this is the correct behaviour - does execution links still not require a connection to an output to be mandatory?
-		//		 For instance, Pass1 -> Pass2 is only mandatory if Pass1 or Pass2 is used as an output
-		for (const auto& [_, edgeData] : ctx.RenderGraph.m_Edges)
-		{
-			if (!edgeData.Src.HasResource() && !edgeData.Dst.HasResource())
-			{
-				mandatoryNodes.insert(ctx.RenderGraph.m_NameToNodeIndex[edgeData.Src.GetPassName()]);
-				mandatoryNodes.insert(ctx.RenderGraph.m_NameToNodeIndex[edgeData.Dst.GetPassName()]);
-			}
-		}
 
 		return mandatoryNodes;
 	}

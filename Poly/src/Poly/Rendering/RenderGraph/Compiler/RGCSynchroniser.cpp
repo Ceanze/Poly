@@ -1,4 +1,5 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCSynchroniser.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCSyncTypes.h"
 
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
@@ -16,13 +17,6 @@ namespace Poly
 	// Local structs
 	// ---------------------------------------------------------------------------
 
-	struct ResourceState
-	{
-		ETextureLayout	Layout		= ETextureLayout::UNDEFINED;
-		FAccessFlag		AccessMask	= FAccessFlag::NONE;
-		FPipelineStage	Stage		= FPipelineStage::NONE;
-	};
-
 	struct ResourceUsage
 	{
 		std::string		Name		= "";
@@ -37,9 +31,9 @@ namespace Poly
 		std::unordered_map<uint32, std::vector<ResourceUsage>> PassInvalidates;  // inputs per node
 		std::unordered_map<uint32, std::vector<ResourceUsage>> PassFlushes;      // outputs per node
 
-		// Live state per physical resource index (ResourceCache::GetResourceIndex)
+		// Live state per physical resource, keyed by canonical GUID (ResourceCache::GetCanonicalGUID)
 		// Absence in map = {UNDEFINED, NONE, NONE} (resource not yet touched)
-		std::unordered_map<uint32, ResourceState> CurrentResourceState;
+		std::unordered_map<ResourceGUID, ResourceState, ResourceGUIDHasher> CurrentResourceState;
 	};
 
 	struct SyncPassData
@@ -134,11 +128,11 @@ namespace Poly
 	{
 		for (const auto& [guid, info] : ctx.RenderGraph.m_ExternalResources)
 		{
-			uint32 idx = ctx.pResourceCache->GetResourceIndex(guid);
-			if (idx == UINT32_MAX)
+			ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(guid);
+			if (!canonicalGUID.HasResource())
 				continue;
 
-			syncCtx.CurrentResourceState[idx] = ResourceState{
+			syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{
 				ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
 				FAccessFlag::SHADER_READ,
 				FPipelineStage::FRAGMENT_SHADER
@@ -229,12 +223,29 @@ namespace Poly
 				for (const ResourceUsage& usage : invalidatesIt->second)
 				{
 					ResourceGUID dstGUID(passName, usage.Name);
-					uint32 idx = ctx.pResourceCache->GetResourceIndex(dstGUID);
-					if (idx == UINT32_MAX)
+					ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(dstGUID);
+					if (!canonicalGUID.HasResource())
 						continue;
 
+					// Skip passthrough inputs with no incoming edge — the resource has no prior
+					// writer to synchronise against (the pass will write to it fresh as an output).
+					{
+						const auto& inEdges = ctx.RenderGraph.m_pGraph->GetNode(nodeIndex)->GetIncommingEdges();
+						bool hasIncomingEdge = false;
+						for (uint32 edgeID : inEdges)
+						{
+							if (ctx.RenderGraph.m_Edges[edgeID].Dst.GetResourceName() == usage.Name)
+							{
+								hasIncomingEdge = true;
+								break;
+							}
+						}
+						if (!hasIncomingEdge)
+							continue;
+					}
+
 					ResourceState current = {};
-					auto stateIt = syncCtx.CurrentResourceState.find(idx);
+					auto stateIt = syncCtx.CurrentResourceState.find(canonicalGUID);
 					if (stateIt != syncCtx.CurrentResourceState.end())
 						current = stateIt->second;
 
@@ -331,7 +342,7 @@ namespace Poly
 					}
 
 					// Update current state after processing this input
-					syncCtx.CurrentResourceState[idx] = ResourceState{ usage.Layout, usage.AccessMask, usage.Stage };
+					syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{ usage.Layout, usage.AccessMask, usage.Stage };
 				}
 			}
 
@@ -344,11 +355,11 @@ namespace Poly
 				for (const ResourceUsage& usage : flushesIt->second)
 				{
 					ResourceGUID outputGUID(passName, usage.Name);
-					uint32 idx = ctx.pResourceCache->GetResourceIndex(outputGUID);
-					if (idx == UINT32_MAX)
+					ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(outputGUID);
+					if (!canonicalGUID.HasResource())
 						continue;
 
-					syncCtx.CurrentResourceState[idx] = ResourceState{ usage.Layout, usage.AccessMask, usage.Stage };
+					syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{ usage.Layout, usage.AccessMask, usage.Stage };
 				}
 			}
 
@@ -483,5 +494,7 @@ namespace Poly
 		auto syncPasses = BuildSyncPasses(ctx, syncCtx);
 		SetOutputLayouts(ctx);
 		InsertSyncPasses(ctx, syncPasses);
+
+		ctx.PostSyncResourceStates = syncCtx.CurrentResourceState;
 	}
 }

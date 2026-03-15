@@ -9,6 +9,7 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceOutputHandler.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceAllocator.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCSynchroniser.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCDebugTextureInjector.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCProgramCreator.h"
 
 namespace Poly
@@ -31,7 +32,8 @@ namespace Poly
 		RGCResourceRegister m_GraphResourceRegister;
 		RGCResourceOutputHandler m_GraphResourceOutputHandler;
 		RGCResourceAllocator m_GraphResourceAllocator;
-		RGCSynchroniser		m_GraphSynchroniser;
-		RGCProgramCreator	m_GraphProgramCreator;
+		RGCSynchroniser			m_GraphSynchroniser;
+		RGCDebugTextureInjector	m_GraphDebugTextureInjector;
+		RGCProgramCreator		m_GraphProgramCreator;
 	};
 }

@@ -61,6 +61,14 @@ namespace Poly
 		virtual void Compile() {};
 
 		/**
+		 * OPTIONAL
+		 * Returns true if this pass is a debug consumer (e.g. an ImGui overlay pass).
+		 * When EnableDebugTextures is set, the compiler will insert a sync pass before
+		 * the first debug consumer to transition all texture outputs to SHADER_READ_ONLY.
+		 */
+		virtual bool IsDebugConsumer() const { return false; }
+
+		/**
 		 * @return name of pass
 		 */
 		std::string GetName() const { return p_Name; }
