@@ -36,6 +36,10 @@ namespace Poly
 				if (input->IsArray())
 					continue;
 
+				// If field is passthrough (INPUT + OUTPUT), then it is valid to not have incomming edges
+				if (BitsSet(input->GetVisibility(), FFieldVisibility::OUTPUT))
+					continue;
+
 				for (auto edgeID : incommingEdges)
 				{
 					auto& edgeData = ctx.RenderGraph.m_Edges[edgeID];

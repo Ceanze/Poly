@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RGCSyncTypes.h"
+
 #include <vector>
 #include <unordered_set>
 

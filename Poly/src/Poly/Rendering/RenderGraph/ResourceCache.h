@@ -117,21 +117,31 @@ namespace Poly
 		ResourceGUID GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName);
 
 		/**
-		* Get the index representing a resource. The index is unique, and any aliased resource map to the same index.
-		* For instance, if "pass1.out" is aliased to "pass2.in", calling GetResourceIndex on any resource GUID
-		* will return the same index.
-		* 
-		* @param resourceGUID - the resource GUId to get the index for
-		* 
-		* @return index to resource, UINT32_MAX if not found (invalid)
+		* Get the canonical GUID representing a physical resource. The canonical GUID is unique per physical
+		* resource, and any aliased resource maps to the same canonical GUID.
+		* For instance, if "pass1.out" is aliased to "pass2.in", calling GetCanonicalGUID on either GUID
+		* will return the same canonical GUID.
+		*
+		* @param resourceGUID - the resource GUID to resolve
+		*
+		* @return canonical ResourceGUID, or ResourceGUID::Invalid() if not found
 		*/
-		uint32 GetResourceIndex(const ResourceGUID& resourceGUID);
+		ResourceGUID GetCanonicalGUID(const ResourceGUID& resourceGUID);
 
 		/**
 		* Update a resource size
 		* WARNING: Old data will be deleted when size is changed. 
 		*/
 		Resource* UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size);
+
+		/**
+		 * OR additional bindpoints into an already-registered resource's PassField.
+		 * Used to widen usage flags before allocation (e.g. adding SHADER_READ after the
+		 * debug texture injector decides a resource needs to be sampled).
+		 * @param resourceGUID - resource to update
+		 * @param additionalBindpoint - bindpoint flags to add
+		 */
+		void AddBindpoint(const ResourceGUID& resourceGUID, FResourceBindPoint additionalBindpoint);
 
 		/**
 		 * Resets the cache, losing ownership of resource and clears vectors
@@ -148,6 +158,7 @@ namespace Poly
 		std::vector<ResourceData> m_Resources;
 		std::unordered_map<ResourceGUID, uint32, ResourceGUIDHasher> m_NameToExternalIndex;
 		std::vector<ResourceInfo> m_ExternalResources;
+		std::vector<ResourceGUID> m_ExternalCanonicalGUIDs;
 		std::vector<std::vector<Ref<Resource>>> m_Backbuffers;
 		std::unordered_map<PolyID, uint32> m_WindowIDtoIndex;
 		uint32 m_CurrentWindowIndex = 0;

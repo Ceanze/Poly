@@ -28,6 +28,7 @@ namespace Poly
 		{
 			m_NameToExternalIndex[resourceGUID] = static_cast<uint32>(m_ExternalResources.size());
 			m_ExternalResources.push_back(resourceInfo);
+			m_ExternalCanonicalGUIDs.push_back(resourceGUID);
 		}
 	}
 
@@ -225,18 +226,18 @@ namespace Poly
 			return ResourceGUID::Invalid();
 	}
 
-	uint32 ResourceCache::GetResourceIndex(const ResourceGUID& resourceGUID)
+	ResourceGUID ResourceCache::GetCanonicalGUID(const ResourceGUID& resourceGUID)
 	{
 		const auto passResourceItr = m_NameToIndex.find(resourceGUID);
 		if (passResourceItr != m_NameToIndex.end())
-			return passResourceItr->second;
+			return m_Resources[passResourceItr->second].ResourceGUID;
 
 		const auto externalResourceItr = m_NameToExternalIndex.find(resourceGUID);
 		if (externalResourceItr != m_NameToExternalIndex.end())
-			return externalResourceItr->second;
+			return m_ExternalCanonicalGUIDs[externalResourceItr->second];
 
-		POLY_CORE_ERROR("Called GetResourceIndex with '{}', which is not registered to the cache", resourceGUID.GetFullName());
-		return UINT32_MAX;
+		POLY_CORE_ERROR("Called GetCanonicalGUID with '{}', which is not registered to the cache", resourceGUID.GetFullName());
+		return ResourceGUID::Invalid();
 	}
 
 	Resource* ResourceCache::UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size)
@@ -285,6 +286,16 @@ namespace Poly
 		return nullptr;
 	}
 
+	void ResourceCache::AddBindpoint(const ResourceGUID& resourceGUID, FResourceBindPoint additionalBindpoint)
+	{
+		if (!m_NameToIndex.contains(resourceGUID))
+			return;
+		uint32 index = m_NameToIndex.at(resourceGUID);
+		PassField extra;
+		extra.BindPoint(additionalBindpoint);
+		m_Resources[index].PassField.Merge(extra);
+	}
+
 	void ResourceCache::Reset()
 	{
 		m_NameToIndex.clear();
@@ -294,6 +305,7 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 		m_Resources.clear();
 		m_ExternalResources.clear();
+		m_ExternalCanonicalGUIDs.clear();
 	}
 
 	void ResourceCache::CalcLifetime(std::pair<uint32, uint32>& lifetime, uint32 newTimepoint)
@@ -354,7 +366,7 @@ namespace Poly
 			desc2.ArrayLayer = 0;
 			desc2.ArrayLayerCount = 1;
 			desc2.Format = resourceData.PassField.GetFormat() != EFormat::UNDEFINED ? resourceData.PassField.GetFormat() : m_DefaultParams.Format;
-			desc2.ImageViewFlag = bindPoint == FResourceBindPoint::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
+			desc2.ImageViewFlag = BitsSet(bindPoint, FResourceBindPoint::DEPTH_STENCIL) ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
 			desc2.ImageViewType = EImageViewType::TYPE_2D;
 			desc2.MipLevel = 0;
 			desc2.MipLevelCount = 1;

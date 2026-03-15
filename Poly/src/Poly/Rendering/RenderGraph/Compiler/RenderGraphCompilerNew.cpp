@@ -19,7 +19,6 @@ namespace Poly
 		m_GraphPassCompiler.Execute(ctx);
 		m_GraphResourceRegister.Execute(ctx);
 		m_GraphResourceOutputHandler.Execute(ctx);
-		m_GraphResourceAllocator.Execute(ctx);
 		m_GraphSynchroniser.Execute(ctx);
 		if (ctx.IsGraphDirty)
 		{
@@ -28,6 +27,17 @@ namespace Poly
 			if (!m_GraphValidator.Execute(ctx))
 				return nullptr;
 		}
+
+		m_GraphDebugTextureInjector.Execute(ctx);
+		if (ctx.IsGraphDirty)
+		{
+			ctx.IsGraphDirty = false;
+			m_GraphCompiler.Execute(ctx);
+			if (!m_GraphValidator.Execute(ctx))
+				return nullptr;
+		}
+
+		m_GraphResourceAllocator.Execute(ctx);
 
 		// TODO: Add a RGCResourceLifetimeCalculator to handle the lifetime setting of the resource cache (ignored for now)
 

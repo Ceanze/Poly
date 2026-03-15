@@ -81,6 +81,7 @@ public:
 
 		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
 		m_pGraph->AddLink({ "pbrPass.out_Color" }, { "ImGuiPass.fColor" });
+		//m_pGraph->AddLink({ "pbrPass", ""}, {"ImGuiPass", ""});
 		m_pGraph->MarkOutput({ "ImGuiPass.fColor" });
 
 		// Compile
@@ -116,6 +117,8 @@ public:
 		{
 			ImGui::Text("Texture View: %p", m_pTextureView);
 			ImGui::Image((ImTextureID)m_pTextureView, ImVec2(256, 256));
+			//ImGui::Image((ImTextureID)m_pProgram->GetDebugTextureView(Poly::ResourceGUID("pbrPass.out_Color")), ImVec2(256, 256));
+			//ImGui::Image((ImTextureID)m_pProgram->GetDebugTextureView(Poly::ResourceGUID("pbrPass.depth")), ImVec2(256, 256));
 		}
 
 		ImGui::End();

@@ -25,6 +25,8 @@ namespace Poly
 			passes.push_back(std::move(passData));
 		}
 
-		return RenderGraphProgram::Create(ctx.pResourceCache, ctx.DefaultParams, std::move(passes));
+		Ref<RenderGraphProgram> pProgram = RenderGraphProgram::Create(ctx.pResourceCache, ctx.DefaultParams, std::move(passes));
+		pProgram->SetDebugTextureGUIDs(ctx.DebugTextureGUIDs);
+		return pProgram;
 	}
 }
