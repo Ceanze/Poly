@@ -3,6 +3,7 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
 #include "Poly/Rendering/RenderGraph/ResourceCache.h"
 #include "Poly/Rendering/RenderGraph/Pass.h"
+#include "Poly/Rendering/RenderGraph/ExternalPass.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
 
 namespace Poly
@@ -22,8 +23,11 @@ namespace Poly
 
 	void RGCResourceRegister::RegisterExternalResources(RGCContext& ctx)
 	{
-		for (const auto& [resGUID, resInfo] : ctx.RenderGraph.m_ExternalResources)
-			ctx.pResourceCache->RegisterExternalResource(resGUID, resInfo);
+		const auto* pExtPass = static_cast<const ExternalPass*>(
+			ctx.RenderGraph.m_Passes[ctx.RenderGraph.m_ExternalPassNodeID].get());
+
+		for (const auto& [guid, info] : pExtPass->GetResources())
+			ctx.pResourceCache->RegisterExternalResource(guid, info);
 	}
 
 	void RGCResourceRegister::RegisterResources(RGCContext& ctx)
@@ -87,16 +91,6 @@ namespace Poly
 			if (edgeData.Dst == resourceGUID)
 			{
 				return edgeData.Src;
-			}
-		}
-
-		// If incomming didn't get any match, check for externals
-		const auto& externals = compiledPass.pPass->GetExternalResources();
-		for (auto& external : externals)
-		{
-			if (external.DstGUID == resourceGUID)
-			{
-				return ResourceGUID(external.SrcGUID);
 			}
 		}
 

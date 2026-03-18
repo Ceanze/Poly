@@ -8,6 +8,7 @@
 #include "Resource.h"
 #include "RenderPass.h"
 #include "RenderGraph.h"
+#include "ExternalPass.h"
 #include "ResourceGUID.h"
 #include "ResourceCache.h"
 #include "RenderGraphProgram.h"
@@ -120,7 +121,6 @@ namespace Poly
 		{
 			const std::vector<const PassField*> inputs = passData.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
 			const auto& incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();
-			const auto& externalResources = passData.pPass->GetExternalResources();
 
 			for (const PassField* input : inputs)
 			{
@@ -138,18 +138,6 @@ namespace Poly
 				}
 
 				if (!valid)
-				{
-					for (const Pass::ExternalResourceData& externalResource : externalResources)
-					{
-						if (externalResource.DstGUID == dstGUID)
-						{
-							valid = true;
-							break;
-						}
-					}
-				}
-
-				if (!valid)
 					POLY_CORE_WARN("Input resource {} did not have a link to it", dstGUID.GetFullName());
 			}
 		}
@@ -160,7 +148,9 @@ namespace Poly
 		m_pResourceCache = ResourceCache::Create(m_DefaultParams);
 
 		// Register external resources
-		for (const auto& [resGUID, resInfo] : m_pRenderGraph->m_ExternalResources)
+		const auto* pExtPass = static_cast<const ExternalPass*>(
+			m_pRenderGraph->m_Passes[m_pRenderGraph->m_ExternalPassNodeID].get());
+		for (const auto& [resGUID, resInfo] : pExtPass->GetResources())
 			m_pResourceCache->RegisterExternalResource(resGUID, resInfo);
 
 		for (uint32 passID = 0; passID < m_OrderedPasses.size(); passID++)
@@ -211,16 +201,6 @@ namespace Poly
 						}
 					}
 
-					// Also check for externals
-					const auto& externals = passData.pPass->GetExternalResources();
-					for (auto& external : externals)
-					{
-						if (external.DstGUID == resourceGUID)
-						{
-							ResourceGUID arrayGUID(passData.pPass->GetName(), input->GetName() + "[" + std::to_string(index++) + "]");
-							m_pResourceCache->RegisterResource(arrayGUID, passID, *input, ResourceGUID(external.SrcGUID));
-						}
-					}
 				}
 				else
 				{
@@ -237,19 +217,6 @@ namespace Poly
 						}
 					}
 
-					// If incomming didn't get any match, check for externals
-					if (!aliasGUID.HasResource())
-					{
-						const auto& externals = passData.pPass->GetExternalResources();
-						for (auto& external : externals)
-						{
-							if (external.DstGUID == resourceGUID)
-							{
-								aliasGUID = ResourceGUID(external.SrcGUID);
-								break;
-							}
-						}
-					}
 
 					if (!aliasGUID.HasResource() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 					{
@@ -346,47 +313,6 @@ namespace Poly
 			std::unordered_set<uint32> brokenEdges;
 			std::unordered_map<std::string, uint32> arrayInputIndices;
 
-			const auto& externalResources = passData.pPass->GetExternalResources();
-			for (const auto& [srcGUID, dstGUID] : externalResources)
-			{
-				auto& barriers = m_Invalidates[passData.NodeIndex];
-				auto itr = std::find_if(barriers.begin(), barriers.end(), [&dstGUID](const HalfBarrier& b){ return b.Name == dstGUID.GetResourceName(); });
-
-				const PassField& inputField = passData.Reflection.GetField(dstGUID.GetResourceName());
-				std::string syncResourceName = dstGUID.GetResourceName();
-				if (inputField.IsArray())
-					syncResourceName += "[" + std::to_string(arrayInputIndices[syncResourceName]++) + "]";
-
-				// Check if it is a texture or a buffer
-				if (itr->TextureLayout != ETextureLayout::UNDEFINED) // Texture
-				{
-					if (!BitsSet(passData.Reflection.GetField(dstGUID.GetResourceName()).GetVisibility(), FFieldVisibility::OUTPUT))
-						continue;
-
-					if (BitsSet(itr->AccessMask, FAccessFlag::COLOR_ATTACHMENT_WRITE | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE | FAccessFlag::SHADER_WRITE)) // Write
-					{
-						// External resource is a texture and will be written to. We can therefore transition from undefined (handled by render pass) and no barrier is needed
-						static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, ETextureLayout::UNDEFINED);
-					}
-					else // Read
-					{
-						// External resource is a texture and will be read from, a transition might be needed (handled by render pass) but no barrier is needed
-						// Current implementation assumes all external textures will be in SHADER_READ_ONLY layout for first time use if being read from
-						static_cast<RenderPass*>(passData.pPass.get())->SetAttachmentInital(syncResourceName, ETextureLayout::SHADER_READ_ONLY_OPTIMAL);
-					}
-				}
-				else // Buffer
-				{
-					if (BitsSet(itr->AccessMask, FAccessFlag::SHADER_WRITE)) // Write
-					{
-						// External resource is a buffer and will be written to, first time use, no barrier needed
-					}
-					else // Read
-					{
-						// External resource is a buffer and will be read from, no barrier needed
-					}
-				}
-			}
 
 			// Go through all graph inputs and check if a barrier is needed
 			const auto incommingEdges = m_pRenderGraph->m_pGraph->GetNode(passData.NodeIndex)->GetIncommingEdges();

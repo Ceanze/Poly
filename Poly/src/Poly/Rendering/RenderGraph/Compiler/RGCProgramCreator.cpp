@@ -16,6 +16,9 @@ namespace Poly
 		{
 			const CompiledPass& compiledPass = ctx.CompiledGraph.CompiledPasses[i];
 
+			if (compiledPass.pPass->GetPassType() == Pass::Type::EXTERNAL)
+				continue;
+
 			PassData passData		= {};
 			passData.pPass			= compiledPass.pPass;
 			passData.Reflection		= compiledPass.Reflection;

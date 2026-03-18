@@ -21,13 +21,8 @@ namespace Poly
 			NONE,
 			RENDER,
 			COMPUTE,
-			SYNC
-		};
-
-		struct ExternalResourceData
-		{
-			ResourceGUID SrcGUID;
-			ResourceGUID DstGUID;
+			SYNC,
+			EXTERNAL
 		};
 
 	public:
@@ -72,11 +67,6 @@ namespace Poly
 		 * @return name of pass
 		 */
 		std::string GetName() const { return p_Name; }
-
-		/**
-		 * @return read-only vector of external resources
-		 */
-		const std::vector<ExternalResourceData>& GetExternalResources() const { return p_ExternalResources; }
 
 		/**
 		 * @return type of pass
@@ -141,9 +131,6 @@ namespace Poly
 		Pass::Type	p_Type	= Pass::Type::NONE;
 		std::unordered_map<FShaderStage, PolyID> p_ShaderStages;
 		bool m_IsInstancedSceneRenderingEnabled = false;
-
-		// Pair structure: first: External resource name (src), second: Render pass input name (dst)
-		std::vector<ExternalResourceData> p_ExternalResources;
 
 		// Variables for custom usage of passes
 		Ref<PipelineDesc> p_pPipelineDesc = nullptr;

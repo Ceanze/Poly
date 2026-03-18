@@ -1,6 +1,7 @@
 #include "polypch.h"
 #include "RenderPass.h"
 #include "RenderGraph.h"
+#include "ExternalPass.h"
 #include "Poly/Core/Window.h"
 #include "RenderGraphProgram.h"
 #include "RenderGraphCompiler.h"
@@ -20,6 +21,11 @@ namespace Poly
 	: m_Name(std::move(name))
 	{
 		m_pGraph = DirectedGraph::Create();
+
+		auto pExternalPass = CreateRef<ExternalPass>();
+		m_ExternalPassNodeID = m_pGraph->AddNode();
+		m_NameToNodeIndex["$"] = m_ExternalPassNodeID;
+		m_Passes[m_ExternalPassNodeID] = pExternalPass;
 
 		m_DefaultParams = {
 			.TextureWidth		= 1280,
@@ -44,7 +50,7 @@ namespace Poly
 		copy.m_Passes				= m_Passes;
 		copy.m_Edges				= m_Edges;
 		copy.m_Outputs				= m_Outputs;
-		copy.m_ExternalResources	= m_ExternalResources;
+		copy.m_ExternalPassNodeID	= m_ExternalPassNodeID;
 		copy.m_DefaultParams		= m_DefaultParams;
 		return copy;
 	}
@@ -111,7 +117,8 @@ namespace Poly
 		// Check global space first
 		if (src.IsExternal())
 		{
-			if (!m_ExternalResources.contains(src))
+			auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+			if (!pExtPass->HasResource(src))
 			{
 				POLY_CORE_WARN("Tried to link external resource {} to {} but the resource has not been added to the graph", src.GetFullName(), dst.GetFullName());
 				return false;
@@ -123,9 +130,8 @@ namespace Poly
 				return false;
 			}
 
-			uint32 nodeIndex = m_NameToNodeIndex[dst.GetPassName()];
-			Pass::ExternalResourceData data = { .SrcGUID = src, .DstGUID = dst };
-			m_Passes[nodeIndex]->p_ExternalResources.emplace_back(std::move(data));
+			uint32 edgeIndex = m_pGraph->AddEdge(m_ExternalPassNodeID, m_NameToNodeIndex[dst.GetPassName()]);
+			m_Edges[edgeIndex] = { src, dst };
 
 			return true;
 		}
@@ -157,9 +163,15 @@ namespace Poly
 
 	bool RenderGraph::RemoveLink(const ResourceGUID& src, const ResourceGUID& dst)
 	{
-		if (!m_NameToNodeIndex.contains(src.GetPassName()) || !m_NameToNodeIndex.contains(dst.GetPassName()))
+		if (!m_NameToNodeIndex.contains(src.GetPassName()))
 		{
-			POLY_CORE_WARN("Pass with either name {} or {} could not be found in the graph when removing link", src.GetPassName(), dst.GetPassName());
+			POLY_CORE_WARN("Pass with name {} could not be found in the graph when removing link", src.GetPassName());
+			return false;
+		}
+
+		if (!src.IsExternal() && !m_NameToNodeIndex.contains(dst.GetPassName()))
+		{
+			POLY_CORE_WARN("Pass with name {} could not be found in the graph when removing link", dst.GetPassName());
 			return false;
 		}
 
@@ -187,14 +199,16 @@ namespace Poly
 		}
 
 		const std::string& name = pResource->GetName();
+		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
 
-		if (m_ExternalResources.contains(name))
+		ResourceGUID guid("$", name);
+		if (pExtPass->HasResource(guid))
 		{
 			POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
 			return false;
 		}
 
-		m_ExternalResources[name] = { pResource, autoBindDescriptor };
+		pExtPass->RegisterResource(guid, { pResource, autoBindDescriptor });
 
 		return true;
 	}
@@ -202,18 +216,20 @@ namespace Poly
 	bool RenderGraph::AddExternalResource(const ResourceGroup& resourceGroup)
 	{
 		const std::string& groupName = resourceGroup.GetGroupName();
+		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
 
 		const auto& resources = resourceGroup.GetResources();
 		for (auto& resource : resources)
 		{
 			std::string name = Poly::Format("{}:{}", groupName, resource.first);
-			if (m_ExternalResources.contains(name))
+			ResourceGUID guid("$", name);
+			if (pExtPass->HasResource(guid))
 			{
 				POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
 				return false;
 			}
 
-			m_ExternalResources[name] = resource.second;
+			pExtPass->RegisterResource(guid, resource.second);
 		}
 
 		return true;
@@ -221,7 +237,8 @@ namespace Poly
 
 	bool RenderGraph::AddExternalResource(const ResourceGUID& resourceGUID, uint64 size, FBufferUsage bufferUsage, const void* data, bool autoBindDescriptor)
 	{
-		if (m_ExternalResources.contains(resourceGUID))
+		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+		if (pExtPass->HasResource(resourceGUID))
 		{
 			POLY_CORE_WARN("External resource {} has already been added, ignoring call", resourceGUID.GetFullName());
 			return false;
@@ -235,7 +252,7 @@ namespace Poly
 
 		Ref<Resource> pResource = Resource::Create(pBuffer, resourceGUID.GetResourceName());
 
-		m_ExternalResources[resourceGUID] = { pResource, autoBindDescriptor };
+		pExtPass->RegisterResource(resourceGUID, { pResource, autoBindDescriptor });
 
 		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)
@@ -246,13 +263,14 @@ namespace Poly
 
 	bool RenderGraph::RemoveExternalResource(const ResourceGUID& resourceGUID)
 	{
-		if (!m_ExternalResources.contains(resourceGUID))
+		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+		if (!pExtPass->HasResource(resourceGUID))
 		{
 			POLY_CORE_WARN("External resource {} cannot be removed, it is not currently added", resourceGUID.GetFullName());
 			return false;
 		}
 
-		m_ExternalResources.erase(resourceGUID);
+		pExtPass->RemoveResource(resourceGUID);
 
 		return true;
 	}
