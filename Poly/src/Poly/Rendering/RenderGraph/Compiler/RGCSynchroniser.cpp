@@ -126,9 +126,14 @@ namespace Poly
 
 	void RGCSynchroniser::InitialiseResourceStates(RGCContext& ctx, SyncContext& syncCtx)
 	{
-		for (const auto& [guid, info] : ctx.RenderGraph.m_ExternalResources)
+		const auto* pNode = ctx.RenderGraph.m_pGraph->GetNode(ctx.RenderGraph.m_ExternalPassNodeID);
+		if (!pNode)
+			return;
+
+		for (uint32 edgeID : pNode->GetOutgoingEdges())
 		{
-			ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(guid);
+			const ResourceGUID& srcGUID = ctx.RenderGraph.m_Edges[edgeID].Src;
+			ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(srcGUID);
 			if (!canonicalGUID.HasResource())
 				continue;
 

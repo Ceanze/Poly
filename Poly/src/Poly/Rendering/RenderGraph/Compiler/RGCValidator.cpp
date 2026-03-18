@@ -25,7 +25,6 @@ namespace Poly
 		{
 			const std::vector<const PassField*> inputs = passData.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
 			const auto& incommingEdges = ctx.RenderGraph.m_pGraph->GetNode(passData.GraphNodeIndex)->GetIncommingEdges();
-			const auto& externalResources = passData.pPass->GetExternalResources();
 
 			for (const PassField* input : inputs)
 			{
@@ -47,18 +46,6 @@ namespace Poly
 					{
 						valid = true;
 						break;
-					}
-				}
-
-				if (!valid)
-				{
-					for (const Pass::ExternalResourceData& externalResource : externalResources)
-					{
-						if (externalResource.DstGUID == dstGUID)
-						{
-							valid = true;
-							break;
-						}
 					}
 				}
 

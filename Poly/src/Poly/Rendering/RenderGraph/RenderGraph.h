@@ -2,6 +2,7 @@
 
 #include "RenderGraphTypes.h"
 #include "ResourceGUID.h"
+#include "Poly/Core/Utils/DirectedGraph.h"
 
 #include <unordered_set>
 
@@ -16,6 +17,7 @@ namespace Poly
 {
 	class Pass;
 	class RenderPass;
+	class ExternalPass;
 	class Resource;
 	class ResourceGroup;
 	class DirectedGraph;
@@ -200,7 +202,7 @@ namespace Poly
 		std::unordered_map<uint32, Ref<Pass>> m_Passes;
 		std::unordered_map<uint32, EdgeData> m_Edges;
 		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
-		std::unordered_map<ResourceGUID, ResourceInfo, ResourceGUIDHasher> m_ExternalResources;
+		uint32 m_ExternalPassNodeID = DirectedGraph::INVALID_ID;
 		RenderGraphDefaultParams m_DefaultParams;
 	};
 }
