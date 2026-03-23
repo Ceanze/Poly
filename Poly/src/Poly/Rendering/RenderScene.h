@@ -5,7 +5,8 @@
 namespace Poly
 {
 	class Scene;
-	class ResourceGUID;
+	class ResID;
+	class PassResID;
 	class RenderGraphProgram;
 
 	struct SceneBatch
@@ -32,7 +33,7 @@ namespace Poly
 		const std::vector<SceneBatch>& GetBatches() const;
 
 	private:
-		void CreateBufferIfNecessary(const ResourceGUID& bufferGUID, uint64 size);
+		void CreateBufferIfNecessary(const PassResID& bufferID, uint64 size);
 
 		Scene& m_Scene;
 		RenderGraphProgram& m_Program;

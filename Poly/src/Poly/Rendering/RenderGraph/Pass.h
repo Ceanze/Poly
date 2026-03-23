@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ResourceGUID.h"
 #include "Reflection/PassReflection.h"
 #include "RenderGraphTypes.h"
 
@@ -120,13 +119,17 @@ namespace Poly
 		* If enabled, then the `Execute()` call will be called once per instance.
 		* The Instance Index will be provided in the `RenderContext`
 		* If disabled, then `Execute()` is only called once per pass
-		* 
+		*
 		* @param enable - enable or disable the feature
 		*/
 		void ToggleInstancedSceneRendering(bool enable) { m_IsInstancedSceneRenderingEnabled = enable; }
 
 	protected:
 		friend class RenderGraph;
+
+		Pass(Pass::Type type) : p_Type(type) {}
+		Pass(Pass::Type type, const std::string& name) : p_Type(type), p_Name(name) {}
+
 		std::string	p_Name	= "";
 		Pass::Type	p_Type	= Pass::Type::NONE;
 		std::unordered_map<FShaderStage, PolyID> p_ShaderStages;

@@ -28,10 +28,10 @@ namespace Poly
 		// Written by RGCSynchroniser — final layout/access/stage of every physical
 		// resource after all normal sync passes have been inserted.
 		// Key: canonical ResourceGUID (ResourceCache::GetCanonicalGUID).
-		std::unordered_map<ResourceGUID, ResourceState, ResourceGUIDHasher> PostSyncResourceStates;
+		std::unordered_map<PassResID, ResourceState> PostSyncResourceStates;
 
 		// Written by RGCDebugTextureInjector — GUIDs of texture outputs made
 		// available for ImGui::Image() sampling.  Transferred to RenderGraphProgram.
-		std::vector<ResourceGUID> DebugTextureGUIDs;
+		std::vector<PassResID> DebugTextureGUIDs;
 	};
 }

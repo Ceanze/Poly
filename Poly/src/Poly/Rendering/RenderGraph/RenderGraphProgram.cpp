@@ -186,17 +186,11 @@ namespace Poly
 		m_pStagingBufferCache->Update(m_ImageIndex);
 	}
 
-	void RenderGraphProgram::CreateResource(ResourceGUID resourceGUID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset, uint32 index)
+	void RenderGraphProgram::CreateResource(const ResID& resID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset, uint32 index)
 	{
-		if (!resourceGUID.IsExternal())
+		if (!m_pResourceCache->IsResourceRegistered(resID))
 		{
-			POLY_CORE_WARN("Resource {} is not external. Only external resource can use CreateResource()", resourceGUID.GetFullName());
-			return;
-		}
-
-		if (!m_pResourceCache->IsResourceRegistered(resourceGUID))
-		{
-			POLY_CORE_WARN("External resource {} has not been registered. A resource must be registered before being created", resourceGUID.GetFullName());
+			POLY_CORE_WARN("External resource {} has not been registered. A resource must be registered before being created", resID.GetName());
 			return;
 		}
 
@@ -206,57 +200,57 @@ namespace Poly
 		desc.BufferUsage = bufferUsage | FBufferUsage::COPY_DST;
 		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
 
-		Ref<Resource> pResource = Resource::Create(pBuffer, resourceGUID.GetResourceName());
+		Ref<Resource> pResource = Resource::Create(pBuffer, resID.GetName());
 
-		m_pResourceCache->RegisterExternalResource(resourceGUID, { pResource, true }); // TODO: Check autoBindDescriptor ("true")
+		m_pResourceCache->RegisterExternalResource(resID, { pResource, true }); // TODO: Check autoBindDescriptor ("true")
 
 		if (data)
 			m_pStagingBufferCache->QueueTransfer(pBuffer.get(), size, offset, data);
 
 	}
 
-	bool RenderGraphProgram::HasResource(ResourceGUID resourceGUID) const
+	bool RenderGraphProgram::HasResource(const PassResID& passResID) const
 	{
-		return m_pResourceCache->HasResource(resourceGUID);
+		return m_pResourceCache->HasResource(passResID);
 	}
 
-	const Resource* RenderGraphProgram::GetResource(ResourceGUID resourceGUID) const
+	const Resource* RenderGraphProgram::GetResource(const PassResID& passResID) const
 	{
-		return m_pResourceCache->GetResource(resourceGUID);
+		return m_pResourceCache->GetResource(passResID);
 	}
 
-	TextureView* RenderGraphProgram::GetDebugTextureView(const ResourceGUID& guid) const
+	TextureView* RenderGraphProgram::GetDebugTextureView(const PassResID& passResID) const
 	{
-		const Resource* pResource = GetResource(guid);
+		const Resource* pResource = GetResource(passResID);
 		if (!pResource)
 			return nullptr;
 
 		return pResource->GetAsTextureView();
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(const PassResID& passResID, const Resource* pResource, uint32 index)
 	{
 		// Note: This function always updates a whole span of a resource - therefore no size or offset is supplied, and views for
 		// that whole resource are automatically created with default span (resource size) and default offset (0)
 
 		if (!pResource)
 		{
-			UpdateGraphResource(resourceGUID, ResourceView::Empty(), index);
+			UpdateGraphResource(passResID, ResourceView::Empty(), index);
 		}
 		else if (pResource->IsBuffer())
 		{
 			const Buffer* pBuffer = pResource->GetAsBuffer();
-			UpdateGraphResource(resourceGUID, {pBuffer, pBuffer->GetSize(), 0}, index);
+			UpdateGraphResource(passResID, {pBuffer, pBuffer->GetSize(), 0}, index);
 		}
 		else if (pResource->IsTexture())
 		{
 			const TextureView* pTextureView = pResource->GetAsTextureView();
 			const Sampler* pSampler = pResource->GetAsSampler();
-			UpdateGraphResource(resourceGUID, {pTextureView, pSampler}, index);
+			UpdateGraphResource(passResID, {pTextureView, pSampler}, index);
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(const PassResID& passResID, ResourceView view, uint32 index)
 	{
 		// Go through each pass and find where resource is being used
 		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
@@ -265,12 +259,12 @@ namespace Poly
 				continue;
 
 			// Check if pass has the requested resource, continue if not
-			const ResourceGUID mappedResource = GetMappedResourceGUID(resourceGUID, pPass, passIndex);
+			const PassResID mappedResource = GetMappedResourceGUID(passResID, pPass, passIndex);
 			if (!mappedResource.HasResource())
 				continue;
 
 			// Resource is being used in pass, update corresponding descriptor
-			const PassField& inputRes = reflection.GetField(mappedResource.GetResourceName());
+			const PassField& inputRes = reflection.GetField(mappedResource.GetResource().GetName());
 			if (BitsSet(inputRes.GetBindPoint(), FResourceBindPoint::COLOR_ATTACHMENT))
 				continue;
 
@@ -280,7 +274,7 @@ namespace Poly
 				return;
 
 			if (!hasProvidedResource)
-				pResource = m_pResourceCache->HasResource(mappedResource.GetFullName()) ? m_pResourceCache->GetResource(mappedResource.GetFullName()) : nullptr;
+				pResource = m_pResourceCache->HasResource(mappedResource) ? m_pResourceCache->GetResource(mappedResource) : nullptr;
 
 			if (!hasProvidedResource && !pResource)
 			{
@@ -315,13 +309,13 @@ namespace Poly
 		}
 	}
 
-	void RenderGraphProgram::UpdateGraphResource(ResourceGUID resourceGUID, uint64 size, const void* data, uint64 offset, uint32 index)
+	void RenderGraphProgram::UpdateGraphResource(const PassResID& passResID, uint64 size, const void* data, uint64 offset, uint32 index)
 	{
-		const Resource* pRes = m_pResourceCache->GetResource(resourceGUID);
+		const Resource* pRes = m_pResourceCache->GetResource(passResID);
 
 		if (!pRes)
 		{
-			POLY_CORE_ERROR("UpdateGraphResource - cannot update resource {} as it was not in the resource cache", resourceGUID.GetResourceName());
+			POLY_CORE_ERROR("UpdateGraphResource - cannot update resource {} as it was not in the resource cache", passResID.GetResource().GetName());
 			return;
 		}
 
@@ -336,20 +330,20 @@ namespace Poly
 		bool hasSizeChanged = oldSize != size;
 		if (oldSize < size)
 		{
-			pRes = m_pResourceCache->UpdateResourceSize(resourceGUID, size);
+			pRes = m_pResourceCache->UpdateResourceSize(passResID, size);
 		}
 
 		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, offset, data);
 
 		//if (hasSizeChanged)
 		//{
-			UpdateGraphResource(resourceGUID, { pBuffer, size, offset }, index);
-			//UpdateGraphResource(resourceGUID, pRes, index);
+			UpdateGraphResource(passResID, { pBuffer, size, offset }, index);
+			//UpdateGraphResource(passResID, pRes, index);
 		//}
 		//else
 		//{
-		//	UpdateGraphResource(resourceGUID, { pBuffer, size, offset }, offset, index);
-		//	UpdateGraphResource(resourceGUID, nullptr, index);
+		//	UpdateGraphResource(passResID, { pBuffer, size, offset }, offset, index);
+		//	UpdateGraphResource(passResID, nullptr, index);
 		//}
 	}
 
@@ -668,17 +662,17 @@ namespace Poly
 		return passRes.GraphicsPipeline.get();
 	}
 
-	ResourceGUID RenderGraphProgram::GetMappedResourceGUID(const ResourceGUID& resourceGUID, const Ref<Pass>& pPass, uint32 passIndex)
+	PassResID RenderGraphProgram::GetMappedResourceGUID(const PassResID& passResID, const Ref<Pass>& pPass, uint32 passIndex)
 	{
-		ResourceGUID mappedResource = m_pResourceCache->GetMappedResourceName(resourceGUID, pPass->GetName());
+		PassResID mappedResource = m_pResourceCache->GetMappedResourceName(passResID, PassID(pPass->GetName()));
 		if (!mappedResource.HasResource())
-			return ResourceGUID::Invalid();
+			return PassResID::Invalid();
 
 		const PassReflection& reflection = m_Passes[passIndex].Reflection;
 		const std::vector<const PassField*> reflections = reflection.GetFields(FFieldVisibility::INPUT);
-		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const PassField* data){ return data->GetName() == mappedResource.GetResourceName(); });
+		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const PassField* data){ return data->GetName() == mappedResource.GetResource().GetName(); });
 		if (itr == reflections.end())
-			return ResourceGUID::Invalid();
+			return PassResID::Invalid();
 
 		return mappedResource;
 	}

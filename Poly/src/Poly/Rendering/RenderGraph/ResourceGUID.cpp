@@ -17,84 +17,177 @@ namespace
 
 namespace Poly
 {
-	ResourceGUID::ResourceGUID()
+	/*
+	* ---------------------
+	* PassID implementation
+	* ---------------------
+	*/
+	PassID::PassID()
+		: m_Name("") {}
+
+	PassID::PassID(const std::string& passName)
+		: m_Name(passName.empty() ? "$" : passName) {}
+
+	PassID::PassID(const PassID& other)
+		: m_Name(other.m_Name) {}
+
+	PassID::PassID(PassID&& other)
+		: m_Name(std::move(other.m_Name)) {}
+
+	PassID& PassID::operator=(const PassID& other)
+	{
+		m_Name = other.m_Name;
+		return *this;
+	}
+
+	PassID& PassID::operator=(PassID&& other)
+	{
+		m_Name = std::move(other.m_Name);
+		return *this;
+	}
+
+	const std::string &PassID::GetName() const
+	{
+		return m_Name;
+	}
+
+	bool PassID::IsValid() const
+	{
+		return !m_Name.empty();
+	}
+
+	bool PassID::operator==(const PassID& other) const noexcept
+	{
+		return m_Name == other.m_Name;
+	}
+
+	/*
+	* ---------------------
+	* ResID implementation
+	* ---------------------
+	*/
+	ResID::ResID()
+		: m_Name("") {}
+
+	ResID::ResID(const std::string& resourceName)
+		: m_Name(resourceName) {}
+
+	ResID::ResID(const ResID& other)
+		: m_Name(other.m_Name) {}
+
+	ResID::ResID(ResID&& other)
+		: m_Name(std::move(other.m_Name)) {}
+
+	ResID& ResID::operator=(const ResID& other)
+	{
+		m_Name = other.m_Name;
+		return *this;
+	}
+
+	ResID& ResID::operator=(ResID&& other)
+	{
+		m_Name = std::move(other.m_Name);
+		return *this;
+	}
+
+	const std::string &ResID::GetName() const
+	{
+		return m_Name;
+	}
+
+	bool ResID::IsValid() const
+	{
+		return !m_Name.empty();
+	}
+
+	std::string ResID::GetNameAsExternal() const
+	{
+		return m_Name;
+	}
+
+	PassResID ResID::GetAsExternal() const
+	{
+		return PassResID(PassID("$"), *this);
+	}
+
+	bool ResID::operator==(const ResID& other) const noexcept
+	{
+		return m_Name == other.m_Name;
+	}
+
+	/*
+	* ---------------------
+	* PassResID implementation
+	* ---------------------
+	*/
+
+	PassResID::PassResID()
 		: m_Pass("")
 		, m_Resource("") {}
 
-	ResourceGUID::ResourceGUID(const std::string& resourceGUID)
-		: m_Pass(SeparateStrings(resourceGUID, '.').first)
-		, m_Resource(SeparateStrings(resourceGUID, '.').second) {}
+	PassResID::PassResID(const std::string& passName, const std::string& resourceName)
+		: m_Pass(passName.empty() ? "$" : passName)
+		, m_Resource(resourceName) {}
 
-	ResourceGUID::ResourceGUID(std::string pass, std::string resource)
-		: m_Pass(pass.empty() ? "$" : std::move(pass))
-		, m_Resource(std::move(resource)) {}
+	PassResID::PassResID(const PassID& pass, const ResID& resource)
+		: m_Pass(pass)
+		, m_Resource(resource) {}
 
-	ResourceGUID::ResourceGUID(const ResourceGUID& other)
+	PassResID::PassResID(const PassResID& other)
 		: m_Pass(other.m_Pass)
 		, m_Resource(other.m_Resource) {}
 
-	ResourceGUID::ResourceGUID(ResourceGUID&& other)
+	PassResID::PassResID(PassResID&& other)
 		: m_Pass(std::move(other.m_Pass))
 		, m_Resource(std::move(other.m_Resource)) {}
 
-	ResourceGUID& ResourceGUID::operator=(const ResourceGUID& other)
+
+	PassResID& PassResID::operator=(const PassResID& other)
 	{
-		m_Pass		= other.m_Pass;
-		m_Resource	= other.m_Resource;
+		m_Pass = other.m_Pass;
+		m_Resource = other.m_Resource;
 		return *this;
 	}
 
-	ResourceGUID& ResourceGUID::operator=(ResourceGUID&& other)
+	PassResID& PassResID::operator=(PassResID&& other)
 	{
-		m_Pass		= std::move(other.m_Pass);
-		m_Resource	= std::move(other.m_Resource);
+		m_Pass = std::move(other.m_Pass);
+		m_Resource = std::move(other.m_Resource);
 		return *this;
 	}
 
-	ResourceGUID::~ResourceGUID() = default;
-
-	ResourceGUID ResourceGUID::Invalid()
-	{
-		return ResourceGUID("", "");
-	}
-
-	const std::string& ResourceGUID::GetPassName() const
+	const PassID& PassResID::GetPass() const
 	{
 		return m_Pass;
 	}
 
-	const std::string& ResourceGUID::GetResourceName() const
+	const ResID& PassResID::GetResource() const
 	{
 		return m_Resource;
 	}
 
-	std::string ResourceGUID::GetFullName() const
+	std::string PassResID::GetFullName() const
 	{
-		return Poly::Format("{}.{}", m_Pass, m_Resource);
+		return Poly::Format("{}.{}", m_Pass.GetName(), m_Resource.GetName());
 	}
 
-	bool ResourceGUID::IsExternal() const
+	bool PassResID::IsExternal() const
 	{
-		return m_Pass == "$";
+		return m_Pass.IsValid() && m_Pass.GetName() == "$";
 	}
 
-	bool ResourceGUID::HasResource() const
+	bool PassResID::HasResource() const
 	{
-		return !m_Resource.empty();
+		return m_Resource.IsValid();
 	}
 
-	bool ResourceGUID::operator==(const ResourceGUID& other) const
+	bool PassResID::operator==(const PassResID& other) const noexcept
 	{
 		const bool bothExternal = IsExternal() && other.IsExternal();
-		
+
 		if (bothExternal)
 			return m_Resource == other.m_Resource;
 		else
 			return m_Pass == other.m_Pass && m_Resource == other.m_Resource;
-	}
-
-	ResourceGUID::operator std::string() const
-	{
-		return GetFullName();
 	}
 }

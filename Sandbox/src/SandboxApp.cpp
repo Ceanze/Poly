@@ -59,36 +59,36 @@ public:
 		m_pScene = Poly::Scene::Create();
 
 		// External resources
-		m_pGraph->AddExternalResource({ "camera" }, sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
-		m_pGraph->AddExternalResource({ "lights" }, sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
+		m_pGraph->AddExternalResource(Poly::ResID("camera"), sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
+		m_pGraph->AddExternalResource(Poly::ResID("lights"), sizeof(LightBuffer), Poly::FBufferUsage::STORAGE_BUFFER);
 		m_pGraph->AddExternalResource(m_pScene->GetResourceGroup());
 
 		// Passes and links
-		m_pGraph->AddPass(pPass, "pbrPass");
-		m_pGraph->AddLink({ "$.camera" }, { "pbrPass.camera" });
-		m_pGraph->AddLink({ "$.lights" }, { "pbrPass.lights" });
+		m_pGraph->AddPass(pPass, Poly::PassID("pbrPass"));
+		m_pGraph->AddLink(Poly::ResID("camera"), Poly::PassResID("pbrPass", "camera"));
+		m_pGraph->AddLink(Poly::ResID("lights"), Poly::PassResID("pbrPass", "lights"));
 
 		// Scene inputs
-		m_pGraph->AddLink({ "$.scene:albedoTex" }, { "pbrPass.albedoTex" });
-		m_pGraph->AddLink({ "$.scene:metallicTex" }, { "pbrPass.metallicTex" });
-		m_pGraph->AddLink({ "$.scene:normalTex" }, { "pbrPass.normalTex" });
-		m_pGraph->AddLink({ "$.scene:roughnessTex" }, { "pbrPass.roughnessTex" });
-		m_pGraph->AddLink({ "$.scene:aoTex" }, { "pbrPass.aoTex" });
-		m_pGraph->AddLink({ "$.scene:combinedTex" }, { "pbrPass.combinedTex" });
-		m_pGraph->AddLink({ "$.scene:vertices" }, { "pbrPass.vertices" });
-		m_pGraph->AddLink({ "$.scene:instance" }, { "pbrPass.instances" });
-		m_pGraph->AddLink({ "$.scene:material" }, { "pbrPass.materialProps" });
+		m_pGraph->AddLink(Poly::ResID("scene:albedoTex"), Poly::PassResID("pbrPass", "albedoTex"));
+		m_pGraph->AddLink(Poly::ResID("scene:metallicTex"), Poly::PassResID("pbrPass", "metallicTex"));
+		m_pGraph->AddLink(Poly::ResID("scene:normalTex"), Poly::PassResID("pbrPass", "normalTex"));
+		m_pGraph->AddLink(Poly::ResID("scene:roughnessTex"), Poly::PassResID("pbrPass", "roughnessTex"));
+		m_pGraph->AddLink(Poly::ResID("scene:aoTex"), Poly::PassResID("pbrPass", "aoTex"));
+		m_pGraph->AddLink(Poly::ResID("scene:combinedTex"), Poly::PassResID("pbrPass", "combinedTex"));
+		m_pGraph->AddLink(Poly::ResID("scene:vertices"), Poly::PassResID("pbrPass", "vertices"));
+		m_pGraph->AddLink(Poly::ResID("scene:instance"), Poly::PassResID("pbrPass", "instances"));
+		m_pGraph->AddLink(Poly::ResID("scene:material"), Poly::PassResID("pbrPass", "materialProps"));
 
-		m_pGraph->AddPass(pImGuiPass, "ImGuiPass");
-		m_pGraph->AddLink({ "pbrPass.out_Color" }, { "ImGuiPass.fColor" });
+		m_pGraph->AddPass(pImGuiPass, Poly::PassID("ImGuiPass"));
+		m_pGraph->AddLink(Poly::PassResID("pbrPass", "out_Color"), Poly::PassResID("ImGuiPass", "fColor"));
 		//m_pGraph->AddLink({ "pbrPass", ""}, {"ImGuiPass", ""});
-		m_pGraph->MarkOutput({ "ImGuiPass.fColor" });
+		m_pGraph->MarkOutput(Poly::PassResID("ImGuiPass", "fColor"));
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
 
 		LightBuffer data = {};
-		m_pProgram->UpdateGraphResource({ "lights" }, sizeof(LightBuffer), &data);
+		m_pProgram->UpdateGraphResource(Poly::ResID("lights").GetAsExternal(), sizeof(LightBuffer), &data);
 
 		//m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
 
@@ -127,7 +127,7 @@ public:
 
 		pCamera->Update(dt);
 		CameraBuffer data = {pCamera->GetMatrix(), pCamera->GetPosition()};
-		m_pProgram->UpdateGraphResource({ "camera" }, sizeof(CameraBuffer), &data);
+		m_pProgram->UpdateGraphResource(Poly::ResID("camera").GetAsExternal(), sizeof(CameraBuffer), &data);
 	};
 
 	void OnDetach() override

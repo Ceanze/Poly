@@ -1,6 +1,8 @@
 #pragma once
+
 #include "Pass.h"
 #include "RenderGraphTypes.h"
+#include "Poly/Rendering/RenderGraph/ResourceGUID.h"
 
 namespace Poly
 {
@@ -12,38 +14,22 @@ namespace Poly
 	class ExternalPass : public Pass
 	{
 	public:
-		ExternalPass()
-		{
-			p_Type = Pass::Type::EXTERNAL;
-			p_Name = "$";
-		}
-		~ExternalPass() = default;
+		ExternalPass();
+		~ExternalPass() override = default;
 
 		virtual PassReflection Reflect() override final { return PassReflection{}; }
 		virtual void Execute(const RenderContext&, const RenderData&) override final {}
 		virtual void Compile() override final {}
 
-		void RegisterResource(const ResourceGUID& guid, const ResourceInfo& info)
-		{
-			m_Resources[guid] = info;
-		}
+		void RegisterResource(const ResID& guid, const ResourceInfo& info);
 
-		void RemoveResource(const ResourceGUID& guid)
-		{
-			m_Resources.erase(guid);
-		}
+		void RemoveResource(const ResID& guid);
 
-		bool HasResource(const ResourceGUID& guid) const
-		{
-			return m_Resources.contains(guid);
-		}
+		bool HasResource(const ResID& guid) const;
 
-		const std::unordered_map<ResourceGUID, ResourceInfo, ResourceGUIDHasher>& GetResources() const
-		{
-			return m_Resources;
-		}
+		const std::unordered_map<ResID, ResourceInfo>& GetResources() const;
 
 	private:
-		std::unordered_map<ResourceGUID, ResourceInfo, ResourceGUIDHasher> m_Resources;
+		std::unordered_map<ResID, ResourceInfo> m_Resources;
 	};
 }

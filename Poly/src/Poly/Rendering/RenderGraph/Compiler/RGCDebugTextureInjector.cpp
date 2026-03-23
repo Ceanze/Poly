@@ -40,19 +40,19 @@ namespace Poly
 
 		// Build set of graph output GUIDs so we can skip them (backbuffer etc.)
 		// TODO: Support backbuffer? - Requires synchronisation after the ImGui pass to put in PRESENT mode
-		std::unordered_set<ResourceGUID, ResourceGUIDHasher> outputGUIDs;
+		std::unordered_set<PassResID> outputGUIDs;
 		for (const auto& output : ctx.RenderGraph.m_Outputs)
 		{
 			const auto& pPass = ctx.RenderGraph.m_Passes.at(output.NodeID);
-			ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(ResourceGUID(pPass->GetName(), output.ResourceName));
+			PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(PassResID(pPass->GetName(), output.ResourceID.GetName()));
 			outputGUIDs.insert(canonicalGUID);
 		}
 
 		// 2. Collect candidate texture resources from passes before the debug consumer
 		struct PendingTransition
 		{
-			ResourceGUID	SourceGUID;
-			ResourceGUID	CanonicalGUID;
+			PassResID	SourceGUID;
+			PassResID	CanonicalGUID;
 			ResourceState	State;
 			bool			IsDepth;
 		};
@@ -70,13 +70,13 @@ namespace Poly
 				if (pField->GetType() != PassField::EType::Texture)
 					continue;
 
-				ResourceGUID sourceGUID(passName, pField->GetName());
+				PassResID sourceGUID(passName, pField->GetName());
 
 				// Skip backbuffer / graph outputs
 				if (outputGUIDs.count(sourceGUID) > 0)
 					continue;
 
-				ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(sourceGUID);
+				PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(sourceGUID);
 				if (!canonicalGUID.HasResource())
 					continue;
 
@@ -113,7 +113,7 @@ namespace Poly
 
 			SyncPass::SyncData data = {};
 			data.Type             = SyncPass::SyncType::TEXTURE;
-			data.ResourceName     = pt.SourceGUID.GetResourceName();
+			data.ResourceName     = pt.SourceGUID.GetResource().GetName();
 			data.SrcLayout        = pt.State.Layout;
 			data.DstLayout        = dstLayout;
 			data.SrcAccessFlag    = pt.State.AccessMask;
@@ -126,16 +126,17 @@ namespace Poly
 			ctx.pResourceCache->RegisterSyncResource({ syncPassName, data.ResourceName }, pt.SourceGUID);
 			ctx.DebugTextureGUIDs.push_back(pt.SourceGUID);
 
-			writingPassNames.insert(pt.SourceGUID.GetPassName());
+			writingPassNames.insert(pt.SourceGUID.GetPass().GetName());
 		}
 
 		// 5. Add sync pass to the render graph
-		ctx.RenderGraph.AddPass(pSyncPass, syncPassName);
+		PassID syncPassID(syncPassName);
+		ctx.RenderGraph.AddPass(pSyncPass, syncPassID);
 
 		// 6. Wire execution-order dependencies (pass-name-only GUIDs = execution-order links)
 		for (const auto& writingPassName : writingPassNames)
-			ctx.RenderGraph.AddLink(ResourceGUID(writingPassName, ""), ResourceGUID(syncPassName, ""));
-		ctx.RenderGraph.AddLink(ResourceGUID(syncPassName, ""), ResourceGUID(debugConsumerPassName, ""));
+			ctx.RenderGraph.AddLink(PassID(writingPassName), syncPassID);
+		ctx.RenderGraph.AddLink(syncPassID, PassID(debugConsumerPassName));
 
 		// 7. Re-run compiler and validator to topologically re-sort the new pass
 		ctx.IsGraphDirty = true;

@@ -12,6 +12,7 @@
 #include "Poly/Rendering/RenderGraph/Resource.h"
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
 #include "Poly/Poly/Format.h"
+#include "Poly/Rendering/RenderGraph/EdgeData.h"
 
 #include "Compiler/RenderGraphCompilerNew.h"
 
@@ -24,7 +25,7 @@ namespace Poly
 
 		auto pExternalPass = CreateRef<ExternalPass>();
 		m_ExternalPassNodeID = m_pGraph->AddNode();
-		m_NameToNodeIndex["$"] = m_ExternalPassNodeID;
+		m_NameToNodeIndex[PassID("$")] = m_ExternalPassNodeID;
 		m_Passes[m_ExternalPassNodeID] = pExternalPass;
 
 		m_DefaultParams = {
@@ -72,36 +73,30 @@ namespace Poly
 		return program2;
 	}
 
-	bool RenderGraph::AddPass(const Ref<Pass>& pPass, const std::string& name)
+	bool RenderGraph::AddPass(const Ref<Pass>& pPass, const PassID& passID)
 	{
 		POLY_VALIDATE(pPass, "Added pass cannot be nullptr");
 
-		if (name.find('.') != std::string::npos)
+		if (m_NameToNodeIndex.contains(passID))
 		{
-			POLY_CORE_WARN("Cannot add a pass with name {}, its naming is invalid (contains a dot)", name);
-			return false;
-		}
-
-		if (m_NameToNodeIndex.contains(name))
-		{
-			POLY_CORE_WARN("Pass with name {} has already been added to the render graph, ignoring call", name);
+			POLY_CORE_WARN("Pass with ID {} has already been added to the render graph, ignoring call", passID.GetName());
 			return false;
 		}
 
 		uint32 index = m_pGraph->AddNode();
-		m_NameToNodeIndex[name] = index;
+		m_NameToNodeIndex[passID] = index;
 		m_Passes[index] = pPass;
 
-		pPass->p_Name = name;
+		pPass->p_Name = passID.GetName();
 
 		return true;
 	}
 
-	bool RenderGraph::Removepass(const std::string& name)
+	bool RenderGraph::Removepass(const PassID& passID)
 	{
-		if (!m_NameToNodeIndex.contains(name))
+		if (!m_NameToNodeIndex.contains(passID))
 		{
-			POLY_CORE_WARN("Tried to remove pass with name {}, but that pass has not been added previously or already been removed", name);
+			POLY_CORE_WARN("Tried to remove pass with ID {}, but that pass has not been added previously or already been removed", passID.GetName());
 			return false;
 		}
 
@@ -112,73 +107,107 @@ namespace Poly
 		return false;
 	}
 
-	bool RenderGraph::AddLink(const ResourceGUID& src, const ResourceGUID& dst)
+	bool RenderGraph::AddLink(const PassResID& src, const PassResID& dst)
 	{
-		// Check global space first
-		if (src.IsExternal())
+		const auto srcItr = m_NameToNodeIndex.find(src.GetPass());
+		const auto dstItr = m_NameToNodeIndex.find(dst.GetPass());
+
+		if (srcItr == m_NameToNodeIndex.end())
 		{
-			auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
-			if (!pExtPass->HasResource(src))
-			{
-				POLY_CORE_WARN("Tried to link external resource {} to {} but the resource has not been added to the graph", src.GetFullName(), dst.GetFullName());
-				return false;
-			}
-
-			if (!m_NameToNodeIndex.contains(dst.GetPassName()))
-			{
-				POLY_CORE_WARN("Pass with name {} could not be found in the graph when adding link for external resource", dst.GetPassName());
-				return false;
-			}
-
-			uint32 edgeIndex = m_pGraph->AddEdge(m_ExternalPassNodeID, m_NameToNodeIndex[dst.GetPassName()]);
-			m_Edges[edgeIndex] = { src, dst };
-
-			return true;
-		}
-
-		// If not global space check other passes
-		if (!m_NameToNodeIndex.contains(src.GetPassName()) || !m_NameToNodeIndex.contains(dst.GetPassName()))
-		{
-			POLY_CORE_WARN("Pass with either name {} or {} could not be found in the graph when adding link", src.GetPassName(), dst.GetPassName());
+			POLY_CORE_WARN("Source pass with name {} could not be found in the graph when adding link", src.GetPass().GetName());
 			return false;
 		}
 
-		// Make sure it is a data-data connected or an execution-execution connection
-		if (src.GetResourceName().empty() && !dst.GetResourceName().empty() || !src.GetResourceName().empty() && dst.GetResourceName().empty())
+		if (dstItr == m_NameToNodeIndex.end())
 		{
-			POLY_CORE_WARN("Cannot link {} with {}, dependency type does not match (both must be data-data or exe-exe dep.)", src.GetFullName(), dst.GetFullName());
+			POLY_CORE_WARN("Destination pass with name {} could not be found in the graph when adding link", dst.GetPass().GetName());
 			return false;
 		}
 
+		// Make sure it is a data-data connection
+		if (!src.GetResource().IsValid() || !dst.GetResource().IsValid())
+		{
+			POLY_CORE_WARN("Cannot link {} with {}, dependency type does not match (both must be data-data dependency)", src.GetFullName(), dst.GetFullName());
+			return false;
+		}
 
-		uint32 index = m_pGraph->AddEdge(m_NameToNodeIndex[src.GetPassName()], m_NameToNodeIndex[dst.GetPassName()]);
-
-		EdgeData edgeData = {};
-		edgeData.Src = src;
-		edgeData.Dst = dst;
-		m_Edges[index] = edgeData;
+		uint32 index = m_pGraph->AddEdge(srcItr->second, dstItr->second);
+		m_Edges[index] = { src, dst };
 
 		return true;
 	}
 
-	bool RenderGraph::RemoveLink(const ResourceGUID& src, const ResourceGUID& dst)
+	bool RenderGraph::AddLink(const ResID& src, const PassResID& dst)
 	{
-		if (!m_NameToNodeIndex.contains(src.GetPassName()))
+		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+		if (!pExtPass->HasResource(src))
 		{
-			POLY_CORE_WARN("Pass with name {} could not be found in the graph when removing link", src.GetPassName());
+			POLY_CORE_WARN("Tried to link external resource {} to {} but the resource has not been added to the graph", src.GetNameAsExternal(), dst.GetFullName());
 			return false;
 		}
 
-		if (!src.IsExternal() && !m_NameToNodeIndex.contains(dst.GetPassName()))
+		const auto dstItr = m_NameToNodeIndex.find(dst.GetPass());
+		if (dstItr == m_NameToNodeIndex.end())
 		{
-			POLY_CORE_WARN("Pass with name {} could not be found in the graph when removing link", dst.GetPassName());
+			POLY_CORE_WARN("Pass with name {} could not be found in the graph when adding link for external resource", dst.GetPass().GetName());
 			return false;
 		}
 
-		const std::vector<uint32>& outgoingEdges = m_pGraph->GetNode(m_NameToNodeIndex[src.GetPassName()])->GetOutgoingEdges();
-		for (auto edgeID : outgoingEdges)
+		uint32 edgeIndex = m_pGraph->AddEdge(m_ExternalPassNodeID, dstItr->second);
+		m_Edges[edgeIndex] = { src, dst };
+
+		return true;
+	}
+
+	bool RenderGraph::AddLink(const PassID& src, const PassID& dst)
+	{
+		const auto srcItr = m_NameToNodeIndex.find(src);
+		const auto dstItr = m_NameToNodeIndex.find(dst);
+
+		if (srcItr == m_NameToNodeIndex.end())
 		{
-			if (m_Edges[edgeID].Src == src && m_Edges[edgeID].Dst == dst)
+			POLY_CORE_WARN("Source pass with name {} could not be found in the graph when adding link", src.GetName());
+			return false;
+		}
+
+		if (dstItr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Destination pass with name {} could not be found in the graph when adding link", dst.GetName());
+			return false;
+		}
+
+		uint32 edgeIndex = m_pGraph->AddEdge(srcItr->second, dstItr->second);
+		m_Edges[edgeIndex] = { src, dst };
+
+		return true;
+	}
+
+	bool RenderGraph::RemoveLink(const PassResID &src, const PassResID &dst)
+	{
+		const auto srcItr = m_NameToNodeIndex.find(src.GetPass());
+		const auto dstItr = m_NameToNodeIndex.find(dst.GetPass());
+
+		if (srcItr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Source pass with name {} could not be found in the graph when adding link", src.GetPass().GetName());
+			return false;
+		}
+
+		if (dstItr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Destination pass with name {} could not be found in the graph when adding link", dst.GetPass().GetName());
+			return false;
+		}
+
+		const std::vector<uint32>& outgoingEdges = m_pGraph->GetNode(srcItr->second)->GetOutgoingEdges();
+		for (uint32 edgeID : outgoingEdges)
+		{
+			const EdgeData& edge = m_Edges[edgeID];
+				
+			if (!edge.IsDataDependency())
+				continue;
+
+			if (edge.GetSrcPassRes() == src && edge.GetDstPassRes() == dst)
 			{
 				m_Edges.erase(edgeID);
 				m_pGraph->RemoveEdge(edgeID);
@@ -187,6 +216,79 @@ namespace Poly
 		}
 
 		POLY_CORE_WARN("Render pass and resource {} does not connect with {}, no link was removed", src.GetFullName(), dst.GetFullName());
+		return false;
+	}
+
+	bool RenderGraph::RemoveLink(const ResID &src, const PassID &dst)
+	{
+		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+		if (!pExtPass->HasResource(src))
+		{
+			POLY_CORE_WARN("Tried to remove link of external resource {} to {} but the resource has not been added to the graph", src.GetNameAsExternal(), dst.GetName());
+			return false;
+		}
+
+		const auto dstItr = m_NameToNodeIndex.find(dst);
+		if (dstItr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Pass with name {} could not be found in the graph when removing link for external resource", dst.GetName());
+			return false;
+		}
+
+		const std::vector<uint32>& outgoingEdges = m_pGraph->GetNode(m_ExternalPassNodeID)->GetOutgoingEdges();
+		for (auto edgeID : outgoingEdges)
+		{
+			const auto& edge = m_Edges[edgeID];
+
+			if (!edge.IsExternalResourceToPassResource())
+				continue;
+
+			if (edge.GetSrcExternalResource() == src && edge.GetDstPass() == dst)
+			{
+				m_Edges.erase(edgeID);
+				m_pGraph->RemoveEdge(edgeID);
+				return true;
+			}
+		}
+
+		POLY_CORE_WARN("External resource {} does not connect with {}, no link was removed", src.GetNameAsExternal(), dst.GetName());
+		return false;
+	}
+
+	bool RenderGraph::RemoveLink(const PassID &src, const PassID &dst)
+	{
+		const auto srcItr = m_NameToNodeIndex.find(src);
+		const auto dstItr = m_NameToNodeIndex.find(dst);
+
+		if (srcItr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Source pass with name {} could not be found in the graph when adding link", src.GetName());
+			return false;
+		}
+
+		if (dstItr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Destination pass with name {} could not be found in the graph when adding link", dst.GetName());
+			return false;
+		}
+
+		const std::vector<uint32>& outgoingEdges = m_pGraph->GetNode(srcItr->second)->GetOutgoingEdges();
+		for (auto edgeID : outgoingEdges)
+		{
+			const auto& edge = m_Edges[edgeID];
+
+			if (!edge.IsPassToPass())
+				continue;
+
+			if (edge.GetSrcPass() == src && edge.GetDstPass() == dst)
+			{
+				m_Edges.erase(edgeID);
+				m_pGraph->RemoveEdge(edgeID);
+				return true;
+			}
+		}
+
+		POLY_CORE_WARN("Render pass {} does not connect with {}, no link was removed", src.GetName(), dst.GetName());
 		return false;
 	}
 
@@ -201,14 +303,14 @@ namespace Poly
 		const std::string& name = pResource->GetName();
 		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
 
-		ResourceGUID guid("$", name);
-		if (pExtPass->HasResource(guid))
+		ResID resID(name);
+		if (pExtPass->HasResource(resID))
 		{
 			POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
 			return false;
 		}
 
-		pExtPass->RegisterResource(guid, { pResource, autoBindDescriptor });
+		pExtPass->RegisterResource(resID, { pResource, autoBindDescriptor });
 
 		return true;
 	}
@@ -222,25 +324,25 @@ namespace Poly
 		for (auto& resource : resources)
 		{
 			std::string name = Poly::Format("{}:{}", groupName, resource.first);
-			ResourceGUID guid("$", name);
-			if (pExtPass->HasResource(guid))
+			ResID resID(name);
+			if (pExtPass->HasResource(resID))
 			{
 				POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
 				return false;
 			}
 
-			pExtPass->RegisterResource(guid, resource.second);
+			pExtPass->RegisterResource(resID, resource.second);
 		}
 
 		return true;
 	}
 
-	bool RenderGraph::AddExternalResource(const ResourceGUID& resourceGUID, uint64 size, FBufferUsage bufferUsage, const void* data, bool autoBindDescriptor)
+	bool RenderGraph::AddExternalResource(const ResID& resID, uint64 size, FBufferUsage bufferUsage, const void* data, bool autoBindDescriptor)
 	{
 		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
-		if (pExtPass->HasResource(resourceGUID))
+		if (pExtPass->HasResource(resID))
 		{
-			POLY_CORE_WARN("External resource {} has already been added, ignoring call", resourceGUID.GetFullName());
+			POLY_CORE_WARN("External resource {} has already been added, ignoring call", resID.GetName());
 			return false;
 		}
 
@@ -250,9 +352,9 @@ namespace Poly
 		desc.BufferUsage	= bufferUsage | FBufferUsage::COPY_DST;
 		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
 
-		Ref<Resource> pResource = Resource::Create(pBuffer, resourceGUID.GetResourceName());
+		Ref<Resource> pResource = Resource::Create(pBuffer, resID.GetName());
 
-		pExtPass->RegisterResource(resourceGUID, { pResource, autoBindDescriptor });
+		pExtPass->RegisterResource(resID, { pResource, autoBindDescriptor });
 
 		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)
@@ -261,65 +363,67 @@ namespace Poly
 		return true;
 	}
 
-	bool RenderGraph::RemoveExternalResource(const ResourceGUID& resourceGUID)
+	bool RenderGraph::RemoveExternalResource(const ResID& resID)
 	{
 		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
-		if (!pExtPass->HasResource(resourceGUID))
+		if (!pExtPass->HasResource(resID))
 		{
-			POLY_CORE_WARN("External resource {} cannot be removed, it is not currently added", resourceGUID.GetFullName());
+			POLY_CORE_WARN("External resource {} cannot be removed, it is not currently added", resID.GetName());
 			return false;
 		}
 
-		pExtPass->RemoveResource(resourceGUID);
+		pExtPass->RemoveResource(resID);
 
 		return true;
 	}
 
-	bool RenderGraph::MarkOutput(const ResourceGUID& resourceGUID)
+	bool RenderGraph::MarkOutput(const PassResID& passResID)
 	{
-		if (!m_NameToNodeIndex.contains(resourceGUID.GetPassName()))
+		const auto srcItr = m_NameToNodeIndex.find(passResID.GetPass());
+		if (srcItr == m_NameToNodeIndex.end())
 		{
-			POLY_CORE_WARN("Cannot mark output of {}, render pass does not exist in graph", resourceGUID.GetPassName());
+			POLY_CORE_WARN("Cannot mark output of {}, render pass does not exist in graph", passResID.GetPass().GetName());
 			return false;
 		}
 
-		if (!resourceGUID.HasResource())
+		if (!passResID.HasResource())
 		{
-			POLY_CORE_WARN("MarkOutput requires a render pass and resouce name, but only render pass name of {} was given", resourceGUID.GetFullName());
+			POLY_CORE_WARN("MarkOutput requires a render pass and resouce name, but only render pass name of {} was given", passResID.GetPass().GetName());
 			return false;
 		}
 
 		Output output = {};
-		output.NodeID = m_NameToNodeIndex[resourceGUID.GetPassName()];
-		output.ResourceName = resourceGUID.GetResourceName();
+		output.NodeID = srcItr->second;
+		output.ResourceID = passResID.GetResource();
 		m_Outputs.insert(output);
 
 		return true;
 	}
 
-	bool RenderGraph::UnmarkOutput(const ResourceGUID& resourceGUID)
+	bool RenderGraph::UnmarkOutput(const PassResID& passResID)
 	{
-		if (!m_NameToNodeIndex.contains(resourceGUID.GetPassName()))
+		const auto srcItr = m_NameToNodeIndex.find(passResID.GetPass());
+		if (srcItr == m_NameToNodeIndex.end())
 		{
-			POLY_CORE_WARN("Cannot unmark output of {}, render pass does not exist in graph", resourceGUID.GetPassName());
+			POLY_CORE_WARN("Cannot unmark output of {}, render pass does not exist in graph", passResID.GetPass().GetName());
 			return false;
 		}
 
-		if (!resourceGUID.HasResource())
+		if (!passResID.HasResource())
 		{
-			POLY_CORE_WARN("UnmarkOutput requires a render pass and resouce name, but only render pass name of {} was given", resourceGUID.GetFullName());
+			POLY_CORE_WARN("UnmarkOutput requires a render pass and resouce name, but only render pass name of {} was given", passResID.GetPass().GetName());
 			return false;
 		}
 
 		Output output = {};
-		output.NodeID = m_NameToNodeIndex[resourceGUID.GetPassName()];
-		output.ResourceName = resourceGUID.GetResourceName();
+		output.NodeID = srcItr->second;
+		output.ResourceID = passResID.GetResource();
 		m_Outputs.erase(output);
 
 		return true;
 	}
 
-	const RenderGraph::EdgeData& RenderGraph::GetEdgeData(uint32 edgeID) const
+	const EdgeData& RenderGraph::GetEdgeData(uint32 edgeID) const
 	{
 		POLY_VALIDATE(m_Edges.contains(edgeID), "Cannot get edge with ID {}, ID does not exist in graph", edgeID);
 

@@ -19,6 +19,6 @@ namespace Poly
 		void RegisterResources(RGCContext& ctx);
 		void AliasInputs(RGCContext& ctx, CompiledPass& compiledPass);
 		void RegisterOutputs(RGCContext& ctx, CompiledPass& compiledPass);
-		ResourceGUID GetAliasedResourceGUID(RGCContext& ctx, CompiledPass& compiledPass, ResourceGUID resourceGUID);
+		PassResID GetAliasedResourceGUID(RGCContext& ctx, CompiledPass& compiledPass, const PassResID& inputID);
 	};
 }
