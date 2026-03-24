@@ -9,7 +9,8 @@
 
 namespace Poly
 {
-	struct PipelineDesc {};
+	struct PipelineDesc
+	{};
 
 	class Pipeline
 	{
@@ -24,4 +25,4 @@ namespace Poly
 	protected:
 		EPipelineType p_PipelineType = EPipelineType::NONE;
 	};
-}
+} // namespace Poly

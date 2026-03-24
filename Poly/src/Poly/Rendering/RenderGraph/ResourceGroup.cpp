@@ -13,7 +13,7 @@ namespace Poly
 		}
 
 		pResource->SetName(m_GroupName + ':' + pResource->GetName());
-		m_Resources[pResource->GetName()] = { pResource, autoBindDescriptor };
+		m_Resources[pResource->GetName()] = {pResource, autoBindDescriptor};
 	}
 
 	void ResourceGroup::AddResource(const std::string& name, bool autoBindDescriptor)
@@ -24,7 +24,7 @@ namespace Poly
 			return;
 		}
 
-		m_Resources[name] = { nullptr, autoBindDescriptor };
+		m_Resources[name] = {nullptr, autoBindDescriptor};
 	}
 
 	void ResourceGroup::SetResource(const std::string& name, Ref<Resource> pResource)
@@ -60,4 +60,4 @@ namespace Poly
 
 		return m_Resources.at(name);
 	}
-}
+} // namespace Poly

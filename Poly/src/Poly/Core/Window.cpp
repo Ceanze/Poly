@@ -1,12 +1,12 @@
-#include "polypch.h"
-
 #include "Window.h"
-#include "Poly/Events/WindowEvent.h"
-#include "Poly/Events/MouseEvent.h"
-#include "Poly/Events/KeyEvent.h"
+
+#include "Platform/GLFW/GLFWTypes.h"
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Core/Input/KeyCode.h"
-#include "Platform/GLFW/GLFWTypes.h"
+#include "Poly/Events/KeyEvent.h"
+#include "Poly/Events/MouseEvent.h"
+#include "Poly/Events/WindowEvent.h"
+#include "polypch.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -14,7 +14,7 @@
 namespace Poly
 {
 	Window::Window(Properties properties)
-		: m_Properties(std::move(properties))
+	    : m_Properties(std::move(properties))
 	{
 		// Tell GLFW not to make an OpenGL context
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -22,7 +22,8 @@ namespace Poly
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		m_pWindow = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title.c_str(), nullptr, nullptr);
-		if (!m_pWindow) {
+		if (!m_pWindow)
+		{
 			glfwTerminate();
 			POLY_CORE_FATAL("Could not create a GLFW window!");
 		}
@@ -31,7 +32,7 @@ namespace Poly
 		//		 on HDPI screens, such as Retina.
 		int newWidth, newHeight;
 		glfwGetFramebufferSize(m_pWindow, &newWidth, &newHeight);
-		m_CurrentProperties.Width = newWidth;
+		m_CurrentProperties.Width  = newWidth;
 		m_CurrentProperties.Height = newHeight;
 
 		glfwMakeContextCurrent(m_pWindow);
@@ -80,9 +81,15 @@ namespace Poly
 		int glfwMouseMode = 0;
 		switch (mouseMode)
 		{
-		case EMouseMode::NORMAL: glfwMouseMode = GLFW_CURSOR_NORMAL; break;
-		case EMouseMode::HIDDEN: glfwMouseMode = GLFW_CURSOR_HIDDEN; break;
-		case EMouseMode::DISABLED: glfwMouseMode = GLFW_CURSOR_DISABLED; break;
+		case EMouseMode::NORMAL:
+			glfwMouseMode = GLFW_CURSOR_NORMAL;
+			break;
+		case EMouseMode::HIDDEN:
+			glfwMouseMode = GLFW_CURSOR_HIDDEN;
+			break;
+		case EMouseMode::DISABLED:
+			glfwMouseMode = GLFW_CURSOR_DISABLED;
+			break;
 		}
 
 		glfwSetInputMode(m_pWindow, GLFW_CURSOR, glfwMouseMode);
@@ -115,11 +122,12 @@ namespace Poly
 
 	void Window::SetFullscreen(GLFWwindow* pGLFWWindow, bool enable, bool exclusive)
 	{
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		StateProperties& props = m_SavedProperties;
+		GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
+		StateProperties&   props   = m_SavedProperties;
 
-		if (enable) {
+		if (enable)
+		{
 			// Save current window position/size
 			glfwGetWindowPos(pGLFWWindow, &props.PosX, &props.PosY);
 			glfwGetWindowSize(pGLFWWindow, &props.Width, &props.Height);
@@ -133,7 +141,8 @@ namespace Poly
 			else
 				glfwSetWindowMonitor(pGLFWWindow, nullptr, 0, 0, mode->width, mode->height, 0);
 		}
-		else {
+		else
+		{
 			// Restore decorations
 			glfwSetWindowAttrib(pGLFWWindow, GLFW_DECORATED, GLFW_TRUE);
 
@@ -145,7 +154,7 @@ namespace Poly
 	void Window::CloseWindowCallback(GLFWwindow* pGLFWWindow)
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
-	
+
 		Events::WindowClosed event;
 		pWindow->m_EventCallback(event);
 	}
@@ -154,9 +163,9 @@ namespace Poly
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
 
-		EKey polyKey = ConvertToPolyKey(key);
+		EKey         polyKey = ConvertToPolyKey(key);
 		FKeyModifier polyMod = ConvertToPolyModifier(mods);
-		KeyCode keyCode(polyKey, polyMod);
+		KeyCode      keyCode(polyKey, polyMod);
 
 		if (action == GLFW_PRESS)
 		{
@@ -202,9 +211,9 @@ namespace Poly
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
 
-		EKey polyKey = ConvertToPolyKey(button);
+		EKey         polyKey = ConvertToPolyKey(button);
 		FKeyModifier polyMod = ConvertToPolyModifier(mods);
-		KeyCode keyCode(polyKey, polyMod);
+		KeyCode      keyCode(polyKey, polyMod);
 
 		if (action == GLFW_PRESS)
 		{
@@ -233,14 +242,14 @@ namespace Poly
 	void Window::FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height)
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
-		
+
 		while (width == 0 || height == 0)
 		{
 			glfwGetFramebufferSize(pGLFWWindow, &width, &height);
 			glfwWaitEvents();
 		}
 
-		pWindow->m_CurrentProperties.Width = width;
+		pWindow->m_CurrentProperties.Width  = width;
 		pWindow->m_CurrentProperties.Height = height;
 
 		Events::WindowResized event(width, height);
@@ -250,11 +259,11 @@ namespace Poly
 	void Window::WindowPosCallback(GLFWwindow* pGLFWWindow, int posX, int posY)
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
-		
+
 		pWindow->m_CurrentProperties.PosX = posX;
 		pWindow->m_CurrentProperties.PosY = posY;
 
 		Events::WindowMoved windowMovedEvent(posX, posY);
 		pWindow->m_EventCallback(windowMovedEvent);
 	}
-}
+} // namespace Poly

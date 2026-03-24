@@ -1,9 +1,9 @@
-#include "polypch.h"
 #include "PVKShader.h"
-#include "PVKInstance.h"
-#include "VulkanCommon.h"
 
 #include "Poly/Resources/ResourceLoader.h"
+#include "polypch.h"
+#include "PVKInstance.h"
+#include "VulkanCommon.h"
 
 namespace Poly
 {
@@ -16,22 +16,22 @@ namespace Poly
 	void PVKShader::Init(const ShaderDesc* pDesc)
 	{
 		m_ShaderStage = pDesc->ShaderStage;
-		m_EntryPoint = pDesc->EntryPoint;
+		m_EntryPoint  = pDesc->EntryPoint;
 
 		// Create shader module
 		VkShaderModuleCreateInfo createInfo = {};
-		createInfo.sType	= VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize	= pDesc->ShaderCode.size();
-		createInfo.pCode	= reinterpret_cast<const uint32_t*>(pDesc->ShaderCode.data());
-		createInfo.flags	= 0;
-		createInfo.pNext	= nullptr;
+		createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize                 = pDesc->ShaderCode.size();
+		createInfo.pCode                    = reinterpret_cast<const uint32_t*>(pDesc->ShaderCode.data());
+		createInfo.flags                    = 0;
+		createInfo.pNext                    = nullptr;
 
 		PVK_CHECK(vkCreateShaderModule(PVKInstance::GetDevice(), &createInfo, nullptr, &m_ShaderModule), "Failed to create shader module!");
 
 		// Save the pipeline info for easier use later on
-		m_PipelineInfo.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		m_PipelineInfo.stage	= ConvertShaderStageBitsVK(pDesc->ShaderStage);
-		m_PipelineInfo.module	= m_ShaderModule;
-		m_PipelineInfo.pName	= m_EntryPoint.c_str();
+		m_PipelineInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		m_PipelineInfo.stage  = ConvertShaderStageBitsVK(pDesc->ShaderStage);
+		m_PipelineInfo.module = m_ShaderModule;
+		m_PipelineInfo.pName  = m_EntryPoint.c_str();
 	}
-}
+} // namespace Poly

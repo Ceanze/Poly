@@ -5,18 +5,24 @@ namespace Poly
 {
 	union KeyCode
 	{
-		KeyCode(EKey key) : Key(key), Modifier(FKeyModifier::NONE) {}
-		KeyCode(EKey key, FKeyModifier modifier) : Key(key), Modifier(modifier) {}
+		KeyCode(EKey key)
+		    : Key(key)
+		    , Modifier(FKeyModifier::NONE)
+		{}
+		KeyCode(EKey key, FKeyModifier modifier)
+		    : Key(key)
+		    , Modifier(modifier)
+		{}
 		bool operator==(const KeyCode& other) const { return Value == other.Value; }
 
 		uint32 Value;
 		struct
 		{
 			FKeyModifier Modifier;
-			EKey Key;
+			EKey         Key;
 		};
 	};
-}
+} // namespace Poly
 
 template<>
 struct std::hash<Poly::KeyCode>

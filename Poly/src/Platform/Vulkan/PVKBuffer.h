@@ -1,9 +1,8 @@
 #pragma once
 
+#include "Platform/API/Buffer.h"
 #include "polypch.h"
 #include "PVKTypes.h"
-#include "Platform/API/Buffer.h"
-
 #include "VmaInclude.h"
 
 namespace Poly
@@ -17,19 +16,19 @@ namespace Poly
 		virtual void Init(const BufferDesc* pDesc) override final;
 
 		virtual void* Map() override final;
-		virtual void TransferData(const void* data, const size_t size, const size_t offset) override final;
-		virtual void Unmap() override final;
+		virtual void  TransferData(const void* data, const size_t size, const size_t offset) override final;
+		virtual void  Unmap() override final;
 
-		virtual uint64 GetSize()		const override final;
-		virtual uint64 GetAlignment()	const override final;
-		virtual uint64 GetNative()		const override final;
+		virtual uint64 GetSize() const override final;
+		virtual uint64 GetAlignment() const override final;
+		virtual uint64 GetNative() const override final;
 
 		VkBuffer GetNativeVK() const;
 
 	private:
-		VkBuffer		m_Buffer			= VK_NULL_HANDLE;
-		VmaAllocation	m_VmaAllocation		= VK_NULL_HANDLE;
-		bool			m_Mapped			= false;
-		void*			m_MappedPtr			= nullptr;
+		VkBuffer      m_Buffer        = VK_NULL_HANDLE;
+		VmaAllocation m_VmaAllocation = VK_NULL_HANDLE;
+		bool          m_Mapped        = false;
+		void*         m_MappedPtr     = nullptr;
 	};
-}
+} // namespace Poly

@@ -1,7 +1,7 @@
 #include "DescriptorCache.h"
 
-#include "Poly/Core/RenderAPI.h"
 #include "Platform/API/DescriptorSet.h"
+#include "Poly/Core/RenderAPI.h"
 
 namespace Poly
 {
@@ -12,7 +12,7 @@ namespace Poly
 
 	SyncPointValue DescriptorCache::GetSignalSyncPointValue()
 	{
-		return { m_pSyncPoint.get(), m_SyncPointValue };
+		return {m_pSyncPoint.get(), m_SyncPointValue};
 	}
 
 	void DescriptorCache::Update()
@@ -62,7 +62,8 @@ namespace Poly
 		if (!ValidateOffset(offset, segmentSize))
 			return nullptr;
 
-		if (!HasDescriptor(set, index, offset)) {
+		if (!HasDescriptor(set, index, offset))
+		{
 			switch (action)
 			{
 			case Poly::DescriptorCache::EAction::GET:
@@ -118,7 +119,7 @@ namespace Poly
 			if (segmentSize == 0)
 			{
 				POLY_CORE_ERROR("Tried to get descriptor with offset {}, but segment size was zero. If offset is used then segment size must be larger than zero.",
-								offset);
+				                offset);
 				return false;
 			}
 			offset = offset / segmentSize;
@@ -126,4 +127,4 @@ namespace Poly
 
 		return true;
 	}
-}
+} // namespace Poly

@@ -17,23 +17,23 @@ namespace Poly
 
 		enum class SyncType
 		{
-			NONE	= 0,
-			TEXTURE	= 1,
-			BUFFER	= 2,
-			MEMORY	= 3
+			NONE    = 0,
+			TEXTURE = 1,
+			BUFFER  = 2,
+			MEMORY  = 3
 		};
 		struct SyncData
 		{
-			SyncType			Type				= SyncType::NONE;
-			std::string			ResourceName		= "";
-			ETextureLayout		SrcLayout			= ETextureLayout::UNDEFINED;
-			ETextureLayout		DstLayout			= ETextureLayout::UNDEFINED;
-			FAccessFlag			SrcAccessFlag		= FAccessFlag::NONE;
-			FAccessFlag			DstAccessFlag		= FAccessFlag::NONE;
-			FPipelineStage		SrcPipelineStage	= FPipelineStage::NONE;
-			FPipelineStage		DstPipelineStage	= FPipelineStage::NONE;
+			SyncType       Type             = SyncType::NONE;
+			std::string    ResourceName     = "";
+			ETextureLayout SrcLayout        = ETextureLayout::UNDEFINED;
+			ETextureLayout DstLayout        = ETextureLayout::UNDEFINED;
+			FAccessFlag    SrcAccessFlag    = FAccessFlag::NONE;
+			FAccessFlag    DstAccessFlag    = FAccessFlag::NONE;
+			FPipelineStage SrcPipelineStage = FPipelineStage::NONE;
+			FPipelineStage DstPipelineStage = FPipelineStage::NONE;
 
-			bool operator== (const SyncData& other)
+			bool operator==(const SyncData& other)
 			{
 				return ResourceName == other.ResourceName;
 			}
@@ -65,4 +65,4 @@ namespace Poly
 	private:
 		std::vector<SyncData> m_SyncData;
 	};
-}
+} // namespace Poly

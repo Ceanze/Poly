@@ -16,18 +16,17 @@ namespace Poly
 	public:
 		enum class CreateFlags
 		{
-			NONE			= FLAG(0),
-			REVERSE			= FLAG(1),
-			IGNORE_VISITED	= FLAG(2)
+			NONE           = FLAG(0),
+			REVERSE        = FLAG(1),
+			IGNORE_VISITED = FLAG(2)
 		};
 
 		enum class SortFlags
 		{
-			NONE			= FLAG(0),
-			DEPTH_FIRST		= FLAG(1)
+			NONE        = FLAG(0),
+			DEPTH_FIRST = FLAG(1)
 			// BREADTH_FIRST	= FLAG(2)
 		};
-
 
 		static const constexpr uint32 INVALID_ID = UINT32_MAX;
 
@@ -67,20 +66,24 @@ namespace Poly
 		 */
 		void Reset(uint32 rootNode);
 
-		void SetRootNode(uint32 rootNode) { if (m_pGraph->NodeExists(rootNode)) m_RootNode = rootNode; }
+		void SetRootNode(uint32 rootNode)
+		{
+			if (m_pGraph->NodeExists(rootNode))
+				m_RootNode = rootNode;
+		}
 
 		uint32 GetRootNode() const { return m_RootNode; }
 
 	private:
 		void VisitNode(uint32 node, std::stack<uint32>& sortedNodes);
 
-		Ref<DirectedGraph>	m_pGraph		= nullptr;
-		uint32				m_RootNode		= 0;
-		CreateFlags			m_Flags			= CreateFlags::NONE;
-		std::vector<bool>	m_Visited;
-		std::stack<uint32>	m_TraverseStack;
+		Ref<DirectedGraph> m_pGraph   = nullptr;
+		uint32             m_RootNode = 0;
+		CreateFlags        m_Flags    = CreateFlags::NONE;
+		std::vector<bool>  m_Visited;
+		std::stack<uint32> m_TraverseStack;
 	};
 
 	ENABLE_BITMASK_OPERATORS(Poly::DirectedGraphHelper::CreateFlags);
 	ENABLE_BITMASK_OPERATORS(Poly::DirectedGraphHelper::SortFlags);
-}
+} // namespace Poly

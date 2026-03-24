@@ -1,12 +1,13 @@
 #include "ResourceImporter.h"
 
+#include "IOManager.h"
+
+#include <assimp/Importer.hpp>
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
-#include <assimp/Importer.hpp>
 #include <yaml-cpp/yaml.h>
-#include <fstream>
 
-#include "IOManager.h"
+#include <fstream>
 
 #define PROJECT_POLYRES_FILE "project.polyres"
 
@@ -20,13 +21,16 @@ namespace Poly
 		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
 
 		if (projectFile["models"])
-			for (auto pair : projectFile["models"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::MODEL };
+			for (auto pair : projectFile["models"])
+				m_PathToImportedResource[pair.first.as<std::string>()] = {PolyID(pair.second.as<uint64>()), ResourceType::MODEL};
 
 		if (projectFile["textures"])
-			for (auto pair : projectFile["textures"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::TEXTURE };
+			for (auto pair : projectFile["textures"])
+				m_PathToImportedResource[pair.first.as<std::string>()] = {PolyID(pair.second.as<uint64>()), ResourceType::TEXTURE};
 
 		if (projectFile["materials"])
-			for (auto pair : projectFile["materials"]) m_PathToImportedResource[pair.first.as<std::string>()] = { PolyID(pair.second.as<uint64>()), ResourceType::MATERIAL };
+			for (auto pair : projectFile["materials"])
+				m_PathToImportedResource[pair.first.as<std::string>()] = {PolyID(pair.second.as<uint64>()), ResourceType::MATERIAL};
 	}
 
 	const std::unordered_map<std::string, ResourceImporter::ImportedResource>& ResourceImporter::GetImports()
@@ -53,7 +57,7 @@ namespace Poly
 
 		PolyID pathID = PolyID();
 		UpdateProjectFile(path, pathID, type);
-		m_PathToImportedResource[path] = { pathID, type };
+		m_PathToImportedResource[path] = {pathID, type};
 		return pathID;
 	}
 
@@ -83,13 +87,19 @@ namespace Poly
 			CreateProjectFile();
 
 		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
-		uint64 id = static_cast<uint64>(pathID);
+		uint64     id          = static_cast<uint64>(pathID);
 
 		switch (type)
 		{
-			case ResourceType::MODEL: projectFile["models"][path] =	std::to_string(id); break;
-			case ResourceType::TEXTURE: projectFile["textures"][path] =	std::to_string(id); break;
-			case ResourceType::MATERIAL: projectFile["material"][path] = std::to_string(id); break;
+		case ResourceType::MODEL:
+			projectFile["models"][path] = std::to_string(id);
+			break;
+		case ResourceType::TEXTURE:
+			projectFile["textures"][path] = std::to_string(id);
+			break;
+		case ResourceType::MATERIAL:
+			projectFile["material"][path] = std::to_string(id);
+			break;
 		}
 
 		std::ofstream file(GetProjectPath());
@@ -109,4 +119,4 @@ namespace Poly
 	}
 
 	std::unordered_map<std::string, ResourceImporter::ImportedResource> ResourceImporter::m_PathToImportedResource;
-}
+} // namespace Poly

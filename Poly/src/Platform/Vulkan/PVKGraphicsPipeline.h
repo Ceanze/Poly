@@ -17,15 +17,15 @@ namespace Poly
 
 		virtual void Init(const GraphicsPipelineDesc* pDesc) override final;
 
-		VkPipeline GetNativeVK() const { return m_Pipeline; }
-		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Pipeline); }
+		VkPipeline              GetNativeVK() const { return m_Pipeline; }
+		virtual uint64          GetNative() const override final { return reinterpret_cast<uint64>(m_Pipeline); }
 		virtual PipelineLayout* GetPipelineLayout() const override final { return reinterpret_cast<PipelineLayout*>(m_pPipelineLayout); }
 
 	private:
 		void CreatePipeline();
 
-		VkPipeline			m_Pipeline			= VK_NULL_HANDLE;
-		PVKPipelineLayout*	m_pPipelineLayout	= nullptr;
+		VkPipeline         m_Pipeline        = VK_NULL_HANDLE;
+		PVKPipelineLayout* m_pPipelineLayout = nullptr;
 	};
 
-}
+} // namespace Poly

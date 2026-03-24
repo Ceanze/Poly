@@ -13,7 +13,7 @@ namespace Poly
 		class KeyPressed;
 		class KeyReleased;
 		class WindowResized;
-	}
+	} // namespace Events
 
 	class ImGuiLayer : public Layer
 	{
@@ -34,4 +34,4 @@ namespace Poly
 		bool OnKeyReleased(Events::KeyReleased& event);
 		bool OnWindowResized(Events::WindowResized& event);
 	};
-}
+} // namespace Poly

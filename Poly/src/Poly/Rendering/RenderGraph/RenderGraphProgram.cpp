@@ -1,37 +1,39 @@
-#include "polypch.h"
 #include "RenderGraphProgram.h"
+
 #include "Pass.h"
-#include "Resource.h"
-#include "RenderData.h"
-#include "RenderPass.h"
-#include "RenderGraph.h"
-#include "RenderContext.h"
-#include "ResourceCache.h"
-#include "Poly/Model/Mesh.h"
-#include "Poly/Scene/Scene.h"
-#include "RenderGraphTypes.h"
-#include "Poly/Core/RenderAPI.h"
-#include "Poly/Rendering/RenderScene.h"
 #include "Platform/API/Buffer.h"
-#include "Platform/API/Texture.h"
+#include "Platform/API/CommandBuffer.h"
 #include "Platform/API/CommandPool.h"
-#include "Platform/API/Framebuffer.h"
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/DescriptorSet.h"
-#include "Platform/API/CommandBuffer.h"
-#include "Platform/API/PipelineLayout.h"
+#include "Platform/API/Framebuffer.h"
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/GraphicsRenderPass.h"
-#include "Poly/Resources/Shader/ShaderManager.h"
-#include "Poly/Rendering/Utilities/StagingBufferCache.h"
+#include "Platform/API/PipelineLayout.h"
+#include "Platform/API/Texture.h"
 #include "Platform/API/TextureView.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Poly/Model/Mesh.h"
+#include "Poly/Rendering/RenderScene.h"
+#include "Poly/Rendering/Utilities/StagingBufferCache.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
+#include "Poly/Scene/Scene.h"
+#include "polypch.h"
+#include "RenderContext.h"
+#include "RenderData.h"
+#include "RenderGraph.h"
+#include "RenderGraphTypes.h"
+#include "RenderPass.h"
+#include "Resource.h"
+#include "ResourceCache.h"
 
 namespace Poly
 {
 	RenderGraphProgram::RenderGraphProgram(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes)
-		: m_pResourceCache(pResourceCache)
-		, m_DefaultParams(defaultParams)
-		, m_Passes(passes) {}
+	    : m_pResourceCache(pResourceCache)
+	    , m_DefaultParams(defaultParams)
+	    , m_Passes(passes)
+	{}
 
 	void RenderGraphProgram::Init()
 	{
@@ -56,8 +58,8 @@ namespace Poly
 				for (const auto& reflection : reflections)
 				{
 					// Only update graph resource if a resource is already valid, otherwise skip
-					if (m_pResourceCache->HasResource({ pPass->GetName(), reflection->GetName()}))
-						UpdateGraphResource({ pPass->GetName(), reflection->GetName()}, nullptr);
+					if (m_pResourceCache->HasResource({pPass->GetName(), reflection->GetName()}))
+						UpdateGraphResource({pPass->GetName(), reflection->GetName()}, nullptr);
 				}
 			}
 		}
@@ -76,11 +78,11 @@ namespace Poly
 		//		For RenderPasses with a GraphicsRenderPass dependency they should execute just
 		//		the GraphicsRenderPass to resolve it, but ignore the rest of the pass.
 		m_ImageIndex = imageIndex;
-		m_WindowID = windowID;
+		m_WindowID   = windowID;
 		m_pResourceCache->SetCurrentBackbufferIndices(windowID, imageIndex);
 
 		RenderContext renderContext = RenderContext();
-		RenderData renderData = RenderData(m_pResourceCache, m_DefaultParams);
+		RenderData    renderData    = RenderData(m_pResourceCache, m_DefaultParams);
 		renderContext.SetImageIndex(m_ImageIndex);
 		renderData.SetScene(m_pScene.get());
 		for (const auto& [pPass, reflection, _, passIndex] : m_Passes)
@@ -115,10 +117,10 @@ namespace Poly
 
 			if (pPass->GetPassType() == Pass::Type::RENDER)
 			{
-				RenderPass*			pRenderPass = static_cast<RenderPass*>(pPass.get());
-				GraphicsRenderPass*	pGraphicsRenderPass = GetGraphicsRenderPass(pPass, passIndex);
-				GraphicsPipeline*	pGraphicsPipeline = GetGraphicsPipeline(pPass, passIndex);
-				Framebuffer*		pFramebuffer = GetFramebuffer(pPass, passIndex);
+				RenderPass*         pRenderPass         = static_cast<RenderPass*>(pPass.get());
+				GraphicsRenderPass* pGraphicsRenderPass = GetGraphicsRenderPass(pPass, passIndex);
+				GraphicsPipeline*   pGraphicsPipeline   = GetGraphicsPipeline(pPass, passIndex);
+				Framebuffer*        pFramebuffer        = GetFramebuffer(pPass, passIndex);
 
 				std::vector<ClearValue> clearValues(pRenderPass->GetAttachments().size());
 				for (uint32 i = 0; i < clearValues.size() - pRenderPass->GetDepthStenctilUse() ? 1 : 0; i++)
@@ -130,23 +132,24 @@ namespace Poly
 				currentCommandBuffer->BindPipeline(pGraphicsPipeline);
 
 				ViewportDesc viewport = {};
-				viewport.Width	= static_cast<float>(pFramebuffer->GetWidth());
-				viewport.Height	= static_cast<float>(pFramebuffer->GetHeight());
+				viewport.Width        = static_cast<float>(pFramebuffer->GetWidth());
+				viewport.Height       = static_cast<float>(pFramebuffer->GetHeight());
 				currentCommandBuffer->SetViewport(&viewport);
 
 				ScissorDesc scissor = {};
-				scissor.Width	= pFramebuffer->GetWidth();
-				scissor.Height	= pFramebuffer->GetHeight();
+				scissor.Width       = pFramebuffer->GetWidth();
+				scissor.Height      = pFramebuffer->GetHeight();
 				currentCommandBuffer->SetScissor(&scissor);
 
 				renderContext.SetActivePipeline(pGraphicsPipeline);
 
-				const std::vector<SceneBatch>& batches = m_pScene->GetRenderScene()->GetBatches();
-				uint32 batchSize = 1;
+				const std::vector<SceneBatch>& batches   = m_pScene->GetRenderScene()->GetBatches();
+				uint32                         batchSize = 1;
 				if (pPass->IsInstancedSceneRenderingEnabled())
 					batchSize = static_cast<uint32>(batches.size());
 
-				for (uint32 batchIndex = 0; batchIndex < batchSize; batchIndex++) {
+				for (uint32 batchIndex = 0; batchIndex < batchSize; batchIndex++)
+				{
 					renderContext.SetSceneBatch(&batches[batchIndex]);
 					renderContext.SetBatchIndex(batchIndex);
 
@@ -160,14 +163,12 @@ namespace Poly
 
 					// The pass handles the draw command and any additional data before that
 					pPass->Execute(renderContext, renderData);
-
 				}
 
 				currentCommandBuffer->EndRenderPass();
 			}
 			else if (pPass->GetPassType() == Pass::Type::COMPUTE)
 			{
-
 			}
 			else if (pPass->GetPassType() == Pass::Type::SYNC)
 			{
@@ -177,8 +178,8 @@ namespace Poly
 			currentCommandBuffer->End();
 
 			// Only graphics queue at the moment
-			SubmitDesc submitDesc = {};
-			submitDesc.CommandBuffers = { currentCommandBuffer };
+			SubmitDesc submitDesc       = {};
+			submitDesc.CommandBuffers   = {currentCommandBuffer};
 			submitDesc.SignalSyncPoints = signalSyncPoints;
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
 		}
@@ -194,19 +195,18 @@ namespace Poly
 			return;
 		}
 
-		BufferDesc desc = {};
-		desc.Size = size;
-		desc.MemUsage = EMemoryUsage::GPU_ONLY;
-		desc.BufferUsage = bufferUsage | FBufferUsage::COPY_DST;
+		BufferDesc desc     = {};
+		desc.Size           = size;
+		desc.MemUsage       = EMemoryUsage::GPU_ONLY;
+		desc.BufferUsage    = bufferUsage | FBufferUsage::COPY_DST;
 		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
 
 		Ref<Resource> pResource = Resource::Create(pBuffer, resID.GetName());
 
-		m_pResourceCache->RegisterExternalResource(resID, { pResource, true }); // TODO: Check autoBindDescriptor ("true")
+		m_pResourceCache->RegisterExternalResource(resID, {pResource, true}); // TODO: Check autoBindDescriptor ("true")
 
 		if (data)
 			m_pStagingBufferCache->QueueTransfer(pBuffer.get(), size, offset, data);
-
 	}
 
 	bool RenderGraphProgram::HasResource(const PassResID& passResID) const
@@ -245,7 +245,7 @@ namespace Poly
 		else if (pResource->IsTexture())
 		{
 			const TextureView* pTextureView = pResource->GetAsTextureView();
-			const Sampler* pSampler = pResource->GetAsSampler();
+			const Sampler*     pSampler     = pResource->GetAsSampler();
 			UpdateGraphResource(passResID, {pTextureView, pSampler}, index);
 		}
 	}
@@ -268,8 +268,8 @@ namespace Poly
 			if (BitsSet(inputRes.GetBindPoint(), FResourceBindPoint::COLOR_ATTACHMENT))
 				continue;
 
-			Resource* pResource = nullptr;
-			bool hasProvidedResource = view.HasBuffer() || view.HasTextureView();
+			Resource* pResource           = nullptr;
+			bool      hasProvidedResource = view.HasBuffer() || view.HasTextureView();
 			if (!hasProvidedResource && BitsSet(inputRes.GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 				return;
 
@@ -290,13 +290,13 @@ namespace Poly
 			if ((pResource && pResource->IsBuffer()) || view.HasBuffer())
 			{
 				const Buffer* pBuffer = (pResource && pResource->IsBuffer()) ? pResource->GetAsBuffer() : view.GetBuffer();
-				const uint64 span = view.GetSpan() > 0 ? view.GetSpan() : pBuffer->GetSize();
+				const uint64  span    = view.GetSpan() > 0 ? view.GetSpan() : pBuffer->GetSize();
 				pNewSet->UpdateBufferBinding(inputRes.GetBinding(), pBuffer, 0, span);
 			}
 			else if ((pResource && pResource->IsTexture()) || view.HasTextureView())
 			{
 				const TextureView* pTextureView = (pResource && pResource->IsTexture()) ? pResource->GetAsTextureView() : view.GetTextureView();
-				Sampler* pSampler = pResource ? pResource->GetAsSampler() : (inputRes.GetSampler() ? inputRes.GetSampler().get() : m_DefaultParams.pSampler.get());
+				Sampler*           pSampler     = pResource ? pResource->GetAsSampler() : (inputRes.GetSampler() ? inputRes.GetSampler().get() : m_DefaultParams.pSampler.get());
 
 				// TODO: Evaluate if this is a valid approach - essentially overwriting the texture layout if it is a depth texture coming in, use default otherwise.
 				ETextureLayout textureLayout = BitsSet(pTextureView->GetDesc().ImageViewFlag, FImageViewFlag::DEPTH_STENCIL) ? ETextureLayout::DEPTH_READ_ONLY_OPTIMAL : inputRes.GetTextureLayout();
@@ -325,9 +325,9 @@ namespace Poly
 			return;
 		}
 
-		const Buffer* pBuffer = pRes->GetAsBuffer();
-		uint64 oldSize = pBuffer->GetSize();
-		bool hasSizeChanged = oldSize != size;
+		const Buffer* pBuffer        = pRes->GetAsBuffer();
+		uint64        oldSize        = pBuffer->GetSize();
+		bool          hasSizeChanged = oldSize != size;
 		if (oldSize < size)
 		{
 			pRes = m_pResourceCache->UpdateResourceSize(passResID, size);
@@ -335,12 +335,12 @@ namespace Poly
 
 		m_pStagingBufferCache->QueueTransfer(pRes->GetAsBuffer(), size, offset, data);
 
-		//if (hasSizeChanged)
+		// if (hasSizeChanged)
 		//{
-			UpdateGraphResource(passResID, { pBuffer, size, offset }, index);
-			//UpdateGraphResource(passResID, pRes, index);
+		UpdateGraphResource(passResID, {pBuffer, size, offset}, index);
+		// UpdateGraphResource(passResID, pRes, index);
 		//}
-		//else
+		// else
 		//{
 		//	UpdateGraphResource(passResID, { pBuffer, size, offset }, offset, index);
 		//	UpdateGraphResource(passResID, nullptr, index);
@@ -373,9 +373,9 @@ namespace Poly
 			if (pPass->GetPassType() != Pass::Type::SYNC)
 			{
 				// Note that the layout creates the bindings for internal types as well for ease of use
-				const std::vector<const PassField*> inputs = reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX | FResourceBindPoint::EXTERNAL);
-				const auto& pushConstants = reflection.GetPushConstants();
-				uint32 maxSet = 0;
+				const std::vector<const PassField*> inputs        = reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::VERTEX | FResourceBindPoint::INDEX | FResourceBindPoint::EXTERNAL);
+				const auto&                         pushConstants = reflection.GetPushConstants();
+				uint32                              maxSet        = 0;
 				for (const PassField* input : inputs)
 				{
 					if (input->GetSet() > maxSet)
@@ -388,11 +388,11 @@ namespace Poly
 					if (BitsSet(input->GetBindPoint(), FResourceBindPoint::COLOR_ATTACHMENT))
 						continue;
 					DescriptorSetBinding binding = {};
-					binding.Binding			= input->GetBinding();
-					binding.DescriptorCount	= 1;
-					binding.DescriptorType	= ConvertBindpointToDescriptorType(input->GetBindPoint());
-					binding.ShaderStage		= FShaderStage::VERTEX | FShaderStage::FRAGMENT;
-					binding.pSampler		= input->GetSampler().get();
+					binding.Binding              = input->GetBinding();
+					binding.DescriptorCount      = 1;
+					binding.DescriptorType       = ConvertBindpointToDescriptorType(input->GetBindPoint());
+					binding.ShaderStage          = FShaderStage::VERTEX | FShaderStage::FRAGMENT;
+					binding.pSampler             = input->GetSampler().get();
 					sets[input->GetSet()].DescriptorSetBindings.push_back(binding);
 				}
 
@@ -401,9 +401,9 @@ namespace Poly
 				for (const auto& pushConstant : pushConstants)
 				{
 					PushConstantRange range;
-					range.Size			= static_cast<uint32>(pushConstant.Size);
-					range.Offset		= static_cast<uint32>(pushConstant.Offset);
-					range.ShaderStage	= pushConstant.ShaderStage;
+					range.Size        = static_cast<uint32>(pushConstant.Size);
+					range.Offset      = static_cast<uint32>(pushConstant.Offset);
+					range.ShaderStage = pushConstant.ShaderStage;
 					ranges.push_back(range);
 				}
 
@@ -424,7 +424,7 @@ namespace Poly
 
 	CommandBuffer* RenderGraphProgram::GetCommandBuffer(uint32 passIndex)
 	{
-		PassResources& passRes = m_PassResources[passIndex];
+		PassResources&       passRes       = m_PassResources[passIndex];
 		PassWindowResources& passWindowRes = passRes.PassWindowResources[m_WindowID];
 		if (!passWindowRes.CommandBuffers.empty())
 			return passWindowRes.CommandBuffers[m_ImageIndex];
@@ -452,9 +452,9 @@ namespace Poly
 			return itr->second.GraphicsRenderPass.get();
 
 		// If it does not exist yet, create it
-		RenderPass* pRenderPass = static_cast<RenderPass*>(pPass.get());
-		const auto& attachments = pRenderPass->GetAttachments();
-		std::vector<GraphicsRenderPassAttachmentDesc> attachmentDescs;
+		RenderPass*                                               pRenderPass = static_cast<RenderPass*>(pPass.get());
+		const auto&                                               attachments = pRenderPass->GetAttachments();
+		std::vector<GraphicsRenderPassAttachmentDesc>             attachmentDescs;
 		std::vector<GraphicsRenderPassSubpassAttachmentReference> colorRefs;
 		attachmentDescs.reserve(attachments.size());
 		colorRefs.reserve(attachments.size());
@@ -462,46 +462,46 @@ namespace Poly
 		for (const auto& attachment : attachments)
 		{
 			GraphicsRenderPassAttachmentDesc attachmentDesc = {};
-			attachmentDesc.Format			= attachment.Format;
-			attachmentDesc.SampleCount		= 1;
-			attachmentDesc.LoadOp			= attachment.InitalLayout == ETextureLayout::UNDEFINED ? ELoadOp::CLEAR : ELoadOp::LOAD;
-			attachmentDesc.StoreOp			= attachment.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? EStoreOp::DONT_CARE : EStoreOp::STORE;
-			attachmentDesc.StencilLoadOp	= ELoadOp::DONT_CARE;
-			attachmentDesc.StencilStoreOp	= EStoreOp::DONT_CARE;
-			attachmentDesc.InitialLayout	= attachment.InitalLayout;
-			attachmentDesc.FinalLayout		= attachment.FinalLayout;
+			attachmentDesc.Format                           = attachment.Format;
+			attachmentDesc.SampleCount                      = 1;
+			attachmentDesc.LoadOp                           = attachment.InitalLayout == ETextureLayout::UNDEFINED ? ELoadOp::CLEAR : ELoadOp::LOAD;
+			attachmentDesc.StoreOp                          = attachment.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? EStoreOp::DONT_CARE : EStoreOp::STORE;
+			attachmentDesc.StencilLoadOp                    = ELoadOp::DONT_CARE;
+			attachmentDesc.StencilStoreOp                   = EStoreOp::DONT_CARE;
+			attachmentDesc.InitialLayout                    = attachment.InitalLayout;
+			attachmentDesc.FinalLayout                      = attachment.FinalLayout;
 			attachmentDescs.push_back(attachmentDesc);
 
 			if (attachment.UsedLayout == ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 			{
-				depthStencilAttachment.Index	= attachment.Index;
-				depthStencilAttachment.Layout	= attachment.UsedLayout;
+				depthStencilAttachment.Index  = attachment.Index;
+				depthStencilAttachment.Layout = attachment.UsedLayout;
 			}
 			else
 			{
 				GraphicsRenderPassSubpassAttachmentReference attachmentRef = {};
-				attachmentRef.Index		= attachment.Index;
-				attachmentRef.Layout	= attachment.UsedLayout;
+				attachmentRef.Index                                        = attachment.Index;
+				attachmentRef.Layout                                       = attachment.UsedLayout;
 				colorRefs.push_back(attachmentRef);
 			}
 		}
 
 		GraphicsRenderPassSubpassDesc subpassDesc = {};
-		subpassDesc.ColorAttachmentsLayouts = colorRefs;
-		subpassDesc.DepthStencilAttachmentLayout = depthStencilAttachment;
+		subpassDesc.ColorAttachmentsLayouts       = colorRefs;
+		subpassDesc.DepthStencilAttachmentLayout  = depthStencilAttachment;
 
 		GraphicsRenderPassSubpassDependencyDesc depDesc = {};
-		depDesc.SrcSubpass		= EXTERNAL_SUBPASS;
-		depDesc.DstSubpass		= 0;
-		depDesc.SrcStageMask	= FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
-		depDesc.SrcAccessMask	= FAccessFlag::NONE;
-		depDesc.DstStageMask	= FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
-		depDesc.DstAccessMask	= FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE;
+		depDesc.SrcSubpass                              = EXTERNAL_SUBPASS;
+		depDesc.DstSubpass                              = 0;
+		depDesc.SrcStageMask                            = FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
+		depDesc.SrcAccessMask                           = FAccessFlag::NONE;
+		depDesc.DstStageMask                            = FPipelineStage::COLOR_ATTACHMENT_OUTPUT;
+		depDesc.DstAccessMask                           = FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE;
 
 		GraphicsRenderPassDesc renderPassDesc = {};
-		renderPassDesc.Attachments			= attachmentDescs;
-		renderPassDesc.Subpasses			= { subpassDesc };
-		renderPassDesc.SubpassDependencies	= { depDesc };
+		renderPassDesc.Attachments            = attachmentDescs;
+		renderPassDesc.Subpasses              = {subpassDesc};
+		renderPassDesc.SubpassDependencies    = {depDesc};
 
 		m_PassResources[passIndex].GraphicsRenderPass = RenderAPI::CreateGraphicsRenderPass(&renderPassDesc);
 
@@ -517,9 +517,9 @@ namespace Poly
 		}
 
 		// If we have already created it, return it
-		PassResources& passRes = m_PassResources[passIndex];
-		PassWindowResources& passWindowRes = passRes.PassWindowResources[m_WindowID];
-		std::vector<Ref<Framebuffer>>& framebuffers = passWindowRes.Framebuffers;
+		PassResources&                 passRes       = m_PassResources[passIndex];
+		PassWindowResources&           passWindowRes = passRes.PassWindowResources[m_WindowID];
+		std::vector<Ref<Framebuffer>>& framebuffers  = passWindowRes.Framebuffers;
 		if (m_ImageIndex < framebuffers.size() && framebuffers[m_ImageIndex]) // Check if current image index has a created framebuffer
 			return framebuffers[m_ImageIndex].get();
 
@@ -527,21 +527,21 @@ namespace Poly
 		framebuffers.resize(m_DefaultParams.MaxBackbufferCount);
 
 		// Create it (get it from the cache)
-		RenderPass* renderPass = static_cast<RenderPass*>(pPass.get());
+		RenderPass*               renderPass = static_cast<RenderPass*>(pPass.get());
 		std::vector<TextureView*> attachments;
-		TextureView* pDepthAttachment	= nullptr;
-		uint32 width					= 0;
-		uint32 height					= 0;
+		TextureView*              pDepthAttachment = nullptr;
+		uint32                    width            = 0;
+		uint32                    height           = 0;
 
 		const auto& attachmentInfos = renderPass->GetAttachments();
 		attachments.reserve(attachmentInfos.size());
 		for (const auto& attachmentInfo : attachmentInfos)
 		{
-			Resource* pRes = m_pResourceCache->GetResource({ renderPass->GetName(), attachmentInfo.Name });
+			Resource* pRes = m_pResourceCache->GetResource({renderPass->GetName(), attachmentInfo.Name});
 
 			if (!width || !height)
 			{
-				width = pRes->GetAsTexture()->GetWidth();
+				width  = pRes->GetAsTexture()->GetWidth();
 				height = pRes->GetAsTexture()->GetHeight();
 			}
 
@@ -552,7 +552,7 @@ namespace Poly
 		}
 
 		Ref<Framebuffer> framebuffer = RenderAPI::GetFramebuffer(attachments, pDepthAttachment, GetGraphicsRenderPass(pPass, passIndex), width, height);
-		framebuffers[m_ImageIndex] = framebuffer;
+		framebuffers[m_ImageIndex]   = framebuffer;
 
 		return framebuffers[m_ImageIndex].get();
 	}
@@ -564,7 +564,7 @@ namespace Poly
 		if (passResItr != m_PassResources.end())
 		{
 			if (passResItr->second.GraphicsPipeline)
-			return passResItr->second.GraphicsPipeline.get();
+				return passResItr->second.GraphicsPipeline.get();
 		}
 		else
 		{
@@ -576,28 +576,28 @@ namespace Poly
 
 		// Create it if it didn't exist TODO: Make this more programmable
 		InputAssemblyDesc assembly = {};
-		assembly.RestartPrimitive	= false;
-		assembly.Topology			= ETopology::TRIANGLE_LIST;
+		assembly.RestartPrimitive  = false;
+		assembly.Topology          = ETopology::TRIANGLE_LIST;
 
 		ViewportDesc viewport = {};
-		viewport.IsDynamic = true;
+		viewport.IsDynamic    = true;
 		// viewport.Width		= static_cast<float>(m_Framebuffers[passIndex]->GetWidth());
 		// viewport.Height		= static_cast<float>(m_Framebuffers[passIndex]->GetHeight());
 
 		ScissorDesc scissor = {};
-		scissor.IsDynamic = true;
+		scissor.IsDynamic   = true;
 		// scissor.Width		= m_Framebuffers[passIndex]->GetWidth();
 		// scissor.Height		= m_Framebuffers[passIndex]->GetHeight();
 
-		RasterizationDesc raster = {};
-		raster.DepthClampEnable		= false;
-		raster.DiscardEnable		= false;
-		raster.PolygonMode			= EPolygonMode::FILL;
-		raster.CullMode				= ECullMode::BACK;
-		raster.ClockwiseFrontFace	= false;
-		raster.DepthBiasEnable		= false;
+		RasterizationDesc raster  = {};
+		raster.DepthClampEnable   = false;
+		raster.DiscardEnable      = false;
+		raster.PolygonMode        = EPolygonMode::FILL;
+		raster.CullMode           = ECullMode::BACK;
+		raster.ClockwiseFrontFace = false;
+		raster.DepthBiasEnable    = false;
 
-		RenderPass* renderPass = static_cast<RenderPass*>(pPass.get());
+		RenderPass*                           renderPass = static_cast<RenderPass*>(pPass.get());
 		std::vector<ColorBlendAttachmentDesc> colorBlendAttachments;
 
 		for (auto& attachment : renderPass->GetAttachments())
@@ -606,56 +606,56 @@ namespace Poly
 				continue;
 
 			ColorBlendAttachmentDesc colorBlendAttachment = {};
-			colorBlendAttachment.ColorWriteMask = FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
-			colorBlendAttachment.BlendEnable = false;
+			colorBlendAttachment.ColorWriteMask           = FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
+			colorBlendAttachment.BlendEnable              = false;
 
 			colorBlendAttachments.push_back(colorBlendAttachment);
 		}
 
-		ColorBlendStateDesc colorBlend = {};
-		colorBlend.LogicOpEnable			= false;
-		colorBlend.ColorBlendAttachments	= colorBlendAttachments;
+		ColorBlendStateDesc colorBlend   = {};
+		colorBlend.LogicOpEnable         = false;
+		colorBlend.ColorBlendAttachments = colorBlendAttachments;
 
 		DepthStencilDesc depthStencil = {};
 		if (static_cast<RenderPass*>(pPass.get())->GetDepthStenctilUse())
 		{
-			depthStencil.DepthTestEnable		= true;
-			depthStencil.DepthWriteEnable		= true;
-			depthStencil.DepthCompareOp			= ECompareOp::LESS_OR_EQUAL;
+			depthStencil.DepthTestEnable  = true;
+			depthStencil.DepthWriteEnable = true;
+			depthStencil.DepthCompareOp   = ECompareOp::LESS_OR_EQUAL;
 			// depthStencil.DepthBoundsTestEnable	= false;
 			// depthStencil.MinDepthBounds			= 0.0f;
 			// depthStencil.MaxDepthBounds			= 1.0f;
-			depthStencil.StencilTestEnable		= false; // TODO: Allow stencil part to be used by the user in future
-			// depthStencil.Front;
-			// depthStencil.Back;
+			depthStencil.StencilTestEnable = false; // TODO: Allow stencil part to be used by the user in future
+			                                        // depthStencil.Front;
+			                                        // depthStencil.Back;
 		}
 
-		GraphicsPipelineDesc desc = {};
+		GraphicsPipelineDesc  desc          = {};
 		GraphicsPipelineDesc* pPipelineDesc = static_cast<GraphicsPipelineDesc*>(pPass->GetCustomPipelineDesc());
 		if (pPipelineDesc)
 		{
-			desc.VertexInputs		= pPipelineDesc->VertexInputs;
-			desc.InputAssembly		= pPipelineDesc->InputAssembly;
-			desc.Viewport			= pPipelineDesc->Viewport;
-			desc.Scissor			= pPipelineDesc->Scissor;
-			desc.Rasterization		= pPipelineDesc->Rasterization;
-			desc.ColorBlendState	= pPipelineDesc->ColorBlendState;
-			desc.DepthStencil		= pPipelineDesc->DepthStencil;
+			desc.VertexInputs    = pPipelineDesc->VertexInputs;
+			desc.InputAssembly   = pPipelineDesc->InputAssembly;
+			desc.Viewport        = pPipelineDesc->Viewport;
+			desc.Scissor         = pPipelineDesc->Scissor;
+			desc.Rasterization   = pPipelineDesc->Rasterization;
+			desc.ColorBlendState = pPipelineDesc->ColorBlendState;
+			desc.DepthStencil    = pPipelineDesc->DepthStencil;
 		}
 		else
 		{
-			desc.InputAssembly		= assembly;
-			desc.Viewport			= viewport;
-			desc.Scissor			= scissor;
-			desc.Rasterization		= raster;
-			desc.ColorBlendState	= colorBlend;
-			desc.DepthStencil		= depthStencil;
+			desc.InputAssembly   = assembly;
+			desc.Viewport        = viewport;
+			desc.Scissor         = scissor;
+			desc.Rasterization   = raster;
+			desc.ColorBlendState = colorBlend;
+			desc.DepthStencil    = depthStencil;
 		}
 
-		desc.pPipelineLayout	= passRes.PipelineLayout.get();
-		desc.pRenderPass		= passRes.GraphicsRenderPass.get();
-		desc.pVertexShader		= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).pShader.get();
-		desc.pFragmentShader	= ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).pShader.get();
+		desc.pPipelineLayout = passRes.PipelineLayout.get();
+		desc.pRenderPass     = passRes.GraphicsRenderPass.get();
+		desc.pVertexShader   = ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::VERTEX)).pShader.get();
+		desc.pFragmentShader = ShaderManager::GetShader(pPass->GetShaderID(FShaderStage::FRAGMENT)).pShader.get();
 
 		passRes.GraphicsPipeline = RenderAPI::CreateGraphicsPipeline(&desc);
 
@@ -668,12 +668,12 @@ namespace Poly
 		if (!mappedResource.HasResource())
 			return PassResID::Invalid();
 
-		const PassReflection& reflection = m_Passes[passIndex].Reflection;
+		const PassReflection&               reflection  = m_Passes[passIndex].Reflection;
 		const std::vector<const PassField*> reflections = reflection.GetFields(FFieldVisibility::INPUT);
-		auto itr = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const PassField* data){ return data->GetName() == mappedResource.GetResource().GetName(); });
+		auto                                itr         = std::find_if(reflections.begin(), reflections.end(), [&mappedResource](const PassField* data) { return data->GetName() == mappedResource.GetResource().GetName(); });
 		if (itr == reflections.end())
 			return PassResID::Invalid();
 
 		return mappedResource;
 	}
-}
+} // namespace Poly

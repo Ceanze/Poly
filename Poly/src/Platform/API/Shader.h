@@ -7,9 +7,9 @@ namespace Poly
 {
 	struct ShaderDesc
 	{
-		std::string			EntryPoint	= "main";
-		FShaderStage		ShaderStage	= FShaderStage::NONE;
-		std::vector<byte>	ShaderCode;
+		std::string       EntryPoint  = "main";
+		FShaderStage      ShaderStage = FShaderStage::NONE;
+		std::vector<byte> ShaderCode;
 	};
 
 	class Shader
@@ -20,7 +20,7 @@ namespace Poly
 		/**
 		 * Init the Buffer object
 		 * @param desc	Shader creation description
-		*/
+		 */
 		virtual void Init(const ShaderDesc* pDesc) = 0;
 
 		/**
@@ -28,4 +28,4 @@ namespace Poly
 		 */
 		virtual uint64 GetNative() const = 0;
 	};
-}
+} // namespace Poly

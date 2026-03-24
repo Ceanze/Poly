@@ -1,5 +1,6 @@
-#include "polypch.h"
 #include "PVKRenderPass.h"
+
+#include "polypch.h"
 #include "PVKInstance.h"
 #include "PVKSwapChain.h"
 
@@ -25,15 +26,15 @@ namespace Poly
 			}
 
 			VkAttachmentDescription descVK = {};
-			descVK.format			= vkFormat;
-			descVK.samples			= ConvertSampleCountVK(attachDesc.SampleCount);
-			descVK.loadOp			= ConvertLoadOpVK(attachDesc.LoadOp);
-			descVK.storeOp			= ConvertStoreOpVK(attachDesc.StoreOp);
-			descVK.stencilLoadOp	= ConvertLoadOpVK(attachDesc.StencilLoadOp);
-			descVK.stencilStoreOp	= ConvertStoreOpVK(attachDesc.StencilStoreOp);
-			descVK.initialLayout	= ConvertTextureLayoutVK(attachDesc.InitialLayout);
-			descVK.finalLayout		= ConvertTextureLayoutVK(attachDesc.FinalLayout);
-			descVK.flags			= 0;
+			descVK.format                  = vkFormat;
+			descVK.samples                 = ConvertSampleCountVK(attachDesc.SampleCount);
+			descVK.loadOp                  = ConvertLoadOpVK(attachDesc.LoadOp);
+			descVK.storeOp                 = ConvertStoreOpVK(attachDesc.StoreOp);
+			descVK.stencilLoadOp           = ConvertLoadOpVK(attachDesc.StencilLoadOp);
+			descVK.stencilStoreOp          = ConvertStoreOpVK(attachDesc.StencilStoreOp);
+			descVK.initialLayout           = ConvertTextureLayoutVK(attachDesc.InitialLayout);
+			descVK.finalLayout             = ConvertTextureLayoutVK(attachDesc.FinalLayout);
+			descVK.flags                   = 0;
 			attachments.push_back(descVK);
 		}
 
@@ -41,14 +42,14 @@ namespace Poly
 		std::vector<VkSubpassDescription> subpasses;
 		subpasses.reserve(pDesc->Subpasses.size());
 
-		std::vector<std::vector<VkAttachmentReference>>	inputRefs(pDesc->Subpasses.size());
-		std::vector<std::vector<VkAttachmentReference>>	colorRefs(pDesc->Subpasses.size());
-		std::vector<std::vector<VkAttachmentReference>>	resolveRefs(pDesc->Subpasses.size());
-		uint32 subpassIndex = 0;
+		std::vector<std::vector<VkAttachmentReference>> inputRefs(pDesc->Subpasses.size());
+		std::vector<std::vector<VkAttachmentReference>> colorRefs(pDesc->Subpasses.size());
+		std::vector<std::vector<VkAttachmentReference>> resolveRefs(pDesc->Subpasses.size());
+		uint32                                          subpassIndex = 0;
 		for (auto& subpass : pDesc->Subpasses)
 		{
-			VkSubpassDescription subpassVK = {};
-			VkAttachmentReference depthRef = {VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_UNDEFINED};
+			VkSubpassDescription  subpassVK = {};
+			VkAttachmentReference depthRef  = {VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_UNDEFINED};
 
 			inputRefs[subpassIndex].reserve(subpass.InputAttachmentsLayouts.size());
 			colorRefs[subpassIndex].reserve(subpass.ColorAttachmentsLayouts.size());
@@ -58,44 +59,44 @@ namespace Poly
 			for (auto& inputAttachment : subpass.InputAttachmentsLayouts)
 			{
 				VkAttachmentReference ref = {};
-				ref.attachment	= inputAttachment.Index;
-				ref.layout		= ConvertTextureLayoutVK(inputAttachment.Layout);
+				ref.attachment            = inputAttachment.Index;
+				ref.layout                = ConvertTextureLayoutVK(inputAttachment.Layout);
 				inputRefs[subpassIndex].push_back(ref);
 			}
 
 			for (auto& colorAttachment : subpass.ColorAttachmentsLayouts)
 			{
 				VkAttachmentReference ref = {};
-				ref.attachment	= colorAttachment.Index;
-				ref.layout		= ConvertTextureLayoutVK(colorAttachment.Layout);
+				ref.attachment            = colorAttachment.Index;
+				ref.layout                = ConvertTextureLayoutVK(colorAttachment.Layout);
 				colorRefs[subpassIndex].push_back(ref);
 			}
 
 			for (auto& resolveAttachment : subpass.ResolveAttachmentsLayouts)
 			{
 				VkAttachmentReference ref = {};
-				ref.attachment	= resolveAttachment.Index;
-				ref.layout		= ConvertTextureLayoutVK(resolveAttachment.Layout);
+				ref.attachment            = resolveAttachment.Index;
+				ref.layout                = ConvertTextureLayoutVK(resolveAttachment.Layout);
 				resolveRefs[subpassIndex].push_back(ref);
 			}
 
 			if (subpass.DepthStencilAttachmentLayout.Layout != ETextureLayout::UNDEFINED)
 			{
-				depthRef.attachment	= subpass.DepthStencilAttachmentLayout.Index;
-				depthRef.layout		= ConvertTextureLayoutVK(subpass.DepthStencilAttachmentLayout.Layout);
+				depthRef.attachment = subpass.DepthStencilAttachmentLayout.Index;
+				depthRef.layout     = ConvertTextureLayoutVK(subpass.DepthStencilAttachmentLayout.Layout);
 			}
 
-			VkSubpassDescription subpassDescVK = {};
-			subpassDescVK.pipelineBindPoint			= VK_PIPELINE_BIND_POINT_GRAPHICS; // Only graphics is currently supported
-			subpassDescVK.flags						= 0;
-			subpassDescVK.pInputAttachments			= inputRefs[subpassIndex].data();
-			subpassDescVK.inputAttachmentCount		= static_cast<uint32>(inputRefs[subpassIndex].size());
-			subpassDescVK.pColorAttachments			= colorRefs[subpassIndex].data();
-			subpassDescVK.colorAttachmentCount		= static_cast<uint32>(colorRefs[subpassIndex].size());
-			subpassDescVK.pResolveAttachments		= resolveRefs[subpassIndex].data();
-			subpassDescVK.preserveAttachmentCount	= 0;
-			subpassDescVK.pPreserveAttachments		= nullptr;
-			subpassDescVK.pDepthStencilAttachment	= depthRef.attachment == VK_ATTACHMENT_UNUSED ? nullptr : &depthRef;
+			VkSubpassDescription subpassDescVK    = {};
+			subpassDescVK.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS; // Only graphics is currently supported
+			subpassDescVK.flags                   = 0;
+			subpassDescVK.pInputAttachments       = inputRefs[subpassIndex].data();
+			subpassDescVK.inputAttachmentCount    = static_cast<uint32>(inputRefs[subpassIndex].size());
+			subpassDescVK.pColorAttachments       = colorRefs[subpassIndex].data();
+			subpassDescVK.colorAttachmentCount    = static_cast<uint32>(colorRefs[subpassIndex].size());
+			subpassDescVK.pResolveAttachments     = resolveRefs[subpassIndex].data();
+			subpassDescVK.preserveAttachmentCount = 0;
+			subpassDescVK.pPreserveAttachments    = nullptr;
+			subpassDescVK.pDepthStencilAttachment = depthRef.attachment == VK_ATTACHMENT_UNUSED ? nullptr : &depthRef;
 			subpasses.push_back(subpassDescVK);
 			subpassIndex++;
 		}
@@ -106,30 +107,30 @@ namespace Poly
 		for (auto& dep : pDesc->SubpassDependencies)
 		{
 			VkSubpassDependency depVK = {};
-			depVK.dependencyFlags	= 0;
-			depVK.srcSubpass		= dep.SrcSubpass;
-			depVK.dstSubpass		= dep.DstSubpass;
-			depVK.srcStageMask		= ConvertPipelineStageFlagsVK(dep.SrcStageMask);
-			depVK.dstStageMask		= ConvertPipelineStageFlagsVK(dep.DstStageMask);
-			depVK.srcAccessMask		= ConvertAccessFlagVK(dep.SrcAccessMask);
-			depVK.dstAccessMask		= ConvertAccessFlagVK(dep.DstAccessMask);
+			depVK.dependencyFlags     = 0;
+			depVK.srcSubpass          = dep.SrcSubpass;
+			depVK.dstSubpass          = dep.DstSubpass;
+			depVK.srcStageMask        = ConvertPipelineStageFlagsVK(dep.SrcStageMask);
+			depVK.dstStageMask        = ConvertPipelineStageFlagsVK(dep.DstStageMask);
+			depVK.srcAccessMask       = ConvertAccessFlagVK(dep.SrcAccessMask);
+			depVK.dstAccessMask       = ConvertAccessFlagVK(dep.DstAccessMask);
 			dependencies.push_back(depVK);
 		}
 
 		VkRenderPassCreateInfo renderPassInfo = {};
-		renderPassInfo.sType			= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount	= static_cast<uint32>(attachments.size());
-		renderPassInfo.pAttachments		= attachments.data();
-		renderPassInfo.subpassCount		= static_cast<uint32>(subpasses.size());
-		renderPassInfo.pSubpasses		= subpasses.data();
-		renderPassInfo.dependencyCount	= static_cast<uint32>(dependencies.size());
-		renderPassInfo.pDependencies	= dependencies.data();
-		renderPassInfo.flags			= 0;
-		renderPassInfo.pNext			= nullptr;
+		renderPassInfo.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount        = static_cast<uint32>(attachments.size());
+		renderPassInfo.pAttachments           = attachments.data();
+		renderPassInfo.subpassCount           = static_cast<uint32>(subpasses.size());
+		renderPassInfo.pSubpasses             = subpasses.data();
+		renderPassInfo.dependencyCount        = static_cast<uint32>(dependencies.size());
+		renderPassInfo.pDependencies          = dependencies.data();
+		renderPassInfo.flags                  = 0;
+		renderPassInfo.pNext                  = nullptr;
 
 		PVK_CHECK(vkCreateRenderPass(PVKInstance::GetDevice(), &renderPassInfo, nullptr, &m_RenderPass), "Failed to create render pass!");
 	}
-}
+} // namespace Poly
 
 // Code left as a guideline if it goes to shit
 

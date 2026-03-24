@@ -1,19 +1,19 @@
 #pragma once
 
 #include "Core.h"
-#include "Platform/API/GraphicsInstance.h"
 #include "Platform/API/FramebufferCache.h"
+#include "Platform/API/GraphicsInstance.h"
 
 /*
 *	TODO: Convert PVKInstance to not be a static class for it to have an interface in which it inherits from.
 *			This will allow the instance to have create functions to API specific objects (like GraphicsDeviceVK).
 *		For future reference, see this psudo code:
 
-		RenderAPI::GetGraphicsInstance()->CreateBuffer(desc);
-		RenderAPI::CreateBuffer(desc);
-		RenderAPI holds a pointer to the current instance which is created with the correct API beforehand.
-		RenderAPIs function GetInstance returns this pointer, from which the user can call the API agnostic
-		functions such as CreateBuffer(desc) which will create API specific objects.
+        RenderAPI::GetGraphicsInstance()->CreateBuffer(desc);
+        RenderAPI::CreateBuffer(desc);
+        RenderAPI holds a pointer to the current instance which is created with the correct API beforehand.
+        RenderAPIs function GetInstance returns this pointer, from which the user can call the API agnostic
+        functions such as CreateBuffer(desc) which will create API specific objects.
 */
 
 namespace Poly
@@ -51,35 +51,38 @@ namespace Poly
 	class RenderAPI
 	{
 	public:
-		enum class BackendAPI { VULKAN };
+		enum class BackendAPI
+		{
+			VULKAN
+		};
 
 		CLASS_STATIC(RenderAPI);
 
 		static void Init(BackendAPI backendAPI);
 		static void Release();
 
-		static CommandQueue*		GetCommandQueue(FQueueType queue);
+		static CommandQueue* GetCommandQueue(FQueueType queue);
 
-		static GraphicsInstance*	GetGraphicsInstance() { return m_pGraphicsInstance; }
+		static GraphicsInstance* GetGraphicsInstance() { return m_pGraphicsInstance; }
 
 		// Create functions
-		static Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc);
-		static Ref<Texture>				CreateTexture(const TextureDesc* pDesc);
-		static Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex);
-		static Ref<TextureView>			CreateTextureView(const TextureViewDesc* pDesc);
-		static Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc);
-		static Ref<BinarySemaphore>		CreateBinarySemaphore();
-		static Ref<SyncPoint>			CreateSyncPoint();
-		static Ref<CommandPool>			CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags);
-		static Ref<Sampler>				CreateSampler(const SamplerDesc* pDesc);
-		static Ref<Shader>				CreateShader(const ShaderDesc* pDesc);
-		static Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc);
-		static Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc);
-		static Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc);
-		static Ref<Framebuffer>			CreateFramebuffer(const FramebufferDesc* pDesc);
-		static Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex);
+		static Ref<Buffer>             CreateBuffer(const BufferDesc* pDesc);
+		static Ref<Texture>            CreateTexture(const TextureDesc* pDesc);
+		static Ref<CommandQueue>       CreateCommandQueue(FQueueType queueType, uint32 queueIndex);
+		static Ref<TextureView>        CreateTextureView(const TextureViewDesc* pDesc);
+		static Ref<SwapChain>          CreateSwapChain(const SwapChainDesc* pDesc);
+		static Ref<BinarySemaphore>    CreateBinarySemaphore();
+		static Ref<SyncPoint>          CreateSyncPoint();
+		static Ref<CommandPool>        CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags);
+		static Ref<Sampler>            CreateSampler(const SamplerDesc* pDesc);
+		static Ref<Shader>             CreateShader(const ShaderDesc* pDesc);
+		static Ref<GraphicsRenderPass> CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc);
+		static Ref<GraphicsPipeline>   CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc);
+		static Ref<PipelineLayout>     CreatePipelineLayout(const PipelineLayoutDesc* pDesc);
+		static Ref<Framebuffer>        CreateFramebuffer(const FramebufferDesc* pDesc);
+		static Ref<DescriptorSet>      CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex);
 
-		static Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet);
+		static Ref<DescriptorSet> CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet);
 
 		/**
 		 * Gets or creates a framebuffer and returns it
@@ -90,16 +93,16 @@ namespace Poly
 		 * @param height
 		 * @return Ref<Framebuffer>
 		 */
-		static Ref<Framebuffer>			GetFramebuffer(const std::vector<TextureView*>& attachments, TextureView* pDepthAttachment, GraphicsRenderPass* pPass, uint32 width, uint32 height);
+		static Ref<Framebuffer> GetFramebuffer(const std::vector<TextureView*>& attachments, TextureView* pDepthAttachment, GraphicsRenderPass* pPass, uint32 width, uint32 height);
 
 	private:
-		inline static GraphicsInstance*	m_pGraphicsInstance	= nullptr;
+		inline static GraphicsInstance* m_pGraphicsInstance = nullptr;
 
 		// Queue types [TODO: Support multiple queues per type]
-		inline static Ref<CommandQueue>	m_pGraphicsQueue	= nullptr;
-		inline static Ref<CommandQueue>	m_pComputeQueue		= nullptr;
-		inline static Ref<CommandQueue>	m_pTransferQueue	= nullptr;
+		inline static Ref<CommandQueue> m_pGraphicsQueue = nullptr;
+		inline static Ref<CommandQueue> m_pComputeQueue  = nullptr;
+		inline static Ref<CommandQueue> m_pTransferQueue = nullptr;
 
-		inline static FramebufferCache	m_FramebufferCache;
+		inline static FramebufferCache m_FramebufferCache;
 	};
-}
+} // namespace Poly

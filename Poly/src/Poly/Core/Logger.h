@@ -2,16 +2,16 @@
 #pragma
 
 #pragma warning(push)
-#pragma warning( disable : 26439 26451 26495 26439 26451 26495 26812 6385 26498 26450 26437 6285)
+#pragma warning(disable : 26439 26451 26495 26439 26451 26495 26812 6385 26498 26450 26437 6285)
 #define FMT_USE_USER_DEFINED_LITERALS 0
 #include <spdlog/spdlog.h>
 #pragma warning(pop)
 
-
 #pragma warning(push)
-#pragma warning(disable:4251)
+#pragma warning(disable : 4251)
 
-namespace Poly {
+namespace Poly
+{
 
 	class Logger
 	{
@@ -25,7 +25,7 @@ namespace Poly {
 		static std::shared_ptr<spdlog::logger> coreLogger;
 		static std::shared_ptr<spdlog::logger> clientLogger;
 	};
-}
+} // namespace Poly
 
 // Poly logger macros
 // #define POLY_CORE_TRACE(...) ::Poly::Logger::getCoreLogger()->trace(__VA_ARGS__)
@@ -46,6 +46,5 @@ namespace Poly {
 #define POLY_WARN(...) ::Poly::Logger::getClientLogger()->warn(__VA_ARGS__)
 #define POLY_ERROR(...) ::Poly::Logger::getClientLogger()->error(__VA_ARGS__)
 #define POLY_FATAL(...) ::Poly::Logger::getClientLogger()->critical(__VA_ARGS__)
-
 
 #pragma warning(pop)

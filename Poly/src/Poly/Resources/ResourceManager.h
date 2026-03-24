@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Poly/Scene/Entity.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Poly/Scene/Entity.h"
 #include "ResourceTypes.h"
 
 namespace Poly
@@ -16,10 +16,10 @@ namespace Poly
 	{
 	public:
 		inline static const PolyID DEFAULT_MATERIAL_ID = PolyID::None();
-		inline static const PolyID DEFAULT_TEXTURE_ID = PolyID::None();
+		inline static const PolyID DEFAULT_TEXTURE_ID  = PolyID::None();
 
 	public:
-		ResourceManager() = default;
+		ResourceManager()  = default;
 		~ResourceManager() = default;
 
 		static void Init();
@@ -82,16 +82,16 @@ namespace Poly
 		 */
 		static void UnloadResource(PolyID id);
 
-		static Mesh*			GetMesh(PolyID modelID, uint32 meshIndex);
-		static Model*			GetModel(PolyID modelID);
-		static Texture*			GetTexture(PolyID textureID);
-		static TextureView*		GetTextureView(PolyID textureViewID);
-		static ManagedTexture	GetManagedTexture(PolyID polyTextureID);
-		static Material*		GetMaterial(PolyID materialID);
-		static Material*		GetMaterial(PolyID modelID, uint32 meshIndex);
+		static Mesh*          GetMesh(PolyID modelID, uint32 meshIndex);
+		static Model*         GetModel(PolyID modelID);
+		static Texture*       GetTexture(PolyID textureID);
+		static TextureView*   GetTextureView(PolyID textureViewID);
+		static ManagedTexture GetManagedTexture(PolyID polyTextureID);
+		static Material*      GetMaterial(PolyID materialID);
+		static Material*      GetMaterial(PolyID modelID, uint32 meshIndex);
 
-		static bool IsResourceImported(const std::string& path);
-		static bool IsResourceLoaded(PolyID id);
+		static bool   IsResourceImported(const std::string& path);
+		static bool   IsResourceLoaded(PolyID id);
 		static PolyID GetPolyIDFromPath(const std::string& path);
 
 	private:
@@ -102,16 +102,16 @@ namespace Poly
 
 		struct ResourceHandle
 		{
-			uint32			Index		= UINT32_MAX;
-			ResourceType	Type		= ResourceType::NONE;
-			bool			IsLoaded	= false;
-			std::string		Path		= "";
+			uint32       Index    = UINT32_MAX;
+			ResourceType Type     = ResourceType::NONE;
+			bool         IsLoaded = false;
+			std::string  Path     = "";
 		};
 
-		static std::vector<ManagedTexture>	m_Textures;
-		static std::vector<Ref<Model>>		m_Models;
-		static std::vector<Ref<Material>>	m_Materials;
+		static std::vector<ManagedTexture> m_Textures;
+		static std::vector<Ref<Model>>     m_Models;
+		static std::vector<Ref<Material>>  m_Materials;
 
 		static std::unordered_map<PolyID, ResourceHandle> m_IDToHandle;
 	};
-}
+} // namespace Poly

@@ -3,7 +3,9 @@
 namespace Poly
 {
 	PassField::PassField(std::string name, FFieldVisibility visibility)
-		: m_Name(std::move(name)), m_Visibility(visibility) {}
+	    : m_Name(std::move(name))
+	    , m_Visibility(visibility)
+	{}
 
 	PassField& PassField::Set(uint32 set)
 	{
@@ -26,18 +28,18 @@ namespace Poly
 
 	PassField& PassField::Texture2D(uint32 width, uint32 height)
 	{
-		m_Type = EType::Texture;
-		m_Width = width;
+		m_Type   = EType::Texture;
+		m_Width  = width;
 		m_Height = height;
 		return *this;
 	}
 
 	PassField& PassField::Texture3D(uint32 width, uint32 height, uint32 depth)
 	{
-		m_Type = EType::Texture;
-		m_Width = width;
+		m_Type   = EType::Texture;
+		m_Width  = width;
 		m_Height = height;
-		m_Depth = depth;
+		m_Depth  = depth;
 		return *this;
 	}
 
@@ -107,8 +109,8 @@ namespace Poly
 			if (m_Height == 0 && m_Width == 0 && m_Depth == 0)
 			{
 				m_Height = other.m_Height;
-				m_Width = other.m_Width;
-				m_Depth = other.m_Depth;
+				m_Width  = other.m_Width;
+				m_Depth  = other.m_Depth;
 			}
 			else if (other.m_Height != 0 || other.m_Width != 0 || other.m_Depth != 0)
 			{
@@ -199,12 +201,11 @@ namespace Poly
 		if (m_TextureLayout != ETextureLayout::UNDEFINED || m_Format == EFormat::UNDEFINED)
 			return;
 
-
 		// Check if we can set the layout that is required for this resource
 		if (m_Visibility == FFieldVisibility::IN_OUT)
 		{
 			if (m_Format == EFormat::DEPTH_STENCIL)
-				m_TextureLayout= ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				m_TextureLayout = ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			else
 				m_TextureLayout = ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
 		}
@@ -223,4 +224,4 @@ namespace Poly
 				m_TextureLayout = ETextureLayout::COLOR_ATTACHMENT_OPTIMAL;
 		}
 	}
-}
+} // namespace Poly

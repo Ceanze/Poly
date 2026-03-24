@@ -44,22 +44,22 @@ namespace Poly
 
 		virtual void Init() = 0;
 
-		virtual Ref<Buffer>				CreateBuffer(const BufferDesc* pDesc) = 0;
-		virtual Ref<Texture>			CreateTexture(const TextureDesc* pDesc) = 0;
-		virtual Ref<CommandQueue>		CreateCommandQueue(FQueueType queueType, uint32 queueIndex) = 0;
-		virtual Ref<TextureView>		CreateTextureView(const TextureViewDesc* pDesc) = 0;
-		virtual Ref<SwapChain>			CreateSwapChain(const SwapChainDesc* pDesc) = 0;
-		virtual Ref<BinarySemaphore>	CreateBinarySemaphore() = 0;
-		virtual Ref<SyncPoint>			CreateSyncPoint() = 0;
-		virtual Ref<CommandPool>		CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) = 0;
-		virtual Ref<Sampler>			CreateSampler(const SamplerDesc* pDesc) = 0;
-		virtual Ref<Shader>				CreateShader(const ShaderDesc* pDesc) = 0;
-		virtual Ref<GraphicsRenderPass>	CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc) = 0;
-		virtual Ref<GraphicsPipeline>	CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc) = 0;
-		virtual Ref<PipelineLayout>		CreatePipelineLayout(const PipelineLayoutDesc* pDesc) = 0;
-		virtual Ref<Framebuffer>		CreateFramebuffer(const FramebufferDesc* pDesc) = 0;
-		virtual Ref<DescriptorSet>		CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex) = 0;
+		virtual Ref<Buffer>             CreateBuffer(const BufferDesc* pDesc)                            = 0;
+		virtual Ref<Texture>            CreateTexture(const TextureDesc* pDesc)                          = 0;
+		virtual Ref<CommandQueue>       CreateCommandQueue(FQueueType queueType, uint32 queueIndex)      = 0;
+		virtual Ref<TextureView>        CreateTextureView(const TextureViewDesc* pDesc)                  = 0;
+		virtual Ref<SwapChain>          CreateSwapChain(const SwapChainDesc* pDesc)                      = 0;
+		virtual Ref<BinarySemaphore>    CreateBinarySemaphore()                                          = 0;
+		virtual Ref<SyncPoint>          CreateSyncPoint()                                                = 0;
+		virtual Ref<CommandPool>        CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags) = 0;
+		virtual Ref<Sampler>            CreateSampler(const SamplerDesc* pDesc)                          = 0;
+		virtual Ref<Shader>             CreateShader(const ShaderDesc* pDesc)                            = 0;
+		virtual Ref<GraphicsRenderPass> CreateGraphicsRenderPass(const GraphicsRenderPassDesc* pDesc)    = 0;
+		virtual Ref<GraphicsPipeline>   CreateGraphicsPipeline(const GraphicsPipelineDesc* pDesc)        = 0;
+		virtual Ref<PipelineLayout>     CreatePipelineLayout(const PipelineLayoutDesc* pDesc)            = 0;
+		virtual Ref<Framebuffer>        CreateFramebuffer(const FramebufferDesc* pDesc)                  = 0;
+		virtual Ref<DescriptorSet>      CreateDescriptorSet(PipelineLayout* pLayout, uint32 setIndex)    = 0;
 
-		virtual Ref<DescriptorSet>		CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) = 0;
+		virtual Ref<DescriptorSet> CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) = 0;
 	};
-}
+} // namespace Poly

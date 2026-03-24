@@ -1,9 +1,9 @@
-#include "polypch.h"
 #include "PVKFramebuffer.h"
 
+#include "polypch.h"
 #include "PVKInstance.h"
-#include "PVKSwapChain.h"
 #include "PVKRenderPass.h"
+#include "PVKSwapChain.h"
 #include "PVKTextureView.h"
 
 namespace Poly
@@ -23,14 +23,14 @@ namespace Poly
 			imageViews.push_back(reinterpret_cast<PVKTextureView*>(attachment)->GetNativeVK());
 
 		VkFramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.sType			= VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass		= reinterpret_cast<PVKRenderPass*>(pDesc->pRenderPass)->GetNativeVK();
-		framebufferInfo.attachmentCount	= static_cast<uint32_t>(imageViews.size());
-		framebufferInfo.pAttachments	= imageViews.data();
-		framebufferInfo.width			= pDesc->Width;
-		framebufferInfo.height			= pDesc->Height;
-		framebufferInfo.layers			= 1;
+		framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass              = reinterpret_cast<PVKRenderPass*>(pDesc->pRenderPass)->GetNativeVK();
+		framebufferInfo.attachmentCount         = static_cast<uint32_t>(imageViews.size());
+		framebufferInfo.pAttachments            = imageViews.data();
+		framebufferInfo.width                   = pDesc->Width;
+		framebufferInfo.height                  = pDesc->Height;
+		framebufferInfo.layers                  = 1;
 
 		PVK_CHECK(vkCreateFramebuffer(PVKInstance::GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer), "Failed to create framebuffer!");
 	}
-}
+} // namespace Poly

@@ -1,6 +1,6 @@
-#include "polypch.h"
 #include "PVKPipelineLayout.h"
 
+#include "polypch.h"
 #include "PVKInstance.h"
 
 namespace Poly
@@ -43,23 +43,23 @@ namespace Poly
 
 				// Save VK type for creation
 				VkDescriptorSetLayoutBinding bindingVK = {};
-				bindingVK.binding				= binding.Binding;
-				bindingVK.descriptorCount		= binding.DescriptorCount;
-				bindingVK.descriptorType		= ConvertDescriptorTypeVK(binding.DescriptorType);
-				bindingVK.pImmutableSamplers	= nullptr; // TODO: Implement this
-				bindingVK.stageFlags			= ConvertShaderStageVK(binding.ShaderStage);
+				bindingVK.binding                      = binding.Binding;
+				bindingVK.descriptorCount              = binding.DescriptorCount;
+				bindingVK.descriptorType               = ConvertDescriptorTypeVK(binding.DescriptorType);
+				bindingVK.pImmutableSamplers           = nullptr; // TODO: Implement this
+				bindingVK.stageFlags                   = ConvertShaderStageVK(binding.ShaderStage);
 				bindingsVK.push_back(bindingVK);
 			}
 			m_DescriptorLayouts.push_back(savedLayout);
 
 			// Create VK Descriptor layout
-			VkDescriptorSetLayout vkLayout;
+			VkDescriptorSetLayout           vkLayout;
 			VkDescriptorSetLayoutCreateInfo createInfo = {};
-			createInfo.sType		= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			createInfo.bindingCount	= static_cast<uint32>(bindingsVK.size());
-			createInfo.pBindings	= bindingsVK.data();
-			createInfo.flags		= 0;
-			createInfo.pNext		= nullptr;
+			createInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			createInfo.bindingCount                    = static_cast<uint32>(bindingsVK.size());
+			createInfo.pBindings                       = bindingsVK.data();
+			createInfo.flags                           = 0;
+			createInfo.pNext                           = nullptr;
 			vkCreateDescriptorSetLayout(PVKInstance::GetDevice(), &createInfo, nullptr, &vkLayout);
 			m_DescriptorSetLayoutsVK.push_back(vkLayout);
 		}
@@ -69,20 +69,20 @@ namespace Poly
 		for (auto& pushConstant : pDesc->PushConstantRanges)
 		{
 			VkPushConstantRange pushConstantVK = {};
-			pushConstantVK.offset		= pushConstant.Offset;
-			pushConstantVK.size			= pushConstant.Size;
-			pushConstantVK.stageFlags	= ConvertShaderStageVK(pushConstant.ShaderStage);
+			pushConstantVK.offset              = pushConstant.Offset;
+			pushConstantVK.size                = pushConstant.Size;
+			pushConstantVK.stageFlags          = ConvertShaderStageVK(pushConstant.ShaderStage);
 			pushConstantRangesVK.push_back(pushConstantVK);
 		}
 
 		VkPipelineLayoutCreateInfo createInfo = {};
-		createInfo.sType					= VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		createInfo.pNext					= nullptr;
-		createInfo.pPushConstantRanges		= pushConstantRangesVK.data();
-		createInfo.pushConstantRangeCount	= static_cast<uint32>(pushConstantRangesVK.size());
-		createInfo.pSetLayouts				= m_DescriptorSetLayoutsVK.data();
-		createInfo.setLayoutCount			= static_cast<uint32>(m_DescriptorSetLayoutsVK.size());
+		createInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		createInfo.pNext                      = nullptr;
+		createInfo.pPushConstantRanges        = pushConstantRangesVK.data();
+		createInfo.pushConstantRangeCount     = static_cast<uint32>(pushConstantRangesVK.size());
+		createInfo.pSetLayouts                = m_DescriptorSetLayoutsVK.data();
+		createInfo.setLayoutCount             = static_cast<uint32>(m_DescriptorSetLayoutsVK.size());
 
 		PVK_CHECK(vkCreatePipelineLayout(PVKInstance::GetDevice(), &createInfo, nullptr, &m_Layout), "Failed to create pipeline layout!");
 	}
-}
+} // namespace Poly

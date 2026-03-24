@@ -1,16 +1,17 @@
-#include "polypch.h"
 #include "InputManager.h"
+
+#include "polypch.h"
 
 namespace Poly
 {
 	InputManager::MouseProperties InputManager::s_MouseProperties;
-	InputManager::KeyProperties InputManager::s_KeyProperties;
+	InputManager::KeyProperties   InputManager::s_KeyProperties;
 
 	void InputManager::Update()
 	{
-		s_KeyProperties.PreviousKeys = s_KeyProperties.CurrentKeys;
-		s_MouseProperties.DeltaX = 0.0;
-		s_MouseProperties.DeltaY = 0.0;
+		s_KeyProperties.PreviousKeys   = s_KeyProperties.CurrentKeys;
+		s_MouseProperties.DeltaX       = 0.0;
+		s_MouseProperties.DeltaY       = 0.0;
 		s_MouseProperties.ScrollDeltaY = 0.0;
 		s_MouseProperties.ScrollDeltaY = 0.0;
 	}
@@ -68,7 +69,7 @@ namespace Poly
 	void InputManager::KeyCallback(EKey key, FKeyModifier mods, EKeyAction action)
 	{
 		s_KeyProperties.CurrentKeys[ENUM_CAST(EKey, key)] = action == EKeyAction::PRESS;
-		s_KeyProperties.CurrentMods = mods;
+		s_KeyProperties.CurrentMods                       = mods;
 	}
 
 	void InputManager::MouseCallback(double x, double y)
@@ -85,4 +86,4 @@ namespace Poly
 		s_MouseProperties.ScrollDeltaX = x - s_MouseProperties.ScrollDeltaX;
 		s_MouseProperties.ScrollDeltaY = y - s_MouseProperties.ScrollDeltaY;
 	}
-}
+} // namespace Poly

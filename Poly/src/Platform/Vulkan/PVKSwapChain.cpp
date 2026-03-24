@@ -1,16 +1,15 @@
-#include "polypch.h"
 #include "PVKSwapChain.h"
 
-#include "VulkanCommon.h"
-#include "PVKTexture.h"
-#include "PVKInstance.h"
-#include "PVKBinarySemaphore.h"
-#include "PVKTextureView.h"
-#include "PVKCommandQueue.h"
-#include "PVKCommandBuffer.h"
-#include "PVKSyncPoint.h"
-
 #include "Poly/Core/Window.h"
+#include "polypch.h"
+#include "PVKBinarySemaphore.h"
+#include "PVKCommandBuffer.h"
+#include "PVKCommandQueue.h"
+#include "PVKInstance.h"
+#include "PVKSyncPoint.h"
+#include "PVKTexture.h"
+#include "PVKTextureView.h"
+#include "VulkanCommon.h"
 
 namespace Poly
 {
@@ -37,24 +36,24 @@ namespace Poly
 	{
 		if (!m_ResizeRequired)
 		{
-			SubmitDesc submitDesc = {};
-			submitDesc.CommandBuffers = commandBuffers;
-			submitDesc.SignalSemaphores = { m_RenderSemaphores[m_ImageIndex].get() };
-			submitDesc.WaitSemaphores = { m_AcquireSemaphores[m_FrameIndex].get() };
-			submitDesc.SignalSyncPoints = { {m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
+			SubmitDesc submitDesc       = {};
+			submitDesc.CommandBuffers   = commandBuffers;
+			submitDesc.SignalSemaphores = {m_RenderSemaphores[m_ImageIndex].get()};
+			submitDesc.WaitSemaphores   = {m_AcquireSemaphores[m_FrameIndex].get()};
+			submitDesc.SignalSyncPoints = {{m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
 			p_SwapchainDesc.pQueue->Submit(submitDesc);
 
-			VkSemaphore waitSemaphore = m_RenderSemaphores[m_ImageIndex]->GetNativeVK();
-			VkSwapchainKHR swapChains[] = { m_SwapChain };
+			VkSemaphore    waitSemaphore = m_RenderSemaphores[m_ImageIndex]->GetNativeVK();
+			VkSwapchainKHR swapChains[]  = {m_SwapChain};
 
-			VkPresentInfoKHR presentInfo = {};
-			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			VkPresentInfoKHR presentInfo   = {};
+			presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			presentInfo.waitSemaphoreCount = 1;
-			presentInfo.pWaitSemaphores = &waitSemaphore;
-			presentInfo.swapchainCount = 1;
-			presentInfo.pSwapchains = swapChains;
-			presentInfo.pImageIndices = &m_ImageIndex;
-			presentInfo.pResults = nullptr; // Optional
+			presentInfo.pWaitSemaphores    = &waitSemaphore;
+			presentInfo.swapchainCount     = 1;
+			presentInfo.pSwapchains        = swapChains;
+			presentInfo.pImageIndices      = &m_ImageIndex;
+			presentInfo.pResults           = nullptr; // Optional
 			PVK_CHECK(vkQueuePresentKHR(m_PresentQueue, &presentInfo), "Failed to present image!");
 		}
 
@@ -68,10 +67,10 @@ namespace Poly
 
 	void PVKSwapChain::SetupPresentQueue()
 	{
-		const std::vector<PVKQueue>& queues = PVKInstance::GetAllQueues();
-		uint32_t presentFamily = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface).PresentFamily.value();
-		
-		const auto it = std::find_if(queues.begin(), queues.end(), [&presentFamily](const PVKQueue& queue) { return queue.queueFamilyIndex == presentFamily; });
+		const std::vector<PVKQueue>& queues        = PVKInstance::GetAllQueues();
+		uint32_t                     presentFamily = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface).PresentFamily.value();
+
+		const auto it  = std::find_if(queues.begin(), queues.end(), [&presentFamily](const PVKQueue& queue) { return queue.queueFamilyIndex == presentFamily; });
 		m_PresentQueue = it->queue;
 	}
 
@@ -84,45 +83,48 @@ namespace Poly
 	{
 		// Use the predefined functions to choose and query everything
 		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_Surface, PVKInstance::GetPhysicalDevice());
-		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
-		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
-		m_Extent = ChooseSwapExtent(swapChainSupport.capabilities);
-		m_FormatVK = surfaceFormat.format;
+		VkSurfaceFormatKHR      surfaceFormat    = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+		VkPresentModeKHR        presentMode      = ChooseSwapPresentMode(swapChainSupport.presentModes);
+		m_Extent                                 = ChooseSwapExtent(swapChainSupport.capabilities);
+		m_FormatVK                               = surfaceFormat.format;
 
 		// One more image than the minimum to avoid unneccesary waiting (if possible)
 		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
+		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+		{
 			imageCount = swapChainSupport.capabilities.maxImageCount;
 		}
 
 		// Info for swap chain constructions
 		VkSwapchainCreateInfoKHR createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = m_Surface;
-		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
-		createInfo.imageExtent = m_Extent;
-		createInfo.imageArrayLayers = 1; // Used for 3D images (steroscopic)
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // Render directly to swap chain, if post-processing then TRANSER_DST_BIT is recommended
-		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE; // Ignore the obscured pixles (another window infront or similar)
-		createInfo.oldSwapchain = VK_NULL_HANDLE; // If swap chain is recreated during runtime, having the previous swap chain can help
+		createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		createInfo.surface                  = m_Surface;
+		createInfo.minImageCount            = imageCount;
+		createInfo.imageFormat              = surfaceFormat.format;
+		createInfo.imageColorSpace          = surfaceFormat.colorSpace;
+		createInfo.imageExtent              = m_Extent;
+		createInfo.imageArrayLayers         = 1;                                   // Used for 3D images (steroscopic)
+		createInfo.imageUsage               = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // Render directly to swap chain, if post-processing then TRANSER_DST_BIT is recommended
+		createInfo.preTransform             = swapChainSupport.capabilities.currentTransform;
+		createInfo.compositeAlpha           = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		createInfo.presentMode              = presentMode;
+		createInfo.clipped                  = VK_TRUE;        // Ignore the obscured pixles (another window infront or similar)
+		createInfo.oldSwapchain             = VK_NULL_HANDLE; // If swap chain is recreated during runtime, having the previous swap chain can help
 
 		// If we have several queues (rare) then specify on how to use them
-		QueueFamilyIndices indices = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface);
-		uint32_t queueFamilyIndices[] = {indices.GraphicsFamily.value(), indices.PresentFamily.value()};
-		if (indices.GraphicsFamily != indices.PresentFamily) {
-			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		QueueFamilyIndices indices              = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface);
+		uint32_t           queueFamilyIndices[] = {indices.GraphicsFamily.value(), indices.PresentFamily.value()};
+		if (indices.GraphicsFamily != indices.PresentFamily)
+		{
+			createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
-			createInfo.pQueueFamilyIndices = queueFamilyIndices;
+			createInfo.pQueueFamilyIndices   = queueFamilyIndices;
 		}
-		else {
-			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			createInfo.queueFamilyIndexCount = 0; // Optional
-			createInfo.pQueueFamilyIndices = nullptr; // Optional
+		else
+		{
+			createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+			createInfo.queueFamilyIndexCount = 0;       // Optional
+			createInfo.pQueueFamilyIndices   = nullptr; // Optional
 		}
 
 		// Create the swap chain
@@ -145,15 +147,16 @@ namespace Poly
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
 		// Check if the current physical device supports presentation for the surface
-		QueueFamilyIndices families = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface);
-		VkBool32 presentSupport = false;
+		QueueFamilyIndices families       = FindQueueFamilies(PVKInstance::GetPhysicalDevice(), m_Surface);
+		VkBool32           presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, families.PresentFamily.value(), surface, &presentSupport);
 		POLY_VALIDATE(presentSupport, "Cannot create swapchain, no present support");
 
 		// Get the formats of the device and surface
 		unsigned formatCount;
 		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-		if (formatCount != 0) {
+		if (formatCount != 0)
+		{
 			details.formats.resize(formatCount);
 			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
 		}
@@ -161,7 +164,8 @@ namespace Poly
 		// Get all the supported presentation modes
 		unsigned presentModeCount;
 		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-		if (presentModeCount != 0) {
+		if (presentModeCount != 0)
+		{
 			details.presentModes.resize(presentModeCount);
 			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
 		}
@@ -171,13 +175,15 @@ namespace Poly
 
 	VkExtent2D PVKSwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 	{
-		if (capabilities.currentExtent.width != UINT32_MAX) {
+		if (capabilities.currentExtent.width != UINT32_MAX)
+		{
 			return capabilities.currentExtent;
 		}
-		else {
-			VkExtent2D actualExtent = { p_SwapchainDesc.pWindow->GetWidth(), p_SwapchainDesc.pWindow->GetHeight() };
+		else
+		{
+			VkExtent2D actualExtent = {p_SwapchainDesc.pWindow->GetWidth(), p_SwapchainDesc.pWindow->GetHeight()};
 
-			actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+			actualExtent.width  = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
 			actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
 			return actualExtent;
@@ -187,8 +193,10 @@ namespace Poly
 	VkPresentModeKHR PVKSwapChain::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 	{
 		// Use mailbox if found, if not then settle on FIFO (which always exists)
-		for (const auto& availablePresentMode : availablePresentModes) {
-			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+		for (const auto& availablePresentMode : availablePresentModes)
+		{
+			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+			{
 				return availablePresentMode;
 			}
 		}
@@ -200,8 +208,10 @@ namespace Poly
 	{
 		// Vulkan Tutorial uses format = VK_FORMAT_B8G8R8A8_UNORM, colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
 		VkFormat requestedFormat = ConvertFormatVK(p_SwapchainDesc.Format);
-		for (const auto& availableFormat : availableFormats) {
-			if (availableFormat.format == requestedFormat && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+		for (const auto& availableFormat : availableFormats)
+		{
+			if (availableFormat.format == requestedFormat && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			{
 				return availableFormat;
 			}
 		}
@@ -210,8 +220,10 @@ namespace Poly
 		if (requestedFormat != VK_FORMAT_B8G8R8A8_UNORM)
 		{
 			requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
-			for (const auto& availableFormat : availableFormats) {
-				if (availableFormat.format == requestedFormat && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			for (const auto& availableFormat : availableFormats)
+			{
+				if (availableFormat.format == requestedFormat && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+				{
 					POLY_CORE_ERROR("Failed to find requested format for swapchain, returns VK_FORMAT_B8G8R8A8_UNORM instead!");
 					return availableFormat;
 				}
@@ -235,33 +247,34 @@ namespace Poly
 		m_TextureViews.resize(imageCount);
 		m_Textures.resize(imageCount);
 		m_RenderSemaphores.resize(imageCount);
-		for (size_t i = 0; i < imageCount; i++) {
+		for (size_t i = 0; i < imageCount; i++)
+		{
 			// Texture
-			TextureDesc textureDesc		= {};
-			textureDesc.Width			= m_Extent.width;
-			textureDesc.Height			= m_Extent.height;
-			textureDesc.Depth			= 1;
-			textureDesc.ArrayLayers		= 1;
-			textureDesc.MipLevels		= 1;
-			textureDesc.SampleCount		= 1;
-			textureDesc.Format			= p_SwapchainDesc.Format;
-			textureDesc.MemoryUsage		= EMemoryUsage::GPU_ONLY;
-			textureDesc.TextureDim		= ETextureDim::DIM_2D;
-			textureDesc.TextureUsage	= FTextureUsage::COLOR_ATTACHMENT;
-			m_Textures[i] = CreateRef<PVKTexture>();
+			TextureDesc textureDesc  = {};
+			textureDesc.Width        = m_Extent.width;
+			textureDesc.Height       = m_Extent.height;
+			textureDesc.Depth        = 1;
+			textureDesc.ArrayLayers  = 1;
+			textureDesc.MipLevels    = 1;
+			textureDesc.SampleCount  = 1;
+			textureDesc.Format       = p_SwapchainDesc.Format;
+			textureDesc.MemoryUsage  = EMemoryUsage::GPU_ONLY;
+			textureDesc.TextureDim   = ETextureDim::DIM_2D;
+			textureDesc.TextureUsage = FTextureUsage::COLOR_ATTACHMENT;
+			m_Textures[i]            = CreateRef<PVKTexture>();
 			m_Textures[i]->InitWithImage(&textureDesc, images[i]);
 
 			// Texture view
 			TextureViewDesc textureViewDesc = {};
-			textureViewDesc.Format			= p_SwapchainDesc.Format;
-			textureViewDesc.pTexture		= m_Textures[i].get();
-			textureViewDesc.MipLevel		= 0;
-			textureViewDesc.MipLevelCount	= 1;
-			textureViewDesc.ArrayLayer		= 0;
-			textureViewDesc.ArrayLayerCount	= 1;
-			textureViewDesc.ImageViewFlag	= FImageViewFlag::COLOR;
-			textureViewDesc.ImageViewType	= EImageViewType::TYPE_2D;
-			m_TextureViews[i] = CreateRef<PVKTextureView>();
+			textureViewDesc.Format          = p_SwapchainDesc.Format;
+			textureViewDesc.pTexture        = m_Textures[i].get();
+			textureViewDesc.MipLevel        = 0;
+			textureViewDesc.MipLevelCount   = 1;
+			textureViewDesc.ArrayLayer      = 0;
+			textureViewDesc.ArrayLayerCount = 1;
+			textureViewDesc.ImageViewFlag   = FImageViewFlag::COLOR;
+			textureViewDesc.ImageViewType   = EImageViewType::TYPE_2D;
+			m_TextureViews[i]               = CreateRef<PVKTextureView>();
 			m_TextureViews[i]->Init(&textureViewDesc);
 
 			// Render semaphore
@@ -291,9 +304,9 @@ namespace Poly
 
 		// + 1 to wait for the coming frames submit, and not the previous one
 		const uint64 waitValue =
-			(m_FrameSyncValue + 1) >= p_SwapchainDesc.BufferCount
-			? (m_FrameSyncValue + 1) - p_SwapchainDesc.BufferCount
-			: 0;
+		    (m_FrameSyncValue + 1) >= p_SwapchainDesc.BufferCount
+		        ? (m_FrameSyncValue + 1) - p_SwapchainDesc.BufferCount
+		        : 0;
 		m_FrameSyncPoint->Wait(waitValue);
 
 		VkResult result = vkAcquireNextImageKHR(PVKInstance::GetDevice(), m_SwapChain, UINT64_MAX, m_AcquireSemaphores[m_FrameIndex]->GetNativeVK(), VK_NULL_HANDLE, &m_ImageIndex);
@@ -324,4 +337,4 @@ namespace Poly
 		AcquireNextImage();
 	}
 
-}
+} // namespace Poly

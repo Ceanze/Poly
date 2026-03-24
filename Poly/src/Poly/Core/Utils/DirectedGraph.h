@@ -18,7 +18,7 @@ namespace Poly
 		class Node
 		{
 		public:
-			Node() = default;
+			Node()  = default;
 			~Node() = default;
 
 			const std::vector<uint32>& GetIncommingEdges() const { return m_IncommingEdges; }
@@ -34,7 +34,10 @@ namespace Poly
 		{
 		public:
 			Edge() = default;
-			Edge(uint32 src, uint32 dst) : m_Src(src), m_Dst(dst) {}
+			Edge(uint32 src, uint32 dst)
+			    : m_Src(src)
+			    , m_Dst(dst)
+			{}
 			~Edge() = default;
 
 			uint32 GetSrcNode() const { return m_Src; }
@@ -47,8 +50,7 @@ namespace Poly
 		};
 
 	public:
-
-		DirectedGraph() = default;
+		DirectedGraph()  = default;
 		~DirectedGraph() = default;
 
 		static Ref<DirectedGraph> Create();
@@ -137,7 +139,7 @@ namespace Poly
 
 		std::unordered_map<uint32, Node> m_Nodes;
 		std::unordered_map<uint32, Edge> m_Edges;
-		uint32 m_CurrentNodeIndex = 0;
-		uint32 m_CurrentEdgeIndex = 0;
+		uint32                           m_CurrentNodeIndex = 0;
+		uint32                           m_CurrentEdgeIndex = 0;
 	};
-}
+} // namespace Poly

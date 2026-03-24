@@ -1,17 +1,17 @@
-#include "polypch.h"
 #include "Logger.h"
 
+#include "polypch.h"
+
 #pragma warning(push)
-#pragma warning( disable : 26439 26451 26495 26439 26451 26495 26812 6385 26498 26450 26437 6285)
+#pragma warning(disable : 26439 26451 26495 26439 26451 26495 26812 6385 26498 26450 26437 6285)
 #include <spdlog/sinks/stdout_color_sinks.h>
 #pragma warning(pop)
 
-
-namespace Poly {
+namespace Poly
+{
 
 	std::shared_ptr<spdlog::logger> Logger::coreLogger;
 	std::shared_ptr<spdlog::logger> Logger::clientLogger;
-
 
 	void Logger::init()
 	{
@@ -23,4 +23,4 @@ namespace Poly {
 		clientLogger = spdlog::stderr_color_mt("APP");
 		clientLogger->set_level(spdlog::level::trace);
 	}
-}
+} // namespace Poly

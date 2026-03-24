@@ -1,7 +1,8 @@
 #pragma once
 
-#include <polypch.h>
 #include "PolyID.h"
+
+#include <polypch.h>
 
 struct GLFWwindow;
 
@@ -27,15 +28,15 @@ namespace Poly
 	public:
 		struct Properties
 		{
-			int Width;
-			int Height;
+			int         Width;
+			int         Height;
 			std::string Title;
 		};
 
 	public:
 		Window(Properties properties);
 		~Window();
-		Window(const Window&) = delete;
+		Window(const Window&)            = delete;
 		Window& operator=(const Window&) = delete;
 
 		static Unique<Window> Create(Properties properties);
@@ -60,16 +61,16 @@ namespace Poly
 		struct StateProperties
 		{
 			int Height = 0;
-			int Width = 0;
-			int PosX = 0;
-			int PosY = 0;
+			int Width  = 0;
+			int PosX   = 0;
+			int PosY   = 0;
 		};
 
-		PolyID m_ID;
-		StateProperties m_CurrentProperties;
-		StateProperties m_SavedProperties;
-		Properties m_Properties;
-		GLFWwindow* m_pWindow = nullptr;
+		PolyID                      m_ID;
+		StateProperties             m_CurrentProperties;
+		StateProperties             m_SavedProperties;
+		Properties                  m_Properties;
+		GLFWwindow*                 m_pWindow = nullptr;
 		std::function<void(Event&)> m_EventCallback;
 
 		void SetFullscreen(GLFWwindow* window, bool enable, bool exclusive);
@@ -84,4 +85,4 @@ namespace Poly
 		static void FrameBufferSizeCallback(GLFWwindow* pGLFWWindow, int width, int height);
 		static void WindowPosCallback(GLFWwindow* pGLFWWindow, int posX, int posY);
 	};
-}
+} // namespace Poly

@@ -1,9 +1,9 @@
-#include "polypch.h"
 #include "RenderAPI.h"
 
-#include "Platform/Vulkan/PVKInstance.h"
-#include "Platform/API/Sampler.h"
 #include "Platform/API/CommandQueue.h"
+#include "Platform/API/Sampler.h"
+#include "Platform/Vulkan/PVKInstance.h"
+#include "polypch.h"
 
 namespace Poly
 {
@@ -99,7 +99,8 @@ namespace Poly
 
 	Ref<SyncPoint> RenderAPI::CreateSyncPoint()
 	{
-		return m_pGraphicsInstance->CreateSyncPoint();;
+		return m_pGraphicsInstance->CreateSyncPoint();
+		;
 	}
 
 	Ref<CommandPool> RenderAPI::CreateCommandPool(FQueueType queueType, FCommandPoolFlags flags)
@@ -152,5 +153,4 @@ namespace Poly
 		return m_FramebufferCache.GetFramebuffer(attachments, pDepthAttachment, pPass, width, height);
 	}
 
-
-}
+} // namespace Poly

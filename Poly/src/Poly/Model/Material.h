@@ -8,11 +8,11 @@ namespace Poly
 
 	struct MaterialValues
 	{
-		glm::vec4	Albedo		= {1.0, 1.0, 1.0, 1.0};
-		float		AO			= 1.0;
-		float		Metallic	= 1.0;
-		float		Roughness	= 1.0;
-		float		IsCombined	= 0.0;
+		glm::vec4 Albedo     = {1.0, 1.0, 1.0, 1.0};
+		float     AO         = 1.0;
+		float     Metallic   = 1.0;
+		float     Roughness  = 1.0;
+		float     IsCombined = 0.0;
 	};
 
 	class Material
@@ -30,9 +30,15 @@ namespace Poly
 		};
 
 	public:
-		Material() : m_pModel(nullptr), m_MeshIndex(0) {}
+		Material()
+		    : m_pModel(nullptr)
+		    , m_MeshIndex(0)
+		{}
 
-		Material(Model* pModel, uint32 meshIndex) : m_pModel(pModel), m_MeshIndex(meshIndex) {}
+		Material(Model* pModel, uint32 meshIndex)
+		    : m_pModel(pModel)
+		    , m_MeshIndex(meshIndex)
+		{}
 
 		~Material() = default;
 
@@ -59,11 +65,11 @@ namespace Poly
 		Model* GetModel() const { return m_pModel; }
 
 	private:
-		std::unordered_map<Type, Texture*> m_Textures;
+		std::unordered_map<Type, Texture*>     m_Textures;
 		std::unordered_map<Type, TextureView*> m_TextureViews;
-		MaterialValues m_MaterialValues = {};
+		MaterialValues                         m_MaterialValues = {};
 
 		Model* m_pModel;
 		uint32 m_MeshIndex;
 	};
-}
+} // namespace Poly

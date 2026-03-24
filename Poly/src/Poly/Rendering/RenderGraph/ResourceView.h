@@ -28,8 +28,8 @@ namespace Poly
 		bool IsEmpty() const { return !m_pTextureView && !m_pSampler && !m_pBuffer; }
 
 		const TextureView* GetTextureView() const { return m_pTextureView; }
-		const Sampler* GetSampler() const { return m_pSampler; }
-		const Buffer* GetBuffer() const { return m_pBuffer; }
+		const Sampler*     GetSampler() const { return m_pSampler; }
+		const Buffer*      GetBuffer() const { return m_pBuffer; }
 
 		uint64 GetSpan() const { return m_Span; }
 		uint64 GetOffset() const { return m_Offset; }
@@ -37,11 +37,11 @@ namespace Poly
 	private:
 		ResourceView() = default;
 
-		const TextureView*	m_pTextureView	= nullptr;
-		const Sampler*		m_pSampler		= nullptr;
-		const Buffer*		m_pBuffer		= nullptr;
+		const TextureView* m_pTextureView = nullptr;
+		const Sampler*     m_pSampler     = nullptr;
+		const Buffer*      m_pBuffer      = nullptr;
 
-		uint64 m_Span	= 0;
-		uint64 m_Offset	= 0;
+		uint64 m_Span   = 0;
+		uint64 m_Offset = 0;
 	};
-}
+} // namespace Poly

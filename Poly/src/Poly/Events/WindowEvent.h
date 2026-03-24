@@ -14,7 +14,10 @@ namespace Poly::Events
 	class WindowResized : public Event
 	{
 	public:
-		WindowResized(unsigned width, unsigned height) : m_Width(width), m_Height(height) {}
+		WindowResized(unsigned width, unsigned height)
+		    : m_Width(width)
+		    , m_Height(height)
+		{}
 
 		unsigned GetWidth() const { return m_Width; }
 		unsigned GetHeight() const { return m_Height; }
@@ -30,7 +33,10 @@ namespace Poly::Events
 	class WindowMoved : public Event
 	{
 	public:
-		WindowMoved(int x, int y) : m_X(x), m_Y(y) {}
+		WindowMoved(int x, int y)
+		    : m_X(x)
+		    , m_Y(y)
+		{}
 
 		int GetX() const { return m_X; }
 		int GetY() const { return m_Y; }
@@ -42,4 +48,4 @@ namespace Poly::Events
 		const int m_X;
 		const int m_Y;
 	};
-}
+} // namespace Poly::Events

@@ -2,12 +2,12 @@
 #include <stdint.h>
 
 /*
-*	Credit to Alexander Dahlin (github.com/Mumsfilibaba) for implementation that I stole
-*/
+ *	Credit to Alexander Dahlin (github.com/Mumsfilibaba) for implementation that I stole
+ */
 
 /*
 *	Timestamp is a container for a time that is kept in nano seconds.
-	It gives shorthand functions to get seconds, milliseconds, and microseconds.
+    It gives shorthand functions to get seconds, milliseconds, and microseconds.
 */
 
 namespace Poly
@@ -16,16 +16,18 @@ namespace Poly
 	{
 	public:
 		inline Timestamp(uint64_t nanoSeconds = 0)
-			: m_NanoSeconds(nanoSeconds)
+		    : m_NanoSeconds(nanoSeconds)
 		{}
 
 		inline Timestamp(const Timestamp& other)
-			: m_NanoSeconds(other.m_NanoSeconds)
+		    : m_NanoSeconds(other.m_NanoSeconds)
 		{}
 
 		inline Timestamp(Timestamp&& other) noexcept
-			: m_NanoSeconds(other.m_NanoSeconds)
-		{ other.m_NanoSeconds = 0; }
+		    : m_NanoSeconds(other.m_NanoSeconds)
+		{
+			other.m_NanoSeconds = 0;
+		}
 
 		inline double Seconds() const
 		{
@@ -46,7 +48,9 @@ namespace Poly
 		}
 
 		inline uint64_t NanoSeconds() const
-		{ return m_NanoSeconds; }
+		{
+			return m_NanoSeconds;
+		}
 
 		inline static Timestamp FromSeconds(double seconds)
 		{
@@ -74,7 +78,7 @@ namespace Poly
 
 		inline Timestamp& operator=(Timestamp&& other) noexcept
 		{
-			m_NanoSeconds = other.m_NanoSeconds;
+			m_NanoSeconds       = other.m_NanoSeconds;
 			other.m_NanoSeconds = 0;
 			return *this;
 		}
@@ -117,15 +121,14 @@ namespace Poly
 		friend Timestamp operator-(const Timestamp& lhs, const Timestamp& rhs);
 		friend Timestamp operator*(const Timestamp& lhs, const Timestamp& rhs);
 		friend Timestamp operator/(const Timestamp& lhs, const Timestamp& rhs);
-		friend bool operator>(const Timestamp& lhs, const Timestamp& rhs);
-		friend bool operator<(const Timestamp& lhs, const Timestamp& rhs);
-		friend bool operator>=(const Timestamp& lhs, const Timestamp& rhs);
-		friend bool operator<=(const Timestamp& lhs, const Timestamp& rhs);
+		friend bool      operator>(const Timestamp& lhs, const Timestamp& rhs);
+		friend bool      operator<(const Timestamp& lhs, const Timestamp& rhs);
+		friend bool      operator>=(const Timestamp& lhs, const Timestamp& rhs);
+		friend bool      operator<=(const Timestamp& lhs, const Timestamp& rhs);
 
 	private:
 		uint64_t m_NanoSeconds = 0;
 	};
-
 
 	inline Timestamp operator+(const Timestamp& left, const Timestamp& right)
 	{
@@ -166,4 +169,4 @@ namespace Poly
 	{
 		return (left.m_NanoSeconds <= right.m_NanoSeconds);
 	}
-}
+} // namespace Poly

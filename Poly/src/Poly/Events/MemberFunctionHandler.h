@@ -3,7 +3,7 @@
 #include "Event.h"
 
 /**
-	Classes in order to store member function pointers.
+    Classes in order to store member function pointers.
 **/
 
 namespace Poly
@@ -18,7 +18,7 @@ namespace Poly
 	class HandlerFunctionBase
 	{
 	public:
-		void exec(Event* e) { call(e); }
+		void     exec(Event* e) { call(e); }
 		unsigned ID = 0;
 
 	private:
@@ -29,18 +29,20 @@ namespace Poly
 	class MemberFunctionHandler : public HandlerFunctionBase
 	{
 	public:
-		typedef void (T::* MemberFunction)(EventType*);
+		typedef void (T::*MemberFunction)(EventType*);
 
 		MemberFunctionHandler(T* instance, MemberFunction memberFunction)
-			: instance(instance), memberFunction(memberFunction) {
+		    : instance(instance)
+		    , memberFunction(memberFunction)
+		{
 			ID = getID<T, EventType>(instance);
 		};
 
 		void call(Event* e) { return (instance->*memberFunction)(static_cast<EventType*>(e)); }
 
 	private:
-		T* instance;
+		T*             instance;
 		MemberFunction memberFunction;
 	};
 
-}
+} // namespace Poly

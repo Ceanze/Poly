@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
-
+#include "Platform/API/SyncPoint.h"
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
-#include "Platform/API/SyncPoint.h"
+
+#include <vector>
 
 namespace Poly
 {
@@ -33,7 +33,7 @@ namespace Poly
 		 * Init the CommandQueue object
 		 * @param queueType - Type of queue
 		 * @param queueIndex - Index of queue to create from device - This is the index in the familiy of queues, not the family queue index
-		*/
+		 */
 		virtual void Init(FQueueType queueType, uint32 queueIndex) = 0;
 
 		/**
@@ -74,4 +74,4 @@ namespace Poly
 		 */
 		virtual uint32 GetQueueFamilyIndex() const = 0;
 	};
-}
+} // namespace Poly

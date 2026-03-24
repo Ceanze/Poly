@@ -1,8 +1,8 @@
 #pragma once
 
 #include "PassData.h"
-#include "RenderGraphTypes.h"
 #include "Reflection/PassReflection.h"
+#include "RenderGraphTypes.h"
 
 namespace Poly
 {
@@ -17,7 +17,7 @@ namespace Poly
 	class RenderGraphCompiler
 	{
 	public:
-		RenderGraphCompiler() = default;
+		RenderGraphCompiler()  = default;
 		~RenderGraphCompiler() = default;
 
 		static Ref<RenderGraphCompiler> Create();
@@ -25,19 +25,19 @@ namespace Poly
 		Ref<RenderGraphProgram> Compile(RenderGraph* pRenderGraph, RenderGraphDefaultParams defaultParams);
 
 	private:
-		void SetupExecutionOrder();
-		void CompilePasses();
-		void ValidateGraph();
-		void AllocateResources();
-		void AddSync(bool* pNewPasses);
-		bool IsResourceUsed(const ResID& resID, uint32 nodeIndex);
-		bool IsResourceGraphOutput(const ResID& resID, uint32 nodeIndex);
-		FAccessFlag GetAccessFlag(FResourceBindPoint bindPoint, bool isInput);
+		void           SetupExecutionOrder();
+		void           CompilePasses();
+		void           ValidateGraph();
+		void           AllocateResources();
+		void           AddSync(bool* pNewPasses);
+		bool           IsResourceUsed(const ResID& resID, uint32 nodeIndex);
+		bool           IsResourceGraphOutput(const ResID& resID, uint32 nodeIndex);
+		FAccessFlag    GetAccessFlag(FResourceBindPoint bindPoint, bool isInput);
 		FPipelineStage GetPipelineStage(FResourceBindPoint bindPoint);
 
-		RenderGraph*				m_pRenderGraph = nullptr;
-		std::vector<PassData>		m_OrderedPasses;
-		Ref<ResourceCache>			m_pResourceCache = nullptr;
-		RenderGraphDefaultParams	m_DefaultParams = {};
+		RenderGraph*             m_pRenderGraph = nullptr;
+		std::vector<PassData>    m_OrderedPasses;
+		Ref<ResourceCache>       m_pResourceCache = nullptr;
+		RenderGraphDefaultParams m_DefaultParams  = {};
 	};
-}
+} // namespace Poly

@@ -22,27 +22,27 @@ namespace Poly
 		PassField& AddPassthrough(std::string name);
 
 		/*
-		* Adds a shader to the pass reflection. The shader reflection data will be used to populate the pass reflection.
-		* (TODO) Conflicting data will try to merge is possible, otherwise be ignored and warned about.
-		* @param shaderID - PolyID of an existing shader
-		*/
+		 * Adds a shader to the pass reflection. The shader reflection data will be used to populate the pass reflection.
+		 * (TODO) Conflicting data will try to merge is possible, otherwise be ignored and warned about.
+		 * @param shaderID - PolyID of an existing shader
+		 */
 		void AddShader(PolyID shaderID);
 
-		bool HasField(std::string_view fieldName) const;
-		PassField& GetField(std::string_view fieldName);
-		const PassField& GetField(std::string_view fieldName) const;
-		std::vector<PassField*> GetFields(FFieldVisibility visibility);
+		bool                          HasField(std::string_view fieldName) const;
+		PassField&                    GetField(std::string_view fieldName);
+		const PassField&              GetField(std::string_view fieldName) const;
+		std::vector<PassField*>       GetFields(FFieldVisibility visibility);
 		std::vector<const PassField*> GetFields(FFieldVisibility visibility) const;
-		std::vector<PassField*> GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion);
+		std::vector<PassField*>       GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion);
 		std::vector<const PassField*> GetFieldsFiltered(FFieldVisibility visibility, FResourceBindPoint exclusion) const;
 
 		void AddPushConstant(std::string name, FShaderStage shaderStage, uint64 size, uint64 offset);
 
-		bool HasPushConstant(std::string_view name) const;
-		const PushConstantData& GetPushConstant(std::string_view name) const;
+		bool                              HasPushConstant(std::string_view name) const;
+		const PushConstantData&           GetPushConstant(std::string_view name) const;
 		std::span<const PushConstantData> GetPushConstants() const;
 
-		void DisableAutoBindForSet(uint32 setIndex);
+		void                    DisableAutoBindForSet(uint32 setIndex);
 		const std::set<uint32>& GetAutoBindedSets() const;
 		const std::set<uint32>& GetNonAutoBindedSets() const;
 
@@ -50,14 +50,14 @@ namespace Poly
 
 	private:
 		PassField& AddField(std::string name, FFieldVisibility visibility);
-		void AddShaderBindings(const ShaderData& shader);
-		void AddShaderPushConstants(const ShaderData& shader);
-		void AddShaderInputs(const ShaderData& shader);
-		void AddShaderOutputs(const ShaderData& shader);
+		void       AddShaderBindings(const ShaderData& shader);
+		void       AddShaderPushConstants(const ShaderData& shader);
+		void       AddShaderInputs(const ShaderData& shader);
+		void       AddShaderOutputs(const ShaderData& shader);
 
-		std::vector<PassField> m_Fields;
+		std::vector<PassField>        m_Fields;
 		std::vector<PushConstantData> m_PushConstants;
-		std::set<uint32> m_AutoBindedSets;
-		std::set<uint32> m_ManualSets;
+		std::set<uint32>              m_AutoBindedSets;
+		std::set<uint32>              m_ManualSets;
 	};
-}
+} // namespace Poly

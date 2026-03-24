@@ -11,7 +11,6 @@ namespace Poly
 
 	void ShaderManager::Init()
 	{
-
 	}
 
 	void ShaderManager::Release()
@@ -21,20 +20,20 @@ namespace Poly
 
 	PolyID ShaderManager::CreateShader(std::string_view path, FShaderStage shaderStage)
 	{
-		PolyID hash{ std::hash<std::string_view>{}(path) };
+		PolyID hash{std::hash<std::string_view>{}(path)};
 
 		if (s_Shaders.contains(hash))
 			return hash;
 
 		const std::vector<byte> shaderCode = ResourceLoader::LoadShader(path, shaderStage);
 
-		ShaderDesc desc = {};
-		desc.EntryPoint = "main"; // TODO: Make customizable
-		desc.ShaderCode = shaderCode;
-		desc.ShaderStage = shaderStage;
+		ShaderDesc desc    = {};
+		desc.EntryPoint    = "main"; // TODO: Make customizable
+		desc.ShaderCode    = shaderCode;
+		desc.ShaderStage   = shaderStage;
 		Ref<Shader> shader = RenderAPI::CreateShader(&desc);
 
-		ShaderReflector reflector(shaderCode);
+		ShaderReflector  reflector(shaderCode);
 		ShaderReflection reflection = reflector.Reflect();
 
 		//{
@@ -53,7 +52,7 @@ namespace Poly
 		//	POLY_TRACE("-------------------------");
 		//}
 
-		s_Shaders[hash] = { shaderStage, shader, reflection };
+		s_Shaders[hash] = {shaderStage, shader, reflection};
 
 		return hash;
 	}
@@ -66,10 +65,10 @@ namespace Poly
 	const ShaderData& ShaderManager::GetShader(PolyID shaderID)
 	{
 		const auto& shaderData = s_Shaders.find(shaderID);
-		const bool exist = shaderData != s_Shaders.end();
+		const bool  exist      = shaderData != s_Shaders.end();
 		POLY_VALIDATE(exist, "Shader data cannot be gotten, shaderID {} is invalid", shaderID);
 
 		if (exist)
 			return shaderData->second;
 	}
-}
+} // namespace Poly

@@ -14,9 +14,9 @@ namespace Poly
 		virtual void Init(const FramebufferDesc* pDesc) override final;
 
 		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Framebuffer); }
-		VkFramebuffer GetNativeVK() const { return m_Framebuffer; }
+		VkFramebuffer  GetNativeVK() const { return m_Framebuffer; }
 
 	private:
 		VkFramebuffer m_Framebuffer = VK_NULL_HANDLE;
 	};
-}
+} // namespace Poly

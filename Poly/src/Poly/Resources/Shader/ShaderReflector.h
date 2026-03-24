@@ -16,7 +16,7 @@ namespace Poly
 		ShaderReflection Reflect();
 
 	private:
-		bool m_isValid = false;
+		bool                           m_isValid = false;
 		Unique<SpvReflectShaderModule> m_Module;
 	};
-}
+} // namespace Poly

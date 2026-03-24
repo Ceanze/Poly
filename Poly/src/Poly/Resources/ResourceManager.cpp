@@ -1,15 +1,15 @@
-#include "polypch.h"
 #include "ResourceManager.h"
 
 #include "IOManager.h"
-#include "ResourceLoader.h"
-#include "ResourceImporter.h"
-#include "Poly/Model/Mesh.h"
-#include "Poly/Model/Model.h"
-#include "Poly/Model/Material.h"
-#include "Poly/Core/RenderAPI.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/TextureView.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Poly/Model/Material.h"
+#include "Poly/Model/Mesh.h"
+#include "Poly/Model/Model.h"
+#include "polypch.h"
+#include "ResourceImporter.h"
+#include "ResourceLoader.h"
 
 namespace Poly
 {
@@ -33,18 +33,18 @@ namespace Poly
 		PolyID pathID = PolyID::None();
 		if (type == ResourceType::MODEL || type == ResourceType::MESH)
 		{
-			pathID = ResourceImporter::ImportModel(path);
-			m_IDToHandle[pathID] = { .Index = UINT32_MAX, .Type = ResourceType::MODEL, .IsLoaded = false };
+			pathID               = ResourceImporter::ImportModel(path);
+			m_IDToHandle[pathID] = {.Index = UINT32_MAX, .Type = ResourceType::MODEL, .IsLoaded = false};
 		}
 		else if (type == ResourceType::TEXTURE)
 		{
-			pathID = ResourceImporter::ImportTexture(path);
-			m_IDToHandle[pathID] = { .Index = UINT32_MAX, .Type = ResourceType::TEXTURE, .IsLoaded = false };
+			pathID               = ResourceImporter::ImportTexture(path);
+			m_IDToHandle[pathID] = {.Index = UINT32_MAX, .Type = ResourceType::TEXTURE, .IsLoaded = false};
 		}
 		else if (type == ResourceType::MATERIAL)
 		{
-			pathID = ResourceImporter::ImportMaterial(path);
-			m_IDToHandle[pathID] = { .Index = UINT32_MAX, .Type = ResourceType::MATERIAL, .IsLoaded = false };
+			pathID               = ResourceImporter::ImportMaterial(path);
+			m_IDToHandle[pathID] = {.Index = UINT32_MAX, .Type = ResourceType::MATERIAL, .IsLoaded = false};
 		}
 
 		return pathID;
@@ -70,22 +70,22 @@ namespace Poly
 
 		// TODO: Grab necessary data from texture
 		Poly::TextureViewDesc textureViewDesc = {
-			.pTexture			= pTex.get(),
-			.ImageViewType		= Poly::EImageViewType::TYPE_2D,
-			.Format				= format,
-			.ImageViewFlag		= Poly::FImageViewFlag::COLOR,
-			.MipLevel			= 0,
-			.MipLevelCount		= 1,
-			.ArrayLayer			= 0,
-			.ArrayLayerCount	= 1,
+		    .pTexture        = pTex.get(),
+		    .ImageViewType   = Poly::EImageViewType::TYPE_2D,
+		    .Format          = format,
+		    .ImageViewFlag   = Poly::FImageViewFlag::COLOR,
+		    .MipLevel        = 0,
+		    .MipLevelCount   = 1,
+		    .ArrayLayer      = 0,
+		    .ArrayLayerCount = 1,
 		};
 		Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&textureViewDesc);
 
 		uint32 index = static_cast<uint32>(m_Textures.size());
-		m_Textures.push_back({ .pTexture = pTex, .pTextureView = pTextureView });
+		m_Textures.push_back({.pTexture = pTex, .pTextureView = pTextureView});
 
-		handle.Index	= index;
-		handle.IsLoaded	= true;
+		handle.Index    = index;
+		handle.IsLoaded = true;
 	}
 
 	PolyID ResourceManager::ImportAndLoadTexture(const std::string& path, EFormat format)
@@ -97,9 +97,9 @@ namespace Poly
 		if (!m_IDToHandle.contains(pathID))
 		{
 			ResourceHandle handle = {};
-			handle.Path = relativePath;
-			handle.Type	= ResourceType::TEXTURE;
-			m_IDToHandle[pathID] = handle;
+			handle.Path           = relativePath;
+			handle.Type           = ResourceType::TEXTURE;
+			m_IDToHandle[pathID]  = handle;
 		}
 
 		LoadTexture(pathID, format);
@@ -125,8 +125,8 @@ namespace Poly
 		uint32 index = static_cast<uint32>(m_Models.size());
 		m_Models.push_back(pModel);
 
-		handle.Index	= index;
-		handle.IsLoaded	= true;
+		handle.Index    = index;
+		handle.IsLoaded = true;
 	}
 
 	PolyID ResourceManager::ImportAndLoadModel(const std::string& path, Entity root)
@@ -138,9 +138,9 @@ namespace Poly
 		if (!m_IDToHandle.contains(pathID))
 		{
 			ResourceHandle handle = {};
-			handle.Path = relativePath;
-			handle.Type	= ResourceType::MODEL;
-			m_IDToHandle[pathID] = handle;
+			handle.Path           = relativePath;
+			handle.Type           = ResourceType::MODEL;
+			m_IDToHandle[pathID]  = handle;
 		}
 
 		LoadModel(pathID, root);
@@ -162,11 +162,11 @@ namespace Poly
 			return;
 
 		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(handle.Path);
-		uint32 index = static_cast<uint32>(m_Materials.size());
+		uint32        index     = static_cast<uint32>(m_Materials.size());
 		m_Materials.push_back(pMaterial);
 
-		handle.Index	= index;
-		handle.IsLoaded	= true;
+		handle.Index    = index;
+		handle.IsLoaded = true;
 	}
 
 	PolyID ResourceManager::ImportAndLoadMaterial(const std::string& path)
@@ -178,9 +178,9 @@ namespace Poly
 		if (!m_IDToHandle.contains(pathID))
 		{
 			ResourceHandle handle = {};
-			handle.Path = relativePath;
-			handle.Type	= ResourceType::MATERIAL;
-			m_IDToHandle[pathID] = handle;
+			handle.Path           = relativePath;
+			handle.Type           = ResourceType::MATERIAL;
+			m_IDToHandle[pathID]  = handle;
 		}
 
 		LoadMaterial(pathID);
@@ -329,9 +329,9 @@ namespace Poly
 	{
 		RegisterDefaultMaterial();
 
-		ResourceHandle handle = {};
-		handle.Index = 0;
-		handle.IsLoaded = true;
+		ResourceHandle handle             = {};
+		handle.Index                      = 0;
+		handle.IsLoaded                   = true;
 		m_IDToHandle[DEFAULT_MATERIAL_ID] = handle;
 	}
 
@@ -341,21 +341,21 @@ namespace Poly
 
 		m_Materials.push_back(pMaterial);
 
-		uint32 width	= 1;
-		uint32 height	= 1;
-		uint32 channels	= 4;
-		byte data[4] = { 255, 255, 255, 255 };
+		uint32       width    = 1;
+		uint32       height   = 1;
+		uint32       channels = 4;
+		byte         data[4]  = {255, 255, 255, 255};
 		Ref<Texture> pTexture = ResourceLoader::LoadTextureFromMemory(&data, width, height, channels, EFormat::R8G8B8A8_UNORM);
 
 		Poly::TextureViewDesc textureViewDesc = {
-			.pTexture			= pTexture.get(),
-			.ImageViewType		= Poly::EImageViewType::TYPE_2D,
-			.Format				= EFormat::R8G8B8A8_UNORM,
-			.ImageViewFlag		= Poly::FImageViewFlag::COLOR,
-			.MipLevel			= 0,
-			.MipLevelCount		= 1,
-			.ArrayLayer			= 0,
-			.ArrayLayerCount	= 1,
+		    .pTexture        = pTexture.get(),
+		    .ImageViewType   = Poly::EImageViewType::TYPE_2D,
+		    .Format          = EFormat::R8G8B8A8_UNORM,
+		    .ImageViewFlag   = Poly::FImageViewFlag::COLOR,
+		    .MipLevel        = 0,
+		    .MipLevelCount   = 1,
+		    .ArrayLayer      = 0,
+		    .ArrayLayerCount = 1,
 		};
 		Ref<TextureView> pTextureView = RenderAPI::CreateTextureView(&textureViewDesc);
 
@@ -375,11 +375,11 @@ namespace Poly
 		{
 			if (!m_IDToHandle.contains(importedResource.ResourceID))
 			{
-				ResourceHandle handle = {};
-				handle.Path = path;
-				handle.Type	= importedResource.Type;
-				handle.IsLoaded = false;
-				handle.Index = UINT32_MAX;
+				ResourceHandle handle                     = {};
+				handle.Path                               = path;
+				handle.Type                               = importedResource.Type;
+				handle.IsLoaded                           = false;
+				handle.Index                              = UINT32_MAX;
 				m_IDToHandle[importedResource.ResourceID] = handle;
 			}
 		}
@@ -393,10 +393,9 @@ namespace Poly
 		return m_IDToHandle[id].Type == type && m_IDToHandle[id].IsLoaded;
 	}
 
-
-	std::vector<ManagedTexture>	ResourceManager::m_Textures;
-	std::vector<Ref<Model>>		ResourceManager::m_Models;
-	std::vector<Ref<Material>>	ResourceManager::m_Materials;
+	std::vector<ManagedTexture> ResourceManager::m_Textures;
+	std::vector<Ref<Model>>     ResourceManager::m_Models;
+	std::vector<Ref<Material>>  ResourceManager::m_Materials;
 
 	std::unordered_map<PolyID, ResourceManager::ResourceHandle> ResourceManager::m_IDToHandle;
-}
+} // namespace Poly

@@ -42,17 +42,17 @@ namespace Poly
 
 		PushConstantBlock m_PushConstantData;
 
-		Ref<Texture>		m_pFontTexture;
-		Ref<TextureView>	m_pFontTextureView;
-		Ref<Sampler>		m_pFontSampler;
-		Ref<Buffer>			m_pVertexBuffer;
-		Ref<Buffer>			m_pIndexBuffer;
+		Ref<Texture>     m_pFontTexture;
+		Ref<TextureView> m_pFontTextureView;
+		Ref<Sampler>     m_pFontSampler;
+		Ref<Buffer>      m_pVertexBuffer;
+		Ref<Buffer>      m_pIndexBuffer;
 
 		Ref<StagingBufferCache> m_pStagingBufferCache;
 
 		std::unordered_map<uint32, std::vector<Ref<Buffer>>> m_BuffersToBeDestroyed;
 
 		std::unordered_map<uint64, uint32> m_TextureToIndex;
-		uint32 m_TextureSet = 0;
+		uint32                             m_TextureSet = 0;
 	};
-}
+} // namespace Poly

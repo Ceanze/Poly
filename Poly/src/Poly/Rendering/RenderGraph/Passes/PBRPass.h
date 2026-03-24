@@ -8,7 +8,7 @@ namespace Poly
 	class PBRPass : public RenderPass
 	{
 	public:
-		PBRPass() = default;
+		PBRPass()  = default;
 		~PBRPass() = default;
 
 		virtual void Compile() override final;
@@ -22,4 +22,4 @@ namespace Poly
 	private:
 		SceneRenderer m_SceneRenderer;
 	};
-}
+} // namespace Poly

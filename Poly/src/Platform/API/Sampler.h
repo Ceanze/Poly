@@ -7,18 +7,18 @@ namespace Poly
 {
 	struct SamplerDesc
 	{
-		EFilter				MinFilter		= EFilter::NONE;
-		EFilter				MagFilter		= EFilter::NONE;
-		ESamplerAddressMode AddressModeU	= ESamplerAddressMode::NONE;
-		ESamplerAddressMode AddressModeV	= ESamplerAddressMode::NONE;
-		ESamplerAddressMode AddressModeW	= ESamplerAddressMode::NONE;
-		ESamplerMipmapMode	MipMapMode		= ESamplerMipmapMode::NONE;
-		EBorderColor		BorderColor		= EBorderColor::NONE;
-		float				MipLodBias		= 0.0f;
-		float				MinLod			= 0.0f;
-		float				MaxLod			= 0.0f;
-		bool				AnistropyEnable	= false;
-		float				MaxAnisotropy	= 16.0f;
+		EFilter             MinFilter       = EFilter::NONE;
+		EFilter             MagFilter       = EFilter::NONE;
+		ESamplerAddressMode AddressModeU    = ESamplerAddressMode::NONE;
+		ESamplerAddressMode AddressModeV    = ESamplerAddressMode::NONE;
+		ESamplerAddressMode AddressModeW    = ESamplerAddressMode::NONE;
+		ESamplerMipmapMode  MipMapMode      = ESamplerMipmapMode::NONE;
+		EBorderColor        BorderColor     = EBorderColor::NONE;
+		float               MipLodBias      = 0.0f;
+		float               MinLod          = 0.0f;
+		float               MaxLod          = 0.0f;
+		bool                AnistropyEnable = false;
+		float               MaxAnisotropy   = 16.0f;
 	};
 
 	class Sampler
@@ -31,7 +31,7 @@ namespace Poly
 		/**
 		 * Init the Sampler object
 		 * @param desc	Sampler creation description
-		*/
+		 */
 		virtual void Init(const SamplerDesc* pDesc) = 0;
 
 		/**
@@ -60,4 +60,4 @@ namespace Poly
 		inline static Ref<Sampler> s_pLinearSampler;
 		inline static Ref<Sampler> s_pNearestSampler;
 	};
-}
+} // namespace Poly

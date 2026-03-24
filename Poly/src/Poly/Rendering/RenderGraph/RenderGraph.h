@@ -1,9 +1,9 @@
 #pragma once
 
-#include "RenderGraphTypes.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
-#include "Poly/Rendering/RenderGraph/PassID.h"
 #include "Poly/Rendering/RenderGraph/EdgeData.h"
+#include "Poly/Rendering/RenderGraph/PassID.h"
+#include "RenderGraphTypes.h"
 
 #include <unordered_set>
 
@@ -218,9 +218,9 @@ namespace Poly
 		struct Output
 		{
 			uint32 NodeID;
-			ResID ResourceID;
+			ResID  ResourceID;
 
-			bool operator== (const Output& other) const
+			bool operator==(const Output& other) const
 			{
 				return NodeID == other.NodeID && ResourceID == other.ResourceID;
 			}
@@ -234,13 +234,13 @@ namespace Poly
 			}
 		};
 
-		std::string m_Name = "";
-		Ref<DirectedGraph> m_pGraph;
-		std::unordered_map<PassID, uint32> m_NameToNodeIndex;
-		std::unordered_map<uint32, Ref<Pass>> m_Passes;
-		std::unordered_map<uint32, EdgeData> m_Edges;
+		std::string                                 m_Name = "";
+		Ref<DirectedGraph>                          m_pGraph;
+		std::unordered_map<PassID, uint32>          m_NameToNodeIndex;
+		std::unordered_map<uint32, Ref<Pass>>       m_Passes;
+		std::unordered_map<uint32, EdgeData>        m_Edges;
 		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
-		uint32 m_ExternalPassNodeID = DirectedGraph::INVALID_ID;
-		RenderGraphDefaultParams m_DefaultParams;
+		uint32                                      m_ExternalPassNodeID = DirectedGraph::INVALID_ID;
+		RenderGraphDefaultParams                    m_DefaultParams;
 	};
-}
+} // namespace Poly

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <unordered_map>
-
 #include "Poly/Core/PolyID.h"
+
+#include <unordered_map>
 
 namespace Poly
 {
@@ -14,15 +14,15 @@ namespace Poly
 
 	struct PassWindowResources
 	{
-		std::vector<CommandBuffer*>		CommandBuffers;
-		std::vector<Ref<Framebuffer>>	Framebuffers;
+		std::vector<CommandBuffer*>   CommandBuffers;
+		std::vector<Ref<Framebuffer>> Framebuffers;
 	};
 
 	struct PassResources
 	{
-		Ref<GraphicsRenderPass>				GraphicsRenderPass;
-		Ref<PipelineLayout>					PipelineLayout;
-		Ref<GraphicsPipeline>				GraphicsPipeline;
-		std::unordered_map<PolyID, PassWindowResources>	PassWindowResources;
+		Ref<GraphicsRenderPass>                         GraphicsRenderPass;
+		Ref<PipelineLayout>                             PipelineLayout;
+		Ref<GraphicsPipeline>                           GraphicsPipeline;
+		std::unordered_map<PolyID, PassWindowResources> PassWindowResources;
 	};
-}
+} // namespace Poly

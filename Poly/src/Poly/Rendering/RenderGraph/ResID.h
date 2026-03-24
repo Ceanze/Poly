@@ -20,16 +20,16 @@ namespace Poly
 		static ResID Invalid() { return ResID(); }
 
 		const std::string& GetName() const;
-		bool IsValid() const;
-		std::string GetNameAsExternal() const;
-		PassResID GetAsExternal() const;
+		bool               IsValid() const;
+		std::string        GetNameAsExternal() const;
+		PassResID          GetAsExternal() const;
 
 		bool operator==(const ResID& other) const noexcept;
 
 	private:
 		std::string m_Name;
 	};
-}
+} // namespace Poly
 
 namespace std
 {
@@ -41,4 +41,4 @@ namespace std
 			return hash<std::string>()(resID.GetName());
 		}
 	};
-}
+} // namespace std

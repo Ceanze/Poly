@@ -16,12 +16,12 @@ namespace Poly
 	protected:
 		struct RenderPassAttachment
 		{
-			std::string		Name			= "";
-			ETextureLayout	InitalLayout	= ETextureLayout::UNDEFINED;
-			ETextureLayout	UsedLayout		= ETextureLayout::UNDEFINED;
-			ETextureLayout	FinalLayout		= ETextureLayout::UNDEFINED;
-			EFormat			Format			= EFormat::UNDEFINED;
-			uint32			Index			= 0;
+			std::string    Name         = "";
+			ETextureLayout InitalLayout = ETextureLayout::UNDEFINED;
+			ETextureLayout UsedLayout   = ETextureLayout::UNDEFINED;
+			ETextureLayout FinalLayout  = ETextureLayout::UNDEFINED;
+			EFormat        Format       = EFormat::UNDEFINED;
+			uint32         Index        = 0;
 		};
 
 	public:
@@ -69,10 +69,10 @@ namespace Poly
 		friend class RenderGraph;
 
 		std::vector<RenderPassAttachment> p_Attachments;
-		bool p_usesDepthStencil = false;
+		bool                              p_usesDepthStencil = false;
 
 	private:
-		void AdaptAttachmentsSize(uint32 index);
+		void                                                        AdaptAttachmentsSize(uint32 index);
 		std::optional<std::reference_wrapper<RenderPassAttachment>> GetAttachment(const std::string& name);
 	};
-}
+} // namespace Poly

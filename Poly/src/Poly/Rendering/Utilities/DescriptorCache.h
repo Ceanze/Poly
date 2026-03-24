@@ -12,25 +12,29 @@ namespace Poly
 	private:
 		struct RemovableDescriptorSet
 		{
-			RemovableDescriptorSet(Ref<DescriptorSet> pSet, uint64 currentSyncPointValue) : pSet(pSet), SyncPointValue(currentSyncPointValue) {}
+			RemovableDescriptorSet(Ref<DescriptorSet> pSet, uint64 currentSyncPointValue)
+			    : pSet(pSet)
+			    , SyncPointValue(currentSyncPointValue)
+			{}
 
-			Ref<DescriptorSet> pSet = nullptr;
-			uint64 SyncPointValue	= 0;
+			Ref<DescriptorSet> pSet           = nullptr;
+			uint64             SyncPointValue = 0;
 		};
 
 	public:
 		DescriptorCache();
 		~DescriptorCache() = default;
 
-		enum class EAction {
+		enum class EAction
+		{
 			GET,
 			GET_OR_CREATE
 		};
 
 		/**
-		* Used to clear up the cache correctely. Call this ONCE per frame submit to make sure the cache gets notified when a frame is done.
-		* @return SyncPoint
-		*/
+		 * Used to clear up the cache correctely. Call this ONCE per frame submit to make sure the cache gets notified when a frame is done.
+		 * @return SyncPoint
+		 */
 		SyncPointValue GetSignalSyncPointValue();
 
 		/**
@@ -89,13 +93,13 @@ namespace Poly
 
 	private:
 		Ref<DescriptorSet> CreateDescriptor(uint32 set, uint32 index, uint32 offset);
-		bool HasDescriptor(uint32 set, uint32 index, uint32 offset);
-		bool ValidateOffset(uint32& offset, uint32 segmentSize);
+		bool               HasDescriptor(uint32 set, uint32 index, uint32 offset);
+		bool               ValidateOffset(uint32& offset, uint32 segmentSize);
 
-		PipelineLayout* m_pPipelineLayout = nullptr;
+		PipelineLayout*                                                          m_pPipelineLayout = nullptr;
 		std::unordered_map<uint32, std::vector<std::vector<Ref<DescriptorSet>>>> m_Descriptors;
-		std::vector<RemovableDescriptorSet> m_RemovableDescriptors;
-		Ref<SyncPoint> m_pSyncPoint;
-		uint64 m_SyncPointValue = 0;
+		std::vector<RemovableDescriptorSet>                                      m_RemovableDescriptors;
+		Ref<SyncPoint>                                                           m_pSyncPoint;
+		uint64                                                                   m_SyncPointValue = 0;
 	};
-}
+} // namespace Poly

@@ -1,17 +1,18 @@
-#include "polypch.h"
 #include "DirectedGraphHelper.h"
+
+#include "polypch.h"
 
 namespace Poly
 {
 	DirectedGraphHelper::DirectedGraphHelper(Ref<DirectedGraph> pGraph, uint32 rootNode, CreateFlags flags)
 	{
-		m_pGraph = pGraph;
+		m_pGraph   = pGraph;
 		m_RootNode = rootNode;
-		m_Flags = flags;
+		m_Flags    = flags;
 
 		Reset(rootNode);
 	}
-	
+
 	uint32 DirectedGraphHelper::Traverse(bool checkCycle)
 	{
 		if (m_TraverseStack.empty())
@@ -40,7 +41,7 @@ namespace Poly
 			m_Visited[currNode] = true;
 		}
 
-		bool reversed = BitsSet(m_Flags, CreateFlags::REVERSE);
+		bool                       reversed = BitsSet(m_Flags, CreateFlags::REVERSE);
 		const std::vector<uint32>& children = reversed ? m_pGraph->GetNode(currNode)->GetIncommingEdges() : m_pGraph->GetNode(currNode)->GetOutgoingEdges();
 		for (const auto& child : children)
 		{
@@ -71,7 +72,7 @@ namespace Poly
 		for (uint32 i = 0; i < m_pGraph->CurrentNodeIndex(); i++)
 		{
 			// Graph does not know which indices that are nodes (could be removed), therefore check that
-			const bool visited = m_Visited[i];
+			const bool visited   = m_Visited[i];
 			const bool nodeExist = m_pGraph->NodeExists(i);
 			if (!visited && nodeExist)
 			{
@@ -104,7 +105,7 @@ namespace Poly
 
 		// First currNode will be the root (from), skip that
 		uint32 currNode = Traverse(true);
-		currNode = Traverse(true);
+		currNode        = Traverse(true);
 		while (currNode != INVALID_ID)
 		{
 			if (currNode == to)
@@ -150,4 +151,4 @@ namespace Poly
 
 		nodeStack.push(node);
 	}
-}
+} // namespace Poly

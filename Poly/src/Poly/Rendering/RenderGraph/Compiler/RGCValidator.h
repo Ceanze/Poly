@@ -11,4 +11,4 @@ namespace Poly
 
 		bool Execute(RGCContext& ctx);
 	};
-}
+} // namespace Poly

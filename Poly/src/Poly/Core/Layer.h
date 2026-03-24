@@ -2,13 +2,14 @@
 
 #include "Timestamp.h"
 
-namespace Poly {
+namespace Poly
+{
 	class Event;
 
 	class Layer
 	{
 	public:
-		Layer() = default;
+		Layer()          = default;
 		virtual ~Layer() = default;
 
 		virtual void OnAttach() {};
@@ -17,4 +18,4 @@ namespace Poly {
 		virtual void OnUpdate(Timestamp dt) {};
 	};
 
-}
+} // namespace Poly

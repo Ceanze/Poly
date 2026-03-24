@@ -5,9 +5,9 @@
 #include <crtdbg.h>
 #endif
 
-#include <stdlib.h>
-
 #include "Engine.h"
+
+#include <stdlib.h>
 
 extern Poly::Application* Poly::CreateApplication();
 

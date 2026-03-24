@@ -1,15 +1,14 @@
 #include "EntitySerializer.h"
 
-#include "Entity.h"
 #include "Components.h"
-
+#include "Entity.h"
 #include "Poly/Model/Model.h"
-
 #include "Poly/Resources/ResourceManager.h"
 
 #include <yaml-cpp/yaml.h>
 
-namespace YAML {
+namespace YAML
+{
 
 	template<>
 	struct convert<glm::vec2>
@@ -112,7 +111,7 @@ namespace YAML {
 			return true;
 		}
 	};
-}
+} // namespace YAML
 
 namespace Poly
 {
@@ -186,8 +185,8 @@ namespace Poly
 		emitter << YAML::Key << "HierarchyComponent";
 		emitter << YAML::BeginMap;
 
-		auto& hierarchyComp = entity.GetComponent<HierarchyComponent>();
-		Scene* pScene = entity.GetScene();
+		auto&  hierarchyComp = entity.GetComponent<HierarchyComponent>();
+		Scene* pScene        = entity.GetScene();
 		emitter << YAML::Key << "ChildrenCount" << YAML::Value << static_cast<int>(hierarchyComp.ChildrenCount);
 		emitter << YAML::Key << "Parent" << YAML::Value << pScene->GetIdOfEntity(hierarchyComp.Parent);
 		emitter << YAML::Key << "First" << YAML::Value << pScene->GetIdOfEntity(hierarchyComp.First);
@@ -215,7 +214,7 @@ namespace Poly
 		TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
 
 		transformComp.Translation = node["Translation"].as<glm::vec3>();
-		transformComp.Scale = node["Scale"].as<glm::vec3>();
+		transformComp.Scale       = node["Scale"].as<glm::vec3>();
 		transformComp.Orientation = node["Orientation"].as<glm::quat>();
 	}
 
@@ -225,10 +224,10 @@ namespace Poly
 		HierarchyComponent& hierarchyComp = entity.GetComponent<HierarchyComponent>();
 
 		hierarchyComp.ChildrenCount = static_cast<uint8>(node["ChildrenCount"].as<int>());
-		hierarchyComp.Parent = entity.GetScene()->GetOrCreateEntityWithID(node["Parent"].as<uint64>());
-		hierarchyComp.First = entity.GetScene()->GetOrCreateEntityWithID(node["First"].as<uint64>());
-		hierarchyComp.Next = entity.GetScene()->GetOrCreateEntityWithID(node["Next"].as<uint64>());
-		hierarchyComp.Previous = entity.GetScene()->GetOrCreateEntityWithID(node["Previous"].as<uint64>());
+		hierarchyComp.Parent        = entity.GetScene()->GetOrCreateEntityWithID(node["Parent"].as<uint64>());
+		hierarchyComp.First         = entity.GetScene()->GetOrCreateEntityWithID(node["First"].as<uint64>());
+		hierarchyComp.Next          = entity.GetScene()->GetOrCreateEntityWithID(node["Next"].as<uint64>());
+		hierarchyComp.Previous      = entity.GetScene()->GetOrCreateEntityWithID(node["Previous"].as<uint64>());
 	}
 
 	void EntitySerializer::DeserializeMeshComponent(YAML::Node& node, Entity& entity)
@@ -239,7 +238,7 @@ namespace Poly
 			return;
 		}
 
-		PolyID modelID = PolyID(node["Model"].as<uint64>());
+		PolyID modelID   = PolyID(node["Model"].as<uint64>());
 		uint32 meshIndex = node["MeshIndex"].as<uint32>();
 
 		Model* pModel;
@@ -253,4 +252,4 @@ namespace Poly
 
 		entity.AddComponent<MeshComponent>(pModel, meshIndex);
 	}
-}
+} // namespace Poly

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Pass.h"
-#include "RenderGraphTypes.h"
 #include "Poly/Rendering/RenderGraph/ResID.h"
+#include "RenderGraphTypes.h"
 
 namespace Poly
 {
@@ -18,8 +18,8 @@ namespace Poly
 		~ExternalPass() override = default;
 
 		virtual PassReflection Reflect() override final { return PassReflection{}; }
-		virtual void Execute(const RenderContext&, const RenderData&) override final {}
-		virtual void Compile() override final {}
+		virtual void           Execute(const RenderContext&, const RenderData&) override final {}
+		virtual void           Compile() override final {}
 
 		void RegisterResource(const ResID& guid, const ResourceInfo& info);
 
@@ -32,4 +32,4 @@ namespace Poly
 	private:
 		std::unordered_map<ResID, ResourceInfo> m_Resources;
 	};
-}
+} // namespace Poly
