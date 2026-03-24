@@ -2,7 +2,7 @@
 
 #include "RenderGraphTypes.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
-#include "Poly/Rendering/RenderGraph/ResourceGUID.h"
+#include "Poly/Rendering/RenderGraph/PassID.h"
 #include "Poly/Rendering/RenderGraph/EdgeData.h"
 
 #include <unordered_set>
@@ -158,7 +158,7 @@ namespace Poly
 		/**
 		 * Add a global input resource node to the graph. This resource will be in the global space
 		 * which means it will use the $ prefix, i.e. resource name will become $.resource
-		 * @param resourceGUID - Resource GUID. External resources use "$" or "" for pass name
+		 * @param resID - Resource ID. External resources use "$" or "" for pass name
 		 * @param size - Size of the buffer that will be used for this resource
 		 * @param bufferUsage - Type of buffer
 		 * @param data - (Optional) pointer to data if transfer to buffer should be done at creation of buffer

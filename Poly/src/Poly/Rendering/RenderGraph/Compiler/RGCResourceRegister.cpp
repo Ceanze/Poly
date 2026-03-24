@@ -50,7 +50,7 @@ namespace Poly
 		for (auto& input : inputs)
 		{
 			PassResID inputID(compiledPass.pPass->GetName(), input->GetName());
-			PassResID aliasID = GetAliasedResourceGUID(ctx, compiledPass, inputID);
+			PassResID aliasID = GetAliasedPassResID(ctx, compiledPass, inputID);
 
 			// Passthroughs (INPUT + OUTPUT) with no provided input are not aliased - they create the resource (and are registed as an Output)
 			if (aliasID == PassResID::Invalid() && BitsSet(input->GetVisibility(), FFieldVisibility::OUTPUT))
@@ -80,7 +80,7 @@ namespace Poly
 		}
 	}
 
-	PassResID RGCResourceRegister::GetAliasedResourceGUID(RGCContext& ctx, CompiledPass& compiledPass, const PassResID& inputID)
+	PassResID RGCResourceRegister::GetAliasedPassResID(RGCContext& ctx, CompiledPass& compiledPass, const PassResID& inputID)
 	{
 		const auto& incommingEdges = ctx.RenderGraph.m_pGraph->GetNode(compiledPass.GraphNodeIndex)->GetIncommingEdges();
 		for (auto edgeID : incommingEdges)

@@ -2,7 +2,9 @@
 
 #include <variant>
 
-#include "Poly/Rendering/RenderGraph/ResourceGUID.h"
+#include "Poly/Rendering/RenderGraph/PassID.h"
+#include "Poly/Rendering/RenderGraph/ResID.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 namespace Poly
 {

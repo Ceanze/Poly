@@ -259,7 +259,7 @@ namespace Poly
 				continue;
 
 			// Check if pass has the requested resource, continue if not
-			const PassResID mappedResource = GetMappedResourceGUID(passResID, pPass, passIndex);
+			const PassResID mappedResource = GetMappedPassResID(passResID, pPass, passIndex);
 			if (!mappedResource.HasResource())
 				continue;
 
@@ -662,7 +662,7 @@ namespace Poly
 		return passRes.GraphicsPipeline.get();
 	}
 
-	PassResID RenderGraphProgram::GetMappedResourceGUID(const PassResID& passResID, const Ref<Pass>& pPass, uint32 passIndex)
+	PassResID RenderGraphProgram::GetMappedPassResID(const PassResID& passResID, const Ref<Pass>& pPass, uint32 passIndex)
 	{
 		PassResID mappedResource = m_pResourceCache->GetMappedResourceName(passResID, PassID(pPass->GetName()));
 		if (!mappedResource.HasResource())

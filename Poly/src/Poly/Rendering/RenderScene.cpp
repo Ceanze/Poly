@@ -5,6 +5,7 @@
 #include "Poly/Scene/Components.h"
 #include "Poly/Model/Material.h"
 #include "Poly/Model/Mesh.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 #include "Platform/API/Buffer.h" // TODO: See if this can be removed (needed to get Vertex buffer size)
 

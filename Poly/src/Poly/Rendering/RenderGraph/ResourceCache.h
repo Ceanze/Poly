@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include "ResourceGUID.h"
+#include "PassResID.h"
 #include "RenderGraphTypes.h"
 #include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
 
@@ -150,7 +150,7 @@ namespace Poly
 		*
 		* @param PassResID - the pass resource ID to get the canonical GUID for, following "passName.resource" syntax
 		*
-		* @return canonical ResourceGUID, or ResourceGUID::Invalid() if not found
+		* @return canonical PassResID, or PassResID::Invalid() if not found
 		*/
 		PassResID GetCanonicalGUID(const PassResID& passResID);
 
@@ -164,7 +164,7 @@ namespace Poly
 		 * OR additional bindpoints into an already-registered resource's PassField.
 		 * Used to widen usage flags before allocation (e.g. adding SHADER_READ after the
 		 * debug texture injector decides a resource needs to be sampled).
-		 * @param resourceGUID - resource to update
+		 * @param PassResID - resource to update
 		 * @param additionalBindpoint - bindpoint flags to add
 		 */
 		void AddBindpoint(const PassResID& passResID, FResourceBindPoint additionalBindpoint);

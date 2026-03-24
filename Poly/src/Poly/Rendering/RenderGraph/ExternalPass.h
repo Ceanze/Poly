@@ -2,7 +2,7 @@
 
 #include "Pass.h"
 #include "RenderGraphTypes.h"
-#include "Poly/Rendering/RenderGraph/ResourceGUID.h"
+#include "Poly/Rendering/RenderGraph/ResID.h"
 
 namespace Poly
 {

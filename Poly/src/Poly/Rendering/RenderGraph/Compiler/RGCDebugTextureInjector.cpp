@@ -7,7 +7,7 @@
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/RenderGraph/Pass.h"
 #include "Poly/Rendering/RenderGraph/SyncPass.h"
-#include "Poly/Rendering/RenderGraph/ResourceGUID.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 #include "Poly/Rendering/RenderGraph/ResourceCache.h"
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Rendering/RenderGraph/Reflection/PassField.h"

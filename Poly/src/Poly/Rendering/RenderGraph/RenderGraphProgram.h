@@ -3,16 +3,17 @@
 #include "PassData.h"
 #include "RenderGraphTypes.h"
 #include "ResourceView.h"
-#include "ResourceGUID.h"
 #include "PassResources.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 #include <map>
 
 namespace Poly
 {
 	class Pass;
+	class ResID;
 	class Scene;
 	class Resource;
 	class TextureView;
@@ -53,7 +54,7 @@ namespace Poly
 
 		/**
 		* Creates a new resource, if not already existing, for the given resource GUID, and tranfers the optionally provided data
-		* @param resourceGUID - name of resource to create. Note: Resource must be in the global/external space, i.e. the prefix is empty or $.
+		* @param resID - ID of resource to create. Note: Resource must be in the global/external space, i.e. the prefix is empty or $.
 		*						Internal resources between passes are created automatically when an output from a pass exist, see RenderGraph for more
 		 * @param size - size of the data to update with
 		 * @param data - pointer to the data, nullptr if no data
@@ -152,12 +153,12 @@ namespace Poly
 		 * For example, if a pass has an input resource "inputResource" that is mapped to an output resource "outputResource" from another pass,
 		 * then this function will return the GUID for "outputResource" when given the GUID for "inputResource" and the pass reference.
 		 *
-		 * @param resourceGUID - original resource GUID
+		 * @param passResID - original pass resource ID to get the mapping for
 		 * @param pPass - pass reference
 		 * @param passIndex - index of the pass
 		 * @return mapped resource GUID to the desired pass, invalid otherwise.
 		 */
-		PassResID GetMappedResourceGUID(const PassResID& passResID, const Ref<Pass>& pPass, uint32 passIndex);
+		PassResID GetMappedPassResID(const PassResID& passResID, const Ref<Pass>& pPass, uint32 passIndex);
 
 		// Debug textures
 		std::vector<PassResID> m_DebugTextureGUIDs;

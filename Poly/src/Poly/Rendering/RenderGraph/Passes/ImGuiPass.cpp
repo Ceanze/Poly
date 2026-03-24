@@ -15,6 +15,7 @@
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 #include <imgui.h>
 

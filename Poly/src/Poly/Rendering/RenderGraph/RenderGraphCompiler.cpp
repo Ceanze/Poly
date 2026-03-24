@@ -9,7 +9,7 @@
 #include "RenderPass.h"
 #include "RenderGraph.h"
 #include "ExternalPass.h"
-#include "ResourceGUID.h"
+#include "PassResID.h"
 #include "ResourceCache.h"
 #include "RenderGraphProgram.h"
 #include "Poly/Core/Utils/DirectedGraphHelper.h"
