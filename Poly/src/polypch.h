@@ -15,10 +15,10 @@
 #pragma warning(push)
 #pragma warning(disable : 26495) // Disable uninitalized warning from GLM (it's a lot)
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/quaternion.hpp"
-#include "glm/gtc/quaternion.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/quaternion.hpp>
 #pragma warning(pop)
 
 // Custom files

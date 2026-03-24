@@ -5,36 +5,40 @@
 namespace Poly
 {
 	PassResID::PassResID()
-		: m_Pass("")
-		, m_Resource("") {}
+	    : m_Pass("")
+	    , m_Resource("")
+	{}
 
 	PassResID::PassResID(const std::string& passName, const std::string& resourceName)
-		: m_Pass(passName.empty() ? "$" : passName)
-		, m_Resource(resourceName) {}
+	    : m_Pass(passName.empty() ? "$" : passName)
+	    , m_Resource(resourceName)
+	{}
 
 	PassResID::PassResID(const PassID& pass, const ResID& resource)
-		: m_Pass(pass)
-		, m_Resource(resource) {}
+	    : m_Pass(pass)
+	    , m_Resource(resource)
+	{}
 
 	PassResID::PassResID(const PassResID& other)
-		: m_Pass(other.m_Pass)
-		, m_Resource(other.m_Resource) {}
+	    : m_Pass(other.m_Pass)
+	    , m_Resource(other.m_Resource)
+	{}
 
 	PassResID::PassResID(PassResID&& other)
-		: m_Pass(std::move(other.m_Pass))
-		, m_Resource(std::move(other.m_Resource)) {}
-
+	    : m_Pass(std::move(other.m_Pass))
+	    , m_Resource(std::move(other.m_Resource))
+	{}
 
 	PassResID& PassResID::operator=(const PassResID& other)
 	{
-		m_Pass = other.m_Pass;
+		m_Pass     = other.m_Pass;
 		m_Resource = other.m_Resource;
 		return *this;
 	}
 
 	PassResID& PassResID::operator=(PassResID&& other)
 	{
-		m_Pass = std::move(other.m_Pass);
+		m_Pass     = std::move(other.m_Pass);
 		m_Resource = std::move(other.m_Resource);
 		return *this;
 	}
@@ -73,4 +77,4 @@ namespace Poly
 		else
 			return m_Pass == other.m_Pass && m_Resource == other.m_Resource;
 	}
-}
+} // namespace Poly
