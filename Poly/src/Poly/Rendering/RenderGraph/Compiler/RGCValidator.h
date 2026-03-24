@@ -2,7 +2,7 @@
 
 namespace Poly
 {
-	class RGCContext;
+	struct RGCContext;
 
 	class RGCValidator
 	{

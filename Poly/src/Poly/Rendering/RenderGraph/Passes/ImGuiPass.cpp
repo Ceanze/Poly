@@ -15,6 +15,7 @@
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 #include <imgui.h>
 
@@ -85,7 +86,8 @@ namespace Poly
 
 		Ref<Resource> pFontRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "sTexture");
 		pFontRes->SetSampler(m_pFontSampler);
-		context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pFontRes.get(), 0);
+		PassResID textureResID = { "ImGuiPass", "sTexture" };
+		context.GetRenderGraphProgram()->UpdateGraphResource(textureResID, pFontRes.get(), 0);
 
 		// Iterate through draw data and find other textures
 		for (int i = 0; i < pDrawData->CmdListsCount; i++)
@@ -106,7 +108,7 @@ namespace Poly
 
 					Ref<Resource> pRes = Resource::Create(pTexture, pTextureView, "sTexture");
 					pRes->SetSampler(m_pFontSampler);
-					context.GetRenderGraphProgram()->UpdateGraphResource({ "ImGuiPass.sTexture" }, pRes.get(), m_TextureToIndex[texID]);
+					context.GetRenderGraphProgram()->UpdateGraphResource(textureResID, pRes.get(), m_TextureToIndex[texID]);
 				}
 			}
 		}

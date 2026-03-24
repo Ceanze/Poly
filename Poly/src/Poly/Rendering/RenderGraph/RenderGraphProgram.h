@@ -3,16 +3,17 @@
 #include "PassData.h"
 #include "RenderGraphTypes.h"
 #include "ResourceView.h"
-#include "ResourceGUID.h"
 #include "PassResources.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 #include <map>
 
 namespace Poly
 {
 	class Pass;
+	class ResID;
 	class Scene;
 	class Resource;
 	class TextureView;
@@ -34,7 +35,7 @@ namespace Poly
 		RenderGraphProgram(Ref<ResourceCache> pResourceCache, RenderGraphDefaultParams defaultParams, std::vector<PassData> passes);
 		~RenderGraphProgram() = default;
 
-		void SetDebugTextureGUIDs(std::vector<ResourceGUID> guids) { m_DebugTextureGUIDs = std::move(guids); }
+		void SetDebugTextureGUIDs(std::vector<PassResID> guids) { m_DebugTextureGUIDs = std::move(guids); }
 
 		/**
 		 * USED BY THE RENDER GRAPH
@@ -53,7 +54,7 @@ namespace Poly
 
 		/**
 		* Creates a new resource, if not already existing, for the given resource GUID, and tranfers the optionally provided data
-		* @param resourceGUID - name of resource to create. Note: Resource must be in the global/external space, i.e. the prefix is empty or $.
+		* @param resID - ID of resource to create. Note: Resource must be in the global/external space, i.e. the prefix is empty or $.
 		*						Internal resources between passes are created automatically when an output from a pass exist, see RenderGraph for more
 		 * @param size - size of the data to update with
 		 * @param data - pointer to the data, nullptr if no data
@@ -61,17 +62,17 @@ namespace Poly
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the data as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		*/
-		void CreateResource(ResourceGUID resourceGUID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset = 0, uint32 index = 0);
+		void CreateResource(const ResID& resID, uint64 size, const void* data, FBufferUsage bufferUsage, uint64 offset = 0, uint32 index = 0);
 
 		/**
 		* @return true if resource exists, false otherwise
 		*/
-		bool HasResource(ResourceGUID resourceGUID) const;
+		bool HasResource(const PassResID& passResID) const;
 
 		/**
-		* @return resource if it exists, nullptr otherwise
+		* @return external resource if it exists, nullptr otherwise
 		*/
-		const Resource* GetResource(ResourceGUID resourceGUID) const;
+		const Resource* GetResource(const PassResID& passResID) const;
 
 		/**
 		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
@@ -80,7 +81,7 @@ namespace Poly
 		 * @param pResource - resource to update with - nullptr if resource is same and only updated binding. If resource is provided, all bindings using this resource will also be updated.
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(ResourceGUID resourceGUID, const Resource* pResource, uint32 index = 0);
+		void UpdateGraphResource(const PassResID& passResID, const Resource* pResource, uint32 index = 0);
 
 		/**
 		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
@@ -90,7 +91,7 @@ namespace Poly
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the ResourceView as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(ResourceGUID resourceGUID, ResourceView view, uint32 index = 0);
+		void UpdateGraphResource(const PassResID& passResID, ResourceView view, uint32 index = 0);
 
 		/**
 		 * Updates an existing resource's descriptor - must be done when the resource has changed size or if
@@ -101,7 +102,7 @@ namespace Poly
 		 * @param offset - offset of the descriptor to update - remember to check the offset of the data as well
 		 * @param index - index of descriptor to update if multiple resources per binding point
 		 */
-		void UpdateGraphResource(ResourceGUID resourceGUID, uint64 size, const void* data, uint64 offset = 0, uint32 index = 0);
+		void UpdateGraphResource(const PassResID& passResID, uint64 size, const void* data, uint64 offset = 0, uint32 index = 0);
 
 		/**
 		 * USED BY THE RENDERER
@@ -131,13 +132,13 @@ namespace Poly
 		 * @param guid - resource GUID following "passName.resourceName" format
 		 * @return TextureView pointer, or nullptr if not found or debug textures are disabled
 		 */
-		TextureView* GetDebugTextureView(const ResourceGUID& guid) const;
+		TextureView* GetDebugTextureView(const PassResID& passResID) const;
 
 		/**
 		 * Returns all resource GUIDs that were made available for debug texture sampling.
 		 * Only populated when the render graph was compiled with EnableDebugTextures = true.
 		 */
-		const std::vector<ResourceGUID>& GetDebugTextureGUIDs() const { return m_DebugTextureGUIDs; }
+		const std::vector<PassResID>& GetDebugTextureGUIDs() const { return m_DebugTextureGUIDs; }
 
 	private:
 		void InitPipelineLayouts();
@@ -147,10 +148,20 @@ namespace Poly
 		Framebuffer* GetFramebuffer(const Ref<Pass>& pPass, uint32 passIndex);
 		GraphicsPipeline* GetGraphicsPipeline(const Ref<Pass>& pPass, uint32 passIndex);
 
-		ResourceGUID GetMappedResourceGUID(const ResourceGUID& resourceGUID, const Ref<Pass>& pPass, uint32 passIndex);
+		/**
+		 * Gets the mapped resource GUID for a given resource GUID and pass.
+		 * For example, if a pass has an input resource "inputResource" that is mapped to an output resource "outputResource" from another pass,
+		 * then this function will return the GUID for "outputResource" when given the GUID for "inputResource" and the pass reference.
+		 *
+		 * @param passResID - original pass resource ID to get the mapping for
+		 * @param pPass - pass reference
+		 * @param passIndex - index of the pass
+		 * @return mapped resource GUID to the desired pass, invalid otherwise.
+		 */
+		PassResID GetMappedPassResID(const PassResID& passResID, const Ref<Pass>& pPass, uint32 passIndex);
 
 		// Debug textures
-		std::vector<ResourceGUID> m_DebugTextureGUIDs;
+		std::vector<PassResID> m_DebugTextureGUIDs;
 
 		// General
 		Ref<Scene> m_pScene;

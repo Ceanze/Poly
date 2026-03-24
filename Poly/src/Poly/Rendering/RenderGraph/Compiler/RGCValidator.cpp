@@ -3,6 +3,7 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
 #include "Poly/Rendering/RenderGraph/Pass.h"
+#include "Poly/Rendering/RenderGraph/EdgeData.h"
 
 namespace Poly
 {
@@ -28,7 +29,7 @@ namespace Poly
 
 			for (const PassField* input : inputs)
 			{
-				ResourceGUID dstGUID(passData.pPass->GetName(), input->GetName());
+				PassResID dstGUID(passData.pPass->GetName(), input->GetName());
 				bool valid = false;
 
 				// Current implementation of ArrayInputs does not require a resource to be set
@@ -39,10 +40,14 @@ namespace Poly
 				if (BitsSet(input->GetVisibility(), FFieldVisibility::OUTPUT))
 					continue;
 
-				for (auto edgeID : incommingEdges)
+				for (uint32 edgeID : incommingEdges)
 				{
-					auto& edgeData = ctx.RenderGraph.m_Edges[edgeID];
-					if (edgeData.Dst == dstGUID)
+					const EdgeData& edgeData = ctx.RenderGraph.m_Edges.at(edgeID);
+
+					if (!edgeData.IsDataDependency())
+						continue;
+
+					if (edgeData.GetDstPassRes() == dstGUID)
 					{
 						valid = true;
 						break;

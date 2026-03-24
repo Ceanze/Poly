@@ -10,6 +10,7 @@
 #include "Poly/Rendering/RenderGraph/ResourceCache.h"
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
+#include "Poly/Rendering/RenderGraph/EdgeData.h"
 
 namespace Poly
 {
@@ -19,7 +20,7 @@ namespace Poly
 
 	struct ResourceUsage
 	{
-		std::string		Name		= "";
+		ResID			ResID		= ResID::Invalid();
 		ETextureLayout	Layout		= ETextureLayout::UNDEFINED;
 		FAccessFlag		AccessMask	= FAccessFlag::NONE;
 		FPipelineStage	Stage		= FPipelineStage::NONE;
@@ -33,7 +34,7 @@ namespace Poly
 
 		// Live state per physical resource, keyed by canonical GUID (ResourceCache::GetCanonicalGUID)
 		// Absence in map = {UNDEFINED, NONE, NONE} (resource not yet touched)
-		std::unordered_map<ResourceGUID, ResourceState, ResourceGUIDHasher> CurrentResourceState;
+		std::unordered_map<PassResID, ResourceState> CurrentResourceState;
 	};
 
 	struct SyncPassData
@@ -132,8 +133,12 @@ namespace Poly
 
 		for (uint32 edgeID : pNode->GetOutgoingEdges())
 		{
-			const ResourceGUID& srcGUID = ctx.RenderGraph.m_Edges[edgeID].Src;
-			ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(srcGUID);
+			const EdgeData& edgeData = ctx.RenderGraph.m_Edges.at(edgeID);
+			if (!edgeData.IsDataDependency())
+				continue;
+
+			PassResID srcGUID = edgeData.GetSrcPassResOrExternal();
+			PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(srcGUID);
 			if (!canonicalGUID.HasResource())
 				continue;
 
@@ -165,7 +170,7 @@ namespace Poly
 					layout = GetTextureLayout(field->GetBindPoint(), true);
 
 				ResourceUsage usage;
-				usage.Name       = field->GetName();
+				usage.ResID      = ResID(field->GetName());
 				usage.Layout     = layout;
 				usage.AccessMask = GetAccessFlag(field->GetBindPoint(), true);
 				usage.Stage      = GetPipelineStage(field->GetBindPoint(), true);
@@ -182,7 +187,7 @@ namespace Poly
 					layout = GetTextureLayout(field->GetBindPoint(), false);
 
 				ResourceUsage usage;
-				usage.Name       = field->GetName();
+				usage.ResID      = ResID(field->GetName());
 				usage.Layout     = layout;
 				usage.AccessMask = GetAccessFlag(field->GetBindPoint(), false);
 				usage.Stage      = GetPipelineStage(field->GetBindPoint(), false);
@@ -227,8 +232,8 @@ namespace Poly
 			{
 				for (const ResourceUsage& usage : invalidatesIt->second)
 				{
-					ResourceGUID dstGUID(passName, usage.Name);
-					ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(dstGUID);
+					PassResID dstGUID(PassID(passName), usage.ResID);
+					PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(dstGUID);
 					if (!canonicalGUID.HasResource())
 						continue;
 
@@ -239,7 +244,11 @@ namespace Poly
 						bool hasIncomingEdge = false;
 						for (uint32 edgeID : inEdges)
 						{
-							if (ctx.RenderGraph.m_Edges[edgeID].Dst.GetResourceName() == usage.Name)
+							const EdgeData& edgeData = ctx.RenderGraph.m_Edges.at(edgeID);
+							if (!edgeData.IsDataDependency())
+								continue;
+
+							if (edgeData.GetDstPassRes().GetResource() == usage.ResID)
 							{
 								hasIncomingEdge = true;
 								break;
@@ -275,7 +284,7 @@ namespace Poly
 
 							SyncPass::SyncData syncData = {};
 							syncData.Type             = SyncPass::SyncType::TEXTURE;
-							syncData.ResourceName     = usage.Name;
+							syncData.ResourceName     = usage.ResID.GetName();
 							syncData.SrcLayout        = current.Layout;
 							syncData.DstLayout        = usage.Layout;
 							syncData.SrcAccessFlag    = srcAccess;
@@ -284,14 +293,17 @@ namespace Poly
 							syncData.DstPipelineStage = usage.Stage;
 							pSyncPass->AddSyncData(syncData);
 
-							ctx.pResourceCache->RegisterSyncResource({ syncPassName, usage.Name }, dstGUID);
+							ctx.pResourceCache->RegisterSyncResource(PassResID(PassID(syncPassName), usage.ResID), dstGUID);
 
 							// Find incoming edge for this resource and mark it broken
 							const auto& incomingEdges = ctx.RenderGraph.m_pGraph->GetNode(nodeIndex)->GetIncommingEdges();
 							for (uint32 edgeID : incomingEdges)
 							{
-								const auto& edge = ctx.RenderGraph.m_Edges[edgeID];
-								if (edge.Dst.GetResourceName() == usage.Name)
+								const auto& edge = ctx.RenderGraph.m_Edges.at(edgeID);
+								if (!edge.IsDataDependency())
+									continue;
+
+								if (edge.GetDstPassRes().GetResource() == usage.ResID)
 								{
 									brokenEdges.insert(edgeID);
 									break;
@@ -302,7 +314,7 @@ namespace Poly
 							if (isRenderPass)
 							{
 								auto* pRenderPass = static_cast<RenderPass*>(compiledPass.pPass.get());
-								pRenderPass->SetAttachmentInital(usage.Name, usage.Layout);
+								pRenderPass->SetAttachmentInital(usage.ResID.GetName(), usage.Layout);
 							}
 						}
 					}
@@ -322,7 +334,7 @@ namespace Poly
 
 							SyncPass::SyncData syncData = {};
 							syncData.Type             = SyncPass::SyncType::BUFFER;
-							syncData.ResourceName     = usage.Name;
+							syncData.ResourceName     = usage.ResID.GetName();
 							syncData.SrcLayout        = ETextureLayout::UNDEFINED;
 							syncData.DstLayout        = ETextureLayout::UNDEFINED;
 							syncData.SrcAccessFlag    = srcAccess;
@@ -331,13 +343,16 @@ namespace Poly
 							syncData.DstPipelineStage = usage.Stage;
 							pSyncPass->AddSyncData(syncData);
 
-							ctx.pResourceCache->RegisterSyncResource({ syncPassName, usage.Name }, dstGUID);
+							ctx.pResourceCache->RegisterSyncResource(PassResID(PassID(syncPassName), usage.ResID), dstGUID);
 
 							const auto& incomingEdges = ctx.RenderGraph.m_pGraph->GetNode(nodeIndex)->GetIncommingEdges();
 							for (uint32 edgeID : incomingEdges)
 							{
-								const auto& edge = ctx.RenderGraph.m_Edges[edgeID];
-								if (edge.Dst.GetResourceName() == usage.Name)
+								const EdgeData& edge = ctx.RenderGraph.m_Edges.at(edgeID);
+								if (!edge.IsDataDependency())
+									continue;
+
+								if (edge.GetDstPassRes().GetResource() == usage.ResID)
 								{
 									brokenEdges.insert(edgeID);
 									break;
@@ -359,8 +374,8 @@ namespace Poly
 			{
 				for (const ResourceUsage& usage : flushesIt->second)
 				{
-					ResourceGUID outputGUID(passName, usage.Name);
-					ResourceGUID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(outputGUID);
+					PassResID outputGUID(PassID(passName), usage.ResID);
+					PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(outputGUID);
 					if (!canonicalGUID.HasResource())
 						continue;
 
@@ -405,7 +420,7 @@ namespace Poly
 			if (lastPassIt != compiledPasses.end() && lastPassIt->pPass->GetPassType() == Pass::Type::RENDER)
 			{
 				auto* pRenderPass = static_cast<RenderPass*>(lastPassIt->pPass.get());
-				pRenderPass->SetAttachmentFinal(output.ResourceName, ETextureLayout::PRESENT);
+				pRenderPass->SetAttachmentFinal(output.ResourceID.GetName(), ETextureLayout::PRESENT);
 			}
 
 			// Find the first render pass with a COLOR_ATTACHMENT_OPTIMAL attachment and clear it
@@ -442,7 +457,7 @@ namespace Poly
 					if (compiledPasses[i].GraphNodeIndex == output.NodeID && i >= lastOutputIndex)
 					{
 						lastOutputIndex = i;
-						resourceName    = output.ResourceName;
+						resourceName    = output.ResourceID.GetName();
 					}
 				}
 			}
@@ -463,17 +478,21 @@ namespace Poly
 	{
 		for (const auto& syncPassData : syncPasses)
 		{
-			const std::string& syncPassName = syncPassData.pSyncPass->GetName();
-			ctx.RenderGraph.AddPass(syncPassData.pSyncPass, syncPassName);
+			const PassID& syncPassID = PassID(syncPassData.pSyncPass->GetName());
+			ctx.RenderGraph.AddPass(syncPassData.pSyncPass, syncPassID);
 
 			for (uint32 edgeID : syncPassData.brokenEdgeIDs)
 			{
-				const ResourceGUID srcGUID = ctx.RenderGraph.GetEdgeData(edgeID).Src;
-				const ResourceGUID dstGUID = ctx.RenderGraph.GetEdgeData(edgeID).Dst;
+				const EdgeData& edgeData = ctx.RenderGraph.m_Edges.at(edgeID);
+				if (!edgeData.IsDataDependency())
+					continue;
 
-				ctx.RenderGraph.RemoveLink(srcGUID, dstGUID);
-				ctx.RenderGraph.AddLink(srcGUID, { syncPassName, dstGUID.GetResourceName() });
-				ctx.RenderGraph.AddLink({ syncPassName, dstGUID.GetResourceName() }, dstGUID);
+				const PassResID srcID = edgeData.GetSrcPassRes();
+				const PassResID dstID = edgeData.GetDstPassRes();
+
+				ctx.RenderGraph.RemoveLink(srcID, dstID);
+				ctx.RenderGraph.AddLink(srcID, PassResID(syncPassID, dstID.GetResource()));
+				ctx.RenderGraph.AddLink(PassResID(syncPassID, dstID.GetResource()), dstID);
 			}
 		}
 

@@ -5,6 +5,7 @@
 #include "Poly/Rendering/RenderGraph/Pass.h"
 #include "Poly/Rendering/RenderGraph/ExternalPass.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
+#include "Poly/Rendering/RenderGraph/EdgeData.h"
 
 namespace Poly
 {
@@ -48,22 +49,22 @@ namespace Poly
 		auto inputs = compiledPass.Reflection.GetFields(FFieldVisibility::INPUT);
 		for (auto& input : inputs)
 		{
-			ResourceGUID resourceGUID(compiledPass.pPass->GetName(), input->GetName());
-			ResourceGUID aliasGUID = GetAliasedResourceGUID(ctx, compiledPass, resourceGUID);
+			PassResID inputID(compiledPass.pPass->GetName(), input->GetName());
+			PassResID aliasID = GetAliasedPassResID(ctx, compiledPass, inputID);
 
 			// Passthroughs (INPUT + OUTPUT) with no provided input are not aliased - they create the resource (and are registed as an Output)
-			if (aliasGUID == ResourceGUID::Invalid() && BitsSet(input->GetVisibility(), FFieldVisibility::OUTPUT))
+			if (aliasID == PassResID::Invalid() && BitsSet(input->GetVisibility(), FFieldVisibility::OUTPUT))
 				continue;
 
-			if (aliasGUID == ResourceGUID::Invalid() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
+			if (aliasID == PassResID::Invalid() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 			{
 				POLY_CORE_ERROR("Tried to alias resource '{}', but no connection has been made. If a resource is not marked as INTERNAL_USE,"
-								"then it is expected that there is a connection made in the render graph.", resourceGUID.GetFullName());
+								"then it is expected that there is a connection made in the render graph.", inputID.GetFullName());
 				return;
 			}
 
 			// TODO: Remove timepoint from registration step - is not valid after sync is added
-			ctx.pResourceCache->RegisterResource(resourceGUID, 0, *input, aliasGUID);
+			ctx.pResourceCache->RegisterResource(inputID, 0, *input, aliasID);
 		}
 	}
 
@@ -73,27 +74,27 @@ namespace Poly
 		for (auto& output : outputs)
 		{
 			// Check if aliased, register if it isn't
-			ResourceGUID resourceGUID(compiledPass.pPass->GetName(), output->GetName());
-			if (!ctx.pResourceCache->IsResourceRegistered(resourceGUID))
-			{
-				// TODO: Remove timepoint from registration step - is not valid after sync is added
-				ctx.pResourceCache->RegisterResource(resourceGUID, 0, *output);
-			}
+			PassResID outputID(compiledPass.pPass->GetName(), output->GetName());
+			if (!ctx.pResourceCache->IsResourceRegistered(outputID))
+				ctx.pResourceCache->RegisterResource(outputID, 0, *output);
 		}
 	}
 
-	ResourceGUID RGCResourceRegister::GetAliasedResourceGUID(RGCContext& ctx, CompiledPass& compiledPass, ResourceGUID resourceGUID)
+	PassResID RGCResourceRegister::GetAliasedPassResID(RGCContext& ctx, CompiledPass& compiledPass, const PassResID& inputID)
 	{
 		const auto& incommingEdges = ctx.RenderGraph.m_pGraph->GetNode(compiledPass.GraphNodeIndex)->GetIncommingEdges();
 		for (auto edgeID : incommingEdges)
 		{
-			auto& edgeData = ctx.RenderGraph.m_Edges[edgeID];
-			if (edgeData.Dst == resourceGUID)
+			const EdgeData& edgeData = ctx.RenderGraph.m_Edges.at(edgeID);
+			if (!edgeData.IsDataDependency())
+				continue;
+
+			if (edgeData.GetDstPassRes() == inputID)
 			{
-				return edgeData.Src;
+				return edgeData.GetSrcPassResOrExternal();
 			}
 		}
 
-		return ResourceGUID::Invalid();
+		return PassResID::Invalid();
 	}
 }

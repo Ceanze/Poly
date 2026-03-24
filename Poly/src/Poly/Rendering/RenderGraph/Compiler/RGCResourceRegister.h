@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Poly/Rendering/RenderGraph/ResourceGUID.h>
+#include <Poly/Rendering/RenderGraph/PassResID.h>
 
 namespace Poly
 {
@@ -19,6 +19,6 @@ namespace Poly
 		void RegisterResources(RGCContext& ctx);
 		void AliasInputs(RGCContext& ctx, CompiledPass& compiledPass);
 		void RegisterOutputs(RGCContext& ctx, CompiledPass& compiledPass);
-		ResourceGUID GetAliasedResourceGUID(RGCContext& ctx, CompiledPass& compiledPass, ResourceGUID resourceGUID);
+		PassResID GetAliasedPassResID(RGCContext& ctx, CompiledPass& compiledPass, const PassResID& inputID);
 	};
 }

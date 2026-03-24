@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include "ResourceGUID.h"
+#include "PassResID.h"
 #include "RenderGraphTypes.h"
 #include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
 
@@ -17,7 +17,7 @@ namespace Poly
 		{
 			std::pair<uint32, uint32>	Lifetime			= {0, 0};
 			Ref<Resource>				pResource			= nullptr;
-			ResourceGUID				ResourceGUID		= ResourceGUID::Invalid();
+			PassResID					PassResID			= PassResID::Invalid();
 			PassField					PassField			= {};
 			bool						IsOutput			= false;
 			bool						IsBackbufferBound	= false;
@@ -33,10 +33,10 @@ namespace Poly
 		 * Register an external resource which is not handled by the resource cache
 		 * External resources are expected to be alive during the render graphs lifespan
 		 * Additional calls to this function with same name will update the resource pointer
-		 * @param name - name of resource following $.resourceName format
+		 * @param resID - id of the resource to register, following "resourceName" format, i.e. no pass name prefix
 		 * @param resourceInfo - resource info (pResource & autobind)
 		 */
-		void RegisterExternalResource(const ResourceGUID& resourceGUID, ResourceInfo resourceInfo);
+		void RegisterExternalResource(const ResID& resID, ResourceInfo resourceInfo);
 
 		/**
 		 * Registers a resource to be created
@@ -45,17 +45,17 @@ namespace Poly
 		 * @param iodata - IOData for the resource
 		 * @param alias - [optional] informs that the resource is going by another name added previously
 		 */
-		void RegisterResource(const ResourceGUID& resourceGUID, uint32 timepoint, PassField iodata, const ResourceGUID& aliasGUID = ResourceGUID::Invalid());
+		void RegisterResource(const PassResID& passResID, uint32 timepoint, PassField iodata, const PassResID& aliasID = PassResID::Invalid());
 
-		void RegisterSyncResource(const ResourceGUID& resourceGUID, const ResourceGUID& aliasGUID);
+		void RegisterSyncResource(const PassResID& passResID, const PassResID& aliasID);
 
 		/**
 		 * Mark a resource as being the output of the graph - this will
 		 * make it and all aliases to it an alias to the backbuffer for each frame
-		 * @param name - name of resource following renderPass.resourceName format
+		 * @param passResID - ID of the pass resource to mark as graph output, following "passName.resourceName" format
 		 * @param iodata - IOData for that resource
 		 */
-		void MarkOutput(const ResourceGUID& resourceGUID, PassField iodata);
+		void MarkOutput(const PassResID& passResID, PassField iodata);
 
 		/**
 		 * Sets the backbuffer resource for the specified window/imageIndex pair.
@@ -85,36 +85,62 @@ namespace Poly
 
 		/**
 		 * Get a resource's existance
-		 * @param resourceGUID - resource name
+		 * @param passResID - pass resource ID
 		 *
 		 * @return true if resource exist, false otherwise
 		 */
-		bool HasResource(const ResourceGUID& resourceGUID) const;
+		bool HasResource(const PassResID& passResID) const;
+
+		/**
+		 * Checks if a resource is registered as external
+		 * @param resID - resource ID
+		 *
+		 * @return true if resource is registered, false otherwise
+		 */
+		bool HasResource(const ResID& resID) const;
 
 		/**
 		* Checks if a resource is registered (but not necessarily created)
-		* @param resourceGUID - resource name
-		* 
+		* @param passResID - pass resource ID
+		*
 		* @return true if resource is registered, false otherwise
 		*/
-		bool IsResourceRegistered(const ResourceGUID& resourceGUID) const;
+		bool IsResourceRegistered(const PassResID& passRessID) const;
+
+		/**
+		 * Checks if a resource is registered as external
+		 * @param resID - resource ID
+		 *
+		 * @return true if resource is registered, false otherwise
+		 */
+		bool IsResourceRegistered(const ResID& resID) const;
 
 		/**
 		 * Get a resource
-		 * @param resourceGUID - resource guid
-		 * 
+		 * @param passResID - pass resource ID
+		 *
 		 * @return pointer to resource
 		 */
-		Resource* GetResource(const ResourceGUID& resourceGUID) const;
+		Resource* GetResource(const PassResID& passResID) const;
 
 		/**
-		* Gets the mapped resource name, i.e. resource "pass.resource" retruns the mapped name for "passName.resource"
-		* @param resource - resource to map from, following the "passName.resource" syntax
-		* @param passName - the pass to map to, following "passName" syntax, i.e. no resource suffix
-		* 
-		* @return "resource" name that belongs to the pass
+		 * Get an external resource
+		 * @param resID - resource ID
+		 *
+		 * @return pointer to resource
+		 */
+		Resource* GetResource(const ResID& resID) const;
+
+		/**
+		* Gets the mapped resource name, i.e. resource "firstPas.output" retruns the mapped name for "connectedPass.input" if "connectedPass.input" is mapped to "firstPass.output"
+		* This is used to resolve the actual resource name for a pass's input when the input is mapped to another pass's output
+		*
+		* @param resPassID - resource to map from, following the "passName.resource" syntax
+		* @param pass - the pass to map to, following "passName" syntax, i.e. no resource suffix
+		*
+		* @return "resource" name that belongs to the pass - invalid if not found or not mapped
 		*/
-		ResourceGUID GetMappedResourceName(const ResourceGUID& resourceGUID, const std::string& passName);
+		PassResID GetMappedResourceName(const PassResID& resPassID, const PassID& passID);
 
 		/**
 		* Get the canonical GUID representing a physical resource. The canonical GUID is unique per physical
@@ -122,26 +148,26 @@ namespace Poly
 		* For instance, if "pass1.out" is aliased to "pass2.in", calling GetCanonicalGUID on either GUID
 		* will return the same canonical GUID.
 		*
-		* @param resourceGUID - the resource GUID to resolve
+		* @param PassResID - the pass resource ID to get the canonical GUID for, following "passName.resource" syntax
 		*
-		* @return canonical ResourceGUID, or ResourceGUID::Invalid() if not found
+		* @return canonical PassResID, or PassResID::Invalid() if not found
 		*/
-		ResourceGUID GetCanonicalGUID(const ResourceGUID& resourceGUID);
+		PassResID GetCanonicalGUID(const PassResID& passResID);
 
 		/**
 		* Update a resource size
-		* WARNING: Old data will be deleted when size is changed. 
+		* WARNING: Old data will be deleted when size is changed.
 		*/
-		Resource* UpdateResourceSize(const ResourceGUID& resourceGUID, uint64 size);
+		Resource* UpdateResourceSize(const PassResID& passResID, uint64 size);
 
 		/**
 		 * OR additional bindpoints into an already-registered resource's PassField.
 		 * Used to widen usage flags before allocation (e.g. adding SHADER_READ after the
 		 * debug texture injector decides a resource needs to be sampled).
-		 * @param resourceGUID - resource to update
+		 * @param PassResID - resource to update
 		 * @param additionalBindpoint - bindpoint flags to add
 		 */
-		void AddBindpoint(const ResourceGUID& resourceGUID, FResourceBindPoint additionalBindpoint);
+		void AddBindpoint(const PassResID& passResID, FResourceBindPoint additionalBindpoint);
 
 		/**
 		 * Resets the cache, losing ownership of resource and clears vectors
@@ -154,11 +180,11 @@ namespace Poly
 
 		RenderGraphDefaultParams m_DefaultParams;
 
-		std::unordered_map<ResourceGUID, uint32, ResourceGUIDHasher> m_NameToIndex;
+		std::unordered_map<PassResID, uint32> m_NameToIndex;
 		std::vector<ResourceData> m_Resources;
-		std::unordered_map<ResourceGUID, uint32, ResourceGUIDHasher> m_NameToExternalIndex;
+		std::unordered_map<PassResID, uint32> m_NameToExternalIndex;
 		std::vector<ResourceInfo> m_ExternalResources;
-		std::vector<ResourceGUID> m_ExternalCanonicalGUIDs;
+		std::vector<PassResID> m_ExternalCanonicalGUIDs;
 		std::vector<std::vector<Ref<Resource>>> m_Backbuffers;
 		std::unordered_map<PolyID, uint32> m_WindowIDtoIndex;
 		uint32 m_CurrentWindowIndex = 0;
