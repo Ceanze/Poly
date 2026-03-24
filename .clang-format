@@ -1,0 +1,103 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForIndentation
+ContinuationIndentWidth: 4
+
+# Braces - Allman style (opening brace always on new line)
+# SplitEmptyFunction: false collapses empty bodies to {} on the same line:
+#   Foo()
+#       : m_Bar(bar)
+#       , m_Baz(baz) {}
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel:        true
+  AfterClass:            true
+  AfterControlStatement: Always
+  AfterEnum:             true
+  AfterFunction:         true
+  AfterNamespace:        true
+  AfterStruct:           true
+  AfterUnion:            true
+  AfterExternBlock:      true
+  BeforeCatch:           true
+  BeforeElse:            true
+  BeforeLambdaBody:      false
+  BeforeWhile:           false
+  IndentBraces:          false
+  SplitEmptyFunction:    false
+  SplitEmptyRecord:      false
+  SplitEmptyNamespace:   false
+
+# Access modifiers sit at the same indent level as class members
+AccessModifierOffset: 0
+
+# Indent namespace body
+NamespaceIndentation: All
+
+# Pointer/reference qualifier attached to type (int* a, int& b)
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# No enforced column limit
+ColumnLimit: 0
+
+# Short inline functions allowed on one line (e.g. getters/static factories)
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Inline
+
+# Constructor initializer lists - one initializer per line, comma-first style:
+#   Constructor()
+#       : m_Foo(foo)
+#       , m_Bar(bar) {}
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: Never
+ConstructorInitializerIndentWidth: 4
+
+# Spacing
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpaceBeforeRangeBasedForLoopColon: true
+SpacesInAngles: Never
+SpaceAfterTemplateKeyword: false
+
+# Align consecutive variable declarations/assignments with tabs
+AlignConsecutiveAssignments:
+  Enabled:          true
+  AcrossEmptyLines: false
+  AcrossComments:   false
+AlignConsecutiveDeclarations:
+  Enabled:          true
+  AcrossEmptyLines: false
+  AcrossComments:   false
+
+# Include sorting
+# Groups (separated by blank lines):
+#   1. Own header        - auto-detected by clang-format (same basename as source file)
+#   2. Project headers   - quoted includes: "Poly/...", "Platform/...", relative paths
+#   3. Third-party libs  - angle-bracket includes for libs in libs/ (imgui, glm, VMA, etc.)
+#   4. System headers    - angle-bracket includes for STL / OS / Vulkan SDK headers
+#
+# Note: polypch.h is force-included by the compiler and does not need to appear
+# explicitly in source files. Removing it avoids a conflict with "own header first".
+# All external lib includes should use angle brackets <> (not quotes).
+SortIncludes: CaseInsensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Third-party libraries (libs/ dependencies)  →  group 3
+  - Regex:    '^<(imgui|glm|vk_mem_alloc|vulkan|spdlog|assimp|SPIRV|glslang|entt|yaml-cpp|stb)'
+    Priority: 3
+  # System / STL headers  →  group 4
+  - Regex:    '^<'
+    Priority: 4
+  # Project headers (quoted)  →  group 2
+  # (own header is auto-detected at priority 0 and always placed first)
+  - Regex:    '^"'
+    Priority: 2

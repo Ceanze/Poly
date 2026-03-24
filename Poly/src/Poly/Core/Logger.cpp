@@ -3,7 +3,7 @@
 
 #pragma warning(push)
 #pragma warning( disable : 26439 26451 26495 26439 26451 26495 26812 6385 26498 26450 26437 6285)
-#include "spdlog/sinks/stdout_color_sinks.h"
+#include <spdlog/sinks/stdout_color_sinks.h>
 #pragma warning(pop)
 
 
