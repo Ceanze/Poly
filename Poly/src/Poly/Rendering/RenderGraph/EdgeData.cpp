@@ -5,13 +5,16 @@ namespace Poly
 	EdgeData::EdgeData() {}
 
 	EdgeData::EdgeData(const PassID& srcPass, const PassID& dstPass)
-		: m_EdgeData(PassToPassEdgeData{ srcPass, dstPass }) {}
+	    : m_EdgeData(PassToPassEdgeData{srcPass, dstPass})
+	{}
 
 	EdgeData::EdgeData(const ResID& srcExternalResource, const PassResID& dstPass)
-		: m_EdgeData(ExternalResourceToPassResourceEdgeData{ srcExternalResource, dstPass }) {}
+	    : m_EdgeData(ExternalResourceToPassResourceEdgeData{srcExternalResource, dstPass})
+	{}
 
 	EdgeData::EdgeData(const PassResID& srcPassRes, const PassResID& dstPassRes)
-		: m_EdgeData(PassResourceToPassResourceEdgeData{ srcPassRes, dstPassRes }) {}
+	    : m_EdgeData(PassResourceToPassResourceEdgeData{srcPassRes, dstPassRes})
+	{}
 
 	const ResID& EdgeData::GetSrcExternalResource() const
 	{
@@ -104,4 +107,4 @@ namespace Poly
 	{
 		return std::holds_alternative<PassToPassEdgeData>(m_EdgeData);
 	}
-}
+} // namespace Poly

@@ -1,11 +1,11 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceRegister.h"
 
-#include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
-#include "Poly/Rendering/RenderGraph/ResourceCache.h"
-#include "Poly/Rendering/RenderGraph/Pass.h"
-#include "Poly/Rendering/RenderGraph/ExternalPass.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
 #include "Poly/Rendering/RenderGraph/EdgeData.h"
+#include "Poly/Rendering/RenderGraph/ExternalPass.h"
+#include "Poly/Rendering/RenderGraph/Pass.h"
+#include "Poly/Rendering/RenderGraph/ResourceCache.h"
 
 namespace Poly
 {
@@ -19,13 +19,12 @@ namespace Poly
 
 		RegisterExternalResources(ctx);
 		RegisterResources(ctx);
-
 	}
 
 	void RGCResourceRegister::RegisterExternalResources(RGCContext& ctx)
 	{
 		const auto* pExtPass = static_cast<const ExternalPass*>(
-			ctx.RenderGraph.m_Passes[ctx.RenderGraph.m_ExternalPassNodeID].get());
+		    ctx.RenderGraph.m_Passes[ctx.RenderGraph.m_ExternalPassNodeID].get());
 
 		for (const auto& [guid, info] : pExtPass->GetResources())
 			ctx.pResourceCache->RegisterExternalResource(guid, info);
@@ -59,7 +58,8 @@ namespace Poly
 			if (aliasID == PassResID::Invalid() && !BitsSet(input->GetBindPoint(), FResourceBindPoint::INTERNAL_USE))
 			{
 				POLY_CORE_ERROR("Tried to alias resource '{}', but no connection has been made. If a resource is not marked as INTERNAL_USE,"
-								"then it is expected that there is a connection made in the render graph.", inputID.GetFullName());
+				                "then it is expected that there is a connection made in the render graph.",
+				                inputID.GetFullName());
 				return;
 			}
 
@@ -68,7 +68,7 @@ namespace Poly
 		}
 	}
 
-	void RGCResourceRegister::RegisterOutputs(RGCContext & ctx, CompiledPass & compiledPass)
+	void RGCResourceRegister::RegisterOutputs(RGCContext& ctx, CompiledPass& compiledPass)
 	{
 		auto outputs = compiledPass.Reflection.GetFields(FFieldVisibility::OUTPUT);
 		for (auto& output : outputs)
@@ -97,4 +97,4 @@ namespace Poly
 
 		return PassResID::Invalid();
 	}
-}
+} // namespace Poly

@@ -7,7 +7,7 @@ namespace Poly
 	class SceneRenderer
 	{
 	public:
-		SceneRenderer() = default;
+		SceneRenderer()  = default;
 		~SceneRenderer() = default;
 
 		void Execute(const RenderContext& context);
@@ -16,4 +16,4 @@ namespace Poly
 		void Render(const RenderContext& context);
 	};
 
-}
+} // namespace Poly

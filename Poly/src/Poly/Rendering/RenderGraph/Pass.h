@@ -25,7 +25,7 @@ namespace Poly
 		};
 
 	public:
-		Pass() = default;
+		Pass()          = default;
 		virtual ~Pass() = default;
 
 		/**
@@ -86,8 +86,8 @@ namespace Poly
 		PolyID GetShaderID(FShaderStage shaderStage) const { return p_ShaderStages.at(shaderStage); }
 
 		/**
-		* @return true if instanced scene rendering is enabled - see `ToggleInstancedSceneRendering` for more info
-		*/
+		 * @return true if instanced scene rendering is enabled - see `ToggleInstancedSceneRendering` for more info
+		 */
 		bool IsInstancedSceneRenderingEnabled() const { return m_IsInstancedSceneRenderingEnabled; }
 
 		//--------------------------------------------
@@ -115,27 +115,32 @@ namespace Poly
 		void SetCustomPipelineDesc(Ref<PipelineDesc> pPipelineDesc) { p_pPipelineDesc = pPipelineDesc; }
 
 		/**
-		* Enables or disables the use of instanced rendering based on the scene structure.
-		* If enabled, then the `Execute()` call will be called once per instance.
-		* The Instance Index will be provided in the `RenderContext`
-		* If disabled, then `Execute()` is only called once per pass
-		*
-		* @param enable - enable or disable the feature
-		*/
+		 * Enables or disables the use of instanced rendering based on the scene structure.
+		 * If enabled, then the `Execute()` call will be called once per instance.
+		 * The Instance Index will be provided in the `RenderContext`
+		 * If disabled, then `Execute()` is only called once per pass
+		 *
+		 * @param enable - enable or disable the feature
+		 */
 		void ToggleInstancedSceneRendering(bool enable) { m_IsInstancedSceneRenderingEnabled = enable; }
 
 	protected:
 		friend class RenderGraph;
 
-		Pass(Pass::Type type) : p_Type(type) {}
-		Pass(Pass::Type type, const std::string& name) : p_Type(type), p_Name(name) {}
+		Pass(Pass::Type type)
+		    : p_Type(type)
+		{}
+		Pass(Pass::Type type, const std::string& name)
+		    : p_Type(type)
+		    , p_Name(name)
+		{}
 
-		std::string	p_Name	= "";
-		Pass::Type	p_Type	= Pass::Type::NONE;
+		std::string                              p_Name = "";
+		Pass::Type                               p_Type = Pass::Type::NONE;
 		std::unordered_map<FShaderStage, PolyID> p_ShaderStages;
-		bool m_IsInstancedSceneRenderingEnabled = false;
+		bool                                     m_IsInstancedSceneRenderingEnabled = false;
 
 		// Variables for custom usage of passes
 		Ref<PipelineDesc> p_pPipelineDesc = nullptr;
 	};
-}
+} // namespace Poly

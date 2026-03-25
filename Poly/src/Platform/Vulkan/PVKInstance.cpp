@@ -1,37 +1,38 @@
-#include "polypch.h"
 #include "PVKInstance.h"
+
+#include "polypch.h"
 #include "VulkanCommon.h"
 
 #include <cstdint>
 // Required for VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+#include "PVKBinarySemaphore.h"
+#include "PVKBuffer.h"
+#include "PVKCommandPool.h"
+#include "PVKCommandQueue.h"
+#include "PVKDescriptorSet.h"
+#include "PVKFramebuffer.h"
+#include "PVKGraphicsPipeline.h"
+#include "PVKPipelineLayout.h"
+#include "PVKRenderPass.h"
+#include "PVKSampler.h"
+#include "PVKShader.h"
+#include "PVKSwapChain.h"
+#include "PVKSyncPoint.h"
+#include "PVKTexture.h"
+#include "PVKTextureView.h"
+
 #include <vulkan/vulkan_beta.h>
 
 #include <cstring>
 #include <vector>
 
-#include "PVKShader.h"
-#include "PVKBuffer.h"
-#include "PVKTexture.h"
-#include "PVKSampler.h"
-#include "PVKSwapChain.h"
-#include "PVKSyncPoint.h"
-#include "PVKRenderPass.h"
-#include "PVKFramebuffer.h"
-#include "PVKTextureView.h"
-#include "PVKCommandPool.h"
-#include "PVKCommandQueue.h"
-#include "PVKDescriptorSet.h"
-#include "PVKPipelineLayout.h"
-#include "PVKBinarySemaphore.h"
-#include "PVKGraphicsPipeline.h"
-
 namespace
 {
 	VkFormat FindSupportedFormat(
-	const std::vector<VkFormat>& candidates,
-	VkImageTiling tiling,
-	VkFormatFeatureFlags features,
-	VkPhysicalDevice physicalDevice)
+	    const std::vector<VkFormat>& candidates,
+	    VkImageTiling                tiling,
+	    VkFormatFeatureFlags         features,
+	    VkPhysicalDevice             physicalDevice)
 	{
 		for (VkFormat format : candidates)
 		{
@@ -39,24 +40,25 @@ namespace
 			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
 
 			if ((tiling == VK_IMAGE_TILING_LINEAR) &&
-				((props.linearTilingFeatures & features) == features))
+			    ((props.linearTilingFeatures & features) == features))
 			{
 				return format;
 			}
 			else if ((tiling == VK_IMAGE_TILING_OPTIMAL) &&
-				((props.optimalTilingFeatures & features) == features))
+			         ((props.optimalTilingFeatures & features) == features))
 			{
 				return format;
 			}
 		}
 		return VK_FORMAT_UNDEFINED;
 	}
-}
+} // namespace
 
 namespace Poly
 {
 	PVKInstance::PVKInstance()
-		: m_DebugMessenger(VK_NULL_HANDLE) {}
+	    : m_DebugMessenger(VK_NULL_HANDLE)
+	{}
 
 	PVKInstance::~PVKInstance()
 	{
@@ -91,8 +93,8 @@ namespace Poly
 	}
 
 	/*
-	* GraphicsInstance functions
-	*/
+	 * GraphicsInstance functions
+	 */
 	Ref<Buffer> PVKInstance::CreateBuffer(const BufferDesc* pDesc)
 	{
 		POLY_VALIDATE(pDesc, "BufferDesc cannot be nullptr!");
@@ -226,27 +228,27 @@ namespace Poly
 
 	Ref<DescriptorSet> PVKInstance::CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet)
 	{
-		Ref<PVKDescriptorSet> pNewSet = CreateRef<PVKDescriptorSet>();
-		PipelineLayout* pPipelineLayout = pSrcDescriptorSet->GetLayout();
-		uint32 setIndex = pSrcDescriptorSet->GetSetIndex();
+		Ref<PVKDescriptorSet> pNewSet         = CreateRef<PVKDescriptorSet>();
+		PipelineLayout*       pPipelineLayout = pSrcDescriptorSet->GetLayout();
+		uint32                setIndex        = pSrcDescriptorSet->GetSetIndex();
 		pNewSet->Init(pPipelineLayout, setIndex);
 
 		VkCopyDescriptorSet copySetDesc = {};
-		copySetDesc.sType			= VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
-		copySetDesc.pNext			= nullptr;
-		copySetDesc.srcSet			= static_cast<PVKDescriptorSet*>(pSrcDescriptorSet.get())->GetNativeVK();
-		copySetDesc.srcArrayElement	= 0;
-		copySetDesc.dstSet			= pNewSet->GetNativeVK();
-		copySetDesc.dstArrayElement	= 0;
-		copySetDesc.descriptorCount	= 1; // TODO: Change this to allow for multiple counts
+		copySetDesc.sType               = VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
+		copySetDesc.pNext               = nullptr;
+		copySetDesc.srcSet              = static_cast<PVKDescriptorSet*>(pSrcDescriptorSet.get())->GetNativeVK();
+		copySetDesc.srcArrayElement     = 0;
+		copySetDesc.dstSet              = pNewSet->GetNativeVK();
+		copySetDesc.dstArrayElement     = 0;
+		copySetDesc.descriptorCount     = 1; // TODO: Change this to allow for multiple counts
 
-		const auto& bindings = static_cast<PVKPipelineLayout*>(pPipelineLayout)->GetBindings(setIndex);
+		const auto&                      bindings = static_cast<PVKPipelineLayout*>(pPipelineLayout)->GetBindings(setIndex);
 		std::vector<VkCopyDescriptorSet> copies;
 		copies.reserve(bindings.size());
 		for (uint32 i = 0; i < bindings.size(); i++)
 		{
-			copySetDesc.srcBinding	= bindings[i].Binding;
-			copySetDesc.dstBinding	= bindings[i].Binding;
+			copySetDesc.srcBinding = bindings[i].Binding;
+			copySetDesc.dstBinding = bindings[i].Binding;
 			copies.push_back(copySetDesc);
 		}
 
@@ -263,10 +265,10 @@ namespace Poly
 		formats.push_back(VK_FORMAT_D24_UNORM_S8_UINT);
 
 		return FindSupportedFormat(
-			formats,
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-			s_PhysicalDevice);
+		    formats,
+		    VK_IMAGE_TILING_OPTIMAL,
+		    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		    s_PhysicalDevice);
 	}
 
 	PVKQueue& PVKInstance::GetQueue(FQueueType queueType, uint32_t index)
@@ -294,10 +296,10 @@ namespace Poly
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL PVKInstance::DebugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData)
+	    VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+	    VkDebugUtilsMessageTypeFlagsEXT             messageType,
+	    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	    void*                                       pUserData)
 	{
 		switch (messageSeverity)
 		{
@@ -316,8 +318,8 @@ namespace Poly
 			POLY_CORE_ERROR("Error: {}\n", pCallbackData->pMessage);
 			break;
 		}
-		// default:
-		// 	POLY_CORE_TRACE("{}", pCallbackData->pMessage);
+			// default:
+			// 	POLY_CORE_TRACE("{}", pCallbackData->pMessage);
 		}
 
 		return VK_FALSE;
@@ -326,10 +328,12 @@ namespace Poly
 	VkResult PVKInstance::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 	{
 		auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
-		if (func != nullptr) {
+		if (func != nullptr)
+		{
 			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
 		}
-		else {
+		else
+		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
 	}
@@ -337,17 +341,18 @@ namespace Poly
 	void PVKInstance::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
 	{
 		auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
-		if (func != nullptr) {
+		if (func != nullptr)
+		{
 			func(instance, debugMessenger, pAllocator);
 		}
 	}
 
 	void PVKInstance::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 	{
-		createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		createInfo                 = {};
+		createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		createInfo.messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		createInfo.pfnUserCallback = DebugCallback;
 	}
 
@@ -356,39 +361,42 @@ namespace Poly
 		PVK_CHECK(m_EnableValidationLayers && !CheckValidationLayerSupport(), "Validation layers requested, but not available!");
 
 		// App info (Optional but can improve performance)
-		VkApplicationInfo appInfo = {};
-		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Poly Application";
+		VkApplicationInfo appInfo  = {};
+		appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		appInfo.pApplicationName   = "Poly Application";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.pEngineName = "Poly";
-		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_3;
+		appInfo.pEngineName        = "Poly";
+		appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.apiVersion         = VK_API_VERSION_1_3;
 
 		// Create info for instance creation
 		VkInstanceCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		createInfo.pApplicationInfo = &appInfo;
-        createInfo.flags = 0;
+		createInfo.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		createInfo.pApplicationInfo     = &appInfo;
+		createInfo.flags                = 0;
 
 		// Add the validation layers if they are enabled
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-		if (m_EnableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<unsigned>(m_ValidationLayers.size());
+		if (m_EnableValidationLayers)
+		{
+			createInfo.enabledLayerCount   = static_cast<unsigned>(m_ValidationLayers.size());
 			createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
 			PopulateDebugMessengerCreateInfo(debugCreateInfo);
-			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-		} else {
+			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+		}
+		else
+		{
 			createInfo.enabledLayerCount = 0;
-			createInfo.pNext = nullptr;
+			createInfo.pNext             = nullptr;
 		}
 
 #ifdef POLY_PLATFORM_MACOS
-        createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 #endif
 
 		// Add GLFW as an extension to the instance
-		auto extensions = GetRequiredExtensions();
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		auto extensions                    = GetRequiredExtensions();
+		createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
 		// Create instance and check if it succeded
@@ -397,7 +405,8 @@ namespace Poly
 
 	void PVKInstance::SetupDebugMessenger()
 	{
-		if (!m_EnableValidationLayers) return;
+		if (!m_EnableValidationLayers)
+			return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		PopulateDebugMessengerCreateInfo(createInfo);
@@ -415,17 +424,21 @@ namespace Poly
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
 		// Go through the selected validation layers and check if they are available
-		for (const char* layerName : m_ValidationLayers) {
+		for (const char* layerName : m_ValidationLayers)
+		{
 			bool layerFound = false;
 
-			for (const auto& layerProperties : availableLayers) {
-				if (strcmp(layerName, layerProperties.layerName) == 0) {
+			for (const auto& layerProperties : availableLayers)
+			{
+				if (strcmp(layerName, layerProperties.layerName) == 0)
+				{
 					layerFound = true;
 					break;
 				}
 			}
 
-			if (!layerFound) {
+			if (!layerFound)
+			{
 				return false;
 			}
 		}
@@ -445,7 +458,8 @@ namespace Poly
 		std::set<std::string> requiredExtensions(m_DeviceExtensions.begin(), m_DeviceExtensions.end());
 
 		// Check if the extensions we requested is supported by the device
-		for (const auto& extension : availableExtensions) {
+		for (const auto& extension : availableExtensions)
+		{
 			requiredExtensions.erase(extension.extensionName);
 		}
 
@@ -459,7 +473,8 @@ namespace Poly
 		vkEnumeratePhysicalDevices(s_Instance, &deviceCount, nullptr);
 
 		// If no were found, exit
-		if (deviceCount == 0) {
+		if (deviceCount == 0)
+		{
 			throw std::runtime_error("failed to find GPUs with Vulkan support!");
 		}
 
@@ -471,7 +486,8 @@ namespace Poly
 		SetOptimalDevice(devices);
 
 		// If no suitable device was found, exit
-		if (s_PhysicalDevice == VK_NULL_HANDLE) {
+		if (s_PhysicalDevice == VK_NULL_HANDLE)
+		{
 			throw std::runtime_error("failed to find a suitable GPU!");
 		}
 
@@ -481,18 +497,19 @@ namespace Poly
 	void PVKInstance::SetOptimalDevice(const std::vector<VkPhysicalDevice>& devices)
 	{
 		std::string pickedDeviceName;
-		unsigned bestScore = 0;
+		unsigned    bestScore = 0;
 		for (auto& d : devices)
 		{
 			unsigned score = 0;
 			// Query the device
 			VkPhysicalDeviceProperties deviceProperties;
-			VkPhysicalDeviceFeatures deviceFeatures;
+			VkPhysicalDeviceFeatures   deviceFeatures;
 			vkGetPhysicalDeviceProperties(d, &deviceProperties);
 			vkGetPhysicalDeviceFeatures(d, &deviceFeatures);
 
 			// Favor dGPUs
-			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			{
 				score += 1000;
 			}
 
@@ -504,11 +521,12 @@ namespace Poly
 
 			// Make sure the device has support for the requested extensions
 			const bool extensionsSupported = CheckDeviceExtensionSupport(d);
-			//POLY_VALIDATE(extensionsSupported, "Required extensions are not supported!");
+			// POLY_VALIDATE(extensionsSupported, "Required extensions are not supported!");
 
 			// Save the device with the best score and is complete with its queues
-			if (extensionsSupported && score > bestScore && deviceFeatures.samplerAnisotropy) {
-				bestScore = score;
+			if (extensionsSupported && score > bestScore && deviceFeatures.samplerAnisotropy)
+			{
+				bestScore        = score;
 				s_PhysicalDevice = d;
 				pickedDeviceName = deviceProperties.deviceName;
 			}
@@ -525,10 +543,9 @@ namespace Poly
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateDeviceExtensionProperties(s_PhysicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
-		const bool foundPortabilitySubset = std::find_if(availableExtensions.begin(), availableExtensions.end(), [](const VkExtensionProperties& properties)
-		{
-			return std::strcmp(properties.extensionName, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) == 0;
-		}) != availableExtensions.end();
+		const bool foundPortabilitySubset = std::find_if(availableExtensions.begin(), availableExtensions.end(), [](const VkExtensionProperties& properties) {
+			                                    return std::strcmp(properties.extensionName, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) == 0;
+		                                    }) != availableExtensions.end();
 
 		if (foundPortabilitySubset)
 		{
@@ -543,50 +560,54 @@ namespace Poly
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
-		float queuePriority = 1.0f;
+		float                           queuePriority = 1.0f;
 		std::vector<std::vector<float>> allPriorities;
-		for (const QueueSpec& queueSpec : queueSpecs) {
+		for (const QueueSpec& queueSpec : queueSpecs)
+		{
 			allPriorities.emplace_back(queueSpec.QueueCount, 1.0f);
 
 			VkDeviceQueueCreateInfo queueCreateInfo = {};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueSpec.QueueFamily;
-			queueCreateInfo.queueCount = queueSpec.QueueCount;
-			queueCreateInfo.pQueuePriorities = allPriorities.back().data();;
+			queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex        = queueSpec.QueueFamily;
+			queueCreateInfo.queueCount              = queueSpec.QueueCount;
+			queueCreateInfo.pQueuePriorities        = allPriorities.back().data();
+			;
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
 		// Enable or disable features for the device
 		// TODO: Move this to an easier place for editing
 		VkPhysicalDeviceFeatures deviceFeatures = {};
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.samplerAnisotropy        = VK_TRUE;
 
 		VkPhysicalDeviceVulkan13Features vulkan13Features = {};
-		vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-		vulkan13Features.synchronization2 = VK_TRUE;
-		vulkan13Features.pNext = nullptr;
+		vulkan13Features.sType                            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+		vulkan13Features.synchronization2                 = VK_TRUE;
+		vulkan13Features.pNext                            = nullptr;
 
 		VkPhysicalDeviceVulkan12Features vulkan12Features = {};
-		vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-		vulkan12Features.timelineSemaphore = VK_TRUE;
-		vulkan12Features.pNext = &vulkan13Features;
+		vulkan12Features.sType                            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		vulkan12Features.timelineSemaphore                = VK_TRUE;
+		vulkan12Features.pNext                            = &vulkan13Features;
 
 		// Create info for the logical device
-		VkDeviceCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.queueCreateInfoCount = static_cast<unsigned>(queueCreateInfos.size());
-		createInfo.pQueueCreateInfos = queueCreateInfos.data();
-		createInfo.pEnabledFeatures = &deviceFeatures;
-		createInfo.enabledExtensionCount = static_cast<unsigned>(m_DeviceExtensions.size());
+		VkDeviceCreateInfo createInfo      = {};
+		createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.queueCreateInfoCount    = static_cast<unsigned>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos       = queueCreateInfos.data();
+		createInfo.pEnabledFeatures        = &deviceFeatures;
+		createInfo.enabledExtensionCount   = static_cast<unsigned>(m_DeviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
-		createInfo.pNext = &vulkan12Features;
+		createInfo.pNext                   = &vulkan12Features;
 
 		// Used for older implementations of vulkan
-		if (m_EnableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<unsigned>(m_ValidationLayers.size());
+		if (m_EnableValidationLayers)
+		{
+			createInfo.enabledLayerCount   = static_cast<unsigned>(m_ValidationLayers.size());
 			createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
 		}
-		else {
+		else
+		{
 			createInfo.enabledLayerCount = 0;
 		}
 
@@ -602,10 +623,10 @@ namespace Poly
 	{
 		// Create info
 		VmaAllocatorCreateInfo createInfo = {};
-		createInfo.physicalDevice = s_PhysicalDevice;
-		createInfo.device = s_Device;
-		createInfo.instance = s_Instance;
-		createInfo.vulkanApiVersion = VK_API_VERSION_1_1;
+		createInfo.physicalDevice         = s_PhysicalDevice;
+		createInfo.device                 = s_Device;
+		createInfo.instance               = s_Instance;
+		createInfo.vulkanApiVersion       = VK_API_VERSION_1_1;
 
 		// All three are enabled by default in vulkan 1.1
 		if (VK_KHR_dedicated_allocation)
@@ -621,7 +642,6 @@ namespace Poly
 			createInfo.flags |= VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT;
 		}
 
-
 		// Uncomment to enable recording to CSV file.
 		/*
 		static VmaRecordSettings recordSettings = {};
@@ -630,23 +650,24 @@ namespace Poly
 		*/
 
 		// Creation
-		//VmaAllocator vmaAllocator;
+		// VmaAllocator vmaAllocator;
 		vmaCreateAllocator(&createInfo, &s_VmaAllocator);
 	}
 
 	std::vector<const char*> PVKInstance::GetRequiredExtensions()
 	{
-		unsigned glfwExtensionCount = 0;
+		unsigned     glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-		if (m_EnableValidationLayers) {
+		if (m_EnableValidationLayers)
+		{
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
 
 #ifdef POLY_PLATFORM_MACOS
-      extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+		extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
 
 		return extensions;
@@ -661,13 +682,13 @@ namespace Poly
 				const QueueSpec& queueSpec = queueSpecs[fIndex];
 
 				// Get queue from device
-				VkQueue queue;
+				VkQueue            queue;
 				VkDeviceQueueInfo2 desc = {};
-				desc.sType				= VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2;
-				desc.queueFamilyIndex	= fIndex;
-				desc.queueIndex			= qIndex;
+				desc.sType              = VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2;
+				desc.queueFamilyIndex   = fIndex;
+				desc.queueIndex         = qIndex;
 				vkGetDeviceQueue2(s_Device, &desc, &queue);
-				s_Queues.push_back(PVKQueue{ queue, qIndex, fIndex });
+				s_Queues.push_back(PVKQueue{queue, qIndex, fIndex});
 
 				// Map queue
 				uint32_t index = static_cast<uint32_t>(s_Queues.size() - 1);
@@ -691,4 +712,4 @@ namespace Poly
 		}
 	}
 
-}
+} // namespace Poly

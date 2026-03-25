@@ -55,7 +55,7 @@ namespace Poly
 		}
 
 		HierarchyComponent& currHierarchy = m_pScene->m_Registry.get<HierarchyComponent>(parentHierarchy.First);
-		entt::entity currEntity = parentHierarchy.First;
+		entt::entity        currEntity    = parentHierarchy.First;
 		for (uint8 i = 0; i < parentHierarchy.ChildrenCount; i++)
 		{
 			if (i == index)
@@ -63,8 +63,8 @@ namespace Poly
 				m_pScene->m_Registry.patch<HierarchyComponent>(currHierarchy.Previous, [&](auto& comp) { comp.Next = m_Entity; });
 				currHierarchy.Previous = m_Entity;
 				selfHierarchy.Previous = currHierarchy.Previous;
-				selfHierarchy.Next = currEntity;
-				selfHierarchy.Parent = currHierarchy.Parent;
+				selfHierarchy.Next     = currEntity;
+				selfHierarchy.Parent   = currHierarchy.Parent;
 				parentHierarchy.ChildrenCount++;
 
 				if (currEntity == parentHierarchy.First)
@@ -73,7 +73,7 @@ namespace Poly
 				break;
 			}
 
-			currEntity = currHierarchy.Next;
+			currEntity    = currHierarchy.Next;
 			currHierarchy = m_pScene->m_Registry.get<HierarchyComponent>(currEntity);
 		}
 	}
@@ -89,20 +89,20 @@ namespace Poly
 		{
 			parentHierarchy.First = m_Entity;
 			parentHierarchy.ChildrenCount++;
-			selfHierarchy.Next = m_Entity;
+			selfHierarchy.Next     = m_Entity;
 			selfHierarchy.Previous = m_Entity;
-			selfHierarchy.Parent = parent;
+			selfHierarchy.Parent   = parent;
 			return;
 		}
 
 		HierarchyComponent& firstHierarchy = m_pScene->m_Registry.get<HierarchyComponent>(parentHierarchy.First);
-		HierarchyComponent& lastHierarchy = m_pScene->m_Registry.get<HierarchyComponent>(firstHierarchy.Previous);
+		HierarchyComponent& lastHierarchy  = m_pScene->m_Registry.get<HierarchyComponent>(firstHierarchy.Previous);
 
 		firstHierarchy.Previous = m_Entity;
-		lastHierarchy.Next = m_Entity;
-		selfHierarchy.Previous = firstHierarchy.Previous;
-		selfHierarchy.Next = parentHierarchy.First;
-		selfHierarchy.Parent = parent;
+		lastHierarchy.Next      = m_Entity;
+		selfHierarchy.Previous  = firstHierarchy.Previous;
+		selfHierarchy.Next      = parentHierarchy.First;
+		selfHierarchy.Parent    = parent;
 		parentHierarchy.ChildrenCount++;
 	}
-}
+} // namespace Poly

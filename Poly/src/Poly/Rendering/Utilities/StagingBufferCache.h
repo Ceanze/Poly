@@ -9,7 +9,7 @@ namespace Poly
 	class StagingBufferCache
 	{
 	public:
-		StagingBufferCache() = default;
+		StagingBufferCache()  = default;
 		~StagingBufferCache() = default;
 
 		static Ref<StagingBufferCache> Create() { return CreateRef<StagingBufferCache>(); };
@@ -39,30 +39,30 @@ namespace Poly
 	private:
 		enum class State
 		{
-			NONE	= 0,
-			IN_USE	= 1,
-			FREE	= 2,
+			NONE   = 0,
+			IN_USE = 1,
+			FREE   = 2,
 		};
 
 		struct BufferPair
 		{
-			Ref<Buffer> pStagingBuffer;
-			const Buffer* pDstBuffer;
+			Ref<Buffer>               pStagingBuffer;
+			const Buffer*             pDstBuffer;
 			std::vector<BufferRegion> Regions;
 		};
 
 		struct LifetimeBuffer
 		{
-			Ref<Buffer>	pBuffer;
-			uint32		Age;
+			Ref<Buffer> pBuffer;
+			uint32      Age;
 		};
 
 		Ref<Buffer> GetStagingBuffer(uint64 size);
 
 		std::unordered_map<uint32, std::unordered_map<State, std::vector<LifetimeBuffer>>> m_Buffers;
-		std::unordered_map<const Buffer*, size_t> m_BufferToIndex;
-		std::vector<BufferPair> m_QueuedBuffers;
-		uint32 m_ImageIndex = 0;
-		const uint32 BUFFER_LIFETIME = 100;
+		std::unordered_map<const Buffer*, size_t>                                          m_BufferToIndex;
+		std::vector<BufferPair>                                                            m_QueuedBuffers;
+		uint32                                                                             m_ImageIndex    = 0;
+		const uint32                                                                       BUFFER_LIFETIME = 100;
 	};
-}
+} // namespace Poly

@@ -2,7 +2,9 @@
 
 namespace Poly
 {
-	ExternalPass::ExternalPass() : Pass(Pass::Type::EXTERNAL, "$") {}
+	ExternalPass::ExternalPass()
+	    : Pass(Pass::Type::EXTERNAL, "$")
+	{}
 
 	void ExternalPass::RegisterResource(const ResID& guid, const ResourceInfo& info)
 	{
@@ -23,4 +25,4 @@ namespace Poly
 	{
 		return m_Resources;
 	}
-}
+} // namespace Poly

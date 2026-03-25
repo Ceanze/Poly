@@ -1,9 +1,9 @@
 #include "ImGuiLayer.h"
 
+#include "Poly/Core/Application.h"
 #include "Poly/Events/KeyEvent.h"
 #include "Poly/Events/MouseEvent.h"
 #include "Poly/Events/WindowEvent.h"
-#include "Poly/Core/Application.h"
 
 #include <imgui.h>
 
@@ -14,7 +14,7 @@ namespace Poly
 		ImGui::CreateContext();
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		Window* pWindow = Application::Get().GetWindow();
+		Window* pWindow            = Application::Get().GetWindow();
 		ImGui::GetIO().DisplaySize = ImVec2(pWindow->GetWidth(), pWindow->GetHeight());
 	}
 
@@ -40,7 +40,6 @@ namespace Poly
 		eventDispatcher.Dispatch<Events::KeyPressed>([this](auto& event) { return OnKeyPressed(event); });
 		eventDispatcher.Dispatch<Events::KeyReleased>([this](auto& event) { return OnKeyReleased(event); });
 		eventDispatcher.Dispatch<Events::WindowResized>([this](auto& event) { return OnWindowResized(event); });
-
 	}
 
 	bool ImGuiLayer::OnMouseMoved(Events::MouseMoved& event)
@@ -88,7 +87,7 @@ namespace Poly
 		if (!io.WantCaptureMouse)
 			return false;
 
-		io.MouseWheel = static_cast<float>(event.GetDeltaY());
+		io.MouseWheel  = static_cast<float>(event.GetDeltaY());
 		io.MouseWheelH = static_cast<float>(event.GetDeltaX());
 
 		return true;
@@ -124,4 +123,4 @@ namespace Poly
 
 		return false;
 	}
-}
+} // namespace Poly

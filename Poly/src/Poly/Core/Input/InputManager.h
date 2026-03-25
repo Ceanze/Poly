@@ -42,13 +42,13 @@ namespace Poly
 		{
 			std::bitset<256> CurrentKeys;
 			std::bitset<256> PreviousKeys;
-			FKeyModifier CurrentMods;
+			FKeyModifier     CurrentMods;
 		};
 
 		static MouseProperties s_MouseProperties;
-		static KeyProperties s_KeyProperties;
+		static KeyProperties   s_KeyProperties;
 	};
-}
+} // namespace Poly
 
 // Action system
 //{

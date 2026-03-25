@@ -11,8 +11,8 @@ namespace Poly
 
 	struct ShaderData
 	{
-		FShaderStage ShaderStage = FShaderStage::NONE;
-		Ref<Shader> pShader;
+		FShaderStage     ShaderStage = FShaderStage::NONE;
+		Ref<Shader>      pShader;
 		ShaderReflection Reflection;
 	};
 
@@ -26,7 +26,7 @@ namespace Poly
 
 		static PolyID CreateShader(std::string_view path, FShaderStage shaderStage);
 
-		static bool ShaderExists(PolyID shaderID);
+		static bool              ShaderExists(PolyID shaderID);
 		static const ShaderData& GetShader(PolyID shaderID);
 
 		// TODO: Add a "onShaderUpdated" callback/notifier
@@ -34,4 +34,4 @@ namespace Poly
 	private:
 		static std::map<PolyID, ShaderData> s_Shaders;
 	};
-}
+} // namespace Poly

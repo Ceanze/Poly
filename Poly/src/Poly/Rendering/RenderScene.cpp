@@ -1,19 +1,21 @@
 #include "RenderScene.h"
 
-#include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
-#include "Poly/Scene/Scene.h"
-#include "Poly/Scene/Components.h"
+#include "Platform/API/Buffer.h" // TODO: See if this can be removed (needed to get Vertex buffer size)
 #include "Poly/Model/Material.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/Rendering/RenderGraph/PassResID.h"
-
-#include "Platform/API/Buffer.h" // TODO: See if this can be removed (needed to get Vertex buffer size)
+#include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
+#include "Poly/Scene/Components.h"
+#include "Poly/Scene/Scene.h"
 
 namespace Poly
 {
 
 	RenderScene::RenderScene(Scene& scene, RenderGraphProgram& program)
-		: m_Scene(scene), m_Program(program), m_TotalMeshCount(0) {}
+	    : m_Scene(scene)
+	    , m_Program(program)
+	    , m_TotalMeshCount(0)
+	{}
 
 	void RenderScene::Update()
 	{
@@ -26,7 +28,7 @@ namespace Poly
 		for (auto [entity, meshComp, transform] : view.each())
 		{
 			MeshInstance meshInstance = meshComp.pModel->GetMeshInstance(meshComp.MeshIndex);
-			size_t hash = meshInstance.GetUniqueHash();
+			size_t       hash         = meshInstance.GetUniqueHash();
 
 			if (m_InstanceHashToIndex.contains(hash))
 			{
@@ -38,7 +40,7 @@ namespace Poly
 			else
 			{
 				m_InstanceHashToIndex[hash] = static_cast<uint32>(m_SceneBatches.size());
-				m_SceneBatches.push_back({ meshInstance, 1, { transform.GetTransform()}});
+				m_SceneBatches.push_back({meshInstance, 1, {transform.GetTransform()}});
 			}
 
 			m_TotalMeshCount++;
@@ -63,33 +65,33 @@ namespace Poly
 			m_Program.UpdateGraphResource(materialID, materialSize, batch.MeshInstance.pMaterial->GetMaterialValues(), batchIndex * materialSize, batchIndex);
 
 			// Vertex buffer
-			PassResID vertexID = ResID(resGroupName + ":" + Scene::VERTICES_RESOURCE_NAME).GetAsExternal();
+			PassResID     vertexID      = ResID(resGroupName + ":" + Scene::VERTICES_RESOURCE_NAME).GetAsExternal();
 			const Buffer* pVertexBuffer = batch.MeshInstance.pMesh->GetVertexBuffer();
-			m_Program.UpdateGraphResource(vertexID, ResourceView{ pVertexBuffer, pVertexBuffer->GetSize(), 0 }, batchIndex);
+			m_Program.UpdateGraphResource(vertexID, ResourceView{pVertexBuffer, pVertexBuffer->GetSize(), 0}, batchIndex);
 
 			// Albedo
 			PassResID albedoID = ResID(resGroupName + ":" + Scene::ALBEDO_TEX_RESOURCE_NAME).GetAsExternal();
-			m_Program.UpdateGraphResource(albedoID, ResourceView{ batch.MeshInstance.pMaterial->GetTextureView(Material::Type::ALBEDO), nullptr }, batchIndex);
+			m_Program.UpdateGraphResource(albedoID, ResourceView{batch.MeshInstance.pMaterial->GetTextureView(Material::Type::ALBEDO), nullptr}, batchIndex);
 
 			// Metallic
 			PassResID metallicID = ResID(resGroupName + ":" + Scene::METALLIC_TEX_RESOURCE_NAME).GetAsExternal();
-			m_Program.UpdateGraphResource(metallicID, ResourceView{ batch.MeshInstance.pMaterial->GetTextureView(Material::Type::METALIC), nullptr }, batchIndex);
+			m_Program.UpdateGraphResource(metallicID, ResourceView{batch.MeshInstance.pMaterial->GetTextureView(Material::Type::METALIC), nullptr}, batchIndex);
 
 			// Normal
 			PassResID normalID = ResID(resGroupName + ":" + Scene::NORMAL_TEX_RESOURCE_NAME).GetAsExternal();
-			m_Program.UpdateGraphResource(normalID, ResourceView{ batch.MeshInstance.pMaterial->GetTextureView(Material::Type::NORMAL), nullptr }, batchIndex);
+			m_Program.UpdateGraphResource(normalID, ResourceView{batch.MeshInstance.pMaterial->GetTextureView(Material::Type::NORMAL), nullptr}, batchIndex);
 
 			// Roughness
 			PassResID roughnessID = ResID(resGroupName + ":" + Scene::ROUGHNESS_TEX_RESOURCE_NAME).GetAsExternal();
-			m_Program.UpdateGraphResource(roughnessID, ResourceView{ batch.MeshInstance.pMaterial->GetTextureView(Material::Type::ROUGHNESS), nullptr }, batchIndex);
+			m_Program.UpdateGraphResource(roughnessID, ResourceView{batch.MeshInstance.pMaterial->GetTextureView(Material::Type::ROUGHNESS), nullptr}, batchIndex);
 
 			// AO
 			PassResID aoID = ResID(resGroupName + ":" + Scene::AO_TEX_RESOURCE_NAME).GetAsExternal();
-			m_Program.UpdateGraphResource(aoID, ResourceView{ batch.MeshInstance.pMaterial->GetTextureView(Material::Type::AMBIENT_OCCLUSION), nullptr }, batchIndex);
+			m_Program.UpdateGraphResource(aoID, ResourceView{batch.MeshInstance.pMaterial->GetTextureView(Material::Type::AMBIENT_OCCLUSION), nullptr}, batchIndex);
 
 			// Combined
 			PassResID combinedID = ResID(resGroupName + ":" + Scene::COMBINED_TEX_RESOURCE_NAME).GetAsExternal();
-			m_Program.UpdateGraphResource(combinedID, ResourceView{ batch.MeshInstance.pMaterial->GetTextureView(Material::Type::COMBINED), nullptr }, batchIndex);
+			m_Program.UpdateGraphResource(combinedID, ResourceView{batch.MeshInstance.pMaterial->GetTextureView(Material::Type::COMBINED), nullptr}, batchIndex);
 
 			batchIndex++;
 			processedBatchInstances += batch.InstanceCount;
@@ -103,9 +105,10 @@ namespace Poly
 
 	void RenderScene::CreateBufferIfNecessary(const PassResID& bufferID, uint64 size)
 	{
-		if (!m_Program.HasResource(bufferID)) {
+		if (!m_Program.HasResource(bufferID))
+		{
 			m_Program.CreateResource(bufferID.GetResource(), size, nullptr, FBufferUsage::STORAGE_BUFFER);
 		}
 	}
 
-}
+} // namespace Poly

@@ -18,7 +18,7 @@ namespace Poly
 		/**
 		 * Init the Descriptor set object. Note: This also creates a pool for this set
 		 * @param desc	Descriptor set creation description
-		*/
+		 */
 		virtual void Init(PipelineLayout* pLayout, uint32 setIndex) = 0;
 
 		/**
@@ -48,4 +48,4 @@ namespace Poly
 
 		virtual uint32 GetSetIndex() const = 0;
 	};
-}
+} // namespace Poly

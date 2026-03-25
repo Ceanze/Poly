@@ -1,27 +1,27 @@
-#include "polypch.h"
-#include "IOManager.h"
 #include "ResourceLoader.h"
-#include "ResourceManager.h"
-#include "Shader/ShaderCompiler.h"
-#include "Platform/API/Buffer.h"
-#include "Platform/API/Texture.h"
-#include "Platform/API/BinarySemaphore.h"
-#include "Platform/API/CommandPool.h"
-#include "Platform/API/CommandQueue.h"
-#include "Platform/API/CommandBuffer.h"
-#include "Poly/Core/RenderAPI.h"
-
-#include "Poly/Model/Mesh.h"
-#include "Poly/Model/Model.h"
-#include "Poly/Model/Material.h"
 
 #include "GLSLang.h"
-#include <assimp/mesh.h>
-#include <assimp/scene.h>
-#include <assimp/material.h>
+#include "IOManager.h"
+#include "Platform/API/BinarySemaphore.h"
+#include "Platform/API/Buffer.h"
+#include "Platform/API/CommandBuffer.h"
+#include "Platform/API/CommandPool.h"
+#include "Platform/API/CommandQueue.h"
+#include "Platform/API/Texture.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Poly/Model/Material.h"
+#include "Poly/Model/Mesh.h"
+#include "Poly/Model/Model.h"
+#include "polypch.h"
+#include "ResourceManager.h"
+#include "Shader/ShaderCompiler.h"
+
 #include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
+#include <assimp/material.h>
+#include <assimp/mesh.h>
 #include <assimp/pbrmaterial.h>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
@@ -29,52 +29,66 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-namespace {
-    Poly::Material::Type ConvertTextureType(aiTextureType aiType)
-    {
-        using namespace Poly;
+namespace
+{
+	Poly::Material::Type ConvertTextureType(aiTextureType aiType)
+	{
+		using namespace Poly;
 
-        switch (aiType)
-        {
-            case aiTextureType_BASE_COLOR:			return Material::Type::ALBEDO;
-            case aiTextureType_DIFFUSE:				return Material::Type::ALBEDO;
+		switch (aiType)
+		{
+		case aiTextureType_BASE_COLOR:
+			return Material::Type::ALBEDO;
+		case aiTextureType_DIFFUSE:
+			return Material::Type::ALBEDO;
 
-            case aiTextureType_NORMAL_CAMERA:		return Material::Type::NORMAL;
-            case aiTextureType_NORMALS:				return Material::Type::NORMAL;
-            case aiTextureType_HEIGHT:				return Material::Type::NORMAL;
+		case aiTextureType_NORMAL_CAMERA:
+			return Material::Type::NORMAL;
+		case aiTextureType_NORMALS:
+			return Material::Type::NORMAL;
+		case aiTextureType_HEIGHT:
+			return Material::Type::NORMAL;
 
-            case aiTextureType_AMBIENT_OCCLUSION:	return Material::Type::AMBIENT_OCCLUSION;
-            case aiTextureType_AMBIENT:				return Material::Type::AMBIENT_OCCLUSION;
+		case aiTextureType_AMBIENT_OCCLUSION:
+			return Material::Type::AMBIENT_OCCLUSION;
+		case aiTextureType_AMBIENT:
+			return Material::Type::AMBIENT_OCCLUSION;
 
-            case aiTextureType_METALNESS:			return Material::Type::METALIC;
-            case aiTextureType_REFLECTION:			return Material::Type::METALIC;
+		case aiTextureType_METALNESS:
+			return Material::Type::METALIC;
+		case aiTextureType_REFLECTION:
+			return Material::Type::METALIC;
 
-            case aiTextureType_DIFFUSE_ROUGHNESS:	return Material::Type::ROUGHNESS;
-            case aiTextureType_SHININESS:			return Material::Type::ROUGHNESS;
+		case aiTextureType_DIFFUSE_ROUGHNESS:
+			return Material::Type::ROUGHNESS;
+		case aiTextureType_SHININESS:
+			return Material::Type::ROUGHNESS;
 
-            case aiTextureType_UNKNOWN:				return Material::Type::COMBINED;
+		case aiTextureType_UNKNOWN:
+			return Material::Type::COMBINED;
 
-            default:								return Material::Type::NONE;
-        }
-    }
+		default:
+			return Material::Type::NONE;
+		}
+	}
 
-    void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Poly::Ref<Poly::Material>& pPolyMaterial, const std::string& folder)
-    {
-        using namespace Poly;
+	void LoadAssimpMaterial(aiMaterial* pMaterial, aiTextureType type, uint32 index, const Poly::Ref<Poly::Material>& pPolyMaterial, const std::string& folder)
+	{
+		using namespace Poly;
 
-        aiString path;
-        if (pMaterial->GetTexture(type, index, &path) != AI_SUCCESS)
-        {
-            POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
-            return;
-        }
-        PolyID id = ResourceManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
+		aiString path;
+		if (pMaterial->GetTexture(type, index, &path) != AI_SUCCESS)
+		{
+			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
+			return;
+		}
+		PolyID id = ResourceManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
 
-        ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
-        pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
-        pPolyMaterial->SetTextureView(ConvertTextureType(type), managedTexture.pTextureView.get());
-    }
-}
+		ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
+		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
+		pPolyMaterial->SetTextureView(ConvertTextureType(type), managedTexture.pTextureView.get());
+	}
+} // namespace
 
 namespace Poly
 {
@@ -86,14 +100,14 @@ namespace Poly
 			POLY_CORE_ERROR("[ResourceLoader]: Failed to initialize glslang! No shaders will be loaded!");
 
 		// Command pools and buffers
-		s_TransferCommandPool	= RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
-		s_TransferCommandBuffer	= s_TransferCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+		s_TransferCommandPool   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
+		s_TransferCommandBuffer = s_TransferCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
-		s_GraphicsCommandPool	= RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::NONE);
-		s_GraphicsCommandBuffer	= s_GraphicsCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+		s_GraphicsCommandPool   = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::NONE);
+		s_GraphicsCommandBuffer = s_GraphicsCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 
 		// Semaphore
-		s_Semaphore				= RenderAPI::CreateBinarySemaphore();
+		s_Semaphore = RenderAPI::CreateBinarySemaphore();
 	}
 
 	void ResourceLoader::Release()
@@ -112,7 +126,6 @@ namespace Poly
 		s_Semaphore.reset();
 	}
 
-
 	std::vector<byte> ResourceLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
 	{
 		std::string relativePath = IOManager::GetAssetsFolder() + std::string(path);
@@ -122,7 +135,7 @@ namespace Poly
 			return {};
 		}
 
-		std::string folder = IOManager::GetFolderFromPath(relativePath);
+		std::string folder   = IOManager::GetFolderFromPath(relativePath);
 		std::string filename = IOManager::GetFilenameFromPath(relativePath);
 
 		const std::vector<byte> data = ShaderCompiler::CompileGLSL(filename, folder, shaderStage);
@@ -132,9 +145,9 @@ namespace Poly
 
 	std::vector<byte> ResourceLoader::LoadRawImage(const std::string& path)
 	{
-		int texWidth	= 0;
-		int texHeight	= 0;
-		int channels	= 0;
+		int texWidth  = 0;
+		int texHeight = 0;
+		int channels  = 0;
 
 		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, 0);
 		if (!data)
@@ -143,7 +156,7 @@ namespace Poly
 			return {};
 		}
 
-		const uint32 size = texWidth * texHeight * channels;
+		const uint32      size = texWidth * texHeight * channels;
 		std::vector<byte> image(size);
 		memcpy(image.data(), data, size);
 
@@ -155,9 +168,9 @@ namespace Poly
 	Ref<Texture> ResourceLoader::LoadTexture(const std::string& path, EFormat format)
 	{
 		// Load image
-		int texWidth	= 0;
-		int texHeight	= 0;
-		int channels	= 0;
+		int texWidth  = 0;
+		int texHeight = 0;
+		int channels  = 0;
 
 		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
 		if (!data)
@@ -173,28 +186,28 @@ namespace Poly
 	Ref<Texture> ResourceLoader::LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format)
 	{
 		// Create texture
-		TextureDesc textureDesc = {};
-		textureDesc.Width			= width;
-		textureDesc.Height			= height;
-		textureDesc.Depth			= 1;
-		textureDesc.MemoryUsage		= EMemoryUsage::GPU_ONLY;
-		textureDesc.SampleCount		= 1;
-		textureDesc.ArrayLayers		= 1;
-		textureDesc.MipLevels		= 1;
-		textureDesc.TextureDim		= ETextureDim::DIM_2D;
-		textureDesc.TextureUsage	= FTextureUsage::TRANSFER_DST | FTextureUsage::TRANSFER_SRC | FTextureUsage::SAMPLED;
-		textureDesc.Format			= format;
-		Ref<Texture> pTexture = RenderAPI::CreateTexture(&textureDesc);
+		TextureDesc textureDesc  = {};
+		textureDesc.Width        = width;
+		textureDesc.Height       = height;
+		textureDesc.Depth        = 1;
+		textureDesc.MemoryUsage  = EMemoryUsage::GPU_ONLY;
+		textureDesc.SampleCount  = 1;
+		textureDesc.ArrayLayers  = 1;
+		textureDesc.MipLevels    = 1;
+		textureDesc.TextureDim   = ETextureDim::DIM_2D;
+		textureDesc.TextureUsage = FTextureUsage::TRANSFER_DST | FTextureUsage::TRANSFER_SRC | FTextureUsage::SAMPLED;
+		textureDesc.Format       = format;
+		Ref<Texture> pTexture    = RenderAPI::CreateTexture(&textureDesc);
 
 		// TODO: Channels or format should be checked to get the correct size instead of hardcoding to four
 		// The value instead of channels should be the stride for the texture, which needs to be a factor of two
 
 		// Create transfer buffer
-		BufferDesc bufferDesc = {};
-		bufferDesc.BufferUsage	= FBufferUsage::TRANSFER_SRC;
-		bufferDesc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
-		bufferDesc.Size			= width * height * 4;
-		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&bufferDesc);
+		BufferDesc bufferDesc  = {};
+		bufferDesc.BufferUsage = FBufferUsage::TRANSFER_SRC;
+		bufferDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
+		bufferDesc.Size        = width * height * 4;
+		Ref<Buffer> pBuffer    = RenderAPI::CreateBuffer(&bufferDesc);
 
 		// Map transfer buffer
 		void* buffMap = pBuffer->Map();
@@ -207,37 +220,35 @@ namespace Poly
 
 		// 1. A newly created texture is created with the layout "UNDEFINED". This needs to be transfered to TRANSFER_DST before transfer
 		s_TransferCommandBuffer->PipelineTextureBarrier(
-			pTexture.get(),
-			FPipelineStage::TOP_OF_PIPE,
-			FPipelineStage::TRANSFER,
-			FAccessFlag::NONE,
-			FAccessFlag::TRANSFER_WRITE,
-			ETextureLayout::UNDEFINED,
-			ETextureLayout::TRANSFER_DST_OPTIMAL
-		);
+		    pTexture.get(),
+		    FPipelineStage::TOP_OF_PIPE,
+		    FPipelineStage::TRANSFER,
+		    FAccessFlag::NONE,
+		    FAccessFlag::TRANSFER_WRITE,
+		    ETextureLayout::UNDEFINED,
+		    ETextureLayout::TRANSFER_DST_OPTIMAL);
 
 		// 2. When in correct layout, record transfer command
 		CopyBufferDesc copyDesc = {};
-		copyDesc.Width		= width;
-		copyDesc.Height		= height;
-		copyDesc.Depth		= 1;
-		copyDesc.ArrayCount	= 1;
-		copyDesc.ArrayLayer	= 0;
-		copyDesc.MipLevel	= 0;
+		copyDesc.Width          = width;
+		copyDesc.Height         = height;
+		copyDesc.Depth          = 1;
+		copyDesc.ArrayCount     = 1;
+		copyDesc.ArrayLayer     = 0;
+		copyDesc.MipLevel       = 0;
 		s_TransferCommandBuffer->CopyBufferToTexture(pBuffer.get(), pTexture.get(), ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
 
 		// 3. Release texture from transfer queue
 		const bool transferGraphicsSameQueue = RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex() == RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex();
 		s_TransferCommandBuffer->ReleaseTexture(
-			pTexture.get(),
-			FPipelineStage::TRANSFER,
-			FPipelineStage::TRANSFER,
-			FAccessFlag::TRANSFER_READ,
-			ETextureLayout::TRANSFER_DST_OPTIMAL,
-			ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-		);
+		    pTexture.get(),
+		    FPipelineStage::TRANSFER,
+		    FPipelineStage::TRANSFER,
+		    FAccessFlag::TRANSFER_READ,
+		    ETextureLayout::TRANSFER_DST_OPTIMAL,
+		    ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+		    RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+		    RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex());
 		s_TransferCommandBuffer->End();
 
 		// 4. Semaphore to make sure the transfer is done before acquire
@@ -246,9 +257,9 @@ namespace Poly
 
 		// 5. Submit to transfer queue
 		{
-			SubmitDesc submitDesc = {};
-			submitDesc.CommandBuffers = { s_TransferCommandBuffer };
-			submitDesc.SignalSemaphores = { s_Semaphore.get() };
+			SubmitDesc submitDesc       = {};
+			submitDesc.CommandBuffers   = {s_TransferCommandBuffer};
+			submitDesc.SignalSemaphores = {s_Semaphore.get()};
 			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(submitDesc);
 		}
 
@@ -259,23 +270,22 @@ namespace Poly
 		if (!transferGraphicsSameQueue)
 		{
 			s_GraphicsCommandBuffer->AcquireTexture(
-				pTexture.get(),
-				FPipelineStage::TRANSFER,
-				FPipelineStage::TRANSFER,
-				FAccessFlag::TRANSFER_READ,
-				ETextureLayout::TRANSFER_DST_OPTIMAL,
-				ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-				RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-				RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-			);
+			    pTexture.get(),
+			    FPipelineStage::TRANSFER,
+			    FPipelineStage::TRANSFER,
+			    FAccessFlag::TRANSFER_READ,
+			    ETextureLayout::TRANSFER_DST_OPTIMAL,
+			    ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+			    RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+			    RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex());
 		}
 		s_GraphicsCommandBuffer->End();
 
 		// 7. Submit to graphics queue
 		{
-			SubmitDesc submitDesc = {};
-			submitDesc.CommandBuffers = { s_GraphicsCommandBuffer };
-			submitDesc.WaitSemaphores = { s_Semaphore.get() };
+			SubmitDesc submitDesc     = {};
+			submitDesc.CommandBuffers = {s_GraphicsCommandBuffer};
+			submitDesc.WaitSemaphores = {s_Semaphore.get()};
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
 		}
 
@@ -292,10 +302,7 @@ namespace Poly
 		std::string absolutePath = IOManager::GetAssetsFolder() + path;
 
 		Assimp::Importer importer;
-		const aiScene* pScene = importer.ReadFile(absolutePath, aiProcess_JoinIdenticalVertices
-														| aiProcess_Triangulate
-														| aiProcess_FlipUVs
-														| aiProcess_CalcTangentSpace);
+		const aiScene*   pScene = importer.ReadFile(absolutePath, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 		std::string folder = IOManager::GetFolderFromPath(path);
 
@@ -317,16 +324,16 @@ namespace Poly
 		return nullptr;
 	}
 
-	void ResourceLoader::ProcessNode(aiNode *pNode, const aiScene *pScene, const std::string& folder, Model* pModel, Entity parent)
+	void ResourceLoader::ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent)
 	{
 		for (uint32 i = 0; i < pNode->mNumMeshes; i++)
 		{
-			uint32 index = pModel->GetMeshInstanceCount();
-			aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
-			aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
-			Ref<Mesh> pPolyMesh = ProcessMesh(pMesh, pScene, pModel, index);
+			uint32        index         = pModel->GetMeshInstanceCount();
+			aiMesh*       pMesh         = pScene->mMeshes[pNode->mMeshes[i]];
+			aiMaterial*   pMaterial     = pScene->mMaterials[pMesh->mMaterialIndex];
+			Ref<Mesh>     pPolyMesh     = ProcessMesh(pMesh, pScene, pModel, index);
 			Ref<Material> pPolyMaterial = ProcessMaterial(pMaterial, pScene, pModel, index, folder);
-			pModel->AddMeshInstance({ pPolyMesh, pPolyMaterial });
+			pModel->AddMeshInstance({pPolyMesh, pPolyMaterial});
 
 			if (parent != Entity::None())
 			{
@@ -343,14 +350,14 @@ namespace Poly
 
 				transformComp.Translation = translation;
 				transformComp.Orientation = orientation;
-				transformComp.Scale = scale;
+				transformComp.Scale       = scale;
 			}
 		}
 
 		for (uint32 i = 0; i < pNode->mNumChildren; i++)
 		{
-			aiNode* child = pNode->mChildren[i];
-			Entity childEntity = Entity::None();
+			aiNode* child       = pNode->mChildren[i];
+			Entity  childEntity = Entity::None();
 			if (parent != Entity::None())
 			{
 				childEntity = parent.GetScene()->CreateEntity();
@@ -407,17 +414,17 @@ namespace Poly
 
 		// Create and transfer data to buffers
 		// Vertices
-		BufferDesc desc = {};
-		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::STORAGE_BUFFER;
-		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
-		desc.Size			= sizeof(Vertex) * vertices.size();
+		BufferDesc desc           = {};
+		desc.BufferUsage          = FBufferUsage::TRANSFER_DST | FBufferUsage::STORAGE_BUFFER;
+		desc.MemUsage             = EMemoryUsage::GPU_ONLY;
+		desc.Size                 = sizeof(Vertex) * vertices.size();
 		Ref<Buffer> pVertexBuffer = RenderAPI::CreateBuffer(&desc);
 		TransferDataToGPU(vertices.data(), desc.Size, sizeof(Vertex), pVertexBuffer);
 
 		// Indices
-		desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
-		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
-		desc.Size			= sizeof(uint32) * indices.size();
+		desc.BufferUsage         = FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
+		desc.MemUsage            = EMemoryUsage::GPU_ONLY;
+		desc.Size                = sizeof(uint32) * indices.size();
 		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
 		TransferDataToGPU(indices.data(), desc.Size, sizeof(uint32), pIndexBuffer);
 
@@ -429,7 +436,7 @@ namespace Poly
 
 	Ref<Material> ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder)
 	{
-		Ref<Material> pPolyMaterial = Material::Create(pModel, index);
+		Ref<Material>  pPolyMaterial  = Material::Create(pModel, index);
 		MaterialValues materialValues = {};
 
 		// Constants
@@ -542,11 +549,11 @@ namespace Poly
 	void ResourceLoader::TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer)
 	{
 		// Create transfer buffer
-		BufferDesc bufferDesc = {};
-		bufferDesc.BufferUsage	= FBufferUsage::TRANSFER_SRC;
-		bufferDesc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
-		bufferDesc.Size			= size;
-		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&bufferDesc);
+		BufferDesc bufferDesc  = {};
+		bufferDesc.BufferUsage = FBufferUsage::TRANSFER_SRC;
+		bufferDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
+		bufferDesc.Size        = size;
+		Ref<Buffer> pBuffer    = RenderAPI::CreateBuffer(&bufferDesc);
 
 		// Map transfer buffer
 		void* buffMap = pBuffer->Map();
@@ -558,13 +565,12 @@ namespace Poly
 		s_TransferCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 		s_TransferCommandBuffer->CopyBuffer(pBuffer.get(), pDestinationBuffer.get(), size, 0, 0);
 		s_TransferCommandBuffer->ReleaseBuffer(
-			pDestinationBuffer.get(),
-			FPipelineStage::TRANSFER,
-			FPipelineStage::TRANSFER,
-			FAccessFlag::TRANSFER_READ,
-			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-		);
+		    pDestinationBuffer.get(),
+		    FPipelineStage::TRANSFER,
+		    FPipelineStage::TRANSFER,
+		    FAccessFlag::TRANSFER_READ,
+		    RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+		    RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex());
 		s_TransferCommandBuffer->End();
 
 		// Semaphore to make sure the transfer is done before acquire
@@ -573,9 +579,9 @@ namespace Poly
 
 		// Submit to transfer queue
 		{
-			SubmitDesc submitDesc = {};
-			submitDesc.CommandBuffers = { s_TransferCommandBuffer };
-			submitDesc.SignalSemaphores = { s_Semaphore.get() };
+			SubmitDesc submitDesc       = {};
+			submitDesc.CommandBuffers   = {s_TransferCommandBuffer};
+			submitDesc.SignalSemaphores = {s_Semaphore.get()};
 			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(submitDesc);
 		}
 
@@ -583,20 +589,19 @@ namespace Poly
 		s_GraphicsCommandPool->Reset();
 		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 		s_GraphicsCommandBuffer->AcquireBuffer(
-			pDestinationBuffer.get(),
-			FPipelineStage::TRANSFER,
-			FPipelineStage::TRANSFER,
-			FAccessFlag::TRANSFER_READ,
-			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex()
-		);
+		    pDestinationBuffer.get(),
+		    FPipelineStage::TRANSFER,
+		    FPipelineStage::TRANSFER,
+		    FAccessFlag::TRANSFER_READ,
+		    RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
+		    RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex());
 		s_GraphicsCommandBuffer->End();
 
 		// Submit to graphics queue
 		{
-			SubmitDesc submitDesc = {};
-			submitDesc.CommandBuffers = { s_GraphicsCommandBuffer };
-			submitDesc.WaitSemaphores = { s_Semaphore.get() };
+			SubmitDesc submitDesc     = {};
+			submitDesc.CommandBuffers = {s_GraphicsCommandBuffer};
+			submitDesc.WaitSemaphores = {s_Semaphore.get()};
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
 		}
 
@@ -609,9 +614,9 @@ namespace Poly
 	glm::mat4 ResourceLoader::ConvertAiMatToGLM(const void* pMat)
 	{
 		const aiMatrix4x4* mat = (aiMatrix4x4*)pMat;
-		return glm::mat4(	mat->a1, mat->b1, mat->c1, mat->d1,
-							mat->a2, mat->b2, mat->c2, mat->d2,
-							mat->a3, mat->b3, mat->c3, mat->d3,
-							mat->a4, mat->b4, mat->c4, mat->d4);
+		return glm::mat4(mat->a1, mat->b1, mat->c1, mat->d1,
+		                 mat->a2, mat->b2, mat->c2, mat->d2,
+		                 mat->a3, mat->b3, mat->c3, mat->d3,
+		                 mat->a4, mat->b4, mat->c4, mat->d4);
 	}
-}
+} // namespace Poly

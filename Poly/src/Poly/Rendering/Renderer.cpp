@@ -1,13 +1,13 @@
-#include "polypch.h"
-
 #include "Renderer.h"
-#include "Poly/Core/Window.h"
-#include "Poly/Core/RenderAPI.h"
-#include "Platform/API/SwapChain.h"
+
 #include "Platform/API/CommandQueue.h"
+#include "Platform/API/SwapChain.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Poly/Core/Window.h"
+#include "Poly/Events/WindowEvent.h"
+#include "polypch.h"
 #include "RenderGraph/RenderGraphProgram.h"
 #include "RenderGraph/Resource.h"
-#include "Poly/Events/WindowEvent.h"
 
 namespace Poly
 {
@@ -38,16 +38,15 @@ namespace Poly
 	void Renderer::AddWindow(Window* pWindow)
 	{
 		SwapChainDesc swapChainDesc = {
-			.pWindow		= pWindow,
-			.pQueue			= RenderAPI::GetCommandQueue(FQueueType::GRAPHICS),
-			.Width			= pWindow->GetWidth(),
-			.Height			= pWindow->GetHeight(),
-			.BufferCount	= BUFFER_COUNT,
-			.Format			= EFormat::B8G8R8A8_UNORM
-		};
+		    .pWindow     = pWindow,
+		    .pQueue      = RenderAPI::GetCommandQueue(FQueueType::GRAPHICS),
+		    .Width       = pWindow->GetWidth(),
+		    .Height      = pWindow->GetHeight(),
+		    .BufferCount = BUFFER_COUNT,
+		    .Format      = EFormat::B8G8R8A8_UNORM};
 		Ref<SwapChain> pSwapChain = RenderAPI::CreateSwapChain(&swapChainDesc);
 
-		WindowContext context{ pWindow, pSwapChain };
+		WindowContext context{pWindow, pSwapChain};
 		m_Windows.emplace_back(context);
 	}
 
@@ -63,7 +62,7 @@ namespace Poly
 			m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
 
 			std::vector<CommandBuffer*> emptyCommandbuffers;
-			PresentResult res = windowCtx.pSwapChain->Present(emptyCommandbuffers);
+			PresentResult               res = windowCtx.pSwapChain->Present(emptyCommandbuffers);
 			if (res == PresentResult::RECREATED_SWAPCHAIN)
 				CreateBackbufferResources(windowCtx);
 		}
@@ -72,15 +71,14 @@ namespace Poly
 	void Renderer::OnEvent(Event& event)
 	{
 		EventDispatcher eventDispatcher(event);
-		eventDispatcher.Dispatch<Events::WindowResized>([this](Events::WindowResized& event)
+		eventDispatcher.Dispatch<Events::WindowResized>([this](Events::WindowResized& event) {
+			for (auto& context : m_Windows)
 			{
-				for (auto& context : m_Windows)
-				{
-					context.pSwapChain->OnWindowResized(event.GetWidth(), event.GetHeight());
-				}
+				context.pSwapChain->OnWindowResized(event.GetWidth(), event.GetHeight());
+			}
 
-				return false;
-			});
+			return false;
+		});
 	}
 
 	void Renderer::CreateBackbufferResources(const WindowContext& windowCtx)
@@ -93,4 +91,4 @@ namespace Poly
 
 		m_pRenderGraphProgram->RecreateResources(windowCtx.pWindow->GetWidth(), windowCtx.pWindow->GetHeight());
 	}
-}
+} // namespace Poly

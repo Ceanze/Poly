@@ -1,23 +1,22 @@
+#include "Platform/API/Buffer.h"
 #include "Poly.h"
-#include "Poly/Scene/Scene.h"
-#include "Poly/Scene/Entity.h"
+#include "Poly/Core/Input/InputManager.h"
+#include "Poly/Core/Window.h"
+#include "Poly/Events/MouseEvent.h"
+#include "Poly/Events/WindowEvent.h"
 #include "Poly/Rendering/Renderer.h"
-#include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
-#include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
-#include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Rendering/RenderGraph/Passes/ImGuiPass.h"
 #include "Poly/Rendering/RenderGraph/Passes/PBRPass.h"
+#include "Poly/Rendering/RenderGraph/RenderGraph.h"
+#include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
+#include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
-#include "Platform/API/Buffer.h"
 #include "Poly/Resources/ResourceManager.h"
-#include "Poly/Core/Window.h"
-#include "Poly/Events/WindowEvent.h"
-#include "Poly/Events/MouseEvent.h"
+#include "Poly/Scene/Entity.h"
+#include "Poly/Scene/Scene.h"
+#include "Poly/Scene/SceneSerializer.h"
 
 #include <imgui/imgui.h>
-#include "Poly/Core/Input/InputManager.h"
-
-#include "Poly/Scene/SceneSerializer.h"
 
 class TestLayer : public Poly::Layer
 {
@@ -30,13 +29,13 @@ public:
 
 	struct PointLight
 	{
-		glm::vec4 Color = {1.0, 0.0, 1.0, 1.0};
+		glm::vec4 Color    = {1.0, 0.0, 1.0, 1.0};
 		glm::vec4 Position = {0.0, 1.0, -1.0, 1.0};
 	};
 
 	struct LightBuffer
 	{
-		glm::vec4 LightCount = {1.0, 0.0, 0.0, 0.0};
+		glm::vec4  LightCount = {1.0, 0.0, 0.0, 0.0};
 		PointLight PointLight = {};
 	};
 
@@ -53,10 +52,10 @@ public:
 		pCamera->SetSprintSpeed(5.f);
 
 		// Creation
-		m_pGraph = Poly::RenderGraph::Create("TestGraph");
-		Poly::Ref<Poly::Pass> pPass = Poly::PBRPass::Create();
+		m_pGraph                         = Poly::RenderGraph::Create("TestGraph");
+		Poly::Ref<Poly::Pass> pPass      = Poly::PBRPass::Create();
 		Poly::Ref<Poly::Pass> pImGuiPass = Poly::ImGuiPass::Create();
-		m_pScene = Poly::Scene::Create();
+		m_pScene                         = Poly::Scene::Create();
 
 		// External resources
 		m_pGraph->AddExternalResource(Poly::ResID("camera"), sizeof(CameraBuffer), Poly::FBufferUsage::UNIFORM_BUFFER);
@@ -81,7 +80,7 @@ public:
 
 		m_pGraph->AddPass(pImGuiPass, Poly::PassID("ImGuiPass"));
 		m_pGraph->AddLink(Poly::PassResID("pbrPass", "out_Color"), Poly::PassResID("ImGuiPass", "fColor"));
-		//m_pGraph->AddLink({ "pbrPass", ""}, {"ImGuiPass", ""});
+		// m_pGraph->AddLink({ "pbrPass", ""}, {"ImGuiPass", ""});
 		m_pGraph->MarkOutput(Poly::PassResID("ImGuiPass", "fColor"));
 
 		// Compile
@@ -90,18 +89,18 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource(Poly::ResID("lights").GetAsExternal(), sizeof(LightBuffer), &data);
 
-		//m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
+		// m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
 
 		m_pProgram->SetScene(m_pScene);
 
-		//Poly::SceneSerializer sceneSerializer(m_pScene);
-		//sceneSerializer.Deserialize("CubeScene.polyscene");
+		// Poly::SceneSerializer sceneSerializer(m_pScene);
+		// sceneSerializer.Deserialize("CubeScene.polyscene");
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
 		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
-		m_TextureID = Poly::ResourceManager::ImportAndLoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
+		m_TextureID    = Poly::ResourceManager::ImportAndLoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
 		m_pTextureView = Poly::ResourceManager::GetTextureView(m_TextureID);
 
 		// Set active render graph program
@@ -117,8 +116,8 @@ public:
 		{
 			ImGui::Text("Texture View: %p", m_pTextureView);
 			ImGui::Image((ImTextureID)m_pTextureView, ImVec2(256, 256));
-			//ImGui::Image((ImTextureID)m_pProgram->GetDebugTextureView(Poly::ResourceGUID("pbrPass.out_Color")), ImVec2(256, 256));
-			//ImGui::Image((ImTextureID)m_pProgram->GetDebugTextureView(Poly::ResourceGUID("pbrPass.depth")), ImVec2(256, 256));
+			// ImGui::Image((ImTextureID)m_pProgram->GetDebugTextureView(Poly::ResourceGUID("pbrPass.out_Color")), ImVec2(256, 256));
+			// ImGui::Image((ImTextureID)m_pProgram->GetDebugTextureView(Poly::ResourceGUID("pbrPass.depth")), ImVec2(256, 256));
 		}
 
 		ImGui::End();
@@ -163,13 +162,13 @@ public:
 	}
 
 private:
-	Poly::Camera* pCamera = nullptr;
-	Poly::Ref<Poly::Scene> m_pScene = nullptr;
-	Poly::Ref<Poly::Buffer> m_pCambuffer = nullptr;
-	Poly::Ref<Poly::RenderGraph> m_pGraph = nullptr;
-	Poly::Ref<Poly::RenderGraphProgram> m_pProgram = nullptr;
+	Poly::Camera*                       pCamera      = nullptr;
+	Poly::Ref<Poly::Scene>              m_pScene     = nullptr;
+	Poly::Ref<Poly::Buffer>             m_pCambuffer = nullptr;
+	Poly::Ref<Poly::RenderGraph>        m_pGraph     = nullptr;
+	Poly::Ref<Poly::RenderGraphProgram> m_pProgram   = nullptr;
 
-	Poly::PolyID m_TextureID = Poly::PolyID::None();
+	Poly::PolyID       m_TextureID    = Poly::PolyID::None();
 	Poly::TextureView* m_pTextureView = nullptr;
 };
 
@@ -184,8 +183,7 @@ public:
 	}
 
 private:
-	std::optional<Poly::Window::Properties> GetWindowProperties() const override { return Poly::Window::Properties{ 1280, 720, "Poly Engine" }; }
-
+	std::optional<Poly::Window::Properties> GetWindowProperties() const override { return Poly::Window::Properties{1280, 720, "Poly Engine"}; }
 };
 
 Poly::Application* Poly::CreateApplication()

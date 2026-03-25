@@ -11,9 +11,12 @@ namespace Poly
 	struct MeshInstance
 	{
 		MeshInstance() = default;
-		MeshInstance(Ref<Mesh> pMesh, Ref<Material> pMaterial) : pMesh(pMesh), pMaterial(pMaterial) {}
-		Ref<Mesh>		pMesh;
-		Ref<Material>	pMaterial;
+		MeshInstance(Ref<Mesh> pMesh, Ref<Material> pMaterial)
+		    : pMesh(pMesh)
+		    , pMaterial(pMaterial)
+		{}
+		Ref<Mesh>     pMesh;
+		Ref<Material> pMaterial;
 
 		bool operator==(const MeshInstance& other) const { return pMesh == other.pMesh && pMaterial == other.pMaterial; }
 
@@ -23,7 +26,7 @@ namespace Poly
 	class Model
 	{
 	public:
-		Model() = default;
+		Model()  = default;
 		~Model() = default;
 
 		static Ref<Model> Create() { return CreateRef<Model>(); }
@@ -50,4 +53,4 @@ namespace Poly
 
 		PolyID m_ModelID;
 	};
-}
+} // namespace Poly

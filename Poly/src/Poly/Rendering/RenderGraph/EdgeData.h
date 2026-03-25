@@ -1,10 +1,10 @@
 #pragma once
 
-#include <variant>
-
 #include "Poly/Rendering/RenderGraph/PassID.h"
-#include "Poly/Rendering/RenderGraph/ResID.h"
 #include "Poly/Rendering/RenderGraph/PassResID.h"
+#include "Poly/Rendering/RenderGraph/ResID.h"
+
+#include <variant>
 
 namespace Poly
 {
@@ -96,7 +96,7 @@ namespace Poly
 
 		struct ExternalResourceToPassResourceEdgeData
 		{
-			ResID SrcExternalResource;
+			ResID     SrcExternalResource;
 			PassResID DstPassRes;
 		};
 
@@ -108,4 +108,4 @@ namespace Poly
 
 		std::variant<PassToPassEdgeData, ExternalResourceToPassResourceEdgeData, PassResourceToPassResourceEdgeData> m_EdgeData;
 	};
-}
+} // namespace Poly

@@ -1,16 +1,16 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCSynchroniser.h"
-#include "Poly/Rendering/RenderGraph/Compiler/RGCSyncTypes.h"
 
-#include "Poly/Rendering/Core/API/GraphicsTypes.h"
-#include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
-#include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
-#include "Poly/Rendering/RenderGraph/Pass.h"
-#include "Poly/Rendering/RenderGraph/RenderPass.h"
-#include "Poly/Rendering/RenderGraph/SyncPass.h"
-#include "Poly/Rendering/RenderGraph/ResourceCache.h"
-#include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
+#include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCSyncTypes.h"
 #include "Poly/Rendering/RenderGraph/EdgeData.h"
+#include "Poly/Rendering/RenderGraph/Pass.h"
+#include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
+#include "Poly/Rendering/RenderGraph/RenderGraph.h"
+#include "Poly/Rendering/RenderGraph/RenderPass.h"
+#include "Poly/Rendering/RenderGraph/ResourceCache.h"
+#include "Poly/Rendering/RenderGraph/SyncPass.h"
 
 namespace Poly
 {
@@ -20,17 +20,17 @@ namespace Poly
 
 	struct ResourceUsage
 	{
-		ResID			ResID		= ResID::Invalid();
-		ETextureLayout	Layout		= ETextureLayout::UNDEFINED;
-		FAccessFlag		AccessMask	= FAccessFlag::NONE;
-		FPipelineStage	Stage		= FPipelineStage::NONE;
+		ResID          ResID      = ResID::Invalid();
+		ETextureLayout Layout     = ETextureLayout::UNDEFINED;
+		FAccessFlag    AccessMask = FAccessFlag::NONE;
+		FPipelineStage Stage      = FPipelineStage::NONE;
 	};
 
 	struct SyncContext
 	{
 		// Pre-computed per-pass usages
-		std::unordered_map<uint32, std::vector<ResourceUsage>> PassInvalidates;  // inputs per node
-		std::unordered_map<uint32, std::vector<ResourceUsage>> PassFlushes;      // outputs per node
+		std::unordered_map<uint32, std::vector<ResourceUsage>> PassInvalidates; // inputs per node
+		std::unordered_map<uint32, std::vector<ResourceUsage>> PassFlushes;     // outputs per node
 
 		// Live state per physical resource, keyed by canonical GUID (ResourceCache::GetCanonicalGUID)
 		// Absence in map = {UNDEFINED, NONE, NONE} (resource not yet touched)
@@ -39,8 +39,8 @@ namespace Poly
 
 	struct SyncPassData
 	{
-		Ref<SyncPass>               pSyncPass;
-		std::unordered_set<uint32>  brokenEdgeIDs;
+		Ref<SyncPass>              pSyncPass;
+		std::unordered_set<uint32> brokenEdgeIDs;
 	};
 
 	// ---------------------------------------------------------------------------
@@ -116,9 +116,7 @@ namespace Poly
 
 	static bool HasWriteBits(FAccessFlag mask)
 	{
-		return BitsSet(mask, FAccessFlag::COLOR_ATTACHMENT_WRITE)
-			|| BitsSet(mask, FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE)
-			|| BitsSet(mask, FAccessFlag::SHADER_WRITE);
+		return BitsSet(mask, FAccessFlag::COLOR_ATTACHMENT_WRITE) || BitsSet(mask, FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE) || BitsSet(mask, FAccessFlag::SHADER_WRITE);
 	}
 
 	// ---------------------------------------------------------------------------
@@ -137,16 +135,15 @@ namespace Poly
 			if (!edgeData.IsDataDependency())
 				continue;
 
-			PassResID srcGUID = edgeData.GetSrcPassResOrExternal();
+			PassResID srcGUID       = edgeData.GetSrcPassResOrExternal();
 			PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(srcGUID);
 			if (!canonicalGUID.HasResource())
 				continue;
 
 			syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{
-				ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-				FAccessFlag::SHADER_READ,
-				FPipelineStage::FRAGMENT_SHADER
-			};
+			    ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+			    FAccessFlag::SHADER_READ,
+			    FPipelineStage::FRAGMENT_SHADER};
 		}
 	}
 
@@ -158,8 +155,8 @@ namespace Poly
 	{
 		for (const auto& compiledPass : ctx.CompiledGraph.CompiledPasses)
 		{
-			const uint32 nodeIndex = compiledPass.GraphNodeIndex;
-			const std::string& passName = compiledPass.pPass->GetName();
+			const uint32       nodeIndex = compiledPass.GraphNodeIndex;
+			const std::string& passName  = compiledPass.pPass->GetName();
 
 			// --- Inputs → PassInvalidates ---
 			auto inputs = compiledPass.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
@@ -178,7 +175,7 @@ namespace Poly
 			}
 
 			// --- Outputs → PassFlushes ---
-			auto outputs = compiledPass.Reflection.GetFieldsFiltered(FFieldVisibility::OUTPUT, FResourceBindPoint::INTERNAL_USE);
+			auto   outputs         = compiledPass.Reflection.GetFieldsFiltered(FFieldVisibility::OUTPUT, FResourceBindPoint::INTERNAL_USE);
 			uint32 attachmentIndex = 0;
 			for (const PassField* field : outputs)
 			{
@@ -217,11 +214,11 @@ namespace Poly
 
 		for (const auto& compiledPass : ctx.CompiledGraph.CompiledPasses)
 		{
-			const uint32 nodeIndex  = compiledPass.GraphNodeIndex;
-			const std::string& passName = compiledPass.pPass->GetName();
-			const bool isRenderPass = compiledPass.pPass->GetPassType() == Pass::Type::RENDER;
+			const uint32       nodeIndex    = compiledPass.GraphNodeIndex;
+			const std::string& passName     = compiledPass.pPass->GetName();
+			const bool         isRenderPass = compiledPass.pPass->GetPassType() == Pass::Type::RENDER;
 
-			Ref<SyncPass> pSyncPass = nullptr;
+			Ref<SyncPass>              pSyncPass = nullptr;
 			std::unordered_set<uint32> brokenEdges;
 
 			// ----------------------------------------------------------------
@@ -240,8 +237,8 @@ namespace Poly
 					// Skip passthrough inputs with no incoming edge — the resource has no prior
 					// writer to synchronise against (the pass will write to it fresh as an output).
 					{
-						const auto& inEdges = ctx.RenderGraph.m_pGraph->GetNode(nodeIndex)->GetIncommingEdges();
-						bool hasIncomingEdge = false;
+						const auto& inEdges         = ctx.RenderGraph.m_pGraph->GetNode(nodeIndex)->GetIncommingEdges();
+						bool        hasIncomingEdge = false;
 						for (uint32 edgeID : inEdges)
 						{
 							const EdgeData& edgeData = ctx.RenderGraph.m_Edges.at(edgeID);
@@ -259,20 +256,20 @@ namespace Poly
 					}
 
 					ResourceState current = {};
-					auto stateIt = syncCtx.CurrentResourceState.find(canonicalGUID);
+					auto          stateIt = syncCtx.CurrentResourceState.find(canonicalGUID);
 					if (stateIt != syncCtx.CurrentResourceState.end())
 						current = stateIt->second;
 
-					bool needsBarrier = false;
-					FAccessFlag srcAccess = FAccessFlag::NONE;
-					FAccessFlag dstAccess = usage.AccessMask;
+					bool        needsBarrier = false;
+					FAccessFlag srcAccess    = FAccessFlag::NONE;
+					FAccessFlag dstAccess    = usage.AccessMask;
 
 					if (usage.Layout != ETextureLayout::UNDEFINED) // Texture
 					{
 						bool priorWrite   = HasWriteBits(current.AccessMask);
 						bool neededWrite  = HasWriteBits(usage.AccessMask);
 						bool layoutChange = current.Layout != usage.Layout;
-						needsBarrier = priorWrite || neededWrite || layoutChange;
+						needsBarrier      = priorWrite || neededWrite || layoutChange;
 
 						if (needsBarrier)
 						{
@@ -283,14 +280,14 @@ namespace Poly
 								pSyncPass = SyncPass::Create(syncPassName);
 
 							SyncPass::SyncData syncData = {};
-							syncData.Type             = SyncPass::SyncType::TEXTURE;
-							syncData.ResourceName     = usage.ResID.GetName();
-							syncData.SrcLayout        = current.Layout;
-							syncData.DstLayout        = usage.Layout;
-							syncData.SrcAccessFlag    = srcAccess;
-							syncData.DstAccessFlag    = dstAccess;
-							syncData.SrcPipelineStage = current.Stage;
-							syncData.DstPipelineStage = usage.Stage;
+							syncData.Type               = SyncPass::SyncType::TEXTURE;
+							syncData.ResourceName       = usage.ResID.GetName();
+							syncData.SrcLayout          = current.Layout;
+							syncData.DstLayout          = usage.Layout;
+							syncData.SrcAccessFlag      = srcAccess;
+							syncData.DstAccessFlag      = dstAccess;
+							syncData.SrcPipelineStage   = current.Stage;
+							syncData.DstPipelineStage   = usage.Stage;
 							pSyncPass->AddSyncData(syncData);
 
 							ctx.pResourceCache->RegisterSyncResource(PassResID(PassID(syncPassName), usage.ResID), dstGUID);
@@ -322,7 +319,7 @@ namespace Poly
 					{
 						bool priorWrite  = HasWriteBits(current.AccessMask);
 						bool neededWrite = HasWriteBits(usage.AccessMask);
-						needsBarrier = priorWrite || neededWrite;
+						needsBarrier     = priorWrite || neededWrite;
 
 						if (needsBarrier)
 						{
@@ -333,14 +330,14 @@ namespace Poly
 								pSyncPass = SyncPass::Create(syncPassName);
 
 							SyncPass::SyncData syncData = {};
-							syncData.Type             = SyncPass::SyncType::BUFFER;
-							syncData.ResourceName     = usage.ResID.GetName();
-							syncData.SrcLayout        = ETextureLayout::UNDEFINED;
-							syncData.DstLayout        = ETextureLayout::UNDEFINED;
-							syncData.SrcAccessFlag    = srcAccess;
-							syncData.DstAccessFlag    = dstAccess;
-							syncData.SrcPipelineStage = current.Stage;
-							syncData.DstPipelineStage = usage.Stage;
+							syncData.Type               = SyncPass::SyncType::BUFFER;
+							syncData.ResourceName       = usage.ResID.GetName();
+							syncData.SrcLayout          = ETextureLayout::UNDEFINED;
+							syncData.DstLayout          = ETextureLayout::UNDEFINED;
+							syncData.SrcAccessFlag      = srcAccess;
+							syncData.DstAccessFlag      = dstAccess;
+							syncData.SrcPipelineStage   = current.Stage;
+							syncData.DstPipelineStage   = usage.Stage;
 							pSyncPass->AddSyncData(syncData);
 
 							ctx.pResourceCache->RegisterSyncResource(PassResID(PassID(syncPassName), usage.ResID), dstGUID);
@@ -362,7 +359,7 @@ namespace Poly
 					}
 
 					// Update current state after processing this input
-					syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{ usage.Layout, usage.AccessMask, usage.Stage };
+					syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{usage.Layout, usage.AccessMask, usage.Stage};
 				}
 			}
 
@@ -379,7 +376,7 @@ namespace Poly
 					if (!canonicalGUID.HasResource())
 						continue;
 
-					syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{ usage.Layout, usage.AccessMask, usage.Stage };
+					syncCtx.CurrentResourceState[canonicalGUID] = ResourceState{usage.Layout, usage.AccessMask, usage.Stage};
 				}
 			}
 
@@ -415,7 +412,7 @@ namespace Poly
 
 			// Find the compiled pass for this output
 			auto lastPassIt = std::find_if(compiledPasses.begin(), compiledPasses.end(),
-				[&](const CompiledPass& cp) { return cp.GraphNodeIndex == output.NodeID; });
+			                               [&](const CompiledPass& cp) { return cp.GraphNodeIndex == output.NodeID; });
 
 			if (lastPassIt != compiledPasses.end() && lastPassIt->pPass->GetPassType() == Pass::Type::RENDER)
 			{
@@ -447,8 +444,8 @@ namespace Poly
 		else
 		{
 			// Multiple outputs — find the last one by execution position
-			uint32 lastOutputIndex = 0;
-			std::string resourceName = "";
+			uint32      lastOutputIndex = 0;
+			std::string resourceName    = "";
 
 			for (const auto& output : ctx.RenderGraph.m_Outputs)
 			{
@@ -521,4 +518,4 @@ namespace Poly
 
 		ctx.PostSyncResourceStates = syncCtx.CurrentResourceState;
 	}
-}
+} // namespace Poly

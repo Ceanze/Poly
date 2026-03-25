@@ -10,8 +10,8 @@ namespace Poly
 	void RGCCompiler::Execute(RGCContext& ctx)
 	{
 		std::unordered_set<uint32> mandatoryNodes = GetMandatoryNodes(ctx);
-		std::vector<uint32> sortedNodes = PruneAndSortGraph(ctx, mandatoryNodes);
-		ctx.CompiledGraph = Compile(ctx, sortedNodes);
+		std::vector<uint32>        sortedNodes    = PruneAndSortGraph(ctx, mandatoryNodes);
+		ctx.CompiledGraph                         = Compile(ctx, sortedNodes);
 	}
 
 	std::unordered_set<uint32> RGCCompiler::GetMandatoryNodes(RGCContext& ctx)
@@ -31,7 +31,7 @@ namespace Poly
 	{
 		// Traverse graph in reverse for all mandatory passes to get all passes that will be used
 		std::unordered_set<uint32> usedNodes;
-		DirectedGraphHelper graphHelper = DirectedGraphHelper(ctx.RenderGraph.m_pGraph, 0, DirectedGraphHelper::CreateFlags::REVERSE | DirectedGraphHelper::CreateFlags::IGNORE_VISITED);
+		DirectedGraphHelper        graphHelper = DirectedGraphHelper(ctx.RenderGraph.m_pGraph, 0, DirectedGraphHelper::CreateFlags::REVERSE | DirectedGraphHelper::CreateFlags::IGNORE_VISITED);
 		for (const auto& pass : mandatoryPasses)
 		{
 			graphHelper.Reset(pass);
@@ -43,7 +43,7 @@ namespace Poly
 			}
 		}
 
-		std::vector<uint32> nodesToRemove;
+		std::vector<uint32>                                    nodesToRemove;
 		const std::unordered_map<uint32, DirectedGraph::Node>& allNodes = ctx.RenderGraph.m_pGraph->GetAllNodes();
 		for (const auto& [nodeIndex, _] : allNodes)
 			if (!usedNodes.contains(nodeIndex))
@@ -64,13 +64,13 @@ namespace Poly
 		// TODO: Cache reflection
 		for (auto nodeID : sortedNodes)
 		{
-			CompiledPass data = {};
-			data.pPass = ctx.RenderGraph.m_Passes[nodeID];
+			CompiledPass data   = {};
+			data.pPass          = ctx.RenderGraph.m_Passes[nodeID];
 			data.GraphNodeIndex = nodeID;
-			data.Reflection = data.pPass.get()->Reflect();
+			data.Reflection     = data.pPass.get()->Reflect();
 			compiledGraph.CompiledPasses.push_back(data);
 		}
 
 		return compiledGraph;
 	}
-}
+} // namespace Poly

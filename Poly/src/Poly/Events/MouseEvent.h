@@ -1,46 +1,57 @@
 #pragma once
 
-#include "Poly/Events/Event.h"
 #include "Poly/Core/Input/Keys.h"
+#include "Poly/Events/Event.h"
 
 namespace Poly::Events
 {
 	class MouseButtonPressed : public Event
 	{
 	public:
-		MouseButtonPressed(EKey button, FKeyModifier buttonMod) : m_Button(button), m_ButtonMod(buttonMod) {}
+		MouseButtonPressed(EKey button, FKeyModifier buttonMod)
+		    : m_Button(button)
+		    , m_ButtonMod(buttonMod)
+		{}
 
-		EKey GetButton() const { return m_Button; }
+		EKey         GetButton() const { return m_Button; }
 		FKeyModifier GetButtonModifier() const { return m_ButtonMod; }
 
 		DEFINE_EVENT(MouseButtonPressed, EventType::MouseButtonPressed)
 		DEFINE_EVENT_CATEGORY(MouseButtonPressed, EventCategory::Mouse)
 
 	private:
-		const EKey m_Button;
+		const EKey         m_Button;
 		const FKeyModifier m_ButtonMod;
 	};
 
 	class MouseButtonReleased : public Event
 	{
 	public:
-		MouseButtonReleased(EKey button, FKeyModifier buttonMod) : m_Button(button), m_ButtonMod(buttonMod) {}
+		MouseButtonReleased(EKey button, FKeyModifier buttonMod)
+		    : m_Button(button)
+		    , m_ButtonMod(buttonMod)
+		{}
 
-		EKey GetButton() const { return m_Button; }
+		EKey         GetButton() const { return m_Button; }
 		FKeyModifier GetButtonModifier() const { return m_ButtonMod; }
 
 		DEFINE_EVENT(MouseButtonReleased, EventType::MouseButtonReleased)
 		DEFINE_EVENT_CATEGORY(MouseButtonReleased, EventCategory::Mouse)
 
 	private:
-		const EKey m_Button;
+		const EKey         m_Button;
 		const FKeyModifier m_ButtonMod;
 	};
 
 	class MouseMoved : public Event
 	{
 	public:
-		MouseMoved(double x, double y, double deltaX, double deltaY) : m_X(x), m_Y(y), m_DeltaX(deltaX), m_DeltaY(deltaY) {}
+		MouseMoved(double x, double y, double deltaX, double deltaY)
+		    : m_X(x)
+		    , m_Y(y)
+		    , m_DeltaX(deltaX)
+		    , m_DeltaY(deltaY)
+		{}
 
 		double GetX() const { return m_X; }
 		double GetY() const { return m_Y; }
@@ -60,7 +71,12 @@ namespace Poly::Events
 	class MouseScrolled : public Event
 	{
 	public:
-		MouseScrolled(double x, double y, double deltaX, double deltaY) : m_X(x), m_Y(y), m_DeltaX(deltaX), m_DeltaY(deltaY) {}
+		MouseScrolled(double x, double y, double deltaX, double deltaY)
+		    : m_X(x)
+		    , m_Y(y)
+		    , m_DeltaX(deltaX)
+		    , m_DeltaY(deltaY)
+		{}
 
 		double GetX() const { return m_X; }
 		double GetY() const { return m_Y; }
@@ -76,4 +92,4 @@ namespace Poly::Events
 		const double m_DeltaX;
 		const double m_DeltaY;
 	};
-}
+} // namespace Poly::Events

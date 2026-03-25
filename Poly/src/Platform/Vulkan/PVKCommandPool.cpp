@@ -1,8 +1,9 @@
-#include "polypch.h"
 #include "PVKCommandPool.h"
+
+#include "polypch.h"
+#include "PVKCommandBuffer.h"
 #include "PVKInstance.h"
 #include "VulkanCommon.h"
-#include "PVKCommandBuffer.h"
 
 namespace Poly
 {
@@ -11,7 +12,8 @@ namespace Poly
 		vkDestroyCommandPool(PVKInstance::GetDevice(), m_Pool, nullptr);
 
 		// Command buffers are automatically freed when command pool is destroyed
-		for (auto buffer : m_Buffers) {
+		for (auto buffer : m_Buffers)
+		{
 			delete buffer;
 		}
 		m_Buffers.clear();
@@ -20,7 +22,7 @@ namespace Poly
 	void PVKCommandPool::Init(FQueueType queueType, FCommandPoolFlags flags)
 	{
 		p_QueueType = queueType;
-		m_Flags = flags;
+		m_Flags     = flags;
 		CreateCommandPool();
 	}
 
@@ -62,11 +64,11 @@ namespace Poly
 		uint32_t queueFamilyIndex = PVKInstance::GetQueue(p_QueueType).queueFamilyIndex;
 
 		VkCommandPoolCreateInfo poolInfo = {};
-		poolInfo.sType				= VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.queueFamilyIndex	= queueFamilyIndex;
-		poolInfo.flags				= ConvertCommandPoolFlagsVK(m_Flags);
+		poolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex        = queueFamilyIndex;
+		poolInfo.flags                   = ConvertCommandPoolFlagsVK(m_Flags);
 
 		PVK_CHECK(vkCreateCommandPool(PVKInstance::GetDevice(), &poolInfo, nullptr, &m_Pool), "Failed to create command pool!");
 	}
 
-}
+} // namespace Poly

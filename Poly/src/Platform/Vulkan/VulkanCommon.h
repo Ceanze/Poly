@@ -2,23 +2,28 @@
 
 #include "PVKTypes.h"
 
-#include <optional>
 #include <vulkan/vulkan.h>
+
+#include <optional>
 #include <vector>
 
-namespace Poly {
+namespace Poly
+{
 
 	// Struct to keep track of the different queue families
-	struct QueueFamilyIndices {
+	struct QueueFamilyIndices
+	{
 		std::optional<unsigned> GraphicsFamily;
 		std::optional<unsigned> PresentFamily;
 
-		bool isComplete() {
+		bool isComplete()
+		{
 			return GraphicsFamily.has_value() && PresentFamily.has_value();
 		}
 	};
 
-	struct QueueSpec {
+	struct QueueSpec
+	{
 		uint32_t QueueFamily;
 		uint32_t QueueCount;
 		uint32_t QueueFlags;
@@ -36,18 +41,22 @@ namespace Poly {
 
 		// Find graphics queue and save its index from the queue
 		unsigned i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+		for (const auto& queueFamily : queueFamilies)
+		{
+			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
 				indices.GraphicsFamily = i;
 			}
 
 			VkBool32 presentSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-			if (presentSupport) {
+			if (presentSupport)
+			{
 				indices.PresentFamily = i;
 			}
 
-			if (indices.isComplete()) {
+			if (indices.isComplete())
+			{
 				break;
 			}
 
@@ -68,23 +77,24 @@ namespace Poly {
 
 		// Backup queue if no unique desired queue was found
 		QueueSpec backupQueue;
-		bool backupQueueSet = false;
+		bool      backupQueueSet = false;
 
-		for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilies.size()); i++) {
-			VkQueueFlags desiredQueue = queueFamilies[i].queueFlags & queueFamily;
+		for (uint32_t i = 0; i < static_cast<uint32_t>(queueFamilies.size()); i++)
+		{
+			VkQueueFlags desiredQueue  = queueFamilies[i].queueFlags & queueFamily;
 			VkQueueFlags graphicsCheck = queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
 
 			if (((queueFamily & VK_QUEUE_GRAPHICS_BIT) == 1) && desiredQueue)
-				return { i, queueFamilies[i].queueCount };
+				return {i, queueFamilies[i].queueCount};
 			// If not requesting graphics queue, should return a queue without graphics support (to avoid non-unique queue)
 			else if ((desiredQueue) && (graphicsCheck == 0))
-				return { i, queueFamilies[i].queueCount };
+				return {i, queueFamilies[i].queueCount};
 			// If no queue meets the criteria of no-graphics and other desired queue - use the first available
 			else if (desiredQueue && !backupQueueSet)
-            {
-                backupQueue = {i, queueFamilies[i].queueCount};
-                backupQueueSet = true;
-            }
+			{
+				backupQueue    = {i, queueFamilies[i].queueCount};
+				backupQueueSet = true;
+			}
 		}
 
 		if (backupQueueSet)
@@ -104,8 +114,8 @@ namespace Poly {
 
 		std::vector<QueueSpec> queueSpecs;
 		for (size_t i = 0; i < queueFamilies.size(); i++)
-			queueSpecs.push_back(QueueSpec{ static_cast<uint32_t>(i), queueFamilies[i].queueCount, queueFamilies[i].queueFlags});
+			queueSpecs.push_back(QueueSpec{static_cast<uint32_t>(i), queueFamilies[i].queueCount, queueFamilies[i].queueFlags});
 
 		return queueSpecs;
 	}
-}
+} // namespace Poly

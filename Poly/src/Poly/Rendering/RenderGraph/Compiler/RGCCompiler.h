@@ -16,7 +16,7 @@ namespace Poly
 
 	private:
 		std::unordered_set<uint32> GetMandatoryNodes(RGCContext& ctx);
-		std::vector<uint32> PruneAndSortGraph(RGCContext& ctx, const std::unordered_set<uint32>& mandatoryPasses);
-		CompiledGraph Compile(RGCContext& ctx, std::vector<uint32> sortedNodes);
+		std::vector<uint32>        PruneAndSortGraph(RGCContext& ctx, const std::unordered_set<uint32>& mandatoryPasses);
+		CompiledGraph              Compile(RGCContext& ctx, std::vector<uint32> sortedNodes);
 	};
-}
+} // namespace Poly

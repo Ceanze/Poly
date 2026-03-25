@@ -28,13 +28,25 @@ namespace Poly
 		MouseScrolled
 	};
 
-#define DEFINE_EVENT(type, eventType)\
-	static EventType GetStaticType() { return eventType; }\
-	virtual EventType GetEventType() const override { return eventType; }\
-	virtual const char* GetName() const override { return #type; }
+#define DEFINE_EVENT(type, eventType)               \
+	static EventType GetStaticType()                \
+	{                                               \
+		return eventType;                           \
+	}                                               \
+	virtual EventType GetEventType() const override \
+	{                                               \
+		return eventType;                           \
+	}                                               \
+	virtual const char* GetName() const override    \
+	{                                               \
+		return #type;                               \
+	}
 
-#define DEFINE_EVENT_CATEGORY(type, eventCategory)\
-	virtual EventCategory GetEventCategory() const override { return eventCategory; }
+#define DEFINE_EVENT_CATEGORY(type, eventCategory)          \
+	virtual EventCategory GetEventCategory() const override \
+	{                                                       \
+		return eventCategory;                               \
+	}
 
 	class Event
 	{
@@ -43,17 +55,19 @@ namespace Poly
 
 		bool Handled = false;
 
-		virtual EventType GetEventType() const = 0;
+		virtual EventType     GetEventType() const     = 0;
 		virtual EventCategory GetEventCategory() const = 0;
-		virtual const char* GetName() const = 0;
+		virtual const char*   GetName() const          = 0;
 	};
 
 	class EventDispatcher
 	{
 	public:
-		EventDispatcher(Event& event) : m_Event(event) {}
+		EventDispatcher(Event& event)
+		    : m_Event(event)
+		{}
 
-		template <typename Type>
+		template<typename Type>
 		bool Dispatch(const std::function<bool(Type&)>& func)
 		{
 			if (Type::GetStaticType() == m_Event.GetEventType())
@@ -68,4 +82,4 @@ namespace Poly
 	private:
 		Event& m_Event;
 	};
-}
+} // namespace Poly

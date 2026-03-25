@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
-
-#include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Model/Material.h"
+#include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Scene/Entity.h"
+
+#include <vector>
 
 struct aiNode;
 struct aiMesh;
@@ -24,14 +24,14 @@ namespace Poly
 
 	struct MeshMaterialRefPair
 	{
-		Ref<Mesh> pMesh;
+		Ref<Mesh>     pMesh;
 		Ref<Material> pMaterial;
 	};
 
 	class ResourceLoader
 	{
 	public:
-		ResourceLoader() = default;
+		ResourceLoader()  = default;
 		~ResourceLoader() = default;
 
 		static void Init();
@@ -50,18 +50,19 @@ namespace Poly
 		static Ref<Material> LoadMaterial(const std::string& path);
 
 	private:
-		static void ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent);
-		static Ref<Mesh> ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index);
+		static void          ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent);
+		static Ref<Mesh>     ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index);
 		static Ref<Material> ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder);
-		static void TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer);
-		static glm::mat4 ConvertAiMatToGLM(const void* pMat);
+		static void          TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer);
+		static glm::mat4     ConvertAiMatToGLM(const void* pMat);
 
-		inline static bool s_GLSLInit = false;;
+		inline static bool s_GLSLInit = false;
+		;
 
-		inline static Ref<CommandPool>		s_TransferCommandPool;
-		inline static CommandBuffer*		s_TransferCommandBuffer = nullptr;
-		inline static Ref<CommandPool>		s_GraphicsCommandPool;
-		inline static CommandBuffer*		s_GraphicsCommandBuffer = nullptr;
-		inline static Ref<BinarySemaphore>	s_Semaphore;
+		inline static Ref<CommandPool>     s_TransferCommandPool;
+		inline static CommandBuffer*       s_TransferCommandBuffer = nullptr;
+		inline static Ref<CommandPool>     s_GraphicsCommandPool;
+		inline static CommandBuffer*       s_GraphicsCommandBuffer = nullptr;
+		inline static Ref<BinarySemaphore> s_Semaphore;
 	};
-}
+} // namespace Poly

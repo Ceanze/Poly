@@ -1,16 +1,16 @@
-#include "polypch.h"
 #include "PVKCommandBuffer.h"
-#include "Poly/Core/PolyUtils.h"
 
+#include "Poly/Core/PolyUtils.h"
+#include "polypch.h"
 #include "PVKBuffer.h"
-#include "PVKTexture.h"
-#include "PVKInstance.h"
-#include "PVKRenderPass.h"
-#include "PVKFramebuffer.h"
 #include "PVKCommandPool.h"
 #include "PVKDescriptorSet.h"
-#include "PVKPipelineLayout.h"
+#include "PVKFramebuffer.h"
 #include "PVKGraphicsPipeline.h"
+#include "PVKInstance.h"
+#include "PVKPipelineLayout.h"
+#include "PVKRenderPass.h"
+#include "PVKTexture.h"
 
 namespace Poly
 {
@@ -25,43 +25,42 @@ namespace Poly
 		p_pCommandPool = pCommandPool;
 
 		VkCommandBufferAllocateInfo allocInfo = {};
-		allocInfo.sType					= VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool			= reinterpret_cast<PVKCommandPool*>(pCommandPool)->GetNativeVK();
-		allocInfo.level					= VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Current implementation only supports primary
-		allocInfo.commandBufferCount	= 1;
+		allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool                 = reinterpret_cast<PVKCommandPool*>(pCommandPool)->GetNativeVK();
+		allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // Current implementation only supports primary
+		allocInfo.commandBufferCount          = 1;
 
 		PVK_CHECK(vkAllocateCommandBuffers(PVKInstance::GetDevice(), &allocInfo, &m_Buffer), "Failed to allocate command buffers!")
 	}
-
 
 	void PVKCommandBuffer::Begin(FCommandBufferFlag bufferFlag)
 	{
 		// TODO: Add support for secondary buffers
 
 		VkCommandBufferBeginInfo beginInfo = {};
-		beginInfo.sType				= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags				= ConvertCommandBufferUsage(bufferFlag);
-		beginInfo.pInheritanceInfo	= nullptr;
+		beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags                    = ConvertCommandBufferUsage(bufferFlag);
+		beginInfo.pInheritanceInfo         = nullptr;
 
 		PVK_CHECK(vkBeginCommandBuffer(m_Buffer, &beginInfo), "Failed to begin recording of command buffer!");
 	}
 
 	void PVKCommandBuffer::BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues)
 	{
-		VkExtent2D extent = { width, height };
+		VkExtent2D            extent         = {width, height};
 		VkRenderPassBeginInfo renderPassInfo = {};
 
 		std::vector<VkClearValue> vkClearValues(clearValues.size());
 		memcpy(vkClearValues.data(), clearValues.data(), sizeof(ClearValue) * clearValues.size());
 
-		renderPassInfo.sType				= VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass			= reinterpret_cast<PVKRenderPass*>(pRenderPass)->GetNativeVK();
-		renderPassInfo.framebuffer			= reinterpret_cast<PVKFramebuffer*>(pFramebuffer)->GetNativeVK();
-		renderPassInfo.renderArea.offset	= { 0, 0 };
-		renderPassInfo.renderArea.extent	= extent;
-		renderPassInfo.clearValueCount		= static_cast<uint32>(vkClearValues.size());
-		renderPassInfo.pClearValues			= vkClearValues.data();
-		renderPassInfo.pNext				= nullptr;
+		renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass        = reinterpret_cast<PVKRenderPass*>(pRenderPass)->GetNativeVK();
+		renderPassInfo.framebuffer       = reinterpret_cast<PVKFramebuffer*>(pFramebuffer)->GetNativeVK();
+		renderPassInfo.renderArea.offset = {0, 0};
+		renderPassInfo.renderArea.extent = extent;
+		renderPassInfo.clearValueCount   = static_cast<uint32>(vkClearValues.size());
+		renderPassInfo.pClearValues      = vkClearValues.data();
+		renderPassInfo.pNext             = nullptr;
 
 		vkCmdBeginRenderPass(m_Buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
@@ -71,9 +70,9 @@ namespace Poly
 		if (pPipeline->GetPipelineType() == EPipelineType::GRAPHICS)
 		{
 			vkCmdBindPipeline(
-				m_Buffer,
-				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
-				reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetNativeVK());
+			    m_Buffer,
+			    ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
+			    reinterpret_cast<PVKGraphicsPipeline*>(pPipeline)->GetNativeVK());
 		}
 		else
 		{
@@ -87,28 +86,28 @@ namespace Poly
 		{
 			VkDescriptorSet descSet = reinterpret_cast<const PVKDescriptorSet*>(pDescriptor)->GetNativeVK();
 			vkCmdBindDescriptorSets(
-				m_Buffer,
-				ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
-				reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<const PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
-				pDescriptor->GetSetIndex(),
-				1,
-				&descSet,
-				dynamicOffsetCount,
-				pDynamicOffsets);
+			    m_Buffer,
+			    ConvertPipelineTypeVK(pPipeline->GetPipelineType()),
+			    reinterpret_cast<PVKPipelineLayout*>(reinterpret_cast<const PVKGraphicsPipeline*>(pPipeline)->GetPipelineLayout())->GetNativeVK(),
+			    pDescriptor->GetSetIndex(),
+			    1,
+			    &descSet,
+			    dynamicOffsetCount,
+			    pDynamicOffsets);
 		}
 	}
 
 	void PVKCommandBuffer::BindVertexBuffer(const Buffer* pBuffer, uint32 firstBinding, uint32 bindingCount, uint64 offset)
 	{
 		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
-		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+		VkBuffer         vkBuffer   = pPVKBuffer->GetNativeVK();
 		vkCmdBindVertexBuffers(m_Buffer, firstBinding, bindingCount, &vkBuffer, &offset);
 	}
 
 	void PVKCommandBuffer::BindIndexBuffer(const Buffer* pBuffer, uint64 offset, EIndexType indexType)
 	{
 		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
-		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+		VkBuffer         vkBuffer   = pPVKBuffer->GetNativeVK();
 		vkCmdBindIndexBuffer(m_Buffer, vkBuffer, offset, ConvertIndexTypeVK(indexType));
 	}
 
@@ -121,42 +120,41 @@ namespace Poly
 	void PVKCommandBuffer::CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
 	{
 		VkImageSubresourceLayers subresource = {};
-		subresource.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
-		subresource.baseArrayLayer	= copyBufferDesc.ArrayLayer;
-		subresource.layerCount		= copyBufferDesc.ArrayCount;
-		subresource.mipLevel		= copyBufferDesc.MipLevel;
+		subresource.aspectMask               = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresource.baseArrayLayer           = copyBufferDesc.ArrayLayer;
+		subresource.layerCount               = copyBufferDesc.ArrayCount;
+		subresource.mipLevel                 = copyBufferDesc.MipLevel;
 
 		VkBufferImageCopy copyDesc = {};
-		copyDesc.bufferImageHeight	= copyBufferDesc.BufferImageHeight;
-		copyDesc.bufferOffset		= copyBufferDesc.BufferOffset;
-		copyDesc.bufferRowLength	= copyBufferDesc.BufferRowLength;
-		copyDesc.imageExtent		= { copyBufferDesc.Width, copyBufferDesc.Height, copyBufferDesc.Depth };
-		copyDesc.imageOffset		= { copyBufferDesc.ImageOffsetX, copyBufferDesc.ImageOffsetY, copyBufferDesc.ImageOffsetZ };
-		copyDesc.imageSubresource	= subresource;
+		copyDesc.bufferImageHeight = copyBufferDesc.BufferImageHeight;
+		copyDesc.bufferOffset      = copyBufferDesc.BufferOffset;
+		copyDesc.bufferRowLength   = copyBufferDesc.BufferRowLength;
+		copyDesc.imageExtent       = {copyBufferDesc.Width, copyBufferDesc.Height, copyBufferDesc.Depth};
+		copyDesc.imageOffset       = {copyBufferDesc.ImageOffsetX, copyBufferDesc.ImageOffsetY, copyBufferDesc.ImageOffsetZ};
+		copyDesc.imageSubresource  = subresource;
 
 		vkCmdCopyBufferToImage(
-			m_Buffer,
-			reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK(),
-			reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK(),
-			ConvertTextureLayoutVK(layout),
-			1,
-			&copyDesc);
+		    m_Buffer,
+		    reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK(),
+		    reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK(),
+		    ConvertTextureLayoutVK(layout),
+		    1,
+		    &copyDesc);
 	}
 
 	void PVKCommandBuffer::CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset)
 	{
 		VkBufferCopy copyDesc = {};
-		copyDesc.size		= size;
-		copyDesc.srcOffset	= srcOffset;
-		copyDesc.dstOffset	= dstOffset;
+		copyDesc.size         = size;
+		copyDesc.srcOffset    = srcOffset;
+		copyDesc.dstOffset    = dstOffset;
 
 		vkCmdCopyBuffer(
-			m_Buffer,
-			reinterpret_cast<const PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
-			reinterpret_cast<const PVKBuffer*>(pDstBuffer)->GetNativeVK(),
-			1,
-			&copyDesc
-		);
+		    m_Buffer,
+		    reinterpret_cast<const PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
+		    reinterpret_cast<const PVKBuffer*>(pDstBuffer)->GetNativeVK(),
+		    1,
+		    &copyDesc);
 	}
 
 	void PVKCommandBuffer::CopyBufferRegions(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, const std::vector<BufferRegion>& regions)
@@ -169,18 +167,17 @@ namespace Poly
 		}
 
 		vkCmdCopyBuffer(
-			m_Buffer,
-			reinterpret_cast<const PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
-			reinterpret_cast<const PVKBuffer*>(pDstBuffer)->GetNativeVK(),
-			vkRegions.size(),
-			vkRegions.data()
-		);
+		    m_Buffer,
+		    reinterpret_cast<const PVKBuffer*>(pSrcBuffer)->GetNativeVK(),
+		    reinterpret_cast<const PVKBuffer*>(pDstBuffer)->GetNativeVK(),
+		    vkRegions.size(),
+		    vkRegions.data());
 	}
 
 	void PVKCommandBuffer::UpdateBuffer(const Buffer* pBuffer, uint64 size, uint64 offset, const void* pData)
 	{
 		const PVKBuffer* pPVKBuffer = static_cast<const PVKBuffer*>(pBuffer);
-		VkBuffer vkBuffer = pPVKBuffer->GetNativeVK();
+		VkBuffer         vkBuffer   = pPVKBuffer->GetNativeVK();
 
 		vkCmdUpdateBuffer(m_Buffer, vkBuffer, offset, size, pData);
 	}
@@ -188,12 +185,12 @@ namespace Poly
 	void PVKCommandBuffer::SetViewport(const ViewportDesc* pViewport)
 	{
 		VkViewport viewport = {};
-		viewport.height		= pViewport->Height;
-		viewport.width		= pViewport->Width;
-		viewport.x			= pViewport->PosX;
-		viewport.y			= pViewport->PosY;
-		viewport.minDepth	= pViewport->MinDepth;
-		viewport.maxDepth	= pViewport->MaxDepth;
+		viewport.height     = pViewport->Height;
+		viewport.width      = pViewport->Width;
+		viewport.x          = pViewport->PosX;
+		viewport.y          = pViewport->PosY;
+		viewport.minDepth   = pViewport->MinDepth;
+		viewport.maxDepth   = pViewport->MaxDepth;
 
 		vkCmdSetViewport(m_Buffer, 0, 1, &viewport);
 	}
@@ -205,12 +202,12 @@ namespace Poly
 		for (const auto& viewport : viewports)
 		{
 			VkViewport vkViewport = {};
-			vkViewport.height	= viewport.Height;
-			vkViewport.width	= viewport.Width;
-			vkViewport.x		= viewport.PosX;
-			vkViewport.y		= viewport.PosY;
-			vkViewport.minDepth	= viewport.MinDepth;
-			vkViewport.maxDepth	= viewport.MaxDepth;
+			vkViewport.height     = viewport.Height;
+			vkViewport.width      = viewport.Width;
+			vkViewport.x          = viewport.PosX;
+			vkViewport.y          = viewport.PosY;
+			vkViewport.minDepth   = viewport.MinDepth;
+			vkViewport.maxDepth   = viewport.MaxDepth;
 		}
 
 		vkCmdSetViewport(m_Buffer, 0, vkViewports.size(), vkViewports.data());
@@ -219,11 +216,11 @@ namespace Poly
 	void PVKCommandBuffer::SetScissor(const ScissorDesc* pScissor)
 	{
 		// TODO: Allow for multiple scissors
-		VkRect2D scissor = {};
-		scissor.extent.height	= pScissor->Height;
-		scissor.extent.width	= pScissor->Width;
-		scissor.offset.x		= pScissor->OffsetX;
-		scissor.offset.y		= pScissor->OffsetY;
+		VkRect2D scissor      = {};
+		scissor.extent.height = pScissor->Height;
+		scissor.extent.width  = pScissor->Width;
+		scissor.offset.x      = pScissor->OffsetX;
+		scissor.offset.y      = pScissor->OffsetY;
 
 		vkCmdSetScissor(m_Buffer, 0, 1, &scissor);
 	}
@@ -239,232 +236,232 @@ namespace Poly
 	}
 
 	void PVKCommandBuffer::AcquireBuffer(
-		const Buffer* pBuffer,
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		FAccessFlag dstAccessMask,
-		uint32 srcQueueIndex,
-		uint32 dstQueueIndex)
+	    const Buffer*  pBuffer,
+	    FPipelineStage srcStage,
+	    FPipelineStage dstStage,
+	    FAccessFlag    dstAccessMask,
+	    uint32         srcQueueIndex,
+	    uint32         dstQueueIndex)
 	{
 		VkBufferMemoryBarrier barrier = {};
-		barrier.sType				= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barrier.pNext				= nullptr;
-		barrier.srcAccessMask		= 0;
-		barrier.dstAccessMask		= ConvertAccessFlagVK(dstAccessMask);
-		barrier.srcQueueFamilyIndex	= srcQueueIndex;
-		barrier.dstQueueFamilyIndex = dstQueueIndex;
-		barrier.buffer				= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
-		barrier.offset				= 0;
-		barrier.size				= pBuffer->GetSize();
+		barrier.sType                 = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.pNext                 = nullptr;
+		barrier.srcAccessMask         = 0;
+		barrier.dstAccessMask         = ConvertAccessFlagVK(dstAccessMask);
+		barrier.srcQueueFamilyIndex   = srcQueueIndex;
+		barrier.dstQueueFamilyIndex   = dstQueueIndex;
+		barrier.buffer                = reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
+		barrier.offset                = 0;
+		barrier.size                  = pBuffer->GetSize();
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			0,
-			nullptr,
-			1,
-			&barrier,
-			0,
-			nullptr);
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    0,
+		    nullptr,
+		    1,
+		    &barrier,
+		    0,
+		    nullptr);
 	}
 
 	void PVKCommandBuffer::ReleaseBuffer(
-		const Buffer* pBuffer,
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		FAccessFlag srcAccessMask,
-		uint32 srcQueueIndex,
-		uint32 dstQueueIndex)
+	    const Buffer*  pBuffer,
+	    FPipelineStage srcStage,
+	    FPipelineStage dstStage,
+	    FAccessFlag    srcAccessMask,
+	    uint32         srcQueueIndex,
+	    uint32         dstQueueIndex)
 	{
 		VkBufferMemoryBarrier barrier = {};
-		barrier.sType				= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barrier.pNext				= nullptr;
-		barrier.srcAccessMask		= ConvertAccessFlagVK(srcAccessMask);
-		barrier.dstAccessMask		= 0;
-		barrier.srcQueueFamilyIndex	= srcQueueIndex;
-		barrier.dstQueueFamilyIndex = dstQueueIndex;
-		barrier.buffer				= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
-		barrier.offset				= 0;
-		barrier.size				= pBuffer->GetSize();
+		barrier.sType                 = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.pNext                 = nullptr;
+		barrier.srcAccessMask         = ConvertAccessFlagVK(srcAccessMask);
+		barrier.dstAccessMask         = 0;
+		barrier.srcQueueFamilyIndex   = srcQueueIndex;
+		barrier.dstQueueFamilyIndex   = dstQueueIndex;
+		barrier.buffer                = reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
+		barrier.offset                = 0;
+		barrier.size                  = pBuffer->GetSize();
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			0,
-			nullptr,
-			1,
-			&barrier,
-			0,
-			nullptr);
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    0,
+		    nullptr,
+		    1,
+		    &barrier,
+		    0,
+		    nullptr);
 	}
 
 	void PVKCommandBuffer::AcquireTexture(
-		const Texture* pTexture,
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		FAccessFlag dstAccessMask,
-		ETextureLayout oldLayout,
-		ETextureLayout newLayout,
-		uint32 srcQueueIndex,
-		uint32 dstQueueIndex)
+	    const Texture* pTexture,
+	    FPipelineStage srcStage,
+	    FPipelineStage dstStage,
+	    FAccessFlag    dstAccessMask,
+	    ETextureLayout oldLayout,
+	    ETextureLayout newLayout,
+	    uint32         srcQueueIndex,
+	    uint32         dstQueueIndex)
 	{
 		VkImageSubresourceRange range = {};
-		range.aspectMask		= VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
-		range.baseMipLevel		= 0;
-		range.levelCount		= 1;
-		range.baseArrayLayer	= 0;
-		range.layerCount		= 1;
+		range.aspectMask              = VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
+		range.baseMipLevel            = 0;
+		range.levelCount              = 1;
+		range.baseArrayLayer          = 0;
+		range.layerCount              = 1;
 
 		VkImageMemoryBarrier barrier = {};
-		barrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.pNext				= nullptr;
-		barrier.srcAccessMask		= 0;
-		barrier.dstAccessMask		= ConvertAccessFlagVK(dstAccessMask);
-		barrier.oldLayout			= ConvertTextureLayoutVK(oldLayout);
-		barrier.newLayout			= ConvertTextureLayoutVK(newLayout);
-		barrier.srcQueueFamilyIndex	= srcQueueIndex;
-		barrier.dstQueueFamilyIndex	= dstQueueIndex;
-		barrier.image				= reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
-		barrier.subresourceRange	= range;
+		barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.pNext                = nullptr;
+		barrier.srcAccessMask        = 0;
+		barrier.dstAccessMask        = ConvertAccessFlagVK(dstAccessMask);
+		barrier.oldLayout            = ConvertTextureLayoutVK(oldLayout);
+		barrier.newLayout            = ConvertTextureLayoutVK(newLayout);
+		barrier.srcQueueFamilyIndex  = srcQueueIndex;
+		barrier.dstQueueFamilyIndex  = dstQueueIndex;
+		barrier.image                = reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
+		barrier.subresourceRange     = range;
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1,
-			&barrier);
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    0,
+		    nullptr,
+		    0,
+		    nullptr,
+		    1,
+		    &barrier);
 	}
 
 	void PVKCommandBuffer::ReleaseTexture(
-		const Texture* pTexture,
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		FAccessFlag srcAccessMask,
-		ETextureLayout oldLayout,
-		ETextureLayout newLayout,
-		uint32 srcQueueIndex,
-		uint32 dstQueueIndex)
+	    const Texture* pTexture,
+	    FPipelineStage srcStage,
+	    FPipelineStage dstStage,
+	    FAccessFlag    srcAccessMask,
+	    ETextureLayout oldLayout,
+	    ETextureLayout newLayout,
+	    uint32         srcQueueIndex,
+	    uint32         dstQueueIndex)
 	{
 		VkImageSubresourceRange range = {};
-		range.aspectMask		= VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
-		range.baseMipLevel		= 0;
-		range.levelCount		= 1;
-		range.baseArrayLayer	= 0;
-		range.layerCount		= 1;
+		range.aspectMask              = VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
+		range.baseMipLevel            = 0;
+		range.levelCount              = 1;
+		range.baseArrayLayer          = 0;
+		range.layerCount              = 1;
 
 		VkImageMemoryBarrier barrier = {};
-		barrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.pNext				= nullptr;
-		barrier.srcAccessMask		= ConvertAccessFlagVK(srcAccessMask);
-		barrier.dstAccessMask		= 0;
-		barrier.oldLayout			= ConvertTextureLayoutVK(oldLayout);
-		barrier.newLayout			= ConvertTextureLayoutVK(newLayout);
-		barrier.srcQueueFamilyIndex	= srcQueueIndex;
-		barrier.dstQueueFamilyIndex	= dstQueueIndex;
-		barrier.image				= reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
-		barrier.subresourceRange	= range;
+		barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.pNext                = nullptr;
+		barrier.srcAccessMask        = ConvertAccessFlagVK(srcAccessMask);
+		barrier.dstAccessMask        = 0;
+		barrier.oldLayout            = ConvertTextureLayoutVK(oldLayout);
+		barrier.newLayout            = ConvertTextureLayoutVK(newLayout);
+		barrier.srcQueueFamilyIndex  = srcQueueIndex;
+		barrier.dstQueueFamilyIndex  = dstQueueIndex;
+		barrier.image                = reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
+		barrier.subresourceRange     = range;
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1,
-			&barrier);
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    0,
+		    nullptr,
+		    0,
+		    nullptr,
+		    1,
+		    &barrier);
 	}
 
 	void PVKCommandBuffer::PipelineTextureBarrier(
-		const Texture* pTexture,
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		FAccessFlag srcAccessFlag,
-		FAccessFlag dstAccessFlag,
-		ETextureLayout oldLayout,
-		ETextureLayout newLayout)
+	    const Texture* pTexture,
+	    FPipelineStage srcStage,
+	    FPipelineStage dstStage,
+	    FAccessFlag    srcAccessFlag,
+	    FAccessFlag    dstAccessFlag,
+	    ETextureLayout oldLayout,
+	    ETextureLayout newLayout)
 	{
 		// TODO: Allow for a dynamic range
 		VkImageSubresourceRange range = {};
-		range.aspectMask		= VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
-		range.baseMipLevel		= 0;
-		range.levelCount		= 1;
-		range.baseArrayLayer	= 0;
-		range.layerCount		= 1;
+		range.aspectMask              = VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT;
+		range.baseMipLevel            = 0;
+		range.levelCount              = 1;
+		range.baseArrayLayer          = 0;
+		range.layerCount              = 1;
 
 		VkImageMemoryBarrier barrier = {};
-		barrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.pNext				= nullptr;
-		barrier.srcAccessMask		= ConvertAccessFlagVK(srcAccessFlag);
-		barrier.dstAccessMask		= ConvertAccessFlagVK(dstAccessFlag);
-		barrier.oldLayout			= ConvertTextureLayoutVK(oldLayout);
-		barrier.newLayout			= ConvertTextureLayoutVK(newLayout);
-		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.image				= reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
-		barrier.subresourceRange	= range;
+		barrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.pNext                = nullptr;
+		barrier.srcAccessMask        = ConvertAccessFlagVK(srcAccessFlag);
+		barrier.dstAccessMask        = ConvertAccessFlagVK(dstAccessFlag);
+		barrier.oldLayout            = ConvertTextureLayoutVK(oldLayout);
+		barrier.newLayout            = ConvertTextureLayoutVK(newLayout);
+		barrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image                = reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK();
+		barrier.subresourceRange     = range;
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			0,
-			nullptr,
-			0,
-			nullptr,
-			1,
-			&barrier);
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    0,
+		    nullptr,
+		    0,
+		    nullptr,
+		    1,
+		    &barrier);
 	}
 
 	void PVKCommandBuffer::PipelineBufferBarrier(
-		const Buffer* pBuffer,
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		FAccessFlag srcAccessFlag,
-		FAccessFlag dstAccessFlag)
+	    const Buffer*  pBuffer,
+	    FPipelineStage srcStage,
+	    FPipelineStage dstStage,
+	    FAccessFlag    srcAccessFlag,
+	    FAccessFlag    dstAccessFlag)
 	{
 		VkBufferMemoryBarrier barrier = {};
-		barrier.sType				= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barrier.pNext				= nullptr;
-		barrier.srcAccessMask		= ConvertAccessFlagVK(srcAccessFlag);
-		barrier.dstAccessMask		= ConvertAccessFlagVK(dstAccessFlag);
-		barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
-		barrier.buffer				= reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
-		barrier.offset				= 0;
-		barrier.size				= pBuffer->GetSize();
+		barrier.sType                 = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.pNext                 = nullptr;
+		barrier.srcAccessMask         = ConvertAccessFlagVK(srcAccessFlag);
+		barrier.dstAccessMask         = ConvertAccessFlagVK(dstAccessFlag);
+		barrier.srcQueueFamilyIndex   = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex   = VK_QUEUE_FAMILY_IGNORED;
+		barrier.buffer                = reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK();
+		barrier.offset                = 0;
+		barrier.size                  = pBuffer->GetSize();
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			0,
-			nullptr,
-			1,
-			&barrier,
-			0,
-			nullptr);
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    0,
+		    nullptr,
+		    1,
+		    &barrier,
+		    0,
+		    nullptr);
 	}
 
 	void PVKCommandBuffer::PipelineBarrier(
-		FPipelineStage srcStage,
-		FPipelineStage dstStage,
-		const std::vector<AccessBarrier>& accessBarriers,
-		const std::vector<BufferBarrier>& bufferBarriers,
-		const std::vector<TextureBarrier>& textureBarriers)
+	    FPipelineStage                     srcStage,
+	    FPipelineStage                     dstStage,
+	    const std::vector<AccessBarrier>&  accessBarriers,
+	    const std::vector<BufferBarrier>&  bufferBarriers,
+	    const std::vector<TextureBarrier>& textureBarriers)
 	{
 		// Memory barriers
 		std::vector<VkMemoryBarrier> vkMemoryBarriers;
@@ -472,10 +469,10 @@ namespace Poly
 		for (const auto& b : accessBarriers)
 		{
 			VkMemoryBarrier vkBarrier = {};
-			vkBarrier.sType			= VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-			vkBarrier.pNext			= nullptr;
-			vkBarrier.srcAccessMask	= ConvertAccessFlagVK(b.SrcAccessFlag);
-			vkBarrier.dstAccessMask	= ConvertAccessFlagVK(b.DstAccessFlag);
+			vkBarrier.sType           = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+			vkBarrier.pNext           = nullptr;
+			vkBarrier.srcAccessMask   = ConvertAccessFlagVK(b.SrcAccessFlag);
+			vkBarrier.dstAccessMask   = ConvertAccessFlagVK(b.DstAccessFlag);
 
 			vkMemoryBarriers.push_back(vkBarrier);
 		}
@@ -494,15 +491,15 @@ namespace Poly
 			}
 
 			VkBufferMemoryBarrier vkBarrier = {};
-			vkBarrier.sType					= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-			vkBarrier.pNext					= nullptr;
-			vkBarrier.srcAccessMask			= ConvertAccessFlagVK(b.SrcAccessFlag);
-			vkBarrier.dstAccessMask			= ConvertAccessFlagVK(b.DstAccessFlag);
-			vkBarrier.srcQueueFamilyIndex	= srcQueueIndex;
-			vkBarrier.dstQueueFamilyIndex	= dstQueueIndex;
-			vkBarrier.buffer				= reinterpret_cast<PVKBuffer*>(b.pBuffer)->GetNativeVK();
-			vkBarrier.offset				= b.Offset;
-			vkBarrier.size					= b.pBuffer->GetSize();
+			vkBarrier.sType                 = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+			vkBarrier.pNext                 = nullptr;
+			vkBarrier.srcAccessMask         = ConvertAccessFlagVK(b.SrcAccessFlag);
+			vkBarrier.dstAccessMask         = ConvertAccessFlagVK(b.DstAccessFlag);
+			vkBarrier.srcQueueFamilyIndex   = srcQueueIndex;
+			vkBarrier.dstQueueFamilyIndex   = dstQueueIndex;
+			vkBarrier.buffer                = reinterpret_cast<PVKBuffer*>(b.pBuffer)->GetNativeVK();
+			vkBarrier.offset                = b.Offset;
+			vkBarrier.size                  = b.pBuffer->GetSize();
 
 			vkBufferBarriers.push_back(vkBarrier);
 		}
@@ -521,40 +518,39 @@ namespace Poly
 			}
 
 			VkImageSubresourceRange range = {};
-			range.aspectMask		= ConvertImageViewFlagsVK(b.AspectMask);
-			range.baseMipLevel		= 0;
-			range.levelCount		= 1;
-			range.baseArrayLayer	= 0;
-			range.layerCount		= 1;
+			range.aspectMask              = ConvertImageViewFlagsVK(b.AspectMask);
+			range.baseMipLevel            = 0;
+			range.levelCount              = 1;
+			range.baseArrayLayer          = 0;
+			range.layerCount              = 1;
 
 			VkImageMemoryBarrier vkBarrier = {};
-			vkBarrier.sType				= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			vkBarrier.pNext				= nullptr;
-			vkBarrier.srcAccessMask		= ConvertAccessFlagVK(b.SrcAccessFlag);
-			vkBarrier.dstAccessMask		= ConvertAccessFlagVK(b.DstAccessFlag);
-			vkBarrier.oldLayout			= ConvertTextureLayoutVK(b.OldLayout);
-			vkBarrier.newLayout			= ConvertTextureLayoutVK(b.NewLayout);
-			vkBarrier.srcQueueFamilyIndex	= srcQueueIndex;
-			vkBarrier.dstQueueFamilyIndex	= dstQueueIndex;
-			vkBarrier.image				= reinterpret_cast<PVKTexture*>(b.pTexture)->GetNativeVK();
-			vkBarrier.subresourceRange	= range;
+			vkBarrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			vkBarrier.pNext                = nullptr;
+			vkBarrier.srcAccessMask        = ConvertAccessFlagVK(b.SrcAccessFlag);
+			vkBarrier.dstAccessMask        = ConvertAccessFlagVK(b.DstAccessFlag);
+			vkBarrier.oldLayout            = ConvertTextureLayoutVK(b.OldLayout);
+			vkBarrier.newLayout            = ConvertTextureLayoutVK(b.NewLayout);
+			vkBarrier.srcQueueFamilyIndex  = srcQueueIndex;
+			vkBarrier.dstQueueFamilyIndex  = dstQueueIndex;
+			vkBarrier.image                = reinterpret_cast<PVKTexture*>(b.pTexture)->GetNativeVK();
+			vkBarrier.subresourceRange     = range;
 
 			vkImageBarriers.push_back(vkBarrier);
 		}
 
 		vkCmdPipelineBarrier(
-			m_Buffer,
-			ConvertPipelineStageFlagsVK(srcStage),
-			ConvertPipelineStageFlagsVK(dstStage),
-			0,
-			static_cast<uint32>(vkMemoryBarriers.size()),
-			vkMemoryBarriers.data(),
-			static_cast<uint32>(vkBufferBarriers.size()),
-			vkBufferBarriers.data(),
-			static_cast<uint32>(vkImageBarriers.size()),
-			vkImageBarriers.data());
+		    m_Buffer,
+		    ConvertPipelineStageFlagsVK(srcStage),
+		    ConvertPipelineStageFlagsVK(dstStage),
+		    0,
+		    static_cast<uint32>(vkMemoryBarriers.size()),
+		    vkMemoryBarriers.data(),
+		    static_cast<uint32>(vkBufferBarriers.size()),
+		    vkBufferBarriers.data(),
+		    static_cast<uint32>(vkImageBarriers.size()),
+		    vkImageBarriers.data());
 	}
-
 
 	void PVKCommandBuffer::EndRenderPass()
 	{
@@ -571,4 +567,4 @@ namespace Poly
 		vkResetCommandBuffer(m_Buffer, 0);
 	}
 
-}
+} // namespace Poly

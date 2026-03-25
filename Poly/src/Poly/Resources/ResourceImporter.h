@@ -9,7 +9,7 @@ namespace YAML
 {
 	class Emitter;
 	class Node;
-}
+} // namespace YAML
 
 namespace Poly
 {
@@ -18,12 +18,12 @@ namespace Poly
 	public:
 		struct ImportedResource
 		{
-			PolyID ResourceID;
+			PolyID       ResourceID;
 			ResourceType Type;
 		};
 
 	public:
-		ResourceImporter() = default;
+		ResourceImporter()  = default;
 		~ResourceImporter() = default;
 
 		static void LoadImports();
@@ -54,4 +54,4 @@ namespace Poly
 
 		static std::string m_ProjectFilePath;
 	};
-}
+} // namespace Poly

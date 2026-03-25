@@ -101,12 +101,12 @@ namespace Poly
 
 	private:
 		friend class SyncPass;
-		Ref<Buffer>			m_pBuffer		= nullptr;
-		Ref<Texture>		m_pTexture		= nullptr;
-		Ref<TextureView>	m_pTextureView	= nullptr;
-		Ref<Sampler>		m_pSampler		= nullptr;
-		std::string			m_Name			= "";
-		uint32				m_CurrentQueueIndex	= 0;
-		ETextureLayout		m_CurrentLayout		= ETextureLayout::UNDEFINED;
+		Ref<Buffer>      m_pBuffer           = nullptr;
+		Ref<Texture>     m_pTexture          = nullptr;
+		Ref<TextureView> m_pTextureView      = nullptr;
+		Ref<Sampler>     m_pSampler          = nullptr;
+		std::string      m_Name              = "";
+		uint32           m_CurrentQueueIndex = 0;
+		ETextureLayout   m_CurrentLayout     = ETextureLayout::UNDEFINED;
 	};
-}
+} // namespace Poly

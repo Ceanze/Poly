@@ -1,10 +1,10 @@
 #pragma once
 
-#include <unordered_map>
-
 #include "PassResID.h"
-#include "RenderGraphTypes.h"
 #include "Poly/Rendering/RenderGraph/Reflection/PassField.h"
+#include "RenderGraphTypes.h"
+
+#include <unordered_map>
 
 namespace Poly
 {
@@ -15,12 +15,12 @@ namespace Poly
 	private:
 		struct ResourceData
 		{
-			std::pair<uint32, uint32>	Lifetime			= {0, 0};
-			Ref<Resource>				pResource			= nullptr;
-			PassResID					PassResID			= PassResID::Invalid();
-			PassField					PassField			= {};
-			bool						IsOutput			= false;
-			bool						IsBackbufferBound	= false;
+			std::pair<uint32, uint32> Lifetime          = {0, 0};
+			Ref<Resource>             pResource         = nullptr;
+			PassResID                 PassResID         = PassResID::Invalid();
+			PassField                 PassField         = {};
+			bool                      IsOutput          = false;
+			bool                      IsBackbufferBound = false;
 		};
 
 	public:
@@ -67,10 +67,10 @@ namespace Poly
 		void SetBackbuffer(PolyID windowID, uint32 imageIndex, Ref<Resource> pResource);
 
 		/**
-		* Sets the current back buffer indices
-		* @param windowId - the current window ID
-		* @param imageIndex - the current image index for the specified window
-		*/
+		 * Sets the current back buffer indices
+		 * @param windowId - the current window ID
+		 * @param imageIndex - the current image index for the specified window
+		 */
 		void SetCurrentBackbufferIndices(PolyID windowID, uint32 imageIndex);
 
 		/**
@@ -79,8 +79,8 @@ namespace Poly
 		void AllocateResources();
 
 		/**
-		* Reallocate the previously registed backbuffer bound resources, needed when a resize has happened
-		*/
+		 * Reallocate the previously registed backbuffer bound resources, needed when a resize has happened
+		 */
 		void ReallocateBackbufferBoundResources(uint32 width, uint32 height);
 
 		/**
@@ -100,11 +100,11 @@ namespace Poly
 		bool HasResource(const ResID& resID) const;
 
 		/**
-		* Checks if a resource is registered (but not necessarily created)
-		* @param passResID - pass resource ID
-		*
-		* @return true if resource is registered, false otherwise
-		*/
+		 * Checks if a resource is registered (but not necessarily created)
+		 * @param passResID - pass resource ID
+		 *
+		 * @return true if resource is registered, false otherwise
+		 */
 		bool IsResourceRegistered(const PassResID& passRessID) const;
 
 		/**
@@ -132,32 +132,32 @@ namespace Poly
 		Resource* GetResource(const ResID& resID) const;
 
 		/**
-		* Gets the mapped resource name, i.e. resource "firstPas.output" retruns the mapped name for "connectedPass.input" if "connectedPass.input" is mapped to "firstPass.output"
-		* This is used to resolve the actual resource name for a pass's input when the input is mapped to another pass's output
-		*
-		* @param resPassID - resource to map from, following the "passName.resource" syntax
-		* @param pass - the pass to map to, following "passName" syntax, i.e. no resource suffix
-		*
-		* @return "resource" name that belongs to the pass - invalid if not found or not mapped
-		*/
+		 * Gets the mapped resource name, i.e. resource "firstPas.output" retruns the mapped name for "connectedPass.input" if "connectedPass.input" is mapped to "firstPass.output"
+		 * This is used to resolve the actual resource name for a pass's input when the input is mapped to another pass's output
+		 *
+		 * @param resPassID - resource to map from, following the "passName.resource" syntax
+		 * @param pass - the pass to map to, following "passName" syntax, i.e. no resource suffix
+		 *
+		 * @return "resource" name that belongs to the pass - invalid if not found or not mapped
+		 */
 		PassResID GetMappedResourceName(const PassResID& resPassID, const PassID& passID);
 
 		/**
-		* Get the canonical GUID representing a physical resource. The canonical GUID is unique per physical
-		* resource, and any aliased resource maps to the same canonical GUID.
-		* For instance, if "pass1.out" is aliased to "pass2.in", calling GetCanonicalGUID on either GUID
-		* will return the same canonical GUID.
-		*
-		* @param PassResID - the pass resource ID to get the canonical GUID for, following "passName.resource" syntax
-		*
-		* @return canonical PassResID, or PassResID::Invalid() if not found
-		*/
+		 * Get the canonical GUID representing a physical resource. The canonical GUID is unique per physical
+		 * resource, and any aliased resource maps to the same canonical GUID.
+		 * For instance, if "pass1.out" is aliased to "pass2.in", calling GetCanonicalGUID on either GUID
+		 * will return the same canonical GUID.
+		 *
+		 * @param PassResID - the pass resource ID to get the canonical GUID for, following "passName.resource" syntax
+		 *
+		 * @return canonical PassResID, or PassResID::Invalid() if not found
+		 */
 		PassResID GetCanonicalGUID(const PassResID& passResID);
 
 		/**
-		* Update a resource size
-		* WARNING: Old data will be deleted when size is changed.
-		*/
+		 * Update a resource size
+		 * WARNING: Old data will be deleted when size is changed.
+		 */
 		Resource* UpdateResourceSize(const PassResID& passResID, uint64 size);
 
 		/**
@@ -180,14 +180,14 @@ namespace Poly
 
 		RenderGraphDefaultParams m_DefaultParams;
 
-		std::unordered_map<PassResID, uint32> m_NameToIndex;
-		std::vector<ResourceData> m_Resources;
-		std::unordered_map<PassResID, uint32> m_NameToExternalIndex;
-		std::vector<ResourceInfo> m_ExternalResources;
-		std::vector<PassResID> m_ExternalCanonicalGUIDs;
+		std::unordered_map<PassResID, uint32>   m_NameToIndex;
+		std::vector<ResourceData>               m_Resources;
+		std::unordered_map<PassResID, uint32>   m_NameToExternalIndex;
+		std::vector<ResourceInfo>               m_ExternalResources;
+		std::vector<PassResID>                  m_ExternalCanonicalGUIDs;
 		std::vector<std::vector<Ref<Resource>>> m_Backbuffers;
-		std::unordered_map<PolyID, uint32> m_WindowIDtoIndex;
-		uint32 m_CurrentWindowIndex = 0;
-		uint32 m_CurrentImageIndex = 0;
+		std::unordered_map<PolyID, uint32>      m_WindowIDtoIndex;
+		uint32                                  m_CurrentWindowIndex = 0;
+		uint32                                  m_CurrentImageIndex  = 0;
 	};
-}
+} // namespace Poly

@@ -10,4 +10,4 @@ namespace Poly
 		for (auto& pass : ctx.CompiledGraph.CompiledPasses)
 			pass.pPass->Compile();
 	}
-}
+} // namespace Poly

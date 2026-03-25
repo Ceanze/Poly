@@ -11,18 +11,17 @@ namespace Poly
 
 	struct SwapChainSupportDetails
 	{
-		VkSurfaceCapabilitiesKHR capabilities = {};
+		VkSurfaceCapabilitiesKHR        capabilities = {};
 		std::vector<VkSurfaceFormatKHR> formats;
-		std::vector<VkPresentModeKHR> presentModes;
+		std::vector<VkPresentModeKHR>   presentModes;
 	};
 
 	/*
-		PVKSwapChain contains the swapchain and the surface with its creation
+	    PVKSwapChain contains the swapchain and the surface with its creation
 	*/
 	class PVKSwapChain : public SwapChain
 	{
 	public:
-
 		PVKSwapChain() = default;
 		~PVKSwapChain();
 
@@ -32,47 +31,46 @@ namespace Poly
 
 		virtual void OnWindowResized(int width, int height) override final;
 
-		uint64			GetNative() const { return reinterpret_cast<uint64>(m_SwapChain); }
-		VkSwapchainKHR	GetNativeVK() const { return m_SwapChain; }
-		VkFormat		GetFormatVK() const { return m_FormatVK; }
-		VkExtent2D		GetExtentVK() const { return m_Extent; }
-		virtual uint32	GetBackbufferIndex() const override final { return m_ImageIndex; }
-		virtual uint32	GetBackbufferCount() const override final { return p_SwapchainDesc.BufferCount; }
-		virtual Ref<Texture> GetTexture(uint32 bufferIndex) const override final { return m_Textures[bufferIndex]; }
-		const PVKTexture* GetTextureVK(uint32 bufferIndex) const { return m_Textures.at(bufferIndex).get(); }
+		uint64                   GetNative() const { return reinterpret_cast<uint64>(m_SwapChain); }
+		VkSwapchainKHR           GetNativeVK() const { return m_SwapChain; }
+		VkFormat                 GetFormatVK() const { return m_FormatVK; }
+		VkExtent2D               GetExtentVK() const { return m_Extent; }
+		virtual uint32           GetBackbufferIndex() const override final { return m_ImageIndex; }
+		virtual uint32           GetBackbufferCount() const override final { return p_SwapchainDesc.BufferCount; }
+		virtual Ref<Texture>     GetTexture(uint32 bufferIndex) const override final { return m_Textures[bufferIndex]; }
+		const PVKTexture*        GetTextureVK(uint32 bufferIndex) const { return m_Textures.at(bufferIndex).get(); }
 		virtual Ref<TextureView> GetTextureView(uint32 bufferIndex) const override final { return m_TextureViews[bufferIndex]; }
-		const PVKTextureView* GetTextureViewVK(uint32 bufferIndex) const { return m_TextureViews.at(bufferIndex).get(); }
-
+		const PVKTextureView*    GetTextureViewVK(uint32 bufferIndex) const { return m_TextureViews.at(bufferIndex).get(); }
 
 	private:
-		void SetupPresentQueue();
-		void CreateSurface();
-		void CreateSwapChain();
-		void Cleanup();
+		void                    SetupPresentQueue();
+		void                    CreateSurface();
+		void                    CreateSwapChain();
+		void                    Cleanup();
 		SwapChainSupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
-		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		void CreateImageViews();
-		void CreateSyncObjects();
-		PresentResult AcquireNextImage();
-		void RecreateSwapChain();
+		VkExtent2D              ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		VkPresentModeKHR        ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkSurfaceFormatKHR      ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		void                    CreateImageViews();
+		void                    CreateSyncObjects();
+		PresentResult           AcquireNextImage();
+		void                    RecreateSwapChain();
 
-		VkSwapchainKHR						m_SwapChain			= VK_NULL_HANDLE;
-		VkSurfaceKHR						m_Surface			= VK_NULL_HANDLE;
-		VkFormat							m_FormatVK			= VK_FORMAT_UNDEFINED;
-		VkExtent2D							m_Extent			= {0, 0};
-		uint32								m_ImageIndex		= 0;
-		uint32								m_FrameIndex		= 0;
-		std::vector<Ref<PVKTexture>>		m_Textures;
-		std::vector<Ref<PVKTextureView>>	m_TextureViews;
-		bool								m_ResizeRequired	= false;
-		VkQueue								m_PresentQueue		= VK_NULL_HANDLE;
+		VkSwapchainKHR                   m_SwapChain  = VK_NULL_HANDLE;
+		VkSurfaceKHR                     m_Surface    = VK_NULL_HANDLE;
+		VkFormat                         m_FormatVK   = VK_FORMAT_UNDEFINED;
+		VkExtent2D                       m_Extent     = {0, 0};
+		uint32                           m_ImageIndex = 0;
+		uint32                           m_FrameIndex = 0;
+		std::vector<Ref<PVKTexture>>     m_Textures;
+		std::vector<Ref<PVKTextureView>> m_TextureViews;
+		bool                             m_ResizeRequired = false;
+		VkQueue                          m_PresentQueue   = VK_NULL_HANDLE;
 
 		// Sync
-		std::vector<Unique<PVKBinarySemaphore>>	m_RenderSemaphores;
-		std::vector<Unique<PVKBinarySemaphore>>	m_AcquireSemaphores;
-		Ref<SyncPoint> m_FrameSyncPoint;
-		uint64 m_FrameSyncValue = 0;
+		std::vector<Unique<PVKBinarySemaphore>> m_RenderSemaphores;
+		std::vector<Unique<PVKBinarySemaphore>> m_AcquireSemaphores;
+		Ref<SyncPoint>                          m_FrameSyncPoint;
+		uint64                                  m_FrameSyncValue = 0;
 	};
-}
+} // namespace Poly

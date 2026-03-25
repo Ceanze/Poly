@@ -1,9 +1,9 @@
-#include "polypch.h"
 #include "RGCProgramCreator.h"
 
-#include "Poly/Rendering/RenderGraph/PassData.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
+#include "Poly/Rendering/RenderGraph/PassData.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
+#include "polypch.h"
 
 namespace Poly
 {
@@ -19,11 +19,11 @@ namespace Poly
 			if (compiledPass.pPass->GetPassType() == Pass::Type::EXTERNAL)
 				continue;
 
-			PassData passData		= {};
-			passData.pPass			= compiledPass.pPass;
-			passData.Reflection		= compiledPass.Reflection;
-			passData.NodeIndex		= compiledPass.GraphNodeIndex;
-			passData.PassIndex		= i;
+			PassData passData   = {};
+			passData.pPass      = compiledPass.pPass;
+			passData.Reflection = compiledPass.Reflection;
+			passData.NodeIndex  = compiledPass.GraphNodeIndex;
+			passData.PassIndex  = i;
 
 			passes.push_back(std::move(passData));
 		}
@@ -32,4 +32,4 @@ namespace Poly
 		pProgram->SetDebugTextureGUIDs(ctx.DebugTextureGUIDs);
 		return pProgram;
 	}
-}
+} // namespace Poly

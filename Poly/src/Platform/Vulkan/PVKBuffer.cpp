@@ -1,5 +1,6 @@
-#include "polypch.h"
 #include "PVKBuffer.h"
+
+#include "polypch.h"
 #include "PVKInstance.h"
 
 namespace Poly
@@ -9,7 +10,7 @@ namespace Poly
 		if (m_Mapped)
 			Unmap();
 
-		//vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
+		// vkDestroyBuffer(PVKInstance::getDevice(), this->buffer, nullptr);
 		vmaDestroyBuffer(PVKInstance::GetAllocator(), m_Buffer, m_VmaAllocation);
 	}
 
@@ -17,17 +18,17 @@ namespace Poly
 	{
 		p_BufferDesc = *pDesc;
 
-		VkBufferCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		createInfo.size = pDesc->Size;
-		createInfo.usage = ConvertBufferUsageVK(pDesc->BufferUsage);
-		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // Only one queue supported at a time for now
+		VkBufferCreateInfo createInfo    = {};
+		createInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		createInfo.size                  = pDesc->Size;
+		createInfo.usage                 = ConvertBufferUsageVK(pDesc->BufferUsage);
+		createInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE; // Only one queue supported at a time for now
 		createInfo.queueFamilyIndexCount = 1;
-		createInfo.pQueueFamilyIndices = nullptr;
-		createInfo.pNext = nullptr;
+		createInfo.pQueueFamilyIndices   = nullptr;
+		createInfo.pNext                 = nullptr;
 
 		VmaAllocationCreateInfo allocInfo = {};
-		allocInfo.usage = ConvertMemoryUsageVMA(pDesc->MemUsage);
+		allocInfo.usage                   = ConvertMemoryUsageVMA(pDesc->MemUsage);
 
 		PVK_CHECK(vmaCreateBuffer(PVKInstance::GetAllocator(), &createInfo, &allocInfo, &m_Buffer, &m_VmaAllocation, nullptr), "Failed to create buffer using VMA");
 	}
@@ -57,7 +58,7 @@ namespace Poly
 		return p_BufferDesc.Size;
 	}
 
-	uint64_t PVKBuffer::GetAlignment()	const
+	uint64_t PVKBuffer::GetAlignment() const
 	{
 		VkMemoryRequirements memRequirements;
 		vkGetBufferMemoryRequirements(PVKInstance::GetDevice(), m_Buffer, &memRequirements);
@@ -74,4 +75,4 @@ namespace Poly
 	{
 		return m_Buffer;
 	}
-}
+} // namespace Poly

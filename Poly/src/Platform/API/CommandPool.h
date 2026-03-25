@@ -15,7 +15,7 @@ namespace Poly
 		/**
 		 * Init the CommandPool object
 		 * @param queueType	Queue of which the CommandPool should be using and submit to
-		*/
+		 */
 		virtual void Init(FQueueType queueType, FCommandPoolFlags flags) = 0;
 
 		/**
@@ -50,4 +50,4 @@ namespace Poly
 	protected:
 		FQueueType p_QueueType = FQueueType::NONE;
 	};
-}
+} // namespace Poly

@@ -1,7 +1,9 @@
-#include "polypch.h"
 #include "LayerStack.h"
 
-namespace Poly {
+#include "polypch.h"
+
+namespace Poly
+{
 
 	LayerStack::~LayerStack()
 	{
@@ -44,4 +46,4 @@ namespace Poly {
 		}
 	}
 
-}
+} // namespace Poly

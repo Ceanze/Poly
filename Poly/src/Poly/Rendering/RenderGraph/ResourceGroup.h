@@ -9,7 +9,9 @@ namespace Poly
 	class ResourceGroup
 	{
 	public:
-		ResourceGroup(const std::string name) : m_GroupName(name) {}
+		ResourceGroup(const std::string name)
+		    : m_GroupName(name)
+		{}
 		~ResourceGroup() = default;
 
 		/**
@@ -59,7 +61,7 @@ namespace Poly
 		const std::string& GetGroupName() const { return m_GroupName; }
 
 	private:
-		std::string m_GroupName;
+		std::string                                   m_GroupName;
 		std::unordered_map<std::string, ResourceInfo> m_Resources;
 	};
-}
+} // namespace Poly

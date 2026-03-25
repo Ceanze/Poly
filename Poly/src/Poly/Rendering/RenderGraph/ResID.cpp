@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ResID.h"
+
 #include "PassResID.h"
 
 #include <string>
@@ -8,16 +9,20 @@
 namespace Poly
 {
 	ResID::ResID()
-		: m_Name("") {}
+	    : m_Name("")
+	{}
 
 	ResID::ResID(const std::string& resourceName)
-		: m_Name(resourceName) {}
+	    : m_Name(resourceName)
+	{}
 
 	ResID::ResID(const ResID& other)
-		: m_Name(other.m_Name) {}
+	    : m_Name(other.m_Name)
+	{}
 
 	ResID::ResID(ResID&& other)
-		: m_Name(std::move(other.m_Name)) {}
+	    : m_Name(std::move(other.m_Name))
+	{}
 
 	ResID& ResID::operator=(const ResID& other)
 	{
@@ -31,7 +36,7 @@ namespace Poly
 		return *this;
 	}
 
-	const std::string &ResID::GetName() const
+	const std::string& ResID::GetName() const
 	{
 		return m_Name;
 	}
@@ -55,4 +60,4 @@ namespace Poly
 	{
 		return m_Name == other.m_Name;
 	}
-}
+} // namespace Poly

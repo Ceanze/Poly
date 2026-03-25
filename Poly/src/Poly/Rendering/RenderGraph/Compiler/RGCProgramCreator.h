@@ -14,4 +14,4 @@ namespace Poly
 
 		Ref<RenderGraphProgram> Execute(RGCContext& ctx);
 	};
-}
+} // namespace Poly

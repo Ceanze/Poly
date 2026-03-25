@@ -7,16 +7,16 @@ namespace Poly
 {
 	struct TextureDesc
 	{
-		uint32			Width			= 0;
-		uint32			Height			= 0;
-		uint32			Depth			= 1;
-		uint32			ArrayLayers		= 0;
-		uint32			MipLevels		= 0;
-		uint32			SampleCount		= 0;
-		EMemoryUsage	MemoryUsage		= EMemoryUsage::UNKNOWN;
-		EFormat			Format			= EFormat::UNDEFINED;
-		FTextureUsage	TextureUsage	= FTextureUsage::NONE;
-		ETextureDim		TextureDim		= ETextureDim::NONE;
+		uint32        Width        = 0;
+		uint32        Height       = 0;
+		uint32        Depth        = 1;
+		uint32        ArrayLayers  = 0;
+		uint32        MipLevels    = 0;
+		uint32        SampleCount  = 0;
+		EMemoryUsage  MemoryUsage  = EMemoryUsage::UNKNOWN;
+		EFormat       Format       = EFormat::UNDEFINED;
+		FTextureUsage TextureUsage = FTextureUsage::NONE;
+		ETextureDim   TextureDim   = ETextureDim::NONE;
 	};
 
 	class Texture
@@ -27,7 +27,7 @@ namespace Poly
 		/**
 		 * Init the Buffer object
 		 * @param desc	Buffer creation description
-		*/
+		 */
 		virtual void Init(const TextureDesc* pDesc) = 0;
 
 		/**
@@ -56,4 +56,4 @@ namespace Poly
 	protected:
 		TextureDesc p_TextureDesc;
 	};
-}
+} // namespace Poly

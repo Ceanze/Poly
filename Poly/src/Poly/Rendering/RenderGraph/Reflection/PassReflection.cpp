@@ -40,7 +40,7 @@ namespace Poly
 		}
 
 		const ShaderData& shader = ShaderManager::GetShader(shaderID);
-		
+
 		AddShaderBindings(shader);
 		AddShaderInputs(shader);
 		AddShaderPushConstants(shader);
@@ -136,7 +136,7 @@ namespace Poly
 			return;
 		}
 
-		m_PushConstants.push_back({ std::move(name), size, offset, shaderStage });
+		m_PushConstants.push_back({std::move(name), size, offset, shaderStage});
 	}
 
 	bool PassReflection::HasPushConstant(std::string_view name) const
@@ -154,7 +154,7 @@ namespace Poly
 
 	std::span<const PushConstantData> PassReflection::GetPushConstants() const
 	{
-		return { m_PushConstants.data(), m_PushConstants.size() };
+		return {m_PushConstants.data(), m_PushConstants.size()};
 	}
 
 	void PassReflection::DisableAutoBindForSet(uint32 setIndex)
@@ -177,7 +177,7 @@ namespace Poly
 	{
 		for (const auto& field : m_Fields)
 		{
-			std::string visStr;
+			std::string      visStr;
 			FFieldVisibility vis = field.GetVisibility();
 			if (BitsSet(vis, FFieldVisibility::INPUT))
 				visStr = "INPUT";
@@ -207,9 +207,9 @@ namespace Poly
 		auto itr = std::ranges::find_if(m_Fields, [name](const PassField& field) { return field.GetName() == name; });
 		if (itr != m_Fields.end())
 		{
-			const FFieldVisibility existingVis = itr->GetVisibility();
-			bool validExistingVisibility = BitsSet(existingVis, FFieldVisibility::IN_OUT);
-			bool validRequestedVisibility = BitsSet(visibility, FFieldVisibility::IN_OUT);
+			const FFieldVisibility existingVis              = itr->GetVisibility();
+			bool                   validExistingVisibility  = BitsSet(existingVis, FFieldVisibility::IN_OUT);
+			bool                   validRequestedVisibility = BitsSet(visibility, FFieldVisibility::IN_OUT);
 
 			if (validExistingVisibility && validRequestedVisibility)
 			{
@@ -223,7 +223,7 @@ namespace Poly
 			return *itr;
 		}
 
-		m_Fields.push_back({ name, visibility });
+		m_Fields.push_back({name, visibility});
 		return m_Fields.back();
 	}
 
@@ -232,7 +232,7 @@ namespace Poly
 		for (const auto& binding : shader.Reflection.Bindings)
 		{
 			AddInput(binding.Name, binding.Set, binding.Binding)
-				.BindPoint(binding.DescriptorType);
+			    .BindPoint(binding.DescriptorType);
 		}
 	}
 
@@ -257,4 +257,4 @@ namespace Poly
 			AddField(output.Name, FFieldVisibility::OUTPUT);
 		}
 	}
-}
+} // namespace Poly

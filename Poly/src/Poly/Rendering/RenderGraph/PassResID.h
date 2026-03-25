@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ResID.h"
 #include "PassID.h"
+#include "ResID.h"
 
 #include <string>
 
@@ -22,8 +22,8 @@ namespace Poly
 		static PassResID Invalid() { return PassResID(); }
 
 		const PassID& GetPass() const;
-		const ResID& GetResource() const;
-		std::string GetFullName() const;
+		const ResID&  GetResource() const;
+		std::string   GetFullName() const;
 
 		bool IsExternal() const;
 		bool HasResource() const;
@@ -32,9 +32,9 @@ namespace Poly
 
 	private:
 		PassID m_Pass;
-		ResID m_Resource;
+		ResID  m_Resource;
 	};
-}
+} // namespace Poly
 
 namespace std
 {
@@ -46,4 +46,4 @@ namespace std
 			return hash<std::string>()(passResID.GetFullName());
 		}
 	};
-}
+} // namespace std

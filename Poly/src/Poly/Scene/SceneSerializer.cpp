@@ -1,15 +1,14 @@
 #include "SceneSerializer.h"
 
-#include <yaml-cpp/yaml.h>
-#include <fstream>
-
-#include "Poly/Resources/IOManager.h"
-
-#include "Entity.h"
-#include "Scene.h"
 #include "Components.h"
+#include "Entity.h"
 #include "EntitySerializer.h"
+#include "Poly/Resources/IOManager.h"
+#include "Scene.h"
 
+#include <yaml-cpp/yaml.h>
+
+#include <fstream>
 
 namespace Poly
 {
@@ -20,11 +19,9 @@ namespace Poly
 		emitter << YAML::Key << "Scene" << YAML::Value << m_pScene->GetName();
 		emitter << YAML::Key << "Entites" << YAML::Value << YAML::BeginSeq;
 
-
 		EntitySerializer entitySerializer;
-		m_pScene->m_Registry.each([&](auto eid)
-		{
-			Entity entity = { m_pScene.get(), eid };
+		m_pScene->m_Registry.each([&](auto eid) {
+			Entity entity = {m_pScene.get(), eid};
 
 			SerializeEntity(entitySerializer, emitter, entity);
 		});
@@ -93,14 +90,14 @@ namespace Poly
 		if (!isValid)
 			return false;
 
-		auto id = node["EntityID"].as<uint64>();
+		auto   id     = node["EntityID"].as<uint64>();
 		Entity entity = m_pScene->GetOrCreateEntityWithID(id);
 
 		entitySerializer.Deserialize(node, entity);
 
 		return true;
 	}
-}
+} // namespace Poly
 
 /**
  *

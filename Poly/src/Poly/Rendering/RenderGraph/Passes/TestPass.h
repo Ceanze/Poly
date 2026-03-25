@@ -8,7 +8,7 @@ namespace Poly
 	class TestPass : public RenderPass
 	{
 	public:
-		TestPass() = default;
+		TestPass()  = default;
 		~TestPass() = default;
 
 		virtual PassReflection Reflect() override final;
@@ -22,4 +22,4 @@ namespace Poly
 	private:
 		SceneRenderer m_SceneRenderer;
 	};
-}
+} // namespace Poly

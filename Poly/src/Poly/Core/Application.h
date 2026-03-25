@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Poly/Core/LayerStack.h"
-#include "Poly/Events/EventBus.h"
 #include "Poly/Core/Timestamp.h"
 #include "Poly/Core/Window.h"
+#include "Poly/Events/EventBus.h"
 
 #include <optional>
 
@@ -19,7 +19,7 @@ namespace Poly
 		virtual ~Application();
 
 		void Init();
-		
+
 		static Application& Get();
 
 		void Update(Timestamp dt);
@@ -30,7 +30,7 @@ namespace Poly
 
 		bool IsRunning();
 
-		Window* GetWindow() const;
+		Window*   GetWindow() const;
 		Renderer* GetRenderer() const;
 
 	protected:
@@ -43,13 +43,13 @@ namespace Poly
 
 		static Application* s_Instance;
 
-		bool m_Running = true;
-		LayerStack m_LayerStack;
-		Unique<Window> m_pWindow;
+		bool             m_Running = true;
+		LayerStack       m_LayerStack;
+		Unique<Window>   m_pWindow;
 		Unique<Renderer> m_pRenderer;
-		ImGuiLayer* m_pImGuiLayer = nullptr;
+		ImGuiLayer*      m_pImGuiLayer = nullptr;
 	};
 
 	Application* CreateApplication();
 
-}
+} // namespace Poly

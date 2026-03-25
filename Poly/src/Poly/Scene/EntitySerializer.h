@@ -4,7 +4,7 @@ namespace YAML
 {
 	class Node;
 	class Emitter;
-}
+} // namespace YAML
 
 namespace Poly
 {
@@ -13,7 +13,7 @@ namespace Poly
 	class EntitySerializer
 	{
 	public:
-		EntitySerializer() = default;
+		EntitySerializer()  = default;
 		~EntitySerializer() = default;
 
 		void Serialize(YAML::Emitter& emitter, const Entity& entity);
@@ -29,4 +29,4 @@ namespace Poly
 		void DeserializeHierarchyComponent(YAML::Node& node, Entity& entity);
 		void DeserializeMeshComponent(YAML::Node& node, Entity& entity);
 	};
-}
+} // namespace Poly

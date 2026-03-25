@@ -18,14 +18,14 @@ namespace Poly
 		static PassID Invalid() { return PassID(); }
 
 		const std::string& GetName() const;
-		bool IsValid() const;
+		bool               IsValid() const;
 
 		bool operator==(const PassID& other) const noexcept;
 
 	private:
 		std::string m_Name;
 	};
-}
+} // namespace Poly
 
 namespace std
 {
@@ -37,4 +37,4 @@ namespace std
 			return hash<std::string>()(passID.GetName());
 		}
 	};
-}
+} // namespace std

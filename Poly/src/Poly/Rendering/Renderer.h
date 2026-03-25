@@ -23,15 +23,15 @@ namespace Poly
 		void SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram);
 
 		/**
-		* Adds a window to be rendered when Render() is called
-		* @param pWindow - Pointer to the window to add
-		*/
+		 * Adds a window to be rendered when Render() is called
+		 * @param pWindow - Pointer to the window to add
+		 */
 		void AddWindow(Window* pWindow);
 
 		/**
-		* Removes a window from being rendered
-		* @param pWindow - Pointer to the window to remove
-		*/
+		 * Removes a window from being rendered
+		 * @param pWindow - Pointer to the window to remove
+		 */
 		void RemoveWindow(Window* pWindow);
 
 		/**
@@ -45,14 +45,14 @@ namespace Poly
 	private:
 		struct WindowContext
 		{
-			Window* pWindow;
+			Window*        pWindow;
 			Ref<SwapChain> pSwapChain;
 		};
 
 		void CreateBackbufferResources(const WindowContext& windowCtx);
 
-		bool						m_HandleResize = false;
-		Ref<RenderGraphProgram>		m_pRenderGraphProgram;
-		std::vector<WindowContext>	m_Windows;
+		bool                       m_HandleResize = false;
+		Ref<RenderGraphProgram>    m_pRenderGraphProgram;
+		std::vector<WindowContext> m_Windows;
 	};
-}
+} // namespace Poly

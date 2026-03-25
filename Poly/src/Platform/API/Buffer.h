@@ -7,9 +7,9 @@ namespace Poly
 {
 	struct BufferDesc
 	{
-		uint64 Size					= 0;
-		EMemoryUsage MemUsage		= EMemoryUsage::UNKNOWN;
-		FBufferUsage BufferUsage	= FBufferUsage::NONE;
+		uint64       Size        = 0;
+		EMemoryUsage MemUsage    = EMemoryUsage::UNKNOWN;
+		FBufferUsage BufferUsage = FBufferUsage::NONE;
 	};
 
 	class Buffer
@@ -20,7 +20,7 @@ namespace Poly
 		/**
 		 * Init the Buffer object
 		 * @param desc	Buffer creation description
-		*/
+		 */
 		virtual void Init(const BufferDesc* pDesc) = 0;
 
 		/**
@@ -68,4 +68,4 @@ namespace Poly
 	protected:
 		BufferDesc p_BufferDesc;
 	};
-}
+} // namespace Poly

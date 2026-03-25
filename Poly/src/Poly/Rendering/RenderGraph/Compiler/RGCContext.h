@@ -1,10 +1,9 @@
 #pragma once
 
-#include "RGCSyncTypes.h"
-
-#include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Rendering/RenderGraph/Compiler/CompiledGraph.h"
 #include "Poly/Rendering/RenderGraph/PassResID.h"
+#include "Poly/Rendering/RenderGraph/RenderGraph.h"
+#include "RGCSyncTypes.h"
 
 #include <unordered_map>
 #include <vector>
@@ -16,14 +15,15 @@ namespace Poly
 	struct RGCContext
 	{
 		RGCContext(RenderGraph renderGraph, RenderGraphDefaultParams defaultParams)
-			: RenderGraph(std::move(renderGraph))
-			, DefaultParams(std::move(defaultParams)) {}
+		    : RenderGraph(std::move(renderGraph))
+		    , DefaultParams(std::move(defaultParams))
+		{}
 
-		RenderGraph RenderGraph;
+		RenderGraph              RenderGraph;
 		RenderGraphDefaultParams DefaultParams;
-		Ref<ResourceCache> pResourceCache;
-		CompiledGraph CompiledGraph;
-		bool IsGraphDirty = false;
+		Ref<ResourceCache>       pResourceCache;
+		CompiledGraph            CompiledGraph;
+		bool                     IsGraphDirty = false;
 
 		// Written by RGCSynchroniser — final layout/access/stage of every physical
 		// resource after all normal sync passes have been inserted.
@@ -34,4 +34,4 @@ namespace Poly
 		// available for ImGui::Image() sampling.  Transferred to RenderGraphProgram.
 		std::vector<PassResID> DebugTextureGUIDs;
 	};
-}
+} // namespace Poly

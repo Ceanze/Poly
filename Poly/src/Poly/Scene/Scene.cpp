@@ -1,12 +1,14 @@
 #include "Scene.h"
-#include "Entity.h"
-#include "Components.h"
 
+#include "Components.h"
+#include "Entity.h"
 #include "Poly/Rendering/RenderScene.h"
 
 namespace Poly
 {
-	Scene::Scene(const std::string& name) : m_ResourceGroup("scene"), m_Name(name)
+	Scene::Scene(const std::string& name)
+	    : m_ResourceGroup("scene")
+	    , m_Name(name)
 	{
 		m_ResourceGroup.AddResource(VERTICES_RESOURCE_NAME, false);
 		m_ResourceGroup.AddResource(INSTANCE_RESOURCE_NAME, false);
@@ -93,4 +95,4 @@ namespace Poly
 		POLY_CORE_WARN("Cannot get entity {}, identifer is not valid", static_cast<uint32>(entity));
 		return PolyID::None();
 	}
-}
+} // namespace Poly

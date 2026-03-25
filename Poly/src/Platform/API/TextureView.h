@@ -9,14 +9,14 @@ namespace Poly
 
 	struct TextureViewDesc
 	{
-		Texture*		pTexture		= nullptr;
-		EImageViewType	ImageViewType	= EImageViewType::NONE;
-		EFormat			Format			= EFormat::UNDEFINED;
-		FImageViewFlag	ImageViewFlag	= FImageViewFlag::NONE;
-		uint32			MipLevel		= 0;
-		uint32			MipLevelCount	= 0;
-		uint32			ArrayLayer		= 0;
-		uint32			ArrayLayerCount	= 0;
+		Texture*       pTexture        = nullptr;
+		EImageViewType ImageViewType   = EImageViewType::NONE;
+		EFormat        Format          = EFormat::UNDEFINED;
+		FImageViewFlag ImageViewFlag   = FImageViewFlag::NONE;
+		uint32         MipLevel        = 0;
+		uint32         MipLevelCount   = 0;
+		uint32         ArrayLayer      = 0;
+		uint32         ArrayLayerCount = 0;
 	};
 
 	class TextureView
@@ -27,7 +27,7 @@ namespace Poly
 		/**
 		 * Init the Buffer object
 		 * @param desc	Buffer creation description
-		*/
+		 */
 		virtual void Init(const TextureViewDesc* pDesc) = 0;
 
 		virtual Texture* GetTexture() const = 0;
@@ -48,4 +48,4 @@ namespace Poly
 	protected:
 		TextureViewDesc p_TextureViewDesc;
 	};
-}
+} // namespace Poly

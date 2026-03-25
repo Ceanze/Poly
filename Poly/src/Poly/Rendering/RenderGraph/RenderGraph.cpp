@@ -1,41 +1,40 @@
-#include "polypch.h"
-#include "RenderPass.h"
 #include "RenderGraph.h"
-#include "ExternalPass.h"
-#include "Poly/Core/Window.h"
-#include "RenderGraphProgram.h"
-#include "RenderGraphCompiler.h"
-#include "Poly/Core/RenderAPI.h"
-#include "Platform/API/Buffer.h"
-#include "Platform/API/Sampler.h"
-#include "Poly/Core/Utils/DirectedGraph.h"
-#include "Poly/Rendering/RenderGraph/Resource.h"
-#include "Poly/Rendering/RenderGraph/ResourceGroup.h"
-#include "Poly/Poly/Format.h"
-#include "Poly/Rendering/RenderGraph/EdgeData.h"
 
 #include "Compiler/RenderGraphCompilerNew.h"
+#include "ExternalPass.h"
+#include "Platform/API/Buffer.h"
+#include "Platform/API/Sampler.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Poly/Core/Utils/DirectedGraph.h"
+#include "Poly/Core/Window.h"
+#include "Poly/Poly/Format.h"
+#include "Poly/Rendering/RenderGraph/EdgeData.h"
+#include "Poly/Rendering/RenderGraph/Resource.h"
+#include "Poly/Rendering/RenderGraph/ResourceGroup.h"
+#include "polypch.h"
+#include "RenderGraphCompiler.h"
+#include "RenderGraphProgram.h"
+#include "RenderPass.h"
 
 namespace Poly
 {
 	RenderGraph::RenderGraph(std::string name)
-	: m_Name(std::move(name))
+	    : m_Name(std::move(name))
 	{
 		m_pGraph = DirectedGraph::Create();
 
-		auto pExternalPass = CreateRef<ExternalPass>();
-		m_ExternalPassNodeID = m_pGraph->AddNode();
+		auto pExternalPass             = CreateRef<ExternalPass>();
+		m_ExternalPassNodeID           = m_pGraph->AddNode();
 		m_NameToNodeIndex[PassID("$")] = m_ExternalPassNodeID;
 		m_Passes[m_ExternalPassNodeID] = pExternalPass;
 
 		m_DefaultParams = {
-			.TextureWidth		= 1280,
-			.TextureHeight		= 720,
-			.MaxBackbufferCount	= 3,
-			.pSampler			= Sampler::GetDefaultLinearSampler(),
-			.Format				= EFormat::R8G8B8A8_UNORM, // Currently not used
-			.EnableDebugTextures = true
-		};
+		    .TextureWidth        = 1280,
+		    .TextureHeight       = 720,
+		    .MaxBackbufferCount  = 3,
+		    .pSampler            = Sampler::GetDefaultLinearSampler(),
+		    .Format              = EFormat::R8G8B8A8_UNORM, // Currently not used
+		    .EnableDebugTextures = true};
 	}
 
 	Ref<RenderGraph> RenderGraph::Create(std::string name)
@@ -46,13 +45,13 @@ namespace Poly
 	RenderGraph RenderGraph::Clone() const
 	{
 		RenderGraph copy(m_Name);
-		copy.m_pGraph				= m_pGraph->Clone();
-		copy.m_NameToNodeIndex		= m_NameToNodeIndex;
-		copy.m_Passes				= m_Passes;
-		copy.m_Edges				= m_Edges;
-		copy.m_Outputs				= m_Outputs;
-		copy.m_ExternalPassNodeID	= m_ExternalPassNodeID;
-		copy.m_DefaultParams		= m_DefaultParams;
+		copy.m_pGraph             = m_pGraph->Clone();
+		copy.m_NameToNodeIndex    = m_NameToNodeIndex;
+		copy.m_Passes             = m_Passes;
+		copy.m_Edges              = m_Edges;
+		copy.m_Outputs            = m_Outputs;
+		copy.m_ExternalPassNodeID = m_ExternalPassNodeID;
+		copy.m_DefaultParams      = m_DefaultParams;
 		return copy;
 	}
 
@@ -61,14 +60,14 @@ namespace Poly
 		const bool useNewCompiler = true;
 		if (useNewCompiler)
 		{
-			RenderGraphCompilerNew compiler;
+			RenderGraphCompilerNew  compiler;
 			Ref<RenderGraphProgram> program1 = compiler.Compile(this, m_DefaultParams);
 			program1->Init();
 			return program1;
 		}
 
 		Ref<RenderGraphCompiler> compiler2 = RenderGraphCompiler::Create();
-		Ref<RenderGraphProgram> program2 = compiler2->Compile(this, m_DefaultParams);
+		Ref<RenderGraphProgram>  program2  = compiler2->Compile(this, m_DefaultParams);
 		program2->Init();
 		return program2;
 	}
@@ -83,9 +82,9 @@ namespace Poly
 			return false;
 		}
 
-		uint32 index = m_pGraph->AddNode();
+		uint32 index              = m_pGraph->AddNode();
 		m_NameToNodeIndex[passID] = index;
-		m_Passes[index] = pPass;
+		m_Passes[index]           = pPass;
 
 		pPass->p_Name = passID.GetName();
 
@@ -131,8 +130,8 @@ namespace Poly
 			return false;
 		}
 
-		uint32 index = m_pGraph->AddEdge(srcItr->second, dstItr->second);
-		m_Edges[index] = { src, dst };
+		uint32 index   = m_pGraph->AddEdge(srcItr->second, dstItr->second);
+		m_Edges[index] = {src, dst};
 
 		return true;
 	}
@@ -153,8 +152,8 @@ namespace Poly
 			return false;
 		}
 
-		uint32 edgeIndex = m_pGraph->AddEdge(m_ExternalPassNodeID, dstItr->second);
-		m_Edges[edgeIndex] = { src, dst };
+		uint32 edgeIndex   = m_pGraph->AddEdge(m_ExternalPassNodeID, dstItr->second);
+		m_Edges[edgeIndex] = {src, dst};
 
 		return true;
 	}
@@ -176,13 +175,13 @@ namespace Poly
 			return false;
 		}
 
-		uint32 edgeIndex = m_pGraph->AddEdge(srcItr->second, dstItr->second);
-		m_Edges[edgeIndex] = { src, dst };
+		uint32 edgeIndex   = m_pGraph->AddEdge(srcItr->second, dstItr->second);
+		m_Edges[edgeIndex] = {src, dst};
 
 		return true;
 	}
 
-	bool RenderGraph::RemoveLink(const PassResID &src, const PassResID &dst)
+	bool RenderGraph::RemoveLink(const PassResID& src, const PassResID& dst)
 	{
 		const auto srcItr = m_NameToNodeIndex.find(src.GetPass());
 		const auto dstItr = m_NameToNodeIndex.find(dst.GetPass());
@@ -203,7 +202,7 @@ namespace Poly
 		for (uint32 edgeID : outgoingEdges)
 		{
 			const EdgeData& edge = m_Edges[edgeID];
-				
+
 			if (!edge.IsDataDependency())
 				continue;
 
@@ -219,7 +218,7 @@ namespace Poly
 		return false;
 	}
 
-	bool RenderGraph::RemoveLink(const ResID &src, const PassID &dst)
+	bool RenderGraph::RemoveLink(const ResID& src, const PassID& dst)
 	{
 		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
 		if (!pExtPass->HasResource(src))
@@ -255,7 +254,7 @@ namespace Poly
 		return false;
 	}
 
-	bool RenderGraph::RemoveLink(const PassID &src, const PassID &dst)
+	bool RenderGraph::RemoveLink(const PassID& src, const PassID& dst)
 	{
 		const auto srcItr = m_NameToNodeIndex.find(src);
 		const auto dstItr = m_NameToNodeIndex.find(dst);
@@ -300,8 +299,8 @@ namespace Poly
 			return false;
 		}
 
-		const std::string& name = pResource->GetName();
-		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+		const std::string& name     = pResource->GetName();
+		auto*              pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
 
 		ResID resID(name);
 		if (pExtPass->HasResource(resID))
@@ -310,7 +309,7 @@ namespace Poly
 			return false;
 		}
 
-		pExtPass->RegisterResource(resID, { pResource, autoBindDescriptor });
+		pExtPass->RegisterResource(resID, {pResource, autoBindDescriptor});
 
 		return true;
 	}
@@ -318,13 +317,13 @@ namespace Poly
 	bool RenderGraph::AddExternalResource(const ResourceGroup& resourceGroup)
 	{
 		const std::string& groupName = resourceGroup.GetGroupName();
-		auto* pExtPass = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
+		auto*              pExtPass  = static_cast<ExternalPass*>(m_Passes[m_ExternalPassNodeID].get());
 
 		const auto& resources = resourceGroup.GetResources();
 		for (auto& resource : resources)
 		{
 			std::string name = Poly::Format("{}:{}", groupName, resource.first);
-			ResID resID(name);
+			ResID       resID(name);
 			if (pExtPass->HasResource(resID))
 			{
 				POLY_CORE_WARN("External resource {} has already been added, ignoring call", name);
@@ -346,15 +345,15 @@ namespace Poly
 			return false;
 		}
 
-		BufferDesc desc = {};
-		desc.Size			= size;
-		desc.MemUsage		= EMemoryUsage::GPU_ONLY;
-		desc.BufferUsage	= bufferUsage | FBufferUsage::COPY_DST;
+		BufferDesc desc     = {};
+		desc.Size           = size;
+		desc.MemUsage       = EMemoryUsage::GPU_ONLY;
+		desc.BufferUsage    = bufferUsage | FBufferUsage::COPY_DST;
 		Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
 
 		Ref<Resource> pResource = Resource::Create(pBuffer, resID.GetName());
 
-		pExtPass->RegisterResource(resID, { pResource, autoBindDescriptor });
+		pExtPass->RegisterResource(resID, {pResource, autoBindDescriptor});
 
 		// TODO: Transfer data to buffer using a stagingbuffer if necessary - Should probably have a stagingBufferCache before implementing this
 		if (data)
@@ -392,8 +391,8 @@ namespace Poly
 			return false;
 		}
 
-		Output output = {};
-		output.NodeID = srcItr->second;
+		Output output     = {};
+		output.NodeID     = srcItr->second;
 		output.ResourceID = passResID.GetResource();
 		m_Outputs.insert(output);
 
@@ -415,8 +414,8 @@ namespace Poly
 			return false;
 		}
 
-		Output output = {};
-		output.NodeID = srcItr->second;
+		Output output     = {};
+		output.NodeID     = srcItr->second;
 		output.ResourceID = passResID.GetResource();
 		m_Outputs.erase(output);
 
@@ -436,4 +435,4 @@ namespace Poly
 
 		return m_Passes.at(nodeID);
 	}
-}
+} // namespace Poly

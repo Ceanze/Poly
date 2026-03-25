@@ -13,20 +13,21 @@ namespace Poly
 	public:
 		struct Node
 		{
-			NodeIndex ParentIndex = UINT32_MAX;
+			NodeIndex              ParentIndex = UINT32_MAX;
 			std::vector<NodeIndex> ChildrenIndices;
-			T Data;
+			T                      Data;
 		};
 
 		enum class TraverseMode
 		{
-			NONE			= 0,
-			BREADTH_FIRST	= 1,
-			DEPTH_FIRST		= 2,
+			NONE          = 0,
+			BREADTH_FIRST = 1,
+			DEPTH_FIRST   = 2,
 		};
 
 	public:
-		HierarchyTree() : m_TraverseMode(TraverseMode::DEPTH_FIRST);
+		HierarchyTree()
+		    : m_TraverseMode(TraverseMode::DEPTH_FIRST);
 		~HierarchyTree();
 
 		static Ref<HierarchyTree> Create() { return CreateRef<HierarchyTree>(); }
@@ -66,11 +67,11 @@ namespace Poly
 		void SetTraverseMode(TraverseMode mode);
 
 	private:
-		std::vector<Node> m_Nodes;
-		NodeIndex m_CurrentNodeIndex = UINT32_MAX;
-		std::queue<uint32> m_TraveseQueue;	// TODO: Template the queue and stack to only have one per tree
+		std::vector<Node>  m_Nodes;
+		NodeIndex          m_CurrentNodeIndex = UINT32_MAX;
+		std::queue<uint32> m_TraveseQueue; // TODO: Template the queue and stack to only have one per tree
 		std::stack<uint32> m_TraverseStack;
-		TraverseMode m_TraverseMode;
+		TraverseMode       m_TraverseMode;
 	};
 
 	template<typename T>
@@ -85,7 +86,7 @@ namespace Poly
 	NodeIndex HierarchyTree<T>::CreateNode(uint32 parentIndex, std::vector<uint32> childrenIndices, T data)
 	{
 		NodeIndex index = m_Nodes.size();
-		m_Nodes.push_back({ .ParentIndex = parentIndex, .ChildrenIndices = childrenIndices, .Data = data });
+		m_Nodes.push_back({.ParentIndex = parentIndex, .ChildrenIndices = childrenIndices, .Data = data});
 		return index;
 	}
 
@@ -176,4 +177,4 @@ namespace Poly
 
 		m_TraverseMode = mode;
 	}
-}
+} // namespace Poly

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Scene.h"
 #include "Components.h"
+#include "Scene.h"
 
 namespace Poly
 {
@@ -32,27 +32,27 @@ namespace Poly
 
 		Scene* GetScene() const { return m_pScene; }
 
-		template <typename Component>
+		template<typename Component>
 		bool HasComponent() const
 		{
 			return m_pScene->m_Registry.any_of<Component>(m_Entity);
 		}
 
-		template <typename Component, typename... Args>
+		template<typename Component, typename... Args>
 		Component& AddComponent(Args&&... args)
 		{
 			POLY_VALIDATE(!HasComponent<Component>(), "Cannot add component, entity {} already has it", static_cast<uint32_t>(m_Entity));
 			return m_pScene->m_Registry.emplace<Component>(m_Entity, std::forward<Args>(args)...);
 		}
 
-		template <typename Component>
+		template<typename Component>
 		void RemoveComponent()
 		{
 			POLY_VALIDATE(HasComponent<Component>(), "Cannot remove component, entity {} does not have it", static_cast<uint32_t>(m_Entity));
 			m_pScene->m_Registry.remove<Component>(m_Entity);
 		}
 
-		template <typename Component>
+		template<typename Component>
 		Component& GetComponent() const
 		{
 			POLY_VALIDATE(HasComponent<Component>(), "Cannot get component, entity {} does not have it", static_cast<uint32_t>(m_Entity));
@@ -69,13 +69,16 @@ namespace Poly
 		friend class Scene;
 		friend class SceneSerializer;
 
-		Entity(Scene* pScene, entt::entity entity) : m_pScene(pScene), m_Entity(entity) {}
+		Entity(Scene* pScene, entt::entity entity)
+		    : m_pScene(pScene)
+		    , m_Entity(entity)
+		{}
 
 		void RemoveFromParent();
 		void PlaceInParent(entt::entity parent, uint8 index);
 		void PlaceLastInParent(entt::entity parent);
 
-		Scene* m_pScene			= nullptr;
-		entt::entity m_Entity	= entt::null;
+		Scene*       m_pScene = nullptr;
+		entt::entity m_Entity = entt::null;
 	};
-}
+} // namespace Poly

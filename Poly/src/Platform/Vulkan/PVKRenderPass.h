@@ -13,11 +13,11 @@ namespace Poly
 
 		virtual void Init(const GraphicsRenderPassDesc* pDesc) override final;
 
-		VkRenderPass GetNativeVK() const { return m_RenderPass; }
+		VkRenderPass   GetNativeVK() const { return m_RenderPass; }
 		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_RenderPass); }
 
 	private:
 		VkRenderPass m_RenderPass = VK_NULL_HANDLE;
 	};
 
-}
+} // namespace Poly

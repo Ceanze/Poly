@@ -1,15 +1,14 @@
-#include "polypch.h"
 #include "Engine.h"
 
-#include "Timer.h"
-#include "RenderAPI.h"
-#include "Timestamp.h"
 #include "Application.h"
-
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
+#include "polypch.h"
+#include "RenderAPI.h"
+#include "Timer.h"
+#include "Timestamp.h"
 
 #include <GLFW/glfw3.h>
 
@@ -36,7 +35,7 @@ namespace Poly
 
 	void Engine::Run(Application* pApp)
 	{
-		Timer timer;
+		Timer     timer;
 		Timestamp timeCollector;
 		Timestamp fixedTime = Timestamp::FromSeconds(1.0 / FIXED_UPDATE_FREQ);
 
@@ -71,4 +70,4 @@ namespace Poly
 		RenderAPI::Release();
 		glfwTerminate();
 	}
-}
+} // namespace Poly

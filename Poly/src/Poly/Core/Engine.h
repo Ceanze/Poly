@@ -8,7 +8,7 @@ namespace Poly
 	class Engine
 	{
 	public:
-		Engine() = default;
+		Engine()  = default;
 		~Engine() = default;
 
 		static void Init();
@@ -17,4 +17,4 @@ namespace Poly
 
 		static void Release();
 	};
-}
+} // namespace Poly

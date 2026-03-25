@@ -1,9 +1,9 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCValidator.h"
 
-#include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
 #include "Poly/Core/Utils/DirectedGraph.h"
-#include "Poly/Rendering/RenderGraph/Pass.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
 #include "Poly/Rendering/RenderGraph/EdgeData.h"
+#include "Poly/Rendering/RenderGraph/Pass.h"
 
 namespace Poly
 {
@@ -24,13 +24,13 @@ namespace Poly
 
 		for (const CompiledPass& passData : ctx.CompiledGraph.CompiledPasses)
 		{
-			const std::vector<const PassField*> inputs = passData.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
-			const auto& incommingEdges = ctx.RenderGraph.m_pGraph->GetNode(passData.GraphNodeIndex)->GetIncommingEdges();
+			const std::vector<const PassField*> inputs         = passData.Reflection.GetFieldsFiltered(FFieldVisibility::INPUT, FResourceBindPoint::INTERNAL_USE);
+			const auto&                         incommingEdges = ctx.RenderGraph.m_pGraph->GetNode(passData.GraphNodeIndex)->GetIncommingEdges();
 
 			for (const PassField* input : inputs)
 			{
 				PassResID dstGUID(passData.pPass->GetName(), input->GetName());
-				bool valid = false;
+				bool      valid = false;
 
 				// Current implementation of ArrayInputs does not require a resource to be set
 				if (input->IsArray())
@@ -64,4 +64,4 @@ namespace Poly
 
 		return validGraph;
 	}
-}
+} // namespace Poly

@@ -1,10 +1,10 @@
-#include "polypch.h"
 #include "SyncPass.h"
 
+#include "Platform/API/Texture.h"
+#include "polypch.h"
 #include "RenderContext.h"
 #include "RenderData.h"
 #include "Resource.h"
-#include "Platform/API/Texture.h"
 
 namespace Poly
 {
@@ -39,9 +39,9 @@ namespace Poly
 		FPipelineStage srcStage = FPipelineStage::NONE;
 		FPipelineStage dstStage = FPipelineStage::NONE;
 
-		std::vector<BufferBarrier>	bufferBarriers;
-		std::vector<TextureBarrier>	textureBarriers;
-		std::vector<AccessBarrier>	accessBarriers;
+		std::vector<BufferBarrier>  bufferBarriers;
+		std::vector<TextureBarrier> textureBarriers;
+		std::vector<AccessBarrier>  accessBarriers;
 		for (auto& data : m_SyncData)
 		{
 			// If type wasn't given, deduce what it might be (given that the other things are correct)
@@ -58,12 +58,12 @@ namespace Poly
 			if (data.Type == SyncType::BUFFER)
 			{
 				BufferBarrier barrier = {};
-				barrier.SrcAccessFlag	= data.SrcAccessFlag;
-				barrier.DstAccessFlag	= data.DstAccessFlag;
-				barrier.SrcQueueIndex	= 0; // TODO: Allow multiple queues
-				barrier.DstQueueIndex	= 0;
-				barrier.pBuffer			= renderData[data.ResourceName]->GetAsBuffer();
-				barrier.Offset			= 0; // TODO: Allow for offset?
+				barrier.SrcAccessFlag = data.SrcAccessFlag;
+				barrier.DstAccessFlag = data.DstAccessFlag;
+				barrier.SrcQueueIndex = 0; // TODO: Allow multiple queues
+				barrier.DstQueueIndex = 0;
+				barrier.pBuffer       = renderData[data.ResourceName]->GetAsBuffer();
+				barrier.Offset        = 0; // TODO: Allow for offset?
 				bufferBarriers.push_back(barrier);
 
 				srcStage |= data.SrcPipelineStage;
@@ -71,16 +71,16 @@ namespace Poly
 			}
 			else if (data.Type == SyncType::TEXTURE)
 			{
-				Texture* pTexture = renderData[data.ResourceName]->GetAsTexture();
-				TextureBarrier barrier = {};
-				barrier.SrcAccessFlag	= data.SrcAccessFlag;
-				barrier.DstAccessFlag	= data.DstAccessFlag;
-				barrier.OldLayout		= data.SrcLayout;
-				barrier.NewLayout		= data.DstLayout;
-				barrier.SrcQueueIndex	= 0;
-				barrier.DstQueueIndex	= 0;
-				barrier.pTexture		= pTexture;
-				barrier.AspectMask		= pTexture->GetDesc().Format == EFormat::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR; // TODO: Handle either cusom options or more gradual choises
+				Texture*       pTexture = renderData[data.ResourceName]->GetAsTexture();
+				TextureBarrier barrier  = {};
+				barrier.SrcAccessFlag   = data.SrcAccessFlag;
+				barrier.DstAccessFlag   = data.DstAccessFlag;
+				barrier.OldLayout       = data.SrcLayout;
+				barrier.NewLayout       = data.DstLayout;
+				barrier.SrcQueueIndex   = 0;
+				barrier.DstQueueIndex   = 0;
+				barrier.pTexture        = pTexture;
+				barrier.AspectMask      = pTexture->GetDesc().Format == EFormat::DEPTH_STENCIL ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR; // TODO: Handle either cusom options or more gradual choises
 				textureBarriers.push_back(barrier);
 
 				srcStage |= data.SrcPipelineStage;
@@ -92,8 +92,8 @@ namespace Poly
 			else if (data.Type == SyncType::MEMORY)
 			{
 				AccessBarrier barrier = {};
-				barrier.SrcAccessFlag	= data.SrcAccessFlag;
-				barrier.DstAccessFlag	= data.DstAccessFlag;
+				barrier.SrcAccessFlag = data.SrcAccessFlag;
+				barrier.DstAccessFlag = data.DstAccessFlag;
 				accessBarriers.push_back(barrier);
 
 				srcStage |= data.SrcPipelineStage;
@@ -103,12 +103,11 @@ namespace Poly
 
 		// TODO: Deduce optimal pipeline stage?
 		context.GetCommandBuffer()->PipelineBarrier(
-			srcStage,
-			dstStage,
-			accessBarriers,
-			bufferBarriers,
-			textureBarriers);
-
+		    srcStage,
+		    dstStage,
+		    accessBarriers,
+		    bufferBarriers,
+		    textureBarriers);
 	}
 
 	void SyncPass::AddSyncData(SyncData syncData)
@@ -125,4 +124,4 @@ namespace Poly
 	{
 		return CreateRef<SyncPass>(name);
 	}
-}
+} // namespace Poly

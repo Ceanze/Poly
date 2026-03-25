@@ -1,8 +1,8 @@
 #include "Poly/Rendering/RenderGraph/Compiler/RGCResourceOutputHandler.h"
 
 #include "Poly/Rendering/RenderGraph/Compiler/RGCContext.h"
-#include "Poly/Rendering/RenderGraph/ResourceCache.h"
 #include "Poly/Rendering/RenderGraph/Pass.h"
+#include "Poly/Rendering/RenderGraph/ResourceCache.h"
 
 namespace Poly
 {
@@ -19,14 +19,14 @@ namespace Poly
 		for (const auto& markedOutput : markedOutputs)
 		{
 			std::vector<CompiledPass>& compiledPasses = ctx.CompiledGraph.CompiledPasses;
-			auto itr = std::find_if(compiledPasses.begin(), compiledPasses.end(), [nodeIdx = markedOutput.NodeID](const CompiledPass& compiledPass) { return compiledPass.GraphNodeIndex == nodeIdx; });
+			auto                       itr            = std::find_if(compiledPasses.begin(), compiledPasses.end(), [nodeIdx = markedOutput.NodeID](const CompiledPass& compiledPass) { return compiledPass.GraphNodeIndex == nodeIdx; });
 			if (itr != compiledPasses.end())
 			{
-				auto& field = itr->Reflection.GetField(markedOutput.ResourceID.GetName());
+				auto&     field = itr->Reflection.GetField(markedOutput.ResourceID.GetName());
 				PassResID outputID(itr->pPass->GetName(), markedOutput.ResourceID.GetName());
 				ctx.pResourceCache->MarkOutput(outputID, field);
 				field.Format(EFormat::B8G8R8A8_UNORM);
 			}
 		}
 	}
-}
+} // namespace Poly

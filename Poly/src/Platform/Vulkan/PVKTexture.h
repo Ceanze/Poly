@@ -1,9 +1,7 @@
 #pragma once
-#include "polypch.h"
-
 #include "Platform/API/Texture.h"
+#include "polypch.h"
 #include "PVKTypes.h"
-
 #include "VmaInclude.h"
 
 namespace Poly
@@ -24,18 +22,18 @@ namespace Poly
 		 */
 		void InitWithImage(const TextureDesc* pDesc, VkImage image);
 
-		uint32 GetWidth() const { return p_TextureDesc.Width; }
-		uint32 GetHeight() const { return p_TextureDesc.Height; }
+		uint32   GetWidth() const { return p_TextureDesc.Width; }
+		uint32   GetHeight() const { return p_TextureDesc.Height; }
 		VkFormat GetFormatVK() const { return ConvertFormatVK(p_TextureDesc.Format); }
 
-		VkImage GetNativeVK() const { return m_Image; }
+		VkImage        GetNativeVK() const { return m_Image; }
 		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Image); }
 
 	private:
 		void CreateImage();
 
-		VkImage			m_Image			= VK_NULL_HANDLE;
-		VmaAllocation	m_Allocation	= VK_NULL_HANDLE;
-		bool			m_HandleImage	= false;
+		VkImage       m_Image       = VK_NULL_HANDLE;
+		VmaAllocation m_Allocation  = VK_NULL_HANDLE;
+		bool          m_HandleImage = false;
 	};
-}
+} // namespace Poly

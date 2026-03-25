@@ -69,11 +69,11 @@ namespace Poly
 
 		/* End of commands */
 
-		virtual uint64 GetNative() const override final { return reinterpret_cast<uint64>(m_Buffer); }
+		virtual uint64  GetNative() const override final { return reinterpret_cast<uint64>(m_Buffer); }
 		VkCommandBuffer GetNativeVK() const { return m_Buffer; }
 
 	private:
 		VkCommandBuffer m_Buffer = VK_NULL_HANDLE;
 	};
 
-}
+} // namespace Poly

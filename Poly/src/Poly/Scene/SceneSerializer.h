@@ -6,7 +6,7 @@ namespace YAML
 {
 	class Emitter;
 	class Node;
-}
+} // namespace YAML
 
 namespace Poly
 {
@@ -16,7 +16,9 @@ namespace Poly
 	class SceneSerializer
 	{
 	public:
-		SceneSerializer(Ref<Scene> pScene) : m_pScene(pScene) {}
+		SceneSerializer(Ref<Scene> pScene)
+		    : m_pScene(pScene)
+		{}
 		~SceneSerializer() = default;
 
 		void Serialize(const std::string& path);
@@ -29,4 +31,4 @@ namespace Poly
 
 		Ref<Scene> m_pScene;
 	};
-}
+} // namespace Poly

@@ -1,5 +1,6 @@
-#include "polypch.h"
 #include "DirectedGraph.h"
+
+#include "polypch.h"
 
 namespace Poly
 {
@@ -10,11 +11,11 @@ namespace Poly
 
 	Ref<DirectedGraph> DirectedGraph::Clone() const
 	{
-		Ref<DirectedGraph> clone = CreateRef<DirectedGraph>();
-		clone->m_Nodes				= m_Nodes;
-		clone->m_Edges				= m_Edges;
-		clone->m_CurrentNodeIndex	= m_CurrentNodeIndex;
-		clone->m_CurrentEdgeIndex	= m_CurrentEdgeIndex;
+		Ref<DirectedGraph> clone  = CreateRef<DirectedGraph>();
+		clone->m_Nodes            = m_Nodes;
+		clone->m_Edges            = m_Edges;
+		clone->m_CurrentNodeIndex = m_CurrentNodeIndex;
+		clone->m_CurrentEdgeIndex = m_CurrentEdgeIndex;
 		return clone;
 	}
 
@@ -54,7 +55,8 @@ namespace Poly
 		{
 			POLY_CORE_ERROR("Standard setting does not allow for loops (same src and dst for an edge) as per the simple directed graph ruleset.\
 							To enable loops, define POLY_DIRECTED_GRAPH_ENABLE_LOOPS before header include.\
-							src and dst were {}", src);
+							src and dst were {}",
+			                src);
 			return INVALID_ID;
 		}
 #endif
@@ -96,7 +98,7 @@ namespace Poly
 		}
 
 		std::vector<uint32>& outgoingEdges = m_Nodes[srcNode].m_OutgoingEdges;
-		auto it = outgoingEdges.begin();
+		auto                 it            = outgoingEdges.begin();
 		while (it != outgoingEdges.end())
 		{
 			uint32 edgeDst = m_Edges[*it].m_Dst;
@@ -112,7 +114,7 @@ namespace Poly
 		std::vector<uint32> edgesToRemove;
 		for (auto edgeID : edgeIDs)
 		{
-			Edge& edge = m_Edges[edgeID];
+			Edge&                edge             = m_Edges[edgeID];
 			std::vector<uint32>& neighbourEdgeIDs = incommingEdges ? m_Nodes[edge.m_Src].m_OutgoingEdges : m_Nodes[edge.m_Dst].m_IncommingEdges;
 			for (auto neighbourEdgeID : neighbourEdgeIDs)
 			{
@@ -140,4 +142,4 @@ namespace Poly
 
 		POLY_CORE_WARN("Tried to remove edgeID {} from nodeID {} as an {}, but did not succeed (edgeID or nodeID wrong)", edgeID, nodeID, removeSrc ? "outgoing" : "incomming");
 	}
-}
+} // namespace Poly

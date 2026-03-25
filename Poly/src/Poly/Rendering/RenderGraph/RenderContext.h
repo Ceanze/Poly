@@ -14,7 +14,7 @@ namespace Poly
 	class RenderContext
 	{
 	public:
-		RenderContext() = default;
+		RenderContext()  = default;
 		~RenderContext() = default;
 
 		CommandBuffer* GetCommandBuffer() const { return m_pCommandBuffer; };
@@ -47,14 +47,14 @@ namespace Poly
 		void SetRenderGraphProgram(RenderGraphProgram* pRenderGraphProgram) { m_pRenderGraphProgram = pRenderGraphProgram; }
 		void SetDescriptorCache(DescriptorCache* pDescriptorCache) { m_pDescriptorCache = pDescriptorCache; }
 
-		CommandBuffer*		m_pCommandBuffer		= nullptr;
-		Pipeline*			m_pPipeline				= nullptr;
-		PipelineLayout*		m_pPipelineLayout		= nullptr;
-		uint32				m_PassIndex				= 0;
-		uint32				m_ImageIndex			= 0;
-		uint32				m_BatchIndex			= 0;
-		const SceneBatch*	m_pSceneBatch			= nullptr;
-		RenderGraphProgram*	m_pRenderGraphProgram	= nullptr;
-		DescriptorCache*	m_pDescriptorCache		= nullptr;
+		CommandBuffer*      m_pCommandBuffer      = nullptr;
+		Pipeline*           m_pPipeline           = nullptr;
+		PipelineLayout*     m_pPipelineLayout     = nullptr;
+		uint32              m_PassIndex           = 0;
+		uint32              m_ImageIndex          = 0;
+		uint32              m_BatchIndex          = 0;
+		const SceneBatch*   m_pSceneBatch         = nullptr;
+		RenderGraphProgram* m_pRenderGraphProgram = nullptr;
+		DescriptorCache*    m_pDescriptorCache    = nullptr;
 	};
-}
+} // namespace Poly

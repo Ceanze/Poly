@@ -1,6 +1,6 @@
-#include "polypch.h"
-
 #include "PVKSyncPoint.h"
+
+#include "polypch.h"
 #include "PVKInstance.h"
 
 namespace Poly
@@ -16,15 +16,15 @@ namespace Poly
 	void PVKSyncPoint::Init()
 	{
 		VkSemaphoreTypeCreateInfo typeCreateInfo = {};
-		typeCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
-		typeCreateInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
-		typeCreateInfo.initialValue = 0;
-		typeCreateInfo.pNext = nullptr;
+		typeCreateInfo.sType                     = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+		typeCreateInfo.semaphoreType             = VK_SEMAPHORE_TYPE_TIMELINE;
+		typeCreateInfo.initialValue              = 0;
+		typeCreateInfo.pNext                     = nullptr;
 
 		VkSemaphoreCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		createInfo.flags = 0;
-		createInfo.pNext = &typeCreateInfo;
+		createInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		createInfo.flags                 = 0;
+		createInfo.pNext                 = &typeCreateInfo;
 
 		PVK_CHECK(vkCreateSemaphore(PVKInstance::GetDevice(), &createInfo, nullptr, &m_TimelineSemaphore), "Failed to create semaphore");
 	}
@@ -37,12 +37,12 @@ namespace Poly
 	void PVKSyncPoint::Wait(uint64 value)
 	{
 		VkSemaphoreWaitInfo waitInfo;
-		waitInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
-		waitInfo.pNext = NULL;
-		waitInfo.flags = 0;
+		waitInfo.sType          = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+		waitInfo.pNext          = NULL;
+		waitInfo.flags          = 0;
 		waitInfo.semaphoreCount = 1;
-		waitInfo.pSemaphores = &m_TimelineSemaphore;
-		waitInfo.pValues = &value;
+		waitInfo.pSemaphores    = &m_TimelineSemaphore;
+		waitInfo.pValues        = &value;
 
 		vkWaitSemaphores(PVKInstance::GetDevice(), &waitInfo, UINT64_MAX);
 	}
@@ -50,10 +50,10 @@ namespace Poly
 	void PVKSyncPoint::Signal(uint64 value)
 	{
 		VkSemaphoreSignalInfo signalInfo;
-		signalInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO;
-		signalInfo.pNext = nullptr;
+		signalInfo.sType     = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO;
+		signalInfo.pNext     = nullptr;
 		signalInfo.semaphore = m_TimelineSemaphore;
-		signalInfo.value = value;
+		signalInfo.value     = value;
 
 		vkSignalSemaphore(PVKInstance::GetDevice(), &signalInfo);
 	}
@@ -65,4 +65,4 @@ namespace Poly
 
 		return value;
 	}
-}
+} // namespace Poly

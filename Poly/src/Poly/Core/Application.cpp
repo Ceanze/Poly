@@ -1,11 +1,10 @@
-#include "polypch.h"
-
 #include "Poly/Core/Application.h"
 
-#include "Poly/Events/WindowEvent.h"
-#include "Poly/Rendering/Renderer.h"
 #include "Poly/Core/Window.h"
+#include "Poly/Events/WindowEvent.h"
 #include "Poly/ImGui/ImGuiLayer.h"
+#include "Poly/Rendering/Renderer.h"
+#include "polypch.h"
 
 namespace
 {
@@ -65,7 +64,6 @@ namespace Poly
 
 	void Application::FixedUpdate(Timestamp dt)
 	{
-
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -111,4 +109,4 @@ namespace Poly
 			(*it)->OnEvent(event);
 		}
 	}
-}
+} // namespace Poly

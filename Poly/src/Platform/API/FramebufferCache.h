@@ -9,37 +9,35 @@ namespace Poly
 	class FramebufferCache
 	{
 	private:
-	// Key used to access the unordered map with unique framebuffers dependent on attachments and render pass
-	struct Key
-	{
-		/**
-		 * Must be done when all of the members has been set
-		 */
-		void CreateHash();
-
-		std::vector<TextureView*>	Attachments;
-		TextureView*				pDepthAttachment	= nullptr;
-		GraphicsRenderPass*			pPass				= nullptr;
-		mutable size_t				Hash				= 0;
-
-		bool operator== (const Key & other) const
+		// Key used to access the unordered map with unique framebuffers dependent on attachments and render pass
+		struct Key
 		{
-			return	pDepthAttachment == other.pDepthAttachment
-					&& pPass == other.pPass
-					&& Hash == other.Hash;
-		}
-	};
+			/**
+			 * Must be done when all of the members has been set
+			 */
+			void CreateHash();
 
-	struct KeyHasher
-	{
-		size_t operator()(const Key& key) const
+			std::vector<TextureView*> Attachments;
+			TextureView*              pDepthAttachment = nullptr;
+			GraphicsRenderPass*       pPass            = nullptr;
+			mutable size_t            Hash             = 0;
+
+			bool operator==(const Key& other) const
+			{
+				return pDepthAttachment == other.pDepthAttachment && pPass == other.pPass && Hash == other.Hash;
+			}
+		};
+
+		struct KeyHasher
 		{
-			return key.Hash;
-		}
-	};
+			size_t operator()(const Key& key) const
+			{
+				return key.Hash;
+			}
+		};
 
 	public:
-		FramebufferCache() = default;
+		FramebufferCache()  = default;
 		~FramebufferCache() = default;
 
 		/**
@@ -56,4 +54,4 @@ namespace Poly
 	private:
 		std::unordered_map<Key, Ref<Framebuffer>, KeyHasher> m_Framebuffers;
 	};
-}
+} // namespace Poly

@@ -11,9 +11,9 @@ namespace Poly
 
 	struct SceneBatch
 	{
-		MeshInstance			MeshInstance;
-		uint32					InstanceCount;
-		std::vector<glm::mat4>	Matrices;
+		MeshInstance           MeshInstance;
+		uint32                 InstanceCount;
+		std::vector<glm::mat4> Matrices;
 	};
 
 	class RenderScene
@@ -23,23 +23,23 @@ namespace Poly
 		~RenderScene() = default;
 
 		/**
-		* Updates the Render Scene to generate new batches based on the linked scene
-		*/
+		 * Updates the Render Scene to generate new batches based on the linked scene
+		 */
 		void Update();
 
 		/**
-		* Get the current batches that was generated in the Update() call
-		*/
+		 * Get the current batches that was generated in the Update() call
+		 */
 		const std::vector<SceneBatch>& GetBatches() const;
 
 	private:
 		void CreateBufferIfNecessary(const PassResID& bufferID, uint64 size);
 
-		Scene& m_Scene;
+		Scene&              m_Scene;
 		RenderGraphProgram& m_Program;
 
-		uint32 m_TotalMeshCount;
+		uint32                          m_TotalMeshCount;
 		std::unordered_map<size_t, int> m_InstanceHashToIndex;
-		std::vector<SceneBatch> m_SceneBatches;
+		std::vector<SceneBatch>         m_SceneBatches;
 	};
-}
+} // namespace Poly

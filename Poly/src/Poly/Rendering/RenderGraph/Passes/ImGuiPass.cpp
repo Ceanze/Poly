@@ -1,21 +1,21 @@
 #include "ImGuiPass.h"
 
-#include "../Resource.h"
-#include "../RenderData.h"
 #include "../RenderContext.h"
+#include "../RenderData.h"
 #include "../RenderGraphProgram.h"
+#include "../Resource.h"
+#include "Platform/API/Buffer.h"
 #include "Platform/API/GraphicsPipeline.h"
 #include "Platform/API/Sampler.h"
-#include "Platform/API/Buffer.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/TextureView.h"
+#include "Poly/Core/Input/InputManager.h"
+#include "Poly/Core/RenderAPI.h"
+#include "Poly/Rendering/RenderGraph/PassResID.h"
+#include "Poly/Rendering/Utilities/DescriptorCache.h"
+#include "Poly/Rendering/Utilities/StagingBufferCache.h"
 #include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
-#include "Poly/Core/RenderAPI.h"
-#include "Poly/Core/Input/InputManager.h"
-#include "Poly/Rendering/Utilities/StagingBufferCache.h"
-#include "Poly/Rendering/Utilities/DescriptorCache.h"
-#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 #include <imgui.h>
 
@@ -40,15 +40,15 @@ namespace Poly
 
 		PassField& textureField = reflection.GetField("sTexture");
 		textureField.BindPoint(FResourceBindPoint::SAMPLER | FResourceBindPoint::INTERNAL_USE)
-			.Format(EFormat::R8G8B8A8_UNORM)
-			.SetSampler(m_pFontSampler);
+		    .Format(EFormat::R8G8B8A8_UNORM)
+		    .SetSampler(m_pFontSampler);
 		m_TextureSet = textureField.GetSet();
 
 		reflection.AddPassthrough("fColor")
-			.BindPoint(FResourceBindPoint::COLOR_ATTACHMENT)
-			.Format(EFormat::B8G8R8A8_UNORM);
+		    .BindPoint(FResourceBindPoint::COLOR_ATTACHMENT)
+		    .Format(EFormat::B8G8R8A8_UNORM);
 
-		//reflection.AddInput("ExternalImages")
+		// reflection.AddInput("ExternalImages")
 		//	.SetArray()
 		//	.BindPoint(FResourceBindPoint::EXTERNAL | FResourceBindPoint::SHADER_READ)
 		//	.Format(EFormat::R8G8B8A8_UNORM);
@@ -81,12 +81,12 @@ namespace Poly
 		uint32 nextIndex = 0;
 
 		// Font is always index 0
-		ImTextureID fontTexID = (ImTextureID)m_pFontTextureView.get();
+		ImTextureID fontTexID       = (ImTextureID)m_pFontTextureView.get();
 		m_TextureToIndex[fontTexID] = nextIndex++;
 
 		Ref<Resource> pFontRes = Resource::Create(m_pFontTexture, m_pFontTextureView, "sTexture");
 		pFontRes->SetSampler(m_pFontSampler);
-		PassResID textureResID = { "ImGuiPass", "sTexture" };
+		PassResID textureResID = {"ImGuiPass", "sTexture"};
 		context.GetRenderGraphProgram()->UpdateGraphResource(textureResID, pFontRes.get(), 0);
 
 		// Iterate through draw data and find other textures
@@ -95,16 +95,16 @@ namespace Poly
 			const ImDrawList* cmdList = pDrawData->CmdLists[i];
 			for (int j = 0; j < cmdList->CmdBuffer.Size; j++)
 			{
-				const ImDrawCmd* pCmd = &cmdList->CmdBuffer[j];
-				ImTextureID texID = pCmd->TexRef.GetTexID();
+				const ImDrawCmd* pCmd  = &cmdList->CmdBuffer[j];
+				ImTextureID      texID = pCmd->TexRef.GetTexID();
 				if (texID != ImTextureID_Invalid && m_TextureToIndex.find(texID) == m_TextureToIndex.end())
 				{
 					m_TextureToIndex[texID] = nextIndex++;
 
 					TextureView* pView = (TextureView*)texID;
 					// Use no-op deleter as we don't own these textures (they could be from framebuffers etc.)
-					Ref<Texture> pTexture(pView->GetTexture(), [](auto*){});
-					Ref<TextureView> pTextureView(pView, [](auto*){});
+					Ref<Texture>     pTexture(pView->GetTexture(), [](auto*) {});
+					Ref<TextureView> pTextureView(pView, [](auto*) {});
 
 					Ref<Resource> pRes = Resource::Create(pTexture, pTextureView, "sTexture");
 					pRes->SetSampler(m_pFontSampler);
@@ -130,17 +130,17 @@ namespace Poly
 
 		// Draw
 		ViewportDesc viewport = {};
-		viewport.Width	= io.DisplaySize.x;
-		viewport.Height	= io.DisplaySize.y;
+		viewport.Width        = io.DisplaySize.x;
+		viewport.Height       = io.DisplaySize.y;
 		pCommandBuffer->SetViewport(&viewport);
 
-		m_PushConstantData.scale		= glm::vec2(2.0f / io.DisplaySize.x, 2.0f / io.DisplaySize.y);
-		m_PushConstantData.translate	= glm::vec2(-1.0f);
+		m_PushConstantData.scale     = glm::vec2(2.0f / io.DisplaySize.x, 2.0f / io.DisplaySize.y);
+		m_PushConstantData.translate = glm::vec2(-1.0f);
 		pCommandBuffer->UpdatePushConstants(context.GetActivePipelineLayout(), FShaderStage::VERTEX, 0, sizeof(PushConstantBlock), &m_PushConstantData);
 
-		ImDrawData* pDrawData = ImGui::GetDrawData();
-		uint32 vertexOffset	= 0;
-		uint32 indexOffset	= 0;
+		ImDrawData* pDrawData    = ImGui::GetDrawData();
+		uint32      vertexOffset = 0;
+		uint32      indexOffset  = 0;
 		if (pDrawData->Valid && pDrawData->CmdListsCount > 0)
 		{
 			pCommandBuffer->BindVertexBuffer(m_pVertexBuffer.get(), 0, 1, 0);
@@ -151,16 +151,16 @@ namespace Poly
 				const ImDrawList* cmdList = pDrawData->CmdLists[i];
 				for (uint32 j = 0; j < static_cast<uint32>(cmdList->CmdBuffer.Size); j++)
 				{
-					const ImDrawCmd* pCmd = &cmdList->CmdBuffer[j];
-					ScissorDesc scissor = {};
-					scissor.OffsetX	= std::max(static_cast<int>(pCmd->ClipRect.x), 0);
-					scissor.OffsetY	= std::max(static_cast<int>(pCmd->ClipRect.y), 0);
-					scissor.Width	= static_cast<uint32>(pCmd->ClipRect.z - pCmd->ClipRect.x);
-					scissor.Height	= static_cast<uint32>(pCmd->ClipRect.w - pCmd->ClipRect.y);
+					const ImDrawCmd* pCmd    = &cmdList->CmdBuffer[j];
+					ScissorDesc      scissor = {};
+					scissor.OffsetX          = std::max(static_cast<int>(pCmd->ClipRect.x), 0);
+					scissor.OffsetY          = std::max(static_cast<int>(pCmd->ClipRect.y), 0);
+					scissor.Width            = static_cast<uint32>(pCmd->ClipRect.z - pCmd->ClipRect.x);
+					scissor.Height           = static_cast<uint32>(pCmd->ClipRect.w - pCmd->ClipRect.y);
 					pCommandBuffer->SetScissor(&scissor);
 
 					ImTextureID texID = pCmd->TexRef.GetTexID();
-					auto it = m_TextureToIndex.find(texID);
+					auto        it    = m_TextureToIndex.find(texID);
 					if (it != m_TextureToIndex.end())
 					{
 						const DescriptorSet* pSet = context.GetDescriptorCache()->GetDescriptorSet(m_TextureSet, it->second, DescriptorCache::EAction::GET);
@@ -181,70 +181,70 @@ namespace Poly
 		Ref<GraphicsPipelineDesc> desc = CreateRef<GraphicsPipelineDesc>();
 
 		InputAssemblyDesc inputAssembly = {};
-		inputAssembly.Topology			= ETopology::TRIANGLE_LIST;
-		inputAssembly.RestartPrimitive	= false;
+		inputAssembly.Topology          = ETopology::TRIANGLE_LIST;
+		inputAssembly.RestartPrimitive  = false;
 
-		RasterizationDesc raster = {};
-		raster.PolygonMode			= EPolygonMode::FILL;
-		raster.CullMode				= ECullMode::NONE;
-		raster.ClockwiseFrontFace	= true;
+		RasterizationDesc raster  = {};
+		raster.PolygonMode        = EPolygonMode::FILL;
+		raster.CullMode           = ECullMode::NONE;
+		raster.ClockwiseFrontFace = true;
 
 		ColorBlendAttachmentDesc colorBlendAttachment = {};
-		colorBlendAttachment.BlendEnable			= true;
-		colorBlendAttachment.ColorWriteMask			= FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
-		colorBlendAttachment.SrcColorBlendFactor	= EBlendFactor::SRC_ALPHA;
-		colorBlendAttachment.DstColorBlendFactor	= EBlendFactor::ONE_MINUS_SRC_ALPHA;
-		colorBlendAttachment.ColorBlendOp			= EBlendOp::ADD;
-		colorBlendAttachment.SrcAlphaBlendFactor	= EBlendFactor::ONE_MINUS_SRC_ALPHA;
-		colorBlendAttachment.DstAlphaBlendFactor	= EBlendFactor::ZERO;
-		colorBlendAttachment.AlphaBlendOp			= EBlendOp::ADD;
+		colorBlendAttachment.BlendEnable              = true;
+		colorBlendAttachment.ColorWriteMask           = FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
+		colorBlendAttachment.SrcColorBlendFactor      = EBlendFactor::SRC_ALPHA;
+		colorBlendAttachment.DstColorBlendFactor      = EBlendFactor::ONE_MINUS_SRC_ALPHA;
+		colorBlendAttachment.ColorBlendOp             = EBlendOp::ADD;
+		colorBlendAttachment.SrcAlphaBlendFactor      = EBlendFactor::ONE_MINUS_SRC_ALPHA;
+		colorBlendAttachment.DstAlphaBlendFactor      = EBlendFactor::ZERO;
+		colorBlendAttachment.AlphaBlendOp             = EBlendOp::ADD;
 
-		ColorBlendStateDesc blendState = {};
-		blendState.ColorBlendAttachments	= { colorBlendAttachment };
+		ColorBlendStateDesc blendState   = {};
+		blendState.ColorBlendAttachments = {colorBlendAttachment};
 
 		DepthStencilDesc depthStencilState = {};
-		depthStencilState.DepthTestEnable	= false;
-		depthStencilState.DepthWriteEnable	= false;
-		depthStencilState.DepthCompareOp	= ECompareOp::LESS_OR_EQUAL;
+		depthStencilState.DepthTestEnable  = false;
+		depthStencilState.DepthWriteEnable = false;
+		depthStencilState.DepthCompareOp   = ECompareOp::LESS_OR_EQUAL;
 
 		ViewportDesc viewport = {};
-		viewport.IsDynamic = true;
+		viewport.IsDynamic    = true;
 
 		ScissorDesc scissor = {};
-		scissor.IsDynamic = true;
+		scissor.IsDynamic   = true;
 
 		std::vector<VertexInput> vertexInputs;
 		vertexInputs.reserve(3);
 
 		// Position input
-		VertexInput vertexInput = {};
-		vertexInput.Binding			= 0;
-		vertexInput.Location		= 0;
-		vertexInput.Format			= EFormat::R32G32_SFLOAT;
-		vertexInput.Offset			= offsetof(ImDrawVert, pos);
-		vertexInput.VertexInputRate	= EVertexInputRate::VERTEX;
-		vertexInput.Stride			= sizeof(ImDrawVert);
+		VertexInput vertexInput     = {};
+		vertexInput.Binding         = 0;
+		vertexInput.Location        = 0;
+		vertexInput.Format          = EFormat::R32G32_SFLOAT;
+		vertexInput.Offset          = offsetof(ImDrawVert, pos);
+		vertexInput.VertexInputRate = EVertexInputRate::VERTEX;
+		vertexInput.Stride          = sizeof(ImDrawVert);
 		vertexInputs.push_back(vertexInput);
 
 		// UV input
-		vertexInput.Location	= 1;
-		vertexInput.Format		= EFormat::R32G32_SFLOAT;
-		vertexInput.Offset		= offsetof(ImDrawVert, uv);
+		vertexInput.Location = 1;
+		vertexInput.Format   = EFormat::R32G32_SFLOAT;
+		vertexInput.Offset   = offsetof(ImDrawVert, uv);
 		vertexInputs.push_back(vertexInput);
 
 		// Color input
-		vertexInput.Location	= 2;
-		vertexInput.Format		= EFormat::R8G8B8A8_UNORM;
-		vertexInput.Offset		= offsetof(ImDrawVert, col);
+		vertexInput.Location = 2;
+		vertexInput.Format   = EFormat::R8G8B8A8_UNORM;
+		vertexInput.Offset   = offsetof(ImDrawVert, col);
 		vertexInputs.push_back(vertexInput);
 
-		desc->VertexInputs		= vertexInputs;
-		desc->InputAssembly		= inputAssembly;
-		desc->Rasterization		= raster;
-		desc->ColorBlendState	= blendState;
-		desc->DepthStencil		= depthStencilState;
-		desc->Viewport			= viewport;
-		desc->Scissor			= scissor;
+		desc->VertexInputs    = vertexInputs;
+		desc->InputAssembly   = inputAssembly;
+		desc->Rasterization   = raster;
+		desc->ColorBlendState = blendState;
+		desc->DepthStencil    = depthStencilState;
+		desc->Viewport        = viewport;
+		desc->Scissor         = scissor;
 
 		SetCustomPipelineDesc(desc);
 	}
@@ -255,8 +255,8 @@ namespace Poly
 
 		// Get data
 		unsigned char* fontData = nullptr;
-		int width	= 0;
-		int height	= 0;
+		int            width    = 0;
+		int            height   = 0;
 		io.Fonts->GetTexDataAsRGBA32(&fontData, &width, &height);
 
 		// Setup texture
@@ -264,24 +264,24 @@ namespace Poly
 
 		// Setup texture view
 		TextureViewDesc viewDesc = {};
-		viewDesc.pTexture			= m_pFontTexture.get();
-		viewDesc.ImageViewType		= EImageViewType::TYPE_2D;
-		viewDesc.ImageViewFlag		= FImageViewFlag::SHADER_RESOURCE;
-		viewDesc.Format				= EFormat::R8G8B8A8_UNORM;
-		viewDesc.MipLevelCount		= 1;
-		viewDesc.ArrayLayerCount	= 1;
-		m_pFontTextureView = RenderAPI::CreateTextureView(&viewDesc);
+		viewDesc.pTexture        = m_pFontTexture.get();
+		viewDesc.ImageViewType   = EImageViewType::TYPE_2D;
+		viewDesc.ImageViewFlag   = FImageViewFlag::SHADER_RESOURCE;
+		viewDesc.Format          = EFormat::R8G8B8A8_UNORM;
+		viewDesc.MipLevelCount   = 1;
+		viewDesc.ArrayLayerCount = 1;
+		m_pFontTextureView       = RenderAPI::CreateTextureView(&viewDesc);
 
 		// Setup sampler
-		SamplerDesc samplerDesc = {};
-		samplerDesc.MagFilter		= EFilter::LINEAR;
-		samplerDesc.MinFilter		= EFilter::LINEAR;
-		samplerDesc.MipMapMode		= ESamplerMipmapMode::LINEAR;
-		samplerDesc.AddressModeU	= ESamplerAddressMode::CLAMP_TO_EDGE;
-		samplerDesc.AddressModeV	= ESamplerAddressMode::CLAMP_TO_EDGE;
-		samplerDesc.AddressModeW	= ESamplerAddressMode::CLAMP_TO_EDGE;
-		samplerDesc.BorderColor		= EBorderColor::FLOAT_OPAQUE_WHITE;
-		m_pFontSampler = RenderAPI::CreateSampler(&samplerDesc);
+		SamplerDesc samplerDesc  = {};
+		samplerDesc.MagFilter    = EFilter::LINEAR;
+		samplerDesc.MinFilter    = EFilter::LINEAR;
+		samplerDesc.MipMapMode   = ESamplerMipmapMode::LINEAR;
+		samplerDesc.AddressModeU = ESamplerAddressMode::CLAMP_TO_EDGE;
+		samplerDesc.AddressModeV = ESamplerAddressMode::CLAMP_TO_EDGE;
+		samplerDesc.AddressModeW = ESamplerAddressMode::CLAMP_TO_EDGE;
+		samplerDesc.BorderColor  = EBorderColor::FLOAT_OPAQUE_WHITE;
+		m_pFontSampler           = RenderAPI::CreateSampler(&samplerDesc);
 
 		io.Fonts->TexID = (ImTextureID)m_pFontTextureView.get();
 	}
@@ -290,8 +290,8 @@ namespace Poly
 	{
 		ImDrawData* pDrawData = ImGui::GetDrawData();
 
-		uint64 vertexBufferSize	= pDrawData->TotalVtxCount * sizeof(ImDrawVert);
-		uint64 indexBufferSize	= pDrawData->TotalIdxCount * sizeof(ImDrawIdx);
+		uint64 vertexBufferSize = pDrawData->TotalVtxCount * sizeof(ImDrawVert);
+		uint64 indexBufferSize  = pDrawData->TotalIdxCount * sizeof(ImDrawIdx);
 
 		// No need to update buffers if size 0, wont be used either way
 		if (vertexBufferSize == 0 || indexBufferSize == 0)
@@ -300,26 +300,26 @@ namespace Poly
 		if (!m_pVertexBuffer || m_pVertexBuffer->GetSize() != vertexBufferSize)
 		{
 			m_BuffersToBeDestroyed[imageIndex].push_back(m_pVertexBuffer);
-			BufferDesc desc = {};
-			desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::VERTEX_BUFFER;
-			desc.MemUsage		= EMemoryUsage::GPU_ONLY;
-			desc.Size			= vertexBufferSize;
-			m_pVertexBuffer = RenderAPI::CreateBuffer(&desc);
+			BufferDesc desc  = {};
+			desc.BufferUsage = FBufferUsage::TRANSFER_DST | FBufferUsage::VERTEX_BUFFER;
+			desc.MemUsage    = EMemoryUsage::GPU_ONLY;
+			desc.Size        = vertexBufferSize;
+			m_pVertexBuffer  = RenderAPI::CreateBuffer(&desc);
 		}
 
 		if (!m_pIndexBuffer || m_pIndexBuffer->GetSize() != indexBufferSize)
 		{
 			m_BuffersToBeDestroyed[imageIndex].push_back(m_pIndexBuffer);
-			BufferDesc desc = {};
-			desc.BufferUsage	= FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
-			desc.MemUsage		= EMemoryUsage::GPU_ONLY;
-			desc.Size			= indexBufferSize;
-			m_pIndexBuffer = RenderAPI::CreateBuffer(&desc);
+			BufferDesc desc  = {};
+			desc.BufferUsage = FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
+			desc.MemUsage    = EMemoryUsage::GPU_ONLY;
+			desc.Size        = indexBufferSize;
+			m_pIndexBuffer   = RenderAPI::CreateBuffer(&desc);
 		}
 
 		// Update buffers with data
-		uint64 vertexOffset	= 0;
-		uint64 indexOffset	= 0;
+		uint64 vertexOffset = 0;
+		uint64 indexOffset  = 0;
 		for (int i = 0; i < pDrawData->CmdListsCount; i++)
 		{
 			const ImDrawList* cmdList = pDrawData->CmdLists[i];
@@ -329,4 +329,4 @@ namespace Poly
 			indexOffset += cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
 		}
 	}
-}
+} // namespace Poly

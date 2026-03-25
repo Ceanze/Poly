@@ -6,8 +6,8 @@ namespace Poly
 {
 	struct ResourceState
 	{
-		ETextureLayout	Layout		= ETextureLayout::UNDEFINED;
-		FAccessFlag		AccessMask	= FAccessFlag::NONE;
-		FPipelineStage	Stage		= FPipelineStage::NONE;
+		ETextureLayout Layout     = ETextureLayout::UNDEFINED;
+		FAccessFlag    AccessMask = FAccessFlag::NONE;
+		FPipelineStage Stage      = FPipelineStage::NONE;
 	};
-}
+} // namespace Poly

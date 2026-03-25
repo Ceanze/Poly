@@ -10,10 +10,10 @@ namespace Poly
 
 	struct FramebufferDesc
 	{
-		uint32						Width			= 0;
-		uint32						Height			= 0;
-		GraphicsRenderPass*			pRenderPass		= nullptr;
-		std::vector<TextureView*>	Attachments;
+		uint32                    Width       = 0;
+		uint32                    Height      = 0;
+		GraphicsRenderPass*       pRenderPass = nullptr;
+		std::vector<TextureView*> Attachments;
 	};
 
 	class Framebuffer
@@ -24,7 +24,7 @@ namespace Poly
 		/**
 		 * Init the Buffer object
 		 * @param desc	Buffer creation description
-		*/
+		 */
 		virtual void Init(const FramebufferDesc* pDesc) = 0;
 
 		/**
@@ -53,4 +53,4 @@ namespace Poly
 	protected:
 		FramebufferDesc p_FramebufferDesc;
 	};
-}
+} // namespace Poly

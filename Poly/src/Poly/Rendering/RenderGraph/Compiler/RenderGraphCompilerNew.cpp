@@ -43,4 +43,4 @@ namespace Poly
 
 		return m_GraphProgramCreator.Execute(ctx);
 	}
-}
+} // namespace Poly

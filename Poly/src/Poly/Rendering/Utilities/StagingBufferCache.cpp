@@ -2,7 +2,6 @@
 
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
-
 #include "Poly/Core/RenderAPI.h"
 
 namespace Poly
@@ -10,11 +9,11 @@ namespace Poly
 	void StagingBufferCache::QueueTransfer(const Buffer* pDstBuffer, uint64 size, uint64 offset, const void* data)
 	{
 		Ref<Buffer> pStagingBuffer = nullptr;
-		bool alreadyQueued = false;
+		bool        alreadyQueued  = false;
 		if (m_BufferToIndex.contains(pDstBuffer))
 		{
 			pStagingBuffer = m_QueuedBuffers[m_BufferToIndex[pDstBuffer]].pStagingBuffer;
-			alreadyQueued = true;
+			alreadyQueued  = true;
 		}
 		else
 		{
@@ -24,7 +23,7 @@ namespace Poly
 
 		pStagingBuffer->TransferData(data, size, offset);
 
-		BufferRegion region = { .Size = size, .SrcOffset = offset, .DstOffset = offset };
+		BufferRegion region = {.Size = size, .SrcOffset = offset, .DstOffset = offset};
 
 		if (alreadyQueued)
 		{
@@ -33,7 +32,7 @@ namespace Poly
 		else
 		{
 			m_BufferToIndex[pDstBuffer] = m_QueuedBuffers.size();
-			m_QueuedBuffers.push_back({ pStagingBuffer, pDstBuffer, {region} });
+			m_QueuedBuffers.push_back({pStagingBuffer, pDstBuffer, {region}});
 		}
 	}
 
@@ -61,7 +60,7 @@ namespace Poly
 		m_ImageIndex = imageIndex;
 
 		auto& buffersInUse = m_Buffers[m_ImageIndex][State::IN_USE];
-		auto& buffersFree = m_Buffers[m_ImageIndex][State::FREE];
+		auto& buffersFree  = m_Buffers[m_ImageIndex][State::FREE];
 
 		// Delete old & update age of young buffers
 		auto it = buffersFree.begin();
@@ -91,20 +90,20 @@ namespace Poly
 		// No free buffer which suits the requirements
 		if (bufferItr == buffers.end())
 		{
-			BufferDesc desc = {};
-			desc.BufferUsage	= FBufferUsage::COPY_SRC;
-			desc.MemUsage		= EMemoryUsage::CPU_VISIBLE;
-			desc.Size			= size;
+			BufferDesc desc     = {};
+			desc.BufferUsage    = FBufferUsage::COPY_SRC;
+			desc.MemUsage       = EMemoryUsage::CPU_VISIBLE;
+			desc.Size           = size;
 			Ref<Buffer> pBuffer = RenderAPI::CreateBuffer(&desc);
 
 			// It is assumed that the staging buffer gotten will be used that frame
-			m_Buffers[m_ImageIndex][State::IN_USE].push_back({ pBuffer, 0});
+			m_Buffers[m_ImageIndex][State::IN_USE].push_back({pBuffer, 0});
 			return pBuffer;
 		}
 
 		Ref<Buffer> pBuffer = (*bufferItr).pBuffer;
 		buffers.erase(bufferItr);
-		m_Buffers[m_ImageIndex][State::IN_USE].push_back({ pBuffer, 0 });
+		m_Buffers[m_ImageIndex][State::IN_USE].push_back({pBuffer, 0});
 		return pBuffer;
 	}
-}
+} // namespace Poly

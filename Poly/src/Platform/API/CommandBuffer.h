@@ -23,46 +23,46 @@ namespace Poly
 	struct CopyBufferDesc
 	{
 		// Width, height and aspect mask is presumed to be the same values from the texture image
-		uint64			BufferOffset		= 0;
-		uint32			BufferRowLength		= 0;
-		uint32			BufferImageHeight	= 0;
-		uint32			MipLevel			= 0;
-		uint32			ArrayLayer			= 0;
-		uint32			ArrayCount			= 0;
-		int				ImageOffsetX		= 0;
-		int				ImageOffsetY		= 0;
-		int				ImageOffsetZ		= 0;
-		uint32			Width				= 0;
-		uint32			Height				= 0;
-		uint32			Depth				= 0;
+		uint64 BufferOffset      = 0;
+		uint32 BufferRowLength   = 0;
+		uint32 BufferImageHeight = 0;
+		uint32 MipLevel          = 0;
+		uint32 ArrayLayer        = 0;
+		uint32 ArrayCount        = 0;
+		int    ImageOffsetX      = 0;
+		int    ImageOffsetY      = 0;
+		int    ImageOffsetZ      = 0;
+		uint32 Width             = 0;
+		uint32 Height            = 0;
+		uint32 Depth             = 0;
 	};
 
 	struct BufferBarrier
 	{
-		FAccessFlag	SrcAccessFlag	= FAccessFlag::NONE;
-		FAccessFlag	DstAccessFlag	= FAccessFlag::NONE;
-		uint32		SrcQueueIndex	= 0;
-		uint32		DstQueueIndex	= 0;
-		Buffer*		pBuffer			= nullptr;
-		uint32		Offset			= 0;
+		FAccessFlag SrcAccessFlag = FAccessFlag::NONE;
+		FAccessFlag DstAccessFlag = FAccessFlag::NONE;
+		uint32      SrcQueueIndex = 0;
+		uint32      DstQueueIndex = 0;
+		Buffer*     pBuffer       = nullptr;
+		uint32      Offset        = 0;
 	};
 
 	struct TextureBarrier
 	{
-		FAccessFlag		SrcAccessFlag	= FAccessFlag::NONE;
-		FAccessFlag		DstAccessFlag	= FAccessFlag::NONE;
-		ETextureLayout	OldLayout		= ETextureLayout::UNDEFINED;
-		ETextureLayout	NewLayout		= ETextureLayout::UNDEFINED;
-		uint32			SrcQueueIndex	= 0;
-		uint32			DstQueueIndex	= 0;
-		Texture*		pTexture		= nullptr;
-		FImageViewFlag	AspectMask		= FImageViewFlag::NONE;
+		FAccessFlag    SrcAccessFlag = FAccessFlag::NONE;
+		FAccessFlag    DstAccessFlag = FAccessFlag::NONE;
+		ETextureLayout OldLayout     = ETextureLayout::UNDEFINED;
+		ETextureLayout NewLayout     = ETextureLayout::UNDEFINED;
+		uint32         SrcQueueIndex = 0;
+		uint32         DstQueueIndex = 0;
+		Texture*       pTexture      = nullptr;
+		FImageViewFlag AspectMask    = FImageViewFlag::NONE;
 	};
 
 	struct AccessBarrier
 	{
-		FAccessFlag		SrcAccessFlag	= FAccessFlag::NONE;
-		FAccessFlag		DstAccessFlag	= FAccessFlag::NONE;
+		FAccessFlag SrcAccessFlag = FAccessFlag::NONE;
+		FAccessFlag DstAccessFlag = FAccessFlag::NONE;
 	};
 
 	class CommandBuffer
@@ -73,7 +73,7 @@ namespace Poly
 		/**
 		 * Init the Buffer object
 		 * @param desc	Buffer creation description
-		*/
+		 */
 		virtual void Init(CommandPool* pCommandPool) = 0;
 
 		/**
@@ -154,12 +154,12 @@ namespace Poly
 		virtual void CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) = 0;
 
 		/**
-		* Copy source buffer to destination buffer with multiple regions
-		* For Vulkan this is done with one call to the GPU, while for DirectX 12 this is the same as calling CopyBuffer multiple times with one region each
-		* @param pSrcBuffer - source buffer
-		* @param pDstBuffer - destination buffer
-		* @param regions - vector of regions, each containing {size, srcOffset, dstOffset]
-		*/
+		 * Copy source buffer to destination buffer with multiple regions
+		 * For Vulkan this is done with one call to the GPU, while for DirectX 12 this is the same as calling CopyBuffer multiple times with one region each
+		 * @param pSrcBuffer - source buffer
+		 * @param pDstBuffer - destination buffer
+		 * @param regions - vector of regions, each containing {size, srcOffset, dstOffset]
+		 */
 		virtual void CopyBufferRegions(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, const std::vector<BufferRegion>& regions) = 0;
 
 		/**
@@ -319,4 +319,4 @@ namespace Poly
 	protected:
 		CommandPool* p_pCommandPool;
 	};
-}
+} // namespace Poly

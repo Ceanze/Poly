@@ -6,18 +6,19 @@
 #include <spdlog/fmt/bundled/format.h>
 #endif
 
-namespace Poly {
+namespace Poly
+{
 #ifdef POLY_PLATFORM_WINDOWS
-    template <typename... T>
-    inline auto Format(std::format_string<T...> format, T&&... args)
-    {
-        return std::format(format, std::forward<T>(args)...);
-    }
+	template<typename... T>
+	inline auto Format(std::format_string<T...> format, T&&... args)
+	{
+		return std::format(format, std::forward<T>(args)...);
+	}
 #else
-    template <typename... T>
-    inline auto Format(fmt::format_string<T...> format, T&&... args)
-    {
-        return fmt::format(format, std::forward<T>(args)...);
-    }
+	template<typename... T>
+	inline auto Format(fmt::format_string<T...> format, T&&... args)
+	{
+		return fmt::format(format, std::forward<T>(args)...);
+	}
 #endif
-}
+} // namespace Poly

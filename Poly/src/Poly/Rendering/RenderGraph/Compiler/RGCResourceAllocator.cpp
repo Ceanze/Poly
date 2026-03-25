@@ -15,4 +15,4 @@ namespace Poly
 
 		ctx.pResourceCache->AllocateResources();
 	}
-}
+} // namespace Poly

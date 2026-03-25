@@ -2,8 +2,8 @@
 
 #include "RGCSyncTypes.h"
 
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 namespace Poly
 {
@@ -19,10 +19,10 @@ namespace Poly
 		void Execute(RGCContext& ctx);
 
 	private:
-		void InitialiseResourceStates(RGCContext& ctx, SyncContext& syncCtx);
-		void SetupPassUsages(RGCContext& ctx, SyncContext& syncCtx);
+		void                      InitialiseResourceStates(RGCContext& ctx, SyncContext& syncCtx);
+		void                      SetupPassUsages(RGCContext& ctx, SyncContext& syncCtx);
 		std::vector<SyncPassData> BuildSyncPasses(RGCContext& ctx, SyncContext& syncCtx);
-		void SetOutputLayouts(RGCContext& ctx);
-		void InsertSyncPasses(RGCContext& ctx, const std::vector<SyncPassData>& syncPasses);
+		void                      SetOutputLayouts(RGCContext& ctx);
+		void                      InsertSyncPasses(RGCContext& ctx, const std::vector<SyncPassData>& syncPasses);
 	};
-}
+} // namespace Poly

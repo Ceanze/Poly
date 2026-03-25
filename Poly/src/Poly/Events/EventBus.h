@@ -2,22 +2,23 @@
 
 #include "Event.h"
 #include "MemberFunctionHandler.h"
+
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
 
 /**
-	Events uses the following structure:	bool funcName(EventType* evnt)
-	Events return true if the event has been handled, false if not.
+    Events uses the following structure:	bool funcName(EventType* evnt)
+    Events return true if the event has been handled, false if not.
 
-	Pointers to member functions act different than normal function pointers
-	instead of 
-		int (*)(char,float)
-	we get
-		int (Class::*)(char,float)
-	for non static member functions.
-	In order to call the correct member function we also need to know the instance
-	of the class, hence the requirement for the "this" param.
+    Pointers to member functions act different than normal function pointers
+    instead of
+        int (*)(char,float)
+    we get
+        int (Class::*)(char,float)
+    for non static member functions.
+    In order to call the correct member function we also need to know the instance
+    of the class, hence the requirement for the "this" param.
 **/
 
 #define POLY_EVENT_SUB(className, funcName) EventBus::get().subscribe(this, &className::funcName);
@@ -27,7 +28,8 @@
 /* ev = constructed event to be sent */
 #define POLY_EVENT_PUB(ev) EventBus::get().publish(&ev);
 
-namespace Poly {
+namespace Poly
+{
 
 	typedef std::vector<HandlerFunctionBase*> HandlerList;
 
@@ -47,7 +49,7 @@ namespace Poly {
 
 		// Unsubscribe to an event
 		template<class T, class EventType>
-		void unsubscribe(T* instance, void (T::* func)(EventType*));
+		void unsubscribe(T* instance, void (T::*func)(EventType*));
 
 		// Unsubscribe all events
 		void unsubscribeAll();
@@ -78,7 +80,7 @@ namespace Poly {
 	}
 
 	template<class T, class EventType>
-	inline void EventBus::subscribe(T* instance, void(T::* func)(EventType*))
+	inline void EventBus::subscribe(T* instance, void (T::*func)(EventType*))
 	{
 		// Save the instance, member function pointer and the event type
 
@@ -86,7 +88,7 @@ namespace Poly {
 
 		if (!subs)
 		{
-			subs = new HandlerList;
+			subs                           = new HandlerList;
 			subscribers[typeid(EventType)] = subs;
 		}
 
@@ -94,9 +96,8 @@ namespace Poly {
 		subs->push_back(data);
 	}
 
-
 	template<class T, class EventType>
-	inline void EventBus::unsubscribe(T* instance, void (T::* func)(EventType*))
+	inline void EventBus::unsubscribe(T* instance, void (T::*func)(EventType*))
 	{
 		if (this->subscribers.empty())
 			return;
@@ -104,7 +105,7 @@ namespace Poly {
 		{
 			HandlerList* handlers = this->subscribers[typeid(EventType)];
 
-			unsigned id = getID<T, EventType>(instance);
+			unsigned                                    id = getID<T, EventType>(instance);
 			std::vector<HandlerFunctionBase*>::iterator it;
 			for (it = handlers->begin(); it != handlers->end(); ++it)
 			{
@@ -112,7 +113,7 @@ namespace Poly {
 					continue;
 				if ((*it)->ID == id)
 				{
-					delete* it;
+					delete *it;
 					(*it) = nullptr;
 					break;
 				}
@@ -142,4 +143,4 @@ namespace Poly {
 		static EventBus instance;
 		return instance;
 	}
-}
+} // namespace Poly
