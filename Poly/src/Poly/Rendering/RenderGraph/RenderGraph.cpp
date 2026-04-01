@@ -50,6 +50,7 @@ namespace Poly
 		copy.m_Passes             = m_Passes;
 		copy.m_Edges              = m_Edges;
 		copy.m_Outputs            = m_Outputs;
+		copy.m_MandatoryPasses    = m_MandatoryPasses;
 		copy.m_ExternalPassNodeID = m_ExternalPassNodeID;
 		copy.m_DefaultParams      = m_DefaultParams;
 		return copy;
@@ -373,6 +374,19 @@ namespace Poly
 
 		pExtPass->RemoveResource(resID);
 
+		return true;
+	}
+
+	bool RenderGraph::AddMandatoryPass(const PassID& passID)
+	{
+		const auto itr = m_NameToNodeIndex.find(passID);
+		if (itr == m_NameToNodeIndex.end())
+		{
+			POLY_CORE_WARN("Cannot mark mandatory pass {}, render pass does not exist in graph", passID.GetName());
+			return false;
+		}
+
+		m_MandatoryPasses.insert(itr->second);
 		return true;
 	}
 

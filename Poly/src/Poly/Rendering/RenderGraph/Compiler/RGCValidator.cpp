@@ -15,10 +15,10 @@ namespace Poly
 
 		bool validGraph = true;
 
-		if (ctx.RenderGraph.m_Outputs.empty())
+		if (ctx.RenderGraph.m_Outputs.empty() && ctx.RenderGraph.m_MandatoryPasses.empty())
 		{
 			// TODO: Validate if an output always need to exist. For Compute only or render to texture it wouldn't be needed
-			POLY_CORE_ERROR("Rendergraph must have atleast one resource marked as output");
+			POLY_VALIDATE(false, "Rendergraph must have atleast one resource marked as output or one mandatory pass, otherwise it cannot be executed");
 			return false;
 		}
 
