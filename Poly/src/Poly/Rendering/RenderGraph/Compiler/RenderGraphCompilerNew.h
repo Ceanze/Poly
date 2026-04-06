@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Poly/Rendering/RenderGraph/Compiler/RGCCompiler.h"
+#include "Poly/Rendering/RenderGraph/Compiler/RGCDebugLogger.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCDebugTextureInjector.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCPassCompiler.h"
 #include "Poly/Rendering/RenderGraph/Compiler/RGCProgramCreator.h"
@@ -33,6 +34,7 @@ namespace Poly
 		RGCResourceAllocator     m_GraphResourceAllocator;
 		RGCSynchroniser          m_GraphSynchroniser;
 		RGCDebugTextureInjector  m_GraphDebugTextureInjector;
+		RGCDebugLogger           m_GraphDebugLogger;
 		RGCProgramCreator        m_GraphProgramCreator;
 	};
 } // namespace Poly

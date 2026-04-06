@@ -223,6 +223,7 @@ namespace Poly
 		friend class RGCResourceOutputHandler;
 		friend class RGCSynchroniser;
 		friend class RGCDebugTextureInjector;
+		friend class RGCDebugLogger;
 
 		struct Output
 		{

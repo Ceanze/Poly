@@ -62,6 +62,8 @@ namespace Poly
 
 		const std::string& GetName() const { return p_Name; }
 
+		const std::vector<SyncData>& GetSyncData() const { return m_SyncData; }
+
 	private:
 		std::vector<SyncData> m_SyncData;
 	};
