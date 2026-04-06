@@ -39,5 +39,6 @@ namespace Poly
 		createInfo.subresourceRange.layerCount     = pDesc->ArrayLayerCount;
 
 		PVK_CHECK(vkCreateImageView(PVKInstance::GetDevice(), &createInfo, nullptr, &m_ImageView), "Failed to create image view!");
+		PVKInstance::SetDebugName(VK_OBJECT_TYPE_IMAGE_VIEW, reinterpret_cast<uint64_t>(m_ImageView), p_TextureViewDesc.DebugName);
 	}
 } // namespace Poly

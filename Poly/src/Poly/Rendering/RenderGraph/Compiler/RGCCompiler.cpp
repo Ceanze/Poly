@@ -18,11 +18,16 @@ namespace Poly
 	{
 		std::unordered_set<uint32> mandatoryNodes;
 
-		// Seed with graph output nodes only. PruneAndSortGraph will then do a backward traversal
+		// Seed with graph output nodes. PruneAndSortGraph will then do a backward traversal
 		// from these seeds following all edge types (data and execution), which naturally includes
 		// any pass connected, directly or transitively, to an output. Island connections are excluded.
 		for (const auto& output : ctx.RenderGraph.m_Outputs)
 			mandatoryNodes.insert(output.NodeID);
+
+		// Also seed with passes explicitly marked as mandatory (e.g. mandatory passes
+		// that have no swapchain output but must still be compiled and executed).
+		for (uint32 nodeID : ctx.RenderGraph.m_MandatoryPasses)
+			mandatoryNodes.insert(nodeID);
 
 		return mandatoryNodes;
 	}

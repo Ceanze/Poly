@@ -142,6 +142,31 @@ namespace Poly
 		    &copyDesc);
 	}
 
+	void PVKCommandBuffer::CopyTextureToBuffer(const Texture* pTexture, const Buffer* pBuffer, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc)
+	{
+		VkImageSubresourceLayers subresource = {};
+		subresource.aspectMask               = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresource.baseArrayLayer           = copyBufferDesc.ArrayLayer;
+		subresource.layerCount               = copyBufferDesc.ArrayCount;
+		subresource.mipLevel                 = copyBufferDesc.MipLevel;
+
+		VkBufferImageCopy copyDesc = {};
+		copyDesc.bufferImageHeight = copyBufferDesc.BufferImageHeight;
+		copyDesc.bufferOffset      = copyBufferDesc.BufferOffset;
+		copyDesc.bufferRowLength   = copyBufferDesc.BufferRowLength;
+		copyDesc.imageExtent       = {copyBufferDesc.Width, copyBufferDesc.Height, copyBufferDesc.Depth};
+		copyDesc.imageOffset       = {copyBufferDesc.ImageOffsetX, copyBufferDesc.ImageOffsetY, copyBufferDesc.ImageOffsetZ};
+		copyDesc.imageSubresource  = subresource;
+
+		vkCmdCopyImageToBuffer(
+		    m_Buffer,
+		    reinterpret_cast<const PVKTexture*>(pTexture)->GetNativeVK(),
+		    ConvertTextureLayoutVK(layout),
+		    reinterpret_cast<const PVKBuffer*>(pBuffer)->GetNativeVK(),
+		    1,
+		    &copyDesc);
+	}
+
 	void PVKCommandBuffer::CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset)
 	{
 		VkBufferCopy copyDesc = {};

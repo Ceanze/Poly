@@ -17,6 +17,7 @@ namespace Poly
 		m_HandleImage = true;
 
 		CreateImage();
+		PVKInstance::SetDebugName(VK_OBJECT_TYPE_IMAGE, reinterpret_cast<uint64_t>(m_Image), p_TextureDesc.DebugName);
 	}
 
 	void PVKTexture::InitWithImage(const TextureDesc* pDesc, VkImage image)

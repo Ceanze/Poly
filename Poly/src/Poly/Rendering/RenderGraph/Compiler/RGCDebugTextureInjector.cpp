@@ -37,14 +37,30 @@ namespace Poly
 		if (debugConsumerIndex < 0)
 			return;
 
-		// Build set of graph output GUIDs so we can skip them (backbuffer etc.)
+		// Build a set of GUIDs to skip:
+		//   1. Graph outputs (backbuffer etc.) — transitioning these would break presentation.
+		//   2. Resources being written by the debug consumer pass itself — we cannot transition
+		//      a resource to SHADER_READ_ONLY while the same pass is simultaneously writing it.
 		// TODO: Support backbuffer? - Requires synchronisation after the ImGui pass to put in PRESENT mode
-		std::unordered_set<PassResID> outputGUIDs;
+		std::unordered_set<PassResID> ignoredGUIDs;
+
 		for (const auto& output : ctx.RenderGraph.m_Outputs)
 		{
 			const auto& pPass         = ctx.RenderGraph.m_Passes.at(output.NodeID);
 			PassResID   canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(PassResID(pPass->GetName(), output.ResourceID.GetName()));
-			outputGUIDs.insert(canonicalGUID);
+			ignoredGUIDs.insert(canonicalGUID);
+		}
+
+		{
+			const auto& debugConsumerCompiledPass = ctx.CompiledGraph.CompiledPasses[debugConsumerIndex];
+			auto        consumerOutputs           = debugConsumerCompiledPass.Reflection.GetFieldsFiltered(FFieldVisibility::OUTPUT, FResourceBindPoint::INTERNAL_USE);
+			for (const PassField* pField : consumerOutputs)
+			{
+				PassResID sourceGUID(debugConsumerPassName, pField->GetName());
+				PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(sourceGUID);
+				if (canonicalGUID.HasResource())
+					ignoredGUIDs.insert(canonicalGUID);
+			}
 		}
 
 		// 2. Collect candidate texture resources from passes before the debug consumer
@@ -72,7 +88,7 @@ namespace Poly
 				PassResID sourceGUID(passName, pField->GetName());
 
 				// Skip backbuffer / graph outputs
-				if (outputGUIDs.count(sourceGUID) > 0)
+				if (ignoredGUIDs.count(sourceGUID) > 0)
 					continue;
 
 				PassResID canonicalGUID = ctx.pResourceCache->GetCanonicalGUID(sourceGUID);

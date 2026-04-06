@@ -175,6 +175,15 @@ namespace Poly
 		bool RemoveExternalResource(const ResID& resID);
 
 		/**
+		 * Marks the given pass as mandatory — it will be used as a compilation seed
+		 * so the pass and all its transitive dependencies survive pruning, even when
+		 * no MarkOutput() call has been made.
+		 * @param passID - ID of an already-added pass
+		 * @return true if the pass was found and registered successfully
+		 */
+		bool AddMandatoryPass(const PassID& passID);
+
+		/**
 		 * Marks the given RenderPass name to be an output of the graph
 		 * If the graph is the outer most graph then this will be the RenderTarget
 		 * @param name	- Resource to mark following renderPass.resource structure
@@ -214,6 +223,7 @@ namespace Poly
 		friend class RGCResourceOutputHandler;
 		friend class RGCSynchroniser;
 		friend class RGCDebugTextureInjector;
+		friend class RGCDebugLogger;
 
 		struct Output
 		{
@@ -240,6 +250,7 @@ namespace Poly
 		std::unordered_map<uint32, Ref<Pass>>       m_Passes;
 		std::unordered_map<uint32, EdgeData>        m_Edges;
 		std::unordered_set<Output, OutputKeyHasher> m_Outputs;
+		std::unordered_set<uint32>                  m_MandatoryPasses;
 		uint32                                      m_ExternalPassNodeID = DirectedGraph::INVALID_ID;
 		RenderGraphDefaultParams                    m_DefaultParams;
 	};

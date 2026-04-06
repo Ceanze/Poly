@@ -174,6 +174,10 @@ namespace Poly
 			{
 				pPass->Execute(renderContext, renderData);
 			}
+			else if (pPass->GetPassType() == Pass::Type::TRANSFER)
+			{
+				pPass->Execute(renderContext, renderData);
+			}
 
 			currentCommandBuffer->End();
 

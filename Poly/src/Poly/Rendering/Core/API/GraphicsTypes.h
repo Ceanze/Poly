@@ -147,6 +147,9 @@ namespace Poly
 		INPUT_ATTACHMENT = FLAG(15),
 		INTERNAL_USE     = FLAG(16),
 		EXTERNAL         = FLAG(17), // External for a pass, does not bind descriptors, TODO better name
+
+		COPY_SRC = FLAG(18),
+		COPY_DST = FLAG(19)
 	};
 	ENABLE_BITMASK_OPERATORS(FResourceBindPoint); // TODO: Should this really be a flag?
 
@@ -209,7 +212,8 @@ namespace Poly
 		TRANSFER                = FLAG(10),
 		BOTTOM_OF_PIPE          = FLAG(11),
 		ALL_GRAPHICS            = FLAG(12),
-		ALL_COMMANDS            = FLAG(13)
+		ALL_COMMANDS            = FLAG(13),
+		HOST                    = FLAG(14)
 	};
 	ENABLE_BITMASK_OPERATORS(FPipelineStage);
 

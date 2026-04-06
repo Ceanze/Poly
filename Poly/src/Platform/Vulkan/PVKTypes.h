@@ -212,6 +212,7 @@ namespace Poly
 		FLAG_CHECK(pipelineStage & FPipelineStage::BOTTOM_OF_PIPE, mask |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_GRAPHICS, mask |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_COMMANDS, mask |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+		FLAG_CHECK(pipelineStage & FPipelineStage::HOST, mask |= VK_PIPELINE_STAGE_HOST_BIT);
 		return mask;
 	}
 
