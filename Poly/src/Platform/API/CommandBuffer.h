@@ -144,6 +144,15 @@ namespace Poly
 		virtual void CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
 
 		/**
+		 * Copy a texture to a buffer
+		 * @param pTexture - Texture to copy from
+		 * @param pBuffer - Buffer to copy to
+		 * @param layout - Layout of the source texture
+		 * @param copyBufferDesc - Description of the copy details
+		 */
+		virtual void CopyTextureToBuffer(const Texture* pTexture, const Buffer* pBuffer, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) = 0;
+
+		/**
 		 * Copy source buffer to destination buffer
 		 * @param pSrcBuffer - source buffer
 		 * @param pDstBuffer - destination buffer

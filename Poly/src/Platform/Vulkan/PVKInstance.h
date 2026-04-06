@@ -49,6 +49,7 @@ namespace Poly
 		virtual Ref<DescriptorSet> CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) override final;
 
 		static VkFormat FindDepthFormat();
+		static void     SetDebugName(VkObjectType objectType, uint64_t handle, const std::string& name);
 
 		static VkDevice                     GetDevice() { return s_Device; }
 		static VkPhysicalDevice             GetPhysicalDevice() { return s_PhysicalDevice; }
@@ -103,7 +104,8 @@ namespace Poly
 		inline static std::vector<PVKQueue>                                 s_Queues;
 		inline static std::unordered_map<FQueueType, std::vector<uint32_t>> s_QueueMappings;
 
-		inline static VmaAllocator s_VmaAllocator = VK_NULL_HANDLE;
+		inline static VmaAllocator                        s_VmaAllocator                  = VK_NULL_HANDLE;
+		inline static PFN_vkSetDebugUtilsObjectNameEXT     s_SetDebugUtilsObjectNameEXT    = nullptr;
 
 #ifdef POLY_DEBUG
 		const bool m_EnableValidationLayers = true;

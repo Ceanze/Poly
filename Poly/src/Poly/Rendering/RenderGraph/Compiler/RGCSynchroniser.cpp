@@ -69,6 +69,10 @@ namespace Poly
 			return FAccessFlag::INPUT_ATTACHMENT_READ;
 		if (BitsSet(bindPoint, FResourceBindPoint::EXTERNAL))
 			return FAccessFlag::SHADER_READ;
+		if (BitsSet(bindPoint, FResourceBindPoint::COPY_SRC))
+			return FAccessFlag::TRANSFER_READ;
+		if (BitsSet(bindPoint, FResourceBindPoint::COPY_DST))
+			return FAccessFlag::TRANSFER_WRITE;
 
 		return FAccessFlag::NONE;
 	}
@@ -95,6 +99,8 @@ namespace Poly
 			return FPipelineStage::FRAGMENT_SHADER;
 		if (BitsSet(bindPoint, FResourceBindPoint::EXTERNAL))
 			return FPipelineStage::FRAGMENT_SHADER;
+		if (BitsSet(bindPoint, FResourceBindPoint::COPY_SRC) || BitsSet(bindPoint, FResourceBindPoint::COPY_DST))
+			return FPipelineStage::TRANSFER;
 
 		return FPipelineStage::NONE;
 	}

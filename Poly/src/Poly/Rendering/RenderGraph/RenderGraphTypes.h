@@ -18,6 +18,10 @@ namespace Poly
 			mask |= FTextureUsage::SAMPLED;
 		if (BitsSet(FResourceBindPoint::SHADER_READ, bindPoint))
 			mask |= FTextureUsage::SHADER_RESOURCE;
+		if (BitsSet(FResourceBindPoint::COPY_DST, bindPoint))
+			mask |= FTextureUsage::COPY_DST;
+		if (BitsSet(FResourceBindPoint::COPY_SRC, bindPoint))
+			mask |= FTextureUsage::COPY_SRC;
 		return mask;
 	}
 

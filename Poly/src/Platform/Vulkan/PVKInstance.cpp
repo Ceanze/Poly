@@ -271,6 +271,19 @@ namespace Poly
 		    s_PhysicalDevice);
 	}
 
+	void PVKInstance::SetDebugName(VkObjectType objectType, uint64_t handle, const std::string& name)
+	{
+		if (!s_SetDebugUtilsObjectNameEXT || name.empty())
+			return;
+
+		VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+		nameInfo.sType                         = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+		nameInfo.objectType                    = objectType;
+		nameInfo.objectHandle                  = handle;
+		nameInfo.pObjectName                   = name.c_str();
+		s_SetDebugUtilsObjectNameEXT(s_Device, &nameInfo);
+	}
+
 	PVKQueue& PVKInstance::GetQueue(FQueueType queueType, uint32_t index)
 	{
 		if (!s_QueueMappings.contains(queueType))
@@ -615,6 +628,12 @@ namespace Poly
 
 		// Create the logical device, bound to the physical device
 		PVK_CHECK(vkCreateDevice(s_PhysicalDevice, &createInfo, nullptr, &s_Device), "Failed to create logical device!");
+
+		if (m_EnableValidationLayers)
+		{
+			s_SetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(
+			    vkGetDeviceProcAddr(s_Device, "vkSetDebugUtilsObjectNameEXT"));
+		}
 
 		PopulateQueues(queueSpecs);
 	}

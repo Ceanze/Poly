@@ -379,6 +379,7 @@ namespace Poly
 			}
 
 			TextureDesc desc      = {};
+			desc.DebugName        = resourceData.PassResID.GetResource().GetName();
 			desc.Width            = width;
 			desc.Height           = height;
 			desc.Depth            = resourceData.PassField.GetDepth() == 0 ? m_DefaultParams.TextureDepth : resourceData.PassField.GetDepth();
@@ -391,6 +392,7 @@ namespace Poly
 			Ref<Texture> pTexture = RenderAPI::CreateTexture(&desc);
 
 			TextureViewDesc desc2         = {};
+			desc2.DebugName               = resourceData.PassResID.GetResource().GetName();
 			desc2.ArrayLayer              = 0;
 			desc2.ArrayLayerCount         = 1;
 			desc2.Format                  = resourceData.PassField.GetFormat() != EFormat::UNDEFINED ? resourceData.PassField.GetFormat() : m_DefaultParams.Format;

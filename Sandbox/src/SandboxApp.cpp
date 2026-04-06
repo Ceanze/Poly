@@ -7,6 +7,7 @@
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Rendering/RenderGraph/Passes/ImGuiPass.h"
 #include "Poly/Rendering/RenderGraph/Passes/PBRPass.h"
+#include "Poly/Rendering/RenderGraph/Passes/ReadTexturePass.h"
 #include "Poly/Rendering/RenderGraph/RenderGraph.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
@@ -81,7 +82,13 @@ public:
 		m_pGraph->AddPass(pImGuiPass, Poly::PassID("ImGuiPass"));
 		m_pGraph->AddLink(Poly::PassResID("pbrPass", "out_Color"), Poly::PassResID("ImGuiPass", "fColor"));
 		// m_pGraph->AddLink({ "pbrPass", ""}, {"ImGuiPass", ""});
-		m_pGraph->MarkOutput(Poly::PassResID("ImGuiPass", "fColor"));
+		// m_pGraph->MarkOutput(Poly::PassResID("ImGuiPass", "fColor"));
+
+		pReadTexturePass = Poly::ReadTexturePass::Create();
+		m_pGraph->AddPass(pReadTexturePass, Poly::PassID("ReadTexturePass"));
+		m_pGraph->AddLink(Poly::PassResID("ImGuiPass", "fColor"), Poly::PassResID("ReadTexturePass", "InputTexture"));
+		// m_pGraph->MarkOutput(Poly::PassResID("ReadTexturePass", "InputTexture"));
+		m_pGraph->AddMandatoryPass(Poly::PassID("ReadTexturePass"));
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
@@ -162,11 +169,12 @@ public:
 	}
 
 private:
-	Poly::Camera*                       pCamera      = nullptr;
-	Poly::Ref<Poly::Scene>              m_pScene     = nullptr;
-	Poly::Ref<Poly::Buffer>             m_pCambuffer = nullptr;
-	Poly::Ref<Poly::RenderGraph>        m_pGraph     = nullptr;
-	Poly::Ref<Poly::RenderGraphProgram> m_pProgram   = nullptr;
+	Poly::Camera*                       pCamera          = nullptr;
+	Poly::Ref<Poly::Scene>              m_pScene         = nullptr;
+	Poly::Ref<Poly::Buffer>             m_pCambuffer     = nullptr;
+	Poly::Ref<Poly::RenderGraph>        m_pGraph         = nullptr;
+	Poly::Ref<Poly::RenderGraphProgram> m_pProgram       = nullptr;
+	Poly::Ref<Poly::ReadTexturePass>    pReadTexturePass = nullptr;
 
 	Poly::PolyID       m_TextureID    = Poly::PolyID::None();
 	Poly::TextureView* m_pTextureView = nullptr;

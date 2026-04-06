@@ -17,6 +17,7 @@ namespace Poly
 		uint32         MipLevelCount   = 0;
 		uint32         ArrayLayer      = 0;
 		uint32         ArrayLayerCount = 0;
+		std::string    DebugName       = "";
 	};
 
 	class TextureView

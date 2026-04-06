@@ -17,6 +17,7 @@ namespace Poly
 		EFormat       Format       = EFormat::UNDEFINED;
 		FTextureUsage TextureUsage = FTextureUsage::NONE;
 		ETextureDim   TextureDim   = ETextureDim::NONE;
+		std::string   DebugName    = "";
 	};
 
 	class Texture

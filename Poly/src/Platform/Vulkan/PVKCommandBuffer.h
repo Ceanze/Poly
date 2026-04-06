@@ -31,6 +31,8 @@ namespace Poly
 
 		virtual void CopyBufferToTexture(const Buffer* pBuffer, const Texture* pTexture, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
 
+		virtual void CopyTextureToBuffer(const Texture* pTexture, const Buffer* pBuffer, ETextureLayout layout, const CopyBufferDesc& copyBufferDesc) override final;
+
 		virtual void CopyBuffer(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, uint64 size, uint64 srcOffset, uint64 dstOffset) override final;
 
 		virtual void CopyBufferRegions(const Buffer* pSrcBuffer, const Buffer* pDstBuffer, const std::vector<BufferRegion>& regions) override final;

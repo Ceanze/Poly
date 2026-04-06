@@ -21,6 +21,7 @@ namespace Poly
 			RENDER,
 			COMPUTE,
 			SYNC,
+			TRANSFER,
 			EXTERNAL
 		};
 
