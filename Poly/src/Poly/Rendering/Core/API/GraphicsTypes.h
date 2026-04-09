@@ -518,4 +518,16 @@ namespace Poly
 		UINT16 = 1,
 		UINT32 = 2
 	};
+
+	enum class PresentResult
+	{
+		// Normal, expected result
+		SUCCESS,
+
+		// Swapchain failed to present for unknown reason (validation layer error should clarify)
+		FAIL,
+
+		// Swapchain has been recreated, probably due to a resize of the window
+		RECREATED_SWAPCHAIN
+	};
 } // namespace Poly

@@ -21,18 +21,6 @@ namespace Poly
 		EFormat       Format      = EFormat::UNDEFINED;
 	};
 
-	enum class PresentResult
-	{
-		// Normal, expected result
-		SUCCESS,
-
-		// Swapchain failed to present for unknown reason (validaton layer error should clarify)
-		FAIL,
-
-		// Swapchain has been recreated, probably due to a resize of the window
-		RECREATED_SWAPCHAIN
-	};
-
 	class SwapChain
 	{
 	public:

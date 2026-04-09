@@ -32,6 +32,8 @@ namespace Poly
 			m_pRenderer->AddWindow(m_pWindow.get());
 			m_pWindow->SetEventCallback([this](Event& event) { OnEvent(event); });
 
+			// TODO: ImGuiLayer currently requires a valid window to initialize properly (it uses the window's size)
+			// Move this out when it is decoupled from the window
 			if (g_ImGuiEnabled)
 			{
 				m_pImGuiLayer = new ImGuiLayer;

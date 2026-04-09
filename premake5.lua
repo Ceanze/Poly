@@ -215,3 +215,28 @@ project "Sandbox"
 
 	filter "system:windows"
 		systemversion "latest"
+
+project "RuntimeHost"
+	location "RuntimeHost"
+	kind "ConsoleApp"
+	cppdialect "c++20"
+
+	setDirs()
+	srcFiles()
+
+	includedirs
+	{
+		"Poly/libs/spdlog/include",
+		"Poly/libs/glm",
+		"Poly/src",
+		"Poly/libs",
+		"Poly/libs/entt/src"
+	}
+
+	links
+	{
+		"Poly"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
