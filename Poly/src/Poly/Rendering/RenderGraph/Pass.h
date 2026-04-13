@@ -46,7 +46,7 @@ namespace Poly
 		/**
 		 * Execute the Pass, called once per frame after Update()
 		 */
-		virtual void Execute(const RenderContext& context, const RenderData& renderData) = 0;
+		virtual void Execute(RenderContext& context, const RenderData& renderData) = 0;
 
 		/**
 		 * OPTIONAL

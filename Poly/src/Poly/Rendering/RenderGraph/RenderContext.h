@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Platform/API/CommandBuffer.h" // CommandBuffer is important for the interface of RenderContext, included here for ease of use
+#include "Platform/API/SyncPoint.h"
 
 namespace Poly
 {
@@ -16,6 +17,9 @@ namespace Poly
 	public:
 		RenderContext()  = default;
 		~RenderContext() = default;
+
+		void AddWaitSyncPoint(const SyncPointValue& syncPoint) { m_WaitSyncPoints.push_back(syncPoint); }
+		void AddSignalSyncPoint(const SyncPointValue& syncPoint) { m_SignalSyncPoints.push_back(syncPoint); }
 
 		CommandBuffer* GetCommandBuffer() const { return m_pCommandBuffer; };
 
@@ -37,6 +41,7 @@ namespace Poly
 
 	private:
 		friend class RenderGraphProgram;
+
 		void SetCommandBuffer(CommandBuffer* pCommandBuffer) { m_pCommandBuffer = pCommandBuffer; };
 		void SetActivePipeline(Pipeline* pPipeline) { m_pPipeline = pPipeline; }
 		void SetActivePipelineLayout(PipelineLayout* pLayout) { m_pPipelineLayout = pLayout; }
@@ -47,14 +52,16 @@ namespace Poly
 		void SetRenderGraphProgram(RenderGraphProgram* pRenderGraphProgram) { m_pRenderGraphProgram = pRenderGraphProgram; }
 		void SetDescriptorCache(DescriptorCache* pDescriptorCache) { m_pDescriptorCache = pDescriptorCache; }
 
-		CommandBuffer*      m_pCommandBuffer      = nullptr;
-		Pipeline*           m_pPipeline           = nullptr;
-		PipelineLayout*     m_pPipelineLayout     = nullptr;
-		uint32              m_PassIndex           = 0;
-		uint32              m_ImageIndex          = 0;
-		uint32              m_BatchIndex          = 0;
-		const SceneBatch*   m_pSceneBatch         = nullptr;
-		RenderGraphProgram* m_pRenderGraphProgram = nullptr;
-		DescriptorCache*    m_pDescriptorCache    = nullptr;
+		std::vector<SyncPointValue> m_WaitSyncPoints;
+		std::vector<SyncPointValue> m_SignalSyncPoints;
+		CommandBuffer*              m_pCommandBuffer      = nullptr;
+		Pipeline*                   m_pPipeline           = nullptr;
+		PipelineLayout*             m_pPipelineLayout     = nullptr;
+		uint32                      m_PassIndex           = 0;
+		uint32                      m_ImageIndex          = 0;
+		uint32                      m_BatchIndex          = 0;
+		const SceneBatch*           m_pSceneBatch         = nullptr;
+		RenderGraphProgram*         m_pRenderGraphProgram = nullptr;
+		DescriptorCache*            m_pDescriptorCache    = nullptr;
 	};
 } // namespace Poly

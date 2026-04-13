@@ -10,7 +10,7 @@ namespace Poly
 		SceneRenderer()  = default;
 		~SceneRenderer() = default;
 
-		void Execute(const RenderContext& context);
+		void Execute(RenderContext& context);
 
 	private:
 		void Render(const RenderContext& context);

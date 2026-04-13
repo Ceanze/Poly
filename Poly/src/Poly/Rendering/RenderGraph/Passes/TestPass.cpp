@@ -43,7 +43,7 @@ namespace Poly
 		return reflection;
 	}
 
-	void TestPass::Execute(const RenderContext& context, const RenderData& renderData)
+	void TestPass::Execute(RenderContext& context, const RenderData& renderData)
 	{
 		m_SceneRenderer.Execute(context);
 	}

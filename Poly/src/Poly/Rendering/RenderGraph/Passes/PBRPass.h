@@ -15,7 +15,7 @@ namespace Poly
 
 		virtual PassReflection Reflect() override final;
 
-		virtual void Execute(const RenderContext& context, const RenderData& renderData) override final;
+		virtual void Execute(RenderContext& context, const RenderData& renderData) override final;
 
 		static Ref<PBRPass> Create() { return CreateRef<PBRPass>(); }
 

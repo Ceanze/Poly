@@ -119,7 +119,7 @@ namespace Poly
 		m_pStagingBufferCache->Update(context.GetImageIndex());
 	}
 
-	void ImGuiPass::Execute(const RenderContext& context, const RenderData& renderData)
+	void ImGuiPass::Execute(RenderContext& context, const RenderData& renderData)
 	{
 		if (!ImGui::GetCurrentContext())
 			return;

@@ -48,7 +48,7 @@ namespace Poly
 		return reflection;
 	}
 
-	void PBRPass::Execute(const RenderContext& context, const RenderData& renderData)
+	void PBRPass::Execute(RenderContext& context, const RenderData& renderData)
 	{
 		m_SceneRenderer.Execute(context);
 	}

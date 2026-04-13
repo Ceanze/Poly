@@ -48,7 +48,7 @@ namespace Poly
 		/**
 		 * Execute the SyncPass
 		 */
-		virtual void Execute(const RenderContext& context, const RenderData& renderData) override final;
+		virtual void Execute(RenderContext& context, const RenderData& renderData) override final;
 
 		/**
 		 * OPTIONAL

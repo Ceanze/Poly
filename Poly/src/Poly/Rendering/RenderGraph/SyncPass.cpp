@@ -27,7 +27,7 @@ namespace Poly
 		return reflection;
 	}
 
-	void SyncPass::Execute(const RenderContext& context, const RenderData& renderData)
+	void SyncPass::Execute(RenderContext& context, const RenderData& renderData)
 	{
 		// When executing the command buffer has already begun
 		// Since this is a SyncPass nothing  more is done before this call to the commandBuffer

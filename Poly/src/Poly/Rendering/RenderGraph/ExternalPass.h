@@ -18,7 +18,7 @@ namespace Poly
 		~ExternalPass() override = default;
 
 		virtual PassReflection Reflect() override final { return PassReflection{}; }
-		virtual void           Execute(const RenderContext&, const RenderData&) override final {}
+		virtual void           Execute(RenderContext&, const RenderData&) override final {}
 		virtual void           Compile() override final {}
 
 		void RegisterResource(const ResID& guid, const ResourceInfo& info);

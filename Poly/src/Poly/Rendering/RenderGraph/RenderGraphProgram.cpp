@@ -187,9 +187,12 @@ namespace Poly
 			currentCommandBuffer->End();
 
 			// Only graphics queue at the moment
+			signalSyncPoints.insert(signalSyncPoints.end(), renderContext.m_SignalSyncPoints.begin(), renderContext.m_SignalSyncPoints.end());
+
 			SubmitDesc submitDesc       = {};
 			submitDesc.CommandBuffers   = {currentCommandBuffer};
 			submitDesc.SignalSyncPoints = signalSyncPoints;
+			submitDesc.WaitSyncPoints   = renderContext.m_WaitSyncPoints;
 			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
 		}
 

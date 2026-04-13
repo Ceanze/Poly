@@ -7,7 +7,7 @@
 
 namespace Poly
 {
-	void SceneRenderer::Execute(const RenderContext& context)
+	void SceneRenderer::Execute(RenderContext& context)
 	{
 		Render(context);
 	}
