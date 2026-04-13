@@ -2,6 +2,7 @@
 
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
+#include "Platform/API/SyncPoint.h"
 #include "Platform/API/Texture.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Rendering/RenderGraph/RenderContext.h"
@@ -27,7 +28,8 @@ namespace Poly
 
 	ReadTexturePass::ReadTexturePass()
 	{
-		p_Type = Pass::Type::SYNC; // TODO: Update to TRANSFER
+		p_Type      = Pass::Type::SYNC; // TODO: Update to TRANSFER
+		m_SyncPoint = RenderAPI::CreateSyncPoint();
 	}
 
 	Ref<ReadTexturePass> ReadTexturePass::Create()
@@ -44,7 +46,7 @@ namespace Poly
 		return reflection;
 	}
 
-	void ReadTexturePass::Execute(const RenderContext& context, const RenderData& renderData)
+	void ReadTexturePass::Execute(RenderContext& context, const RenderData& renderData)
 	{
 		const Resource* pResource = renderData["InputTexture"];
 		if (!pResource)
@@ -59,22 +61,19 @@ namespace Poly
 			return;
 		}
 
+		m_DeadStagingBuffers[context.GetImageIndex()].clear();
+
 		const Texture* pTexture = pResource->GetAsTexture();
 		uint32         width    = pTexture->GetWidth();
 		uint32         height   = pTexture->GetHeight();
 		uint32         bpp      = GetBytesPerPixel(pTexture->GetDesc().Format);
 		uint64         dataSize = static_cast<uint64>(width) * height * bpp;
 
-		if (!m_pStagingBuffer || m_StagingWidth != width || m_StagingHeight != height)
+		if (m_StagingBuffers.empty() || m_StagingWidth != width || m_StagingHeight != height)
 		{
-			BufferDesc desc  = {};
-			desc.Size        = dataSize;
-			desc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
-			desc.BufferUsage = FBufferUsage::TRANSFER_DST;
-
-			m_pStagingBuffer = RenderAPI::CreateBuffer(&desc);
-			m_StagingWidth   = width;
-			m_StagingHeight  = height;
+			AllocateStagingBuffers(width, height, pTexture->GetDesc().Format, 2, context.GetImageIndex());
+			m_StagingWidth  = width;
+			m_StagingHeight = height;
 		}
 
 		CopyBufferDesc copyDesc = {};
@@ -86,33 +85,66 @@ namespace Poly
 		copyDesc.MipLevel       = 0;
 
 		CommandBuffer* pCmd = context.GetCommandBuffer();
-		pCmd->CopyTextureToBuffer(pTexture, m_pStagingBuffer.get(), ETextureLayout::TRANSFER_SRC_OPTIMAL, copyDesc);
+		pCmd->CopyTextureToBuffer(pTexture, m_StagingBuffers[context.GetImageIndex()].get(), ETextureLayout::TRANSFER_SRC_OPTIMAL, copyDesc);
 
 		pCmd->PipelineBufferBarrier(
-		    m_pStagingBuffer.get(),
+		    m_StagingBuffers[context.GetImageIndex()].get(),
 		    FPipelineStage::TRANSFER,
 		    FPipelineStage::HOST,
 		    FAccessFlag::TRANSFER_WRITE,
 		    FAccessFlag::HOST_READ);
+
+		context.AddSignalSyncPoint({m_SyncPoint.get(), ++m_SyncID});
 	}
 
 	void ReadTexturePass::CopyData(void* pDst, uint64 size) const
 	{
-		if (!m_pStagingBuffer)
+		// RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait(); // Ensure GPU has finished writing to the staging buffer
+		if (m_StagingBuffers.empty())
 		{
-			POLY_CORE_ERROR("ReadTexturePass::CopyData - staging buffer not yet allocated, execute the pass first");
+			POLY_CORE_ERROR("ReadTexturePass::CopyData - staging buffers not yet allocated, execute the pass first");
 			return;
 		}
 
-		void* pMapped = m_pStagingBuffer->Map();
+		uint64 currentIndex = (m_SyncPoint->GetValue() - 1) % m_StagingBuffers.size();
+		if (currentIndex >= m_StagingBuffers.size())
+		{
+			POLY_CORE_ERROR("ReadTexturePass::CopyData - invalid staging buffer index");
+			return;
+		}
+
+		void* pMapped = m_StagingBuffers[currentIndex]->Map();
 		memcpy(pDst, pMapped, size);
-		m_pStagingBuffer->Unmap();
+		m_StagingBuffers[currentIndex]->Unmap();
 	}
 
 	uint64 ReadTexturePass::GetDataSize() const
 	{
-		if (!m_pStagingBuffer)
+		if (m_StagingBuffers.empty())
 			return 0;
-		return m_pStagingBuffer->GetSize();
+
+		return m_StagingBuffers.front()->GetSize();
+	}
+
+	void ReadTexturePass::AllocateStagingBuffers(uint32 width, uint32 height, EFormat format, uint32 count, uint32 imageIndex)
+	{
+		for (auto& buffer : m_StagingBuffers)
+		{
+			m_DeadStagingBuffers[imageIndex].push_back(buffer);
+		}
+		m_StagingBuffers.clear();
+
+		for (uint32 i = 0; i < count; ++i)
+		{
+			uint32 bytesPerPixel = GetBytesPerPixel(format);
+			uint64 bufferSize    = static_cast<uint64>(width) * height * bytesPerPixel;
+
+			BufferDesc desc  = {};
+			desc.Size        = bufferSize;
+			desc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
+			desc.BufferUsage = FBufferUsage::TRANSFER_DST;
+
+			m_StagingBuffers.push_back(RenderAPI::CreateBuffer(&desc));
+		}
 	}
 } // namespace Poly

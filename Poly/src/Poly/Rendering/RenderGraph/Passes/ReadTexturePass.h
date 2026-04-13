@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Poly/Rendering/RenderGraph/Pass.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Poly/Rendering/RenderGraph/Pass.h"
 
 namespace Poly
 {
 	class Buffer;
+	class SyncPoint;
 
 	class ReadTexturePass : public Pass
 	{
@@ -15,7 +16,7 @@ namespace Poly
 
 		virtual PassReflection Reflect() override final;
 
-		virtual void Execute(const RenderContext& context, const RenderData& renderData) override final;
+		virtual void Execute(RenderContext& context, const RenderData& renderData) override final;
 
 		virtual void Compile() override final {};
 
@@ -34,9 +35,17 @@ namespace Poly
 		 */
 		uint64 GetDataSize() const;
 
+		uint32 GetWidth() const { return m_StagingWidth; }
+		uint32 GetHeight() const { return m_StagingHeight; }
+
 	private:
-		Ref<Buffer> m_pStagingBuffer = nullptr;
-		uint32      m_StagingWidth   = 0;
-		uint32      m_StagingHeight  = 0;
+		void AllocateStagingBuffers(uint32 width, uint32 height, EFormat format, uint32 count, uint32 imageIndex);
+
+		std::vector<Ref<Buffer>>                             m_StagingBuffers;
+		std::unordered_map<uint32, std::vector<Ref<Buffer>>> m_DeadStagingBuffers;
+		uint32                                               m_StagingWidth  = 0;
+		uint32                                               m_StagingHeight = 0;
+		Ref<SyncPoint>                                       m_SyncPoint;
+		uint64                                               m_SyncID = 0;
 	};
 } // namespace Poly
