@@ -143,14 +143,19 @@ namespace Poly
 
 				renderContext.SetActivePipeline(pGraphicsPipeline);
 
-				const std::vector<SceneBatch>& batches   = m_pScene->GetRenderScene()->GetBatches();
-				uint32                         batchSize = 1;
-				if (pPass->IsInstancedSceneRenderingEnabled())
-					batchSize = static_cast<uint32>(batches.size());
+				const auto getSceneBatch = [this](uint32 batchIndex) -> const SceneBatch* {
+					if (m_pScene && m_pScene->GetRenderScene())
+						return &m_pScene->GetRenderScene()->GetBatches()[batchIndex];
+					return nullptr;
+				};
+
+				uint32 batchSize = 1;
+				if (pPass->IsInstancedSceneRenderingEnabled() && m_pScene && m_pScene->GetRenderScene())
+					batchSize = static_cast<uint32>(m_pScene->GetRenderScene()->GetBatches().size());
 
 				for (uint32 batchIndex = 0; batchIndex < batchSize; batchIndex++)
 				{
-					renderContext.SetSceneBatch(&batches[batchIndex]);
+					renderContext.SetSceneBatch(getSceneBatch(batchIndex));
 					renderContext.SetBatchIndex(batchIndex);
 
 					const std::set<uint32>& setIndices = reflection.GetAutoBindedSets();
