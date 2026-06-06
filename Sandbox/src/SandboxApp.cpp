@@ -81,14 +81,8 @@ public:
 
 		m_pGraph->AddPass(pImGuiPass, Poly::PassID("ImGuiPass"));
 		m_pGraph->AddLink(Poly::PassResID("pbrPass", "out_Color"), Poly::PassResID("ImGuiPass", "fColor"));
-		// m_pGraph->AddLink({ "pbrPass", ""}, {"ImGuiPass", ""});
-		// m_pGraph->MarkOutput(Poly::PassResID("ImGuiPass", "fColor"));
-
-		pReadTexturePass = Poly::ReadTexturePass::Create();
-		m_pGraph->AddPass(pReadTexturePass, Poly::PassID("ReadTexturePass"));
-		m_pGraph->AddLink(Poly::PassResID("ImGuiPass", "fColor"), Poly::PassResID("ReadTexturePass", "InputTexture"));
-		// m_pGraph->MarkOutput(Poly::PassResID("ReadTexturePass", "InputTexture"));
-		m_pGraph->AddMandatoryPass(Poly::PassID("ReadTexturePass"));
+		m_pGraph->AddLink({"pbrPass", ""}, {"ImGuiPass", ""});
+		m_pGraph->MarkOutput(Poly::PassResID("ImGuiPass", "fColor"));
 
 		// Compile
 		m_pProgram = m_pGraph->Compile();
