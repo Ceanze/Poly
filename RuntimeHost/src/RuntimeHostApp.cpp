@@ -2,25 +2,27 @@
  * PolyRuntimeHost
  *
  * Standalone runtime process that renders a scene using the Poly engine and
- * exposes every frame via OS shared memory so that a separate editor process
- * (in any language/framework) can display the rendered viewport.
+ * streams every frame over a local TCP connection so that a separate viewer
+ * process can display the rendered viewport.
  *
- * Shared memory name : "PolyRuntimeFrame"  (see SharedFrameBuffer::DEFAULT_NAME)
- * Pixel format       : BGRA8 packed (matches swapchain default B8G8R8A8_UNORM)
- * Layout             : SharedFrameHeader (64 B) followed by two frame slots.
+ * Transport : TCP socket on port 9100 (see FRAME_STREAM_PORT)
+ * Pixel format: BGRA8 (ReadTexturePass output) → JPEG-encoded for transport
+ * Protocol  : FrameStreamHeader (24 B) followed by imageSize bytes of JPEG data
  *
- * Usage (editor side, pseudo-code):
- *   shm = OpenSharedMemory("PolyRuntimeFrame")
- *   last = 0
+ * Usage (viewer side, pseudo-code):
+ *   sock = connect("127.0.0.1", 9100)
  *   loop:
- *     header = shm.ReadHeader()
- *     if header.frameCounter != last:
- *       pixels = shm.ReadSlot(header.activeSlot)
- *       UploadToGPUTexture(pixels, header.width, header.height)
- *       last = header.frameCounter
+ *     hdr  = recv(sizeof(FrameStreamHeader))
+ *     data = recv(hdr.imageSize)
+ *     pixels = stbi_load_from_memory(data, hdr.imageSize, ...)
+ *     UploadToGPUTexture(pixels, hdr.width, hdr.height)
  *     DrawViewport()
  */
 
+// STB image write — define implementation before including TcpFrameExporter.h
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#include "FrameStreamProtocol.h"
 #include "Platform/API/Buffer.h"
 #include "Poly.h"
 #include "Poly/Core/Window.h"
@@ -34,6 +36,11 @@
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
+#include "TcpFrameExporter.h"
+
+#include <chrono>
+#include <memory>
+#include <vector>
 
 class RuntimeHostLayer : public Poly::Layer
 {
@@ -46,8 +53,8 @@ public:
 
 	struct PointLight
 	{
-		glm::vec4 Color    = {1.0f, 1.0f, 1.0f, 1.0f};
-		glm::vec4 Position = {0.0f, 3.0f, 0.0f, 1.0f};
+		glm::vec4 Color    = {1.0, 0.0, 1.0, 1.0};
+		glm::vec4 Position = {0.0, 1.0, -1.0, 1.0};
 	};
 
 	struct LightBuffer
@@ -108,15 +115,43 @@ public:
 		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
 		pRenderer->EnableHeadless(windowSize.x, windowSize.y);
 		pRenderer->SetRenderGraph(m_pProgram);
+
+		m_pExporter = std::make_unique<TcpFrameExporter>(FRAME_STREAM_PORT);
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
+		m_pCamera->m_Yaw += dt.Seconds() * 0.1f; // Slow auto-rotation for testing
+
 		m_pScene->Update();
 		m_pCamera->Update(dt);
 
 		CameraBuffer camData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
 		m_pProgram->UpdateGraphResource(Poly::ResID("camera").GetAsExternal(), sizeof(CameraBuffer), &camData);
+
+		// Export the previous frame at a maximum rate of 60 FPS to avoid
+		// flooding the TCP socket.  GPU execution has completed by the time
+		// OnUpdate runs, so the staging buffer is safe to read.
+		using Clock                              = std::chrono::steady_clock;
+		static constexpr double kMinFrameSeconds = 1.0 / 60.0;
+		auto                    now              = Clock::now();
+		double                  elapsed          = std::chrono::duration<double>(now - m_LastExportTime).count();
+		if (elapsed >= kMinFrameSeconds)
+		{
+			uint64 dataSize = pReadTexturePass->GetDataSize();
+			if (dataSize > 0 && m_pExporter)
+			{
+				if (m_FrameData.size() != dataSize)
+					m_FrameData.resize(dataSize);
+				pReadTexturePass->CopyData(m_FrameData.data(), dataSize);
+				m_pExporter->WriteFrame(
+				    m_FrameData.data(),
+				    dataSize,
+				    pReadTexturePass->GetWidth(),
+				    pReadTexturePass->GetHeight());
+			}
+			m_LastExportTime = now;
+		}
 	}
 
 	void OnDetach() override
@@ -140,6 +175,10 @@ private:
 	Poly::Ref<Poly::RenderGraph>        m_pGraph         = nullptr;
 	Poly::Ref<Poly::RenderGraphProgram> m_pProgram       = nullptr;
 	Poly::Ref<Poly::ReadTexturePass>    pReadTexturePass = nullptr;
+
+	std::unique_ptr<FrameExporter>        m_pExporter;
+	std::vector<uint8_t>                  m_FrameData;
+	std::chrono::steady_clock::time_point m_LastExportTime = std::chrono::steady_clock::now();
 };
 
 class PolyRuntimeHost : public Poly::Application
@@ -155,9 +194,8 @@ public:
 private:
 	std::optional<Poly::Window::Properties> GetWindowProperties() const override
 	{
-		// The runtime host uses a small window for the Vulkan surface.
-		// The editor displays the rendered output via shared memory; the host
-		// window can be kept visible for debugging or hidden as needed.
+		// The runtime host runs headless — no window needed.
+		// Uncomment below to create a debug window if needed.
 		// return Poly::Window::Properties{1280, 720, "Poly Runtime Host"};
 		return std::nullopt;
 	}

@@ -42,7 +42,7 @@ namespace Poly
 		glm::mat4 GetMatrix();
 		glm::vec4 GetPosition() { return glm::vec4(m_Pos, 1.0); }
 
-	private:
+	public:
 		void UpdateView();
 		void UpdateProjection();
 

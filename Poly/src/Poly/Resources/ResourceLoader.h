@@ -45,6 +45,11 @@ namespace Poly
 
 		static Ref<Texture> LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format);
 
+		// Decode any stbi-supported in-memory image (e.g. BMP, PNG) to 4-channel RGBA8.
+		// Returns a heap-allocated pixel buffer; caller must release it with FreeDecodedImage().
+		static byte*        DecodeImageFromMemory(const byte* pData, int dataSize, int* pOutWidth, int* pOutHeight);
+		static void         FreeDecodedImage(byte* pData);
+
 		static Ref<Model> LoadModel(const std::string& path, Entity root);
 
 		static Ref<Material> LoadMaterial(const std::string& path);

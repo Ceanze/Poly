@@ -297,6 +297,17 @@ namespace Poly
 		return pTexture;
 	}
 
+	byte* ResourceLoader::DecodeImageFromMemory(const byte* pData, int dataSize, int* pOutWidth, int* pOutHeight)
+	{
+		int channels = 0;
+		return stbi_load_from_memory(pData, dataSize, pOutWidth, pOutHeight, &channels, 4);
+	}
+
+	void ResourceLoader::FreeDecodedImage(byte* pData)
+	{
+		stbi_image_free(pData);
+	}
+
 	Ref<Model> ResourceLoader::LoadModel(const std::string& path, Entity root)
 	{
 		std::string absolutePath = IOManager::GetAssetsFolder() + path;

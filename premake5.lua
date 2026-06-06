@@ -230,7 +230,8 @@ project "RuntimeHost"
 		"Poly/libs/glm",
 		"Poly/src",
 		"Poly/libs",
-		"Poly/libs/entt/src"
+		"Poly/libs/entt/src",
+		"Shared"
 	}
 
 	links
@@ -240,3 +241,31 @@ project "RuntimeHost"
 
 	filter "system:windows"
 		systemversion "latest"
+		links { "ws2_32" }
+
+project "ReadImageTestApp"
+	location "ReadImageTestApp"
+	kind "ConsoleApp"
+	cppdialect "c++20"
+
+	setDirs()
+	srcFiles()
+
+	includedirs
+	{
+		"Poly/libs/spdlog/include",
+		"Poly/libs/glm",
+		"Poly/src",
+		"Poly/libs",
+		"Poly/libs/entt/src",
+		"Shared"
+	}
+
+	links
+	{
+		"Poly"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+		links { "ws2_32" }
