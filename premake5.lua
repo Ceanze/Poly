@@ -42,6 +42,10 @@ function generate_spirv_reflect()
 	include("premake/spirv-reflect.lua")
 end
 
+function generate_nvrhi()
+	include("premake/nvrhi.lua")
+end
+
 vkPath = get_vk_sdk_path()
 
 workspace "Poly"
@@ -94,6 +98,7 @@ generate_assimp()
 generate_imgui()
 generate_yamlcpp()
 generate_spirv_reflect()
+generate_nvrhi()
 
 -- Include all src files in the project
 function srcFiles()
@@ -138,7 +143,9 @@ project "Poly"
 		"SPIRV",
 		"imgui",
 		"yaml-cpp",
-		"SPIRV-Reflect"
+		"SPIRV-Reflect",
+		"nvrhi",
+		"nvrhi_vk"
 	}
 
 	includedirs
@@ -155,6 +162,7 @@ project "Poly"
 		"%{prj.name}/libs/entt/src",
 		"%{prj.name}/libs/yaml-cpp/include",
 		"%{prj.name}/libs/SPIRV-Reflect",
+		"%{prj.name}/libs/nvrhi/include"
 	}
 
 	-- TODO: Check if just "polypch.h" is enough for windows too
