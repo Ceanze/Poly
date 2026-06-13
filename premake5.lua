@@ -199,6 +199,7 @@ project "Poly"
 
 	filter "system:windows"
 		systemversion "latest"
+		buildoptions { "/utf-8" }
 
 project "Sandbox"
 	location "Sandbox"
@@ -244,3 +245,4 @@ project "Sandbox"
 
 	filter "system:windows"
 		systemversion "latest"
+		buildoptions { "/utf-8" }
