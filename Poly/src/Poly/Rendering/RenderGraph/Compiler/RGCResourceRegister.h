@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Poly/Rendering/RenderGraph/PassResID.h>
+#include "Poly/Rendering/RenderGraph/PassResID.h"
 
 namespace Poly
 {

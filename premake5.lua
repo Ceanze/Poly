@@ -47,6 +47,7 @@ function generate_nvrhi()
 end
 
 vkPath = get_vk_sdk_path()
+print(vkPath)
 
 workspace "Poly"
 	architecture "x64"
@@ -125,7 +126,7 @@ project "Poly"
 	filter "system:macosx"
 	    links
 	    {
-	        "vulkan"
+	        "libvulkan"
 	    }
 
 	filter "system:windows"
@@ -151,18 +152,6 @@ project "Poly"
 	includedirs
 	{
 		"%{prj.name}/src",
-		"%{prj.name}/libs/spdlog/include",
-		"%{prj.name}/libs/glfw/include",
-		"%{prj.name}/libs/glm",
-		"%{prj.name}/libs/VMA/include",
-		"%{prj.name}/libs/stb_image",
-		"%{prj.name}/libs/glslang",
-		"%{prj.name}/libs/assimp/include",
-		"%{prj.name}/libs/imgui",
-		"%{prj.name}/libs/entt/src",
-		"%{prj.name}/libs/yaml-cpp/include",
-		"%{prj.name}/libs/SPIRV-Reflect",
-		"%{prj.name}/libs/nvrhi/include"
 	}
 
 	-- TODO: Check if just "polypch.h" is enough for windows too
@@ -171,7 +160,7 @@ project "Poly"
 		pchsource "%{prj.name}/src/polypch.cpp"
 
 	filter "action:not vs*"
-		pchheader "polypch.h"
+		pchheader "src/polypch.h"
 
 	filter "system:macosx"
 		defines { "VK_USE_PLATFORM_MACOS_MVK" }
@@ -191,9 +180,21 @@ project "Poly"
 		vkPath .. "/lib",
 	}
 
-	sysincludedirs
+	externalincludedirs
 	{
-		get_vulkan_include_dir(vkPath)
+		get_vulkan_include_dir(vkPath),
+		"%{prj.name}/libs/NVRHI/include",
+		"%{prj.name}/libs/spdlog/include",
+		"%{prj.name}/libs/glfw/include",
+		"%{prj.name}/libs/glm",
+		"%{prj.name}/libs/VMA/include",
+		"%{prj.name}/libs/stb_image",
+		"%{prj.name}/libs/glslang",
+		"%{prj.name}/libs/assimp/include",
+		"%{prj.name}/libs/imgui",
+		"%{prj.name}/libs/entt/src",
+		"%{prj.name}/libs/yaml-cpp/include",
+		"%{prj.name}/libs/SPIRV-Reflect"
 	}
 
 	filter "system:windows"
@@ -207,19 +208,39 @@ project "Sandbox"
 	setDirs()
 	srcFiles()
 
-	includedirs
+	externalincludedirs
 	{
-		"Poly/libs/spdlog/include",
 		"Poly/libs/glm",
 		"Poly/src",
 		"Poly/libs",
-		"Poly/libs/entt/src"
+		"Poly/libs/entt/src",
+		"Poly/libs/spdlog/include"
 	}
 
 	links
 	{
 		"Poly"
 	}
+
+	filter "system:macosx"
+		links
+		{
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreFoundation.framework",
+			"Metal.framework",
+			"IOSurface.framework",
+			"QuartzCore.framework",
+			"vulkan"
+		}
+		libdirs
+		{
+			vkPath .. "/lib",
+		}
+		runpathdirs
+		{
+			vkPath .. "/lib",
+		}
 
 	filter "system:windows"
 		systemversion "latest"

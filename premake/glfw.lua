@@ -62,9 +62,9 @@ project "GLFW"
 
 		links
 		{
-			"-framework Cocoa",
-			"-framework IOKit",
-			"-framework CoreFoundation"
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreFoundation.framework"
 		}
 
 		defines

@@ -379,3 +379,9 @@ bin-int/
 *.sln
 imgui.ini
 projects/*
+
+# Xcode
+*.xcuserstate
+*.xcworkspacedata
+*.plist
+*.pbxproj
