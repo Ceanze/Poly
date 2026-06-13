@@ -379,6 +379,7 @@ bin-int/
 *.sln
 imgui.ini
 projects/*
+compile_commands.json
 
 # Xcode
 *.xcuserstate
