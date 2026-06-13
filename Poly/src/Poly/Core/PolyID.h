@@ -48,3 +48,15 @@ namespace std
 		}
 	};
 } // namespace std
+
+namespace fmt
+{
+	template<>
+	struct formatter<Poly::PolyID> : formatter<std::string>
+	{
+		auto format(Poly::PolyID my, format_context &ctx) const -> decltype(ctx.out())
+		{
+			return format_to(ctx.out(), "[PolyID={}]", static_cast<uint64_t>(my));
+		}
+	};
+}

@@ -178,7 +178,7 @@ project "assimp"
 	  path .. "/code/AssetLib/glTF2/**",
   }
 
-  includedirs {
+  externalincludedirs {
       path,
       path .. "/include",
       path .. "/code",

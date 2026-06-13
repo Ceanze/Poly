@@ -11,7 +11,7 @@ project "nvrhi"
 	targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 	objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
-	includedirs
+	externalincludedirs
 	{
 		path .. "include"
 	}
@@ -61,13 +61,9 @@ project "nvrhi_vk"
 	targetdir (_WORKING_DIR .. "/bin/" .. OUTPUT_DIR .. "/%{prj.name}")
 	objdir (_WORKING_DIR .. "/bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 
-	includedirs
+	externalincludedirs
 	{
-		path .. "include"
-	}
-
-	sysincludedirs
-	{
+		path .. "include",
 		get_vulkan_include_dir(vkPath)
 	}
 

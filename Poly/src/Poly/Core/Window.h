@@ -2,8 +2,6 @@
 
 #include "PolyID.h"
 
-#include <polypch.h>
-
 struct GLFWwindow;
 
 /**
