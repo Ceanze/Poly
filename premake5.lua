@@ -61,10 +61,7 @@ workspace "Poly"
 		"Release"
 	}
 
-	flags
-	{
-		"MultiProcessorCompile"
-	}
+	multiprocessorcompile ("on")
 
 	filter "system:windows"
 		defines
