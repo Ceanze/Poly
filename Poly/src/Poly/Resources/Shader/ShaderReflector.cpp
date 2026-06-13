@@ -45,7 +45,7 @@ namespace Poly
 		m_Module                = CreateUnique<SpvReflectShaderModule>();
 		SpvReflectResult result = spvReflectCreateShaderModule(data.size() * sizeof(byte), data.data(), m_Module.get());
 		m_isValid               = result == SPV_REFLECT_RESULT_SUCCESS;
-		POLY_VALIDATE(m_isValid, "Reflector module could not be created - result was {}", result);
+		POLY_VALIDATE(m_isValid, "Reflector module could not be created - result was {}", static_cast<int>(result));
 	}
 
 	ShaderReflector::~ShaderReflector()
