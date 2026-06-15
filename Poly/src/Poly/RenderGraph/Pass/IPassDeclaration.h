@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 #include <functional>
@@ -35,5 +36,45 @@ namespace Poly
 		 * Starts a pipeline override declaration. Finish with .FinishPipeline() to return here.
 		 */
 		virtual IPassDeclarationGraphicsPipeline& WithGraphicsPipeline() = 0;
+
+		/*
+		 * Maps a feature port to a shader resource of the pass. This works as a connection between the stricter feature pipeline
+		 * and the more flexible pass pipeline. Mapping a feature port means that it is then exposed to other features in the pipeline,
+		 * as a read if the port is an input, or a write if it is an output.
+		 *
+		 * @param port The feature port to map.
+		 * @param shaderResourceName The name of the shader resource to map to. This should match a resource in the shader of the pass.
+		 * @return A reference to this for chaining.
+		 */
+		virtual PassDeclaration& MapResource(EFeaturePort port, std::string_view shaderResourceName) = 0;
+
+		/*
+		 * Maps a global variable to a shader global of the pass.
+		 *
+		 * @param globalName The name of the global variable to map.
+		 * @param shaderGlobalName The name of the shader global to map to. This should match a global in the shader of the pass.
+		 * @return A reference to this for chaining.
+		 */
+		virtual PassDeclaration& MapGlobal(std::string_view globalName, std::string_view shaderGlobalName) = 0;
+
+		/*
+		 * Imports a resource to the pass. This is different to mapping feature ports, as it isn't limited to the available feature ports.
+		 * Importing a resource means that the pass can have a dependency to a resource from another pass, without the need of a feature port.
+		 * For the importing to be valid at compilation, andother feature must export the same resource name before this pass.
+		 * @param resourceName The name of the resource to import. This should match the exported resource name of another pass.
+		 * @param shaderResourceName The name of the shader resource to map to. This should match a resource in the shader of the pass.
+		 * @return A reference to this for chaining
+		 */
+		virtual PassDeclaration& ImportResource(std::string_view resourceName, std::string_view shaderResourceName) = 0;
+
+		/*
+		 * Exports a resource from the pass. This is different to mapping feature ports, as it isn't limited to the available feature ports.
+		 * Exporting a resource means that the pass can have a dependency to a resource from another pass, without the need of a feature port.
+		 * For the exporting to be valid at compilation, another pass must import the same resource name after this pass.
+		 * @param resourceName The name of the resource to export. This should match the imported resource name of another pass.
+		 * @param shaderResourceName The name of the shader resource to map to. This should match a resource in the shader of the pass.
+		 * @return A reference to this for chaining
+		 */
+		virtual PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) = 0;
 	};
 } // namespace Poly

@@ -1,7 +1,8 @@
-
-
 namespace Poly
 {
+	class PassDeclaration;
+	class FeatureDeclaration;
+
 	class RenderGraph
 	{
 	public:
@@ -30,12 +31,12 @@ namespace Poly
 		ResourceRegistry m_ResourceRegistry;
 	};
 
-	{
-		RenderGraph graph;
-		graph.RegisterResource("SceneAlbedo")
-		    .WithType(Type::Texture2D)
-		    .WithInitialState(ResourceState::ShaderResource);
-	}
+	// {
+	// 	RenderGraph graph;
+	// 	graph.RegisterResource("SceneAlbedo")
+	// 	    .WithType(Type::Texture2D)
+	// 	    .WithInitialState(ResourceState::ShaderResource);
+	// }
 } // namespace Poly
 
 // Future me: The builders have changed from being named builders to declarations. This is because

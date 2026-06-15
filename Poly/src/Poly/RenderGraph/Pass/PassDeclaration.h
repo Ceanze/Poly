@@ -45,6 +45,16 @@ namespace Poly
 		PassDeclaration&                 WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) override;
 		PassDeclarationGraphicsPipeline& WithGraphicsPipeline() override;
 
+		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName) override;
+		PassDeclaration& MapGlobal(std::string_view globalName, std::string_view shaderGlobalName) override;
+		PassDeclaration& ImportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
+		PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
+
+		const std::vector<std::pair<EFeaturePort, std::string>>& GetResourceMappings() const { return m_ResourceMappings; }
+		const std::vector<std::pair<std::string, std::string>>&  GetGlobalMappings() const { return m_GlobalMappings; }
+		const std::vector<std::pair<std::string, std::string>>&  GetImportedResources() const { return m_ImportedResources; }
+		const std::vector<std::pair<std::string, std::string>>&  GetExportedResources() const { return m_ExportedResources; }
+
 		// Idea: A pass declaration should always be able to provide a full declaration of a pass for creation
 		// of graphic resources. Meaning, for instance, the pipeline declaration is always valid, no matter if the
 		// user created a custom (correct) one, or not.
@@ -54,5 +64,10 @@ namespace Poly
 		std::function<void(SetupContext&)>                m_SetupFn;
 		std::function<void(ExecuteContext&)>              m_ExecuteFn;
 		PassDeclarationGraphicsPipeline                   m_GraphicsPipelineDecl;
+
+		std::vector<std::pair<EFeaturePort, std::string>> m_ResourceMappings;
+		std::vector<std::pair<std::string, std::string>>  m_GlobalMappings;
+		std::vector<std::pair<std::string, std::string>>  m_ImportedResources;
+		std::vector<std::pair<std::string, std::string>>  m_ExportedResources;
 	};
 } // namespace Poly
