@@ -60,7 +60,7 @@ namespace Poly
 		/*
 		 * Imports a resource to the pass. This is different to mapping feature ports, as it isn't limited to the available feature ports.
 		 * Importing a resource means that the pass can have a dependency to a resource from another pass, without the need of a feature port.
-		 * For the importing to be valid at compilation, andother feature must export the same resource name before this pass.
+		 * For the importing to be valid at compilation, another feature must export the same resource name before this pass.
 		 * @param resourceName The name of the resource to import. This should match the exported resource name of another pass.
 		 * @param shaderResourceName The name of the shader resource to map to. This should match a resource in the shader of the pass.
 		 * @return A reference to this for chaining

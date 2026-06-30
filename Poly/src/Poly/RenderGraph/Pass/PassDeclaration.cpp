@@ -2,8 +2,9 @@
 
 namespace Poly
 {
-	PassDeclaration::PassDeclaration()
-	    : m_GraphicsPipelineDecl(*this)
+	PassDeclaration::PassDeclaration(std::string_view name)
+	    : m_Name(name)
+	    , m_GraphicsPipelineDecl(*this)
 	{}
 
 	PassDeclaration& PassDeclaration::WithShader(std::string_view shaderPath, FShaderStage stage)
@@ -52,4 +53,10 @@ namespace Poly
 		m_ExportedResources.emplace_back(std::string(resourceName), std::string(shaderResourceName));
 		return *this;
 	}
+
+	std::string_view PassDeclaration::GetName() const
+	{
+		return m_Name;
+	}
+
 } // namespace Poly

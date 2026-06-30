@@ -37,7 +37,7 @@ namespace Poly
 	class PassDeclaration : public IPassDeclaration
 	{
 	public:
-		PassDeclaration();
+		PassDeclaration(std::string_view name);
 		~PassDeclaration() = default;
 
 		PassDeclaration&                 WithShader(std::string_view shaderPath, FShaderStage stage) override;
@@ -50,6 +50,8 @@ namespace Poly
 		PassDeclaration& ImportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
 		PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
 
+		std::string_view GetName() const { return m_Name; }
+
 		const std::vector<std::pair<EFeaturePort, std::string>>& GetResourceMappings() const { return m_ResourceMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetGlobalMappings() const { return m_GlobalMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetImportedResources() const { return m_ImportedResources; }
@@ -60,6 +62,8 @@ namespace Poly
 		// user created a custom (correct) one, or not.
 
 	private:
+		const std::string m_Name;
+
 		std::vector<std::pair<std::string, FShaderStage>> m_Shaders;
 		std::function<void(SetupContext&)>                m_SetupFn;
 		std::function<void(ExecuteContext&)>              m_ExecuteFn;
