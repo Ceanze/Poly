@@ -5,6 +5,7 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Core/Window.h"
 #include "Poly/Events/WindowEvent.h"
+#include "Poly/RenderGraph/RenderProgramInstance.h"
 #include "polypch.h"
 #include "RenderGraph/RenderGraphProgram.h"
 #include "RenderGraph/Resource.h"
@@ -35,6 +36,11 @@ namespace Poly
 		}
 	}
 
+	void Renderer::SetRenderProgram(std::unique_ptr<RenderProgram> pRenderProgram)
+	{
+		m_pQueuedRenderProgramInstance = CreateUnique<RenderProgramInstance>(std::move(pRenderProgram));
+	}
+
 	void Renderer::AddWindow(Window* pWindow)
 	{
 		SwapChainDesc swapChainDesc = {
@@ -57,6 +63,8 @@ namespace Poly
 
 	void Renderer::Render()
 	{
+		SwapRenderProgramInstanceIfQueued();
+
 		for (const WindowContext& windowCtx : m_Windows)
 		{
 			m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
@@ -90,5 +98,11 @@ namespace Poly
 		}
 
 		m_pRenderGraphProgram->RecreateResources(windowCtx.pWindow->GetWidth(), windowCtx.pWindow->GetHeight());
+	}
+
+	void Renderer::SwapRenderProgramInstanceIfQueued()
+	{
+		if (m_pQueuedRenderProgramInstance)
+			m_pActiveRenderProgramInstance = std::move(m_pQueuedRenderProgramInstance);
 	}
 } // namespace Poly

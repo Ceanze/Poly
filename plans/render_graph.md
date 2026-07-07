@@ -234,23 +234,28 @@ passRegistry.RegisterPass("imgui",
   [](ExecuteContext& ctx) { ... }
 )
 
-// Features (also registers elsewhere to registry)
-Feature::New("geometry")
-  .AddPass("pbr")
-    .Map(FeaturePort::Color, "out_Color")
-    .Map(FeaturePort::Depth, "depth")
-    .MapGlobal("SceneAlbedo", "albedoTex")
-    .MapGlobal("SceneVertices", "vertices");
+// Passes (registers to registry internally)
+renderGraph.RegisterPass("pbr")
+  .Map(FeaturePort::Color, "out_Color")
+  .Map(FeaturePort::Depth, "depth")
+  .MapGlobal("SceneAlbedo", "albedoTex")
+  .MapGlobal("SceneVertices", "vertices");
 
-Feature::New("debug")
-  .AddPass("imgui")
-    .Map(FeaturePort::Color, "fColor")
-    .MapGlobal("DebugData", "debugData");
+renderGraph.RegisterPass("imgui")
+  .Map(FeaturePort::Color, "fColor")
+  .MapGlobal("DebugData", "debugData");
 
-// Register globals
-resourceRegistry.RegisterResource("DebugData")
-resourceRegistry.RegisterResource("SceneAlbedo")
-resourceRegistry.RegisterResource("SceneVertices")
+// Features (registers to registry internally)
+renderGraph.RegisterFeature("geometry")
+  .AddPass("pbr");
+
+renderGraph.RegisterFeature("debug")
+  .AddPass("imgui");
+
+// Register globals, marks them as an available resource
+renderGraph.RegisterResource("DebugData")
+renderGraph.RegisterResource("SceneAlbedo")
+renderGraph.RegisterResource("SceneVertices")
 
 // Render Graph
 auto renderProgram = renderGraph.Begin()
@@ -258,13 +263,19 @@ auto renderProgram = renderGraph.Begin()
   .Feature("debug")
   .Build();
 
+// Set the render program as the current one
+Renderer::SetRenderProgram(std::move(renderProgram));
+
 // Execute
-renderProgram.UpdateResource("SceneAlbedo",   renderScene.GetAlbedoTexture());
-renderProgram.UpdateResource("SceneVertices", renderScene.GetVertexBuffer());
-renderProgram.UpdateResource("DebugData",     imguiData);
+Renderer::UpdateResource("SceneAlbedo",   renderScene.GetAlbedoTexture());
+Renderer::UpdateResource("SceneVertices", renderScene.GetVertexBuffer());
+Renderer::UpdateResource("DebugData",     imguiData);
+
+// Inside the Renderer::Render()
+RenderProgramInstance renderProgramInstance(renderProgram);
 
 RenderContext ctx { .Camera = camera, .Scene = renderScene, .Target = swapchain };
-renderProgram.Execute(ctx);
+renderProgramInstance.Execute(ctx);
 ```
 
 ### 1. Flatten graph
@@ -343,7 +354,52 @@ function TopoSortALAP(passes) -> Pass[]:
 
 ### Synchronisation
 
+Depends on NVRHI
 
+### Render Program
+
+After the render program is created by the user, it is provided to the renderer to be set as the current render program to use.
+
+```c++
+auto renderProgram = renderGraph.Begin()
+  .AddFeature("geometry")
+  .AddFeature("debug")
+  .Build()
+
+Renderer::SetRenderProgram(renderProgram);
+```
+
+When the render program is set, a new render program instance is created internally in the renderer
+
+```c++
+Renderer::SetRenderProgram(std::unique_ptr<RenderProgram> pRenderProgram) {
+  mQueuedRenderProgramInstance = RenderProgramInstance(std::move(pRenderProgram));
+}
+```
+
+The `RenderProgramInstance` handles the graphics resources ownership, allocation, and handling. When possible, it should reuse existing pipelines, render passes, framebuffers, etc. using caches that are shared between instances. When there is a safe point to switch instance (end of frame/after DeviceWait (for debug)) the old instance is removed as current, and the `mQueuedRenderProgramInstance` is set to the current active render program instance.
+
+The ownership and responsibility therefore looks like this for all render graph types:
+- RenderGraph handles the setup of the render program, and the internal caches of pass, feature, and resource declarations.
+  - User authored graph
+  - Declarations of passes, resource,s and features
+  - Creates the render program
+  - Is mutable
+- RenderProgram is a compiled/built declaration of the graph with pruned and ordered passes. It also contains needed attachments, pipelines, and all the _data_ that is needed to execute, without owning any actual graphics objects.
+  - Owns the compiled graph with pruned, ordered, and resolved passes
+  - Resource lifetime analysis
+  - Synchronisation plans
+  - Attachment plans
+  - Pipeline plans
+  - Unmutable
+- Renderer handles the interactions with the user, owns the internal RenderProgramInstance, and is the wrapper for that when it comes to updating resources.
+  - Owns current render program instance
+  - Interactions with the user (UpdateResource, SetRenderGraph, etc.)
+  - Coordination with the application (Render, Resize, etc.)
+- RenderProgramInstance is an instansiated active version of the RenderProgram, which contains the RenderProgram with its data, but also allocates and owns the graphics resources needed for this render program. (Future:) Shared caches for pipelines, framebuffers, etc. is used to eliminate a full re-creation everytime a render graph is updated.
+  - Runtime handles of graphics resources
+  - Active execution states of the render graph
+  - Manages the current resources of the graph, as well as updating them when needed
 
 ## Sources
 Render Graph: https://logins.github.io/graphics/2021/05/31/RenderGraphs.html

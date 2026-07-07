@@ -7,15 +7,15 @@ namespace Poly
 {
 	struct ResolvedPort
 	{
-		std::string shaderName;   // local name in the pass shader
-		std::string resolvedName; // globally resolved name (e.g. "$Color", "SceneAlbedo")
-		bool        isWrite;      // true = output, false = input
+		std::string ShaderName;   // local name in the pass shader
+		std::string ResolvedName; // globally resolved name (e.g. "$Color", "SceneAlbedo")
+		bool        IsWrite;      // true = output, false = input
 	};
 
 	struct ResolvedPass
 	{
-		std::string               name;
-		std::vector<ResolvedPort> ports;
+		std::string               Name;
+		std::vector<ResolvedPort> Ports;
 	};
 
 	class RenderProgram

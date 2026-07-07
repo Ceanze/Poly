@@ -52,6 +52,12 @@ namespace Poly
 
 		std::string_view GetName() const { return m_Name; }
 
+		const std::vector<std::pair<std::string, FShaderStage>>& GetShaders() const { return m_Shaders; }
+		const PassDeclarationGraphicsPipeline&                   GetGraphicsPipeline() const { return m_GraphicsPipelineDecl; }
+
+		void CallSetupFn(SetupContext& ctx) const;
+		void CallExecuteFn(ExecuteContext& ctx) const;
+
 		const std::vector<std::pair<EFeaturePort, std::string>>& GetResourceMappings() const { return m_ResourceMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetGlobalMappings() const { return m_GlobalMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetImportedResources() const { return m_ImportedResources; }

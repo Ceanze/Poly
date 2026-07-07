@@ -54,6 +54,18 @@ namespace Poly
 		return *this;
 	}
 
+	void PassDeclaration::CallSetupFn(SetupContext& ctx) const
+	{
+		if (m_SetupFn)
+			m_SetupFn(ctx);
+	}
+
+	void PassDeclaration::CallExecuteFn(ExecuteContext& ctx) const
+	{
+		if (m_ExecuteFn)
+			m_ExecuteFn(ctx);
+	}
+
 	std::string_view PassDeclaration::GetName() const
 	{
 		return m_Name;

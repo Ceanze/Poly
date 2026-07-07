@@ -66,19 +66,19 @@ namespace Poly
 				}
 
 				ResolvedPass resolved;
-				resolved.name = passName;
+				resolved.Name = passName;
 
 				for (const auto& [port, shaderName] : pass->GetResourceMappings())
-					resolved.ports.push_back({shaderName, std::string(ToSemanticName(port)), /*isWrite=*/true});
+					resolved.Ports.push_back({shaderName, std::string(ToSemanticName(port)), /*IsWrite=*/true});
 
 				for (const auto& [globalName, shaderName] : pass->GetGlobalMappings())
-					resolved.ports.push_back({shaderName, globalName, /*isWrite=*/false});
+					resolved.Ports.push_back({shaderName, globalName, /*IsWrite=*/false});
 
 				for (const auto& [resName, shaderName] : pass->GetImportedResources())
-					resolved.ports.push_back({shaderName, scope + resName, /*isWrite=*/false});
+					resolved.Ports.push_back({shaderName, scope + resName, /*IsWrite=*/false});
 
 				for (const auto& [resName, shaderName] : pass->GetExportedResources())
-					resolved.ports.push_back({shaderName, scope + resName, /*isWrite=*/true});
+					resolved.Ports.push_back({shaderName, scope + resName, /*IsWrite=*/true});
 
 				flat.push_back(std::move(resolved));
 			}
@@ -99,9 +99,9 @@ namespace Poly
 		// Seed: the last pass that writes $Color is the mandatory sink
 		for (int i = static_cast<int>(n) - 1; i >= 0; --i)
 		{
-			for (const auto& port : flat[i].ports)
+			for (const auto& port : flat[i].Ports)
 			{
-				if (port.isWrite && port.resolvedName == "$Color")
+				if (port.IsWrite && port.ResolvedName == "$Color")
 				{
 					nodes[i].mandatory = true;
 					break;
@@ -123,9 +123,9 @@ namespace Poly
 			// Check if any of this pass's writes satisfy a pending read
 			if (!nodes[i].mandatory)
 			{
-				for (const auto& port : pass.ports)
+				for (const auto& port : pass.Ports)
 				{
-					if (port.isWrite && availableInputs.count(port.resolvedName))
+					if (port.IsWrite && availableInputs.count(port.ResolvedName))
 					{
 						nodes[i].mandatory = true;
 						break;
@@ -139,12 +139,12 @@ namespace Poly
 			// Wire writes → consuming passes as dependencies.
 			// A write without a clear is an implicit passthrough (read-then-write), so it
 			// also appears in availableInputs and will pull in whichever earlier pass produced it.
-			for (const auto& port : pass.ports)
+			for (const auto& port : pass.Ports)
 			{
-				if (!port.isWrite)
+				if (!port.IsWrite)
 					continue;
 
-				auto it = availableInputs.find(port.resolvedName);
+				auto it = availableInputs.find(port.ResolvedName);
 				if (it != availableInputs.end())
 				{
 					nodes[it->second].dependsOn.push_back((size_t)i);
@@ -154,8 +154,8 @@ namespace Poly
 
 			// Register all ports as pending: explicit reads and write-passthroughs.
 			// An earlier pass that writes the same resource name will satisfy the passthrough.
-			for (const auto& port : pass.ports)
-				availableInputs.emplace(port.resolvedName, (size_t)i);
+			for (const auto& port : pass.Ports)
+				availableInputs.emplace(port.ResolvedName, (size_t)i);
 		}
 
 		return nodes;
