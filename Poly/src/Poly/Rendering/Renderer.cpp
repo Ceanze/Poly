@@ -6,6 +6,7 @@
 #include "Poly/Core/Window.h"
 #include "Poly/Events/WindowEvent.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
+#include "Poly/RenderGraph/RenderView.h"
 #include "polypch.h"
 #include "RenderGraph/RenderGraphProgram.h"
 #include "RenderGraph/Resource.h"
@@ -68,6 +69,12 @@ namespace Poly
 		for (const WindowContext& windowCtx : m_Windows)
 		{
 			m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
+
+			if (m_pActiveRenderProgramInstance)
+			{
+				RenderView view{.pTarget = windowCtx.pSwapChain.get()};
+				m_pActiveRenderProgramInstance->Execute(view);
+			}
 
 			std::vector<CommandBuffer*> emptyCommandbuffers;
 			PresentResult               res = windowCtx.pSwapChain->Present(emptyCommandbuffers);

@@ -3,6 +3,8 @@
 #include "Feature/FeatureDeclaration.h"
 #include "Feature/FeaturePort.h"
 #include "Pass/PassDeclaration.h"
+#include "Resource/ResourceDeclaration.h"
+#include "SetupContext.h"
 
 #include <algorithm>
 #include <functional>
@@ -38,7 +40,7 @@ namespace Poly
 	// Import/export resource names are scoped per feature instance ("featureName#N.resName")
 	// so that two uses of the same feature don't share internal resource connections.
 	// Semantic ports (EFeaturePort) and global mappings are intentionally left unscoped.
-	std::vector<ResolvedPass> RenderProgramBuilder::FlattenFeatures() const
+	std::vector<ResolvedPass> RenderProgramBuilder::FlattenFeatures()
 	{
 		std::vector<ResolvedPass>               flat;
 		std::unordered_map<std::string, size_t> instanceCount;
@@ -57,7 +59,7 @@ namespace Poly
 
 			for (const auto& passName : feature->GetPasses())
 			{
-				const PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
+				PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
 				if (!pass)
 				{
 					POLY_CORE_ERROR("Pass '{}' referenced by feature '{}' not found during compilation.",
@@ -65,8 +67,14 @@ namespace Poly
 					continue;
 				}
 
+				SetupContext setupCtx(*pass);
+				pass->CallSetupFn(setupCtx);
+
 				ResolvedPass resolved;
-				resolved.Name = passName;
+				resolved.Name         = passName;
+				resolved.Shaders      = pass->GetShaders();
+				resolved.PipelineDesc = pass->GetGraphicsPipeline().GetDesc();
+				resolved.ExecuteFn    = pass->GetExecuteFn();
 
 				for (const auto& [port, shaderName] : pass->GetResourceMappings())
 					resolved.Ports.push_back({shaderName, std::string(ToSemanticName(port)), /*IsWrite=*/true});
@@ -79,6 +87,23 @@ namespace Poly
 
 				for (const auto& [resName, shaderName] : pass->GetExportedResources())
 					resolved.Ports.push_back({shaderName, scope + resName, /*IsWrite=*/true});
+
+				// A port whose resolved name matches a resource registered on the RenderGraph with an
+				// explicit size is graph-owned/allocated at that fixed size (e.g. a shadow map); one
+				// registered without a size is assumed externally owned, supplied per-frame via
+				// RenderProgramInstance::UpdateResource(). Everything unregistered is transient and
+				// sized to the render target by the RenderProgramInstance.
+				for (auto& p : resolved.Ports)
+				{
+					if (const ResourceDeclaration* resDecl = m_Catalog->GetResourceRegistry().Get(p.ResolvedName))
+					{
+						p.Type         = resDecl->GetType();
+						p.InitialState = resDecl->GetInitialState();
+						p.Width        = resDecl->GetWidth();
+						p.Height       = resDecl->GetHeight();
+						p.IsExternal   = !resDecl->HasSize();
+					}
+				}
 
 				flat.push_back(std::move(resolved));
 			}

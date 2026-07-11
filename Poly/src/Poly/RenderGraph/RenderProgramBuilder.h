@@ -19,7 +19,7 @@ namespace Poly
 		std::unique_ptr<RenderProgram> Build();
 
 	private:
-		std::vector<ResolvedPass>    FlattenFeatures() const;
+		std::vector<ResolvedPass>    FlattenFeatures();
 		std::vector<struct PassNode> BuildDAG(const std::vector<ResolvedPass>& flat) const;
 		std::vector<ResolvedPass>    TopoSortALAP(const std::vector<struct PassNode>& nodes,
 		                                          const std::vector<ResolvedPass>&    flat) const;

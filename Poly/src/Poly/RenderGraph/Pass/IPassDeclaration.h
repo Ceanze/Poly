@@ -10,6 +10,7 @@ namespace Poly
 {
 	class SetupContext;
 	class ExecuteContext;
+	class PassDeclaration;
 	class IPassDeclarationGraphicsPipeline;
 
 	class IPassDeclaration

@@ -6,7 +6,7 @@ namespace Poly
 	class RenderGraph
 	{
 	public:
-		RenderGraph() = default;
+		RenderGraph();
 		explicit RenderGraph(Ref<RenderCatalog> catalog);
 		~RenderGraph() = default;
 

@@ -12,15 +12,15 @@ namespace Poly
 	public:
 		explicit PassDeclarationVertexInput(PassDeclarationGraphicsPipeline& pipeline);
 
-		PassDeclarationVertexInput& Binding(uint32 binding) override;
-		PassDeclarationVertexInput& Stride(uint32 stride) override;
-		PassDeclarationVertexInput& VertexInputRate(EVertexInputRate rate) override;
-		PassDeclarationVertexInput& Location(uint32 location) override;
-		PassDeclarationVertexInput& Format(EFormat format) override;
-		PassDeclarationVertexInput& Offset(uint32 offset) override;
+		IPassDeclarationVertexInput& Binding(uint32 binding) override;
+		IPassDeclarationVertexInput& Stride(uint32 stride) override;
+		IPassDeclarationVertexInput& VertexInputRate(EVertexInputRate rate) override;
+		IPassDeclarationVertexInput& Location(uint32 location) override;
+		IPassDeclarationVertexInput& Format(EFormat format) override;
+		IPassDeclarationVertexInput& Offset(uint32 offset) override;
 
-		PassDeclarationVertexInput&      AddVertexInput() override;
-		PassDeclarationGraphicsPipeline& FinishVertexInput() override;
+		IPassDeclarationVertexInput&      AddVertexInput() override;
+		IPassDeclarationGraphicsPipeline& FinishVertexInput() override;
 
 	private:
 		PassDeclarationGraphicsPipeline& m_Pipeline;

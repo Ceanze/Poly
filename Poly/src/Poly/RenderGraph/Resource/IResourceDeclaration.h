@@ -23,5 +23,21 @@ namespace Poly
 		 * @return Reference to the resource declaration for chaining.
 		 */
 		virtual IResourceDeclaration& WithInitialState(FResourceState state) = 0;
+
+		/*
+		 * Fixes the resource to an explicit size instead of the render target's size. Implies the
+		 * resource is graph-owned/allocated (e.g. a fixed-resolution shadow map) rather than
+		 * caller-supplied, since caller-supplied resources are already sized by their owner.
+		 * @param width The width of the resource, in texels.
+		 * @param height The height of the resource, in texels.
+		 * @return Reference to the resource declaration for chaining.
+		 */
+		virtual IResourceDeclaration& WithSize(uint32 width, uint32 height) = 0;
+
+		virtual EResourceType  GetType() const = 0;
+		virtual FResourceState GetInitialState() const = 0;
+		virtual uint32         GetWidth() const = 0;
+		virtual uint32         GetHeight() const = 0;
+		virtual bool           HasSize() const = 0;
 	};
 } // namespace Poly

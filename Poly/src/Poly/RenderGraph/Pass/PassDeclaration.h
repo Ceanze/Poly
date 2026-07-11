@@ -54,6 +54,7 @@ namespace Poly
 
 		const std::vector<std::pair<std::string, FShaderStage>>& GetShaders() const { return m_Shaders; }
 		const PassDeclarationGraphicsPipeline&                   GetGraphicsPipeline() const { return m_GraphicsPipelineDecl; }
+		const std::function<void(ExecuteContext&)>&              GetExecuteFn() const { return m_ExecuteFn; }
 
 		void CallSetupFn(SetupContext& ctx) const;
 		void CallExecuteFn(ExecuteContext& ctx) const;

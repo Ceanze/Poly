@@ -8,50 +8,50 @@ namespace Poly
 	    : m_Pipeline(pipeline)
 	{}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::Binding(uint32 binding)
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::Binding(uint32 binding)
 	{
 		m_Current.Binding = binding;
 		return *this;
 	}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::Stride(uint32 stride)
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::Stride(uint32 stride)
 	{
 		m_Current.Stride = stride;
 		return *this;
 	}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::VertexInputRate(EVertexInputRate rate)
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::VertexInputRate(EVertexInputRate rate)
 	{
 		m_Current.VertexInputRate = rate;
 		return *this;
 	}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::Location(uint32 location)
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::Location(uint32 location)
 	{
 		m_Current.Location = location;
 		return *this;
 	}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::Format(EFormat format)
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::Format(EFormat format)
 	{
 		m_Current.Format = format;
 		return *this;
 	}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::Offset(uint32 offset)
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::Offset(uint32 offset)
 	{
 		m_Current.Offset = offset;
 		return *this;
 	}
 
-	PassDeclarationVertexInput& PassDeclarationVertexInput::AddVertexInput()
+	IPassDeclarationVertexInput& PassDeclarationVertexInput::AddVertexInput()
 	{
 		m_Pipeline.CommitVertexInput(m_Current);
 		m_Current = {};
 		return *this;
 	}
 
-	PassDeclarationGraphicsPipeline& PassDeclarationVertexInput::FinishVertexInput()
+	IPassDeclarationGraphicsPipeline& PassDeclarationVertexInput::FinishVertexInput()
 	{
 		m_Pipeline.CommitVertexInput(m_Current);
 		m_Current = {};

@@ -66,9 +66,4 @@ namespace Poly
 			m_ExecuteFn(ctx);
 	}
 
-	std::string_view PassDeclaration::GetName() const
-	{
-		return m_Name;
-	}
-
 } // namespace Poly

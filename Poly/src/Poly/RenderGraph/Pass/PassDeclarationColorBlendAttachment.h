@@ -12,17 +12,17 @@ namespace Poly
 	public:
 		explicit PassDeclarationColorBlendAttachment(PassDeclarationGraphicsPipeline& pipeline);
 
-		PassDeclarationColorBlendAttachment& BlendEnable(bool enable) override;
-		PassDeclarationColorBlendAttachment& SrcColorBlendFactor(EBlendFactor factor) override;
-		PassDeclarationColorBlendAttachment& DstColorBlendFactor(EBlendFactor factor) override;
-		PassDeclarationColorBlendAttachment& ColorBlendOp(EBlendOp op) override;
-		PassDeclarationColorBlendAttachment& SrcAlphaBlendFactor(EBlendFactor factor) override;
-		PassDeclarationColorBlendAttachment& DstAlphaBlendFactor(EBlendFactor factor) override;
-		PassDeclarationColorBlendAttachment& AlphaBlendOp(EBlendOp op) override;
-		PassDeclarationColorBlendAttachment& ColorWriteMask(FColorComponentFlag mask) override;
+		IPassDeclarationColorBlendAttachment& BlendEnable(bool enable) override;
+		IPassDeclarationColorBlendAttachment& SrcColorBlendFactor(EBlendFactor factor) override;
+		IPassDeclarationColorBlendAttachment& DstColorBlendFactor(EBlendFactor factor) override;
+		IPassDeclarationColorBlendAttachment& ColorBlendOp(EBlendOp op) override;
+		IPassDeclarationColorBlendAttachment& SrcAlphaBlendFactor(EBlendFactor factor) override;
+		IPassDeclarationColorBlendAttachment& DstAlphaBlendFactor(EBlendFactor factor) override;
+		IPassDeclarationColorBlendAttachment& AlphaBlendOp(EBlendOp op) override;
+		IPassDeclarationColorBlendAttachment& ColorWriteMask(FColorComponentFlag mask) override;
 
-		PassDeclarationColorBlendAttachment& AddColorBlendAttachment() override;
-		PassDeclarationGraphicsPipeline&     FinishColorBlendAttachment() override;
+		IPassDeclarationColorBlendAttachment& AddColorBlendAttachment() override;
+		IPassDeclarationGraphicsPipeline&     FinishColorBlendAttachment() override;
 
 	private:
 		PassDeclarationGraphicsPipeline& m_Pipeline;

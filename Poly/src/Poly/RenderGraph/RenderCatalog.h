@@ -25,6 +25,7 @@ namespace Poly
 		IFeatureDeclaration&  RegisterFeature(std::string_view name);
 		IResourceDeclaration& RegisterResource(std::string_view name);
 
+		PassRegistry&           GetPassRegistry() { return m_PassRegistry; }
 		const PassRegistry&     GetPassRegistry() const { return m_PassRegistry; }
 		const FeatureRegistry&  GetFeatureRegistry() const { return m_FeatureRegistry; }
 		const ResourceRegistry& GetResourceRegistry() const { return m_ResourceRegistry; }

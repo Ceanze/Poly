@@ -17,4 +17,11 @@ namespace Poly
 		m_InitialState = state;
 		return *this;
 	}
+
+	ResourceDeclaration& ResourceDeclaration::WithSize(uint32 width, uint32 height)
+	{
+		m_Width  = width;
+		m_Height = height;
+		return *this;
+	}
 } // namespace Poly
