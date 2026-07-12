@@ -199,7 +199,6 @@ namespace Poly
 	inline VkPipelineStageFlags ConvertPipelineStageFlagsVK(FPipelineStage pipelineStage)
 	{
 		VkPipelineStageFlags mask = 0;
-		FLAG_CHECK(pipelineStage & FPipelineStage::TOP_OF_PIPE, mask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::DRAW_INDIRECT, mask |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::VERTEX_INPUT, mask |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::VERTEX_SHADER, mask |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
@@ -209,7 +208,6 @@ namespace Poly
 		FLAG_CHECK(pipelineStage & FPipelineStage::COLOR_ATTACHMENT_OUTPUT, mask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::COMPUTE_SHADER, mask |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::TRANSFER, mask |= VK_PIPELINE_STAGE_TRANSFER_BIT);
-		FLAG_CHECK(pipelineStage & FPipelineStage::BOTTOM_OF_PIPE, mask |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_GRAPHICS, mask |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::ALL_COMMANDS, mask |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 		FLAG_CHECK(pipelineStage & FPipelineStage::HOST, mask |= VK_PIPELINE_STAGE_HOST_BIT);

@@ -25,6 +25,12 @@ namespace Poly
 		return *this;
 	}
 
+	PassDeclaration& PassDeclaration::OnQueue(FQueueType queue)
+	{
+		m_Queue = queue;
+		return *this;
+	}
+
 	PassDeclarationGraphicsPipeline& PassDeclaration::WithGraphicsPipeline()
 	{
 		return m_GraphicsPipelineDecl;

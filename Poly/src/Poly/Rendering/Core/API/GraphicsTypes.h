@@ -200,7 +200,6 @@ namespace Poly
 	enum class FPipelineStage : uint32
 	{
 		NONE                    = 0,
-		TOP_OF_PIPE             = FLAG(1),
 		DRAW_INDIRECT           = FLAG(2),
 		VERTEX_INPUT            = FLAG(3),
 		VERTEX_SHADER           = FLAG(4),
@@ -210,7 +209,6 @@ namespace Poly
 		COLOR_ATTACHMENT_OUTPUT = FLAG(8),
 		COMPUTE_SHADER          = FLAG(9),
 		TRANSFER                = FLAG(10),
-		BOTTOM_OF_PIPE          = FLAG(11),
 		ALL_GRAPHICS            = FLAG(12),
 		ALL_COMMANDS            = FLAG(13),
 		HOST                    = FLAG(14)

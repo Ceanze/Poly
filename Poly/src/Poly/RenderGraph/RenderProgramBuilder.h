@@ -23,6 +23,7 @@ namespace Poly
 		std::vector<struct PassNode> BuildDAG(const std::vector<ResolvedPass>& flat) const;
 		std::vector<ResolvedPass>    TopoSortALAP(const std::vector<struct PassNode>& nodes,
 		                                          const std::vector<ResolvedPass>&    flat) const;
+		SyncPlan                     PlanSynchronization(const std::vector<ResolvedPass>& passes) const;
 
 		Ref<RenderCatalog>       m_Catalog;
 		std::vector<std::string> m_Features;

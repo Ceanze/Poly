@@ -29,6 +29,14 @@ namespace Poly
 		virtual IPassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) = 0;
 
 		/*
+		 * Declares which queue this pass should execute on. Defaults to FQueueType::GRAPHICS if never called.
+		 *
+		 * @param queue The queue to run this pass on.
+		 * @return A reference to this for chaining.
+		 */
+		virtual IPassDeclaration& OnQueue(FQueueType queue) = 0;
+
+		/*
 		 * Add an execute function called every frame during render program execution.
 		 */
 		virtual IPassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) = 0;

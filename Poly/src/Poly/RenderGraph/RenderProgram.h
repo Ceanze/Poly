@@ -3,6 +3,7 @@
 #include "Platform/API/GraphicsPipeline.h"
 #include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/RenderGraph/Resource/ResourceType.h"
+#include "Poly/RenderGraph/SyncPlan.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 #include <functional>
@@ -24,7 +25,7 @@ namespace Poly
 		// means the resource is transient and owned/allocated by the RenderProgramInstance.
 		bool IsExternal = false;
 
-		EResourceType  Type         = EResourceType::None;
+		EResourceType  ResourceType = EResourceType::None;
 		FResourceState InitialState = FResourceState::Unknown;
 
 		// Explicit size from the matching IResourceDeclaration::WithSize(), or 0 if unset - in
@@ -41,16 +42,20 @@ namespace Poly
 		std::vector<std::pair<std::string, FShaderStage>> Shaders;
 		GraphicsPipelineDesc                              PipelineDesc;
 		std::function<void(ExecuteContext&)>              ExecuteFn;
+
+		FQueueType Queue = FQueueType::GRAPHICS;
 	};
 
 	class RenderProgram
 	{
 	public:
-		explicit RenderProgram(std::vector<ResolvedPass> sortedPasses);
+		explicit RenderProgram(std::vector<ResolvedPass> sortedPasses, SyncPlan syncPlan);
 
 		const std::vector<ResolvedPass>& GetPasses() const { return m_Passes; }
+		const SyncPlan&                  GetSyncPlan() const { return m_SyncPlan; }
 
 	private:
 		std::vector<ResolvedPass> m_Passes;
+		SyncPlan                  m_SyncPlan;
 	};
 } // namespace Poly

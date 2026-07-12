@@ -4,6 +4,7 @@
 #include "Feature/FeaturePort.h"
 #include "Pass/PassDeclaration.h"
 #include "Resource/ResourceDeclaration.h"
+#include "Resource/ResourceUsage.h"
 #include "SetupContext.h"
 
 #include <algorithm>
@@ -75,6 +76,7 @@ namespace Poly
 				resolved.Shaders      = pass->GetShaders();
 				resolved.PipelineDesc = pass->GetGraphicsPipeline().GetDesc();
 				resolved.ExecuteFn    = pass->GetExecuteFn();
+				resolved.Queue        = pass->GetQueue();
 
 				for (const auto& [port, shaderName] : pass->GetResourceMappings())
 					resolved.Ports.push_back({shaderName, std::string(ToSemanticName(port)), /*IsWrite=*/true});
@@ -97,7 +99,7 @@ namespace Poly
 				{
 					if (const ResourceDeclaration* resDecl = m_Catalog->GetResourceRegistry().Get(p.ResolvedName))
 					{
-						p.Type         = resDecl->GetType();
+						p.ResourceType = resDecl->GetResourceType();
 						p.InitialState = resDecl->GetInitialState();
 						p.Width        = resDecl->GetWidth();
 						p.Height       = resDecl->GetHeight();
@@ -189,8 +191,7 @@ namespace Poly
 	// Phase 3: Topological sort, scheduled as-late-as-possible (ALAP).
 	// Passes with deeper dependency chains are scheduled first so resources
 	// have the shortest possible lifetime.
-	std::vector<ResolvedPass> RenderProgramBuilder::TopoSortALAP(const std::vector<PassNode>&     nodes,
-	                                                             const std::vector<ResolvedPass>& flat) const
+	std::vector<ResolvedPass> RenderProgramBuilder::TopoSortALAP(const std::vector<PassNode>& nodes, const std::vector<ResolvedPass>& flat) const
 	{
 		const size_t n = nodes.size();
 
@@ -252,11 +253,133 @@ namespace Poly
 		return result;
 	}
 
+	// Phase 4: Plan explicit synchronization for the sorted pass list.
+	// Tracks, per resolved resource name, the last known layout/access/stage/owning-queue and compares
+	// it against what each port needs. Same-queue transitions batch into one BarrierGroup per consuming
+	// pass (grouped syncs); a resource already in the required state produces no entry at all (indirect
+	// syncs). Cross-queue reads/writes are split into a Release (on the resource's previous owning pass)
+	// and an Acquire (on the consuming pass), paired via a SyncPoint wait whose value is collapsed to the
+	// highest value already awaited on that queue pair (cross-queue indirect sync elision).
+	// Inspiration source: "Organizing GPU Work with Directed Acyclic Graphs" by Pavlo Muratov https://levelup.gitconnected.com/organizing-gpu-work-with-directed-acyclic-graphs-f3fd5f2c2af3
+	struct ResourceTrackState
+	{
+		bool           IsTracked     = false;
+		ETextureLayout Layout        = ETextureLayout::UNDEFINED;
+		FAccessFlag    Access        = FAccessFlag::NONE;
+		FPipelineStage Stage         = FPipelineStage::NONE;
+		FQueueType     Queue         = FQueueType::GRAPHICS;
+		bool           LastWasWrite  = false;
+		size_t         LastPassIndex = 0;
+	};
+
+	SyncPlan RenderProgramBuilder::PlanSynchronization(const std::vector<ResolvedPass>& passes) const
+	{
+		std::unordered_map<std::string, ResourceTrackState>                      state;
+		std::unordered_map<FQueueType, uint64_t>                                 queueSubmitCounter;
+		std::unordered_map<FQueueType, std::unordered_map<FQueueType, uint64_t>> highestWaited;
+
+		std::vector<PassSyncPlan> passPlans(passes.size());
+
+		for (size_t i = 0; i < passes.size(); ++i)
+		{
+			const ResolvedPass& pass  = passes[i];
+			const FQueueType    queue = pass.Queue;
+
+			passPlans[i].PassIndex       = i;
+			passPlans[i].SubmissionIndex = ++queueSubmitCounter[queue];
+
+			const FPipelineStage                     passStages = DerivePassShaderStages(pass.Shaders);
+			std::unordered_map<FQueueType, uint64_t> neededWaits;
+			std::unordered_set<std::string>          seenThisPass;
+
+			for (const ResolvedPort& port : pass.Ports)
+			{
+				if (!seenThisPass.insert(port.ResolvedName).second)
+				{
+					POLY_CORE_ERROR("Pass '{}' reads and writes resource '{}' within the same pass; "
+					                "intra-pass synchronization isn't supported, skipping.",
+					                pass.Name, port.ResolvedName);
+					continue;
+				}
+
+				const bool isAttachmentSemantic = IsAttachmentSemanticPort(port.ResolvedName);
+				const bool isTexture            = isAttachmentSemantic || IsTextureResourceType(port.ResourceType);
+
+				if (!isAttachmentSemantic && port.ResourceType == EResourceType::None)
+					POLY_CORE_WARN("Pass '{}' port '{}' has no resource type; it will not be synchronized.", pass.Name,
+					               port.ResolvedName);
+
+				const ResourceUsage needed = DeriveResourceUsage(port.ResourceType, port.IsWrite, port.ResolvedName, passStages);
+
+				ResourceTrackState& rs = state[port.ResolvedName];
+				if (!rs.IsTracked)
+				{
+					rs.IsTracked = true;
+					rs.Queue     = queue; // first touch: assume no incoming cross-queue dependency
+
+					if (port.InitialState != FResourceState::Unknown)
+					{
+						const ResourceUsage seed = ConvertInitialState(port.InitialState);
+						rs.Layout                = seed.Layout;
+						rs.Access                = seed.Access;
+						rs.Stage                 = seed.Stage;
+					}
+				}
+
+				const bool queueDiffers  = rs.Queue != queue;
+				const bool layoutDiffers = isTexture && rs.Layout != needed.Layout;
+				const bool isHazard      = rs.LastWasWrite || port.IsWrite || layoutDiffers;
+
+				if (queueDiffers)
+				{
+					passPlans[rs.LastPassIndex].PostReleases.push_back(
+					    {port.ResolvedName, isTexture, rs.Layout, needed.Layout, rs.Access, rs.Stage, queue});
+					passPlans[i].Acquires.push_back(
+					    {port.ResolvedName, isTexture, rs.Layout, needed.Layout, needed.Access, needed.Stage, rs.Queue});
+
+					uint64_t& wait = neededWaits[rs.Queue];
+					wait           = std::max(wait, passPlans[rs.LastPassIndex].SubmissionIndex);
+				}
+				else if (isHazard)
+				{
+					if (isTexture)
+						passPlans[i].PreBarriers.Textures.push_back({port.ResolvedName, rs.Layout, needed.Layout, rs.Access,
+						                                             needed.Access, rs.Stage, needed.Stage, needed.AspectMask});
+					else
+						passPlans[i].PreBarriers.Buffers.push_back(
+						    {port.ResolvedName, rs.Access, needed.Access, rs.Stage, needed.Stage});
+				}
+				// else: resource is already exactly where it needs to be -- indirect sync, nothing to do.
+
+				rs.Layout        = needed.Layout;
+				rs.Access        = needed.Access;
+				rs.Stage         = needed.Stage;
+				rs.Queue         = queue;
+				rs.LastWasWrite  = port.IsWrite;
+				rs.LastPassIndex = i;
+			}
+
+			for (const auto& [srcQueue, neededValue] : neededWaits)
+			{
+				uint64_t& already = highestWaited[queue][srcQueue];
+				if (neededValue > already)
+				{
+					passPlans[i].RequiredWaits[srcQueue] = neededValue;
+					already                              = neededValue;
+				}
+				// else: this queue already waited far enough -- cross-queue indirect sync elision.
+			}
+		}
+
+		return SyncPlan(std::move(passPlans));
+	}
+
 	std::unique_ptr<RenderProgram> RenderProgramBuilder::Build()
 	{
-		auto flat   = FlattenFeatures();
-		auto nodes  = BuildDAG(flat);
-		auto sorted = TopoSortALAP(nodes, flat);
-		return std::make_unique<RenderProgram>(std::move(sorted));
+		auto flat     = FlattenFeatures();
+		auto nodes    = BuildDAG(flat);
+		auto sorted   = TopoSortALAP(nodes, flat);
+		auto syncPlan = PlanSynchronization(sorted);
+		return std::make_unique<RenderProgram>(std::move(sorted), std::move(syncPlan));
 	}
 } // namespace Poly

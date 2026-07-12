@@ -43,6 +43,7 @@ namespace Poly
 		PassDeclaration&                 WithShader(std::string_view shaderPath, FShaderStage stage) override;
 		PassDeclaration&                 WithSetupFn(std::function<void(SetupContext&)> setupFn) override;
 		PassDeclaration&                 WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) override;
+		PassDeclaration&                 OnQueue(FQueueType queue) override;
 		PassDeclarationGraphicsPipeline& WithGraphicsPipeline() override;
 
 		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName) override;
@@ -51,6 +52,7 @@ namespace Poly
 		PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
 
 		std::string_view GetName() const { return m_Name; }
+		FQueueType       GetQueue() const { return m_Queue; }
 
 		const std::vector<std::pair<std::string, FShaderStage>>& GetShaders() const { return m_Shaders; }
 		const PassDeclarationGraphicsPipeline&                   GetGraphicsPipeline() const { return m_GraphicsPipelineDecl; }
@@ -70,6 +72,7 @@ namespace Poly
 
 	private:
 		const std::string m_Name;
+		FQueueType        m_Queue = FQueueType::GRAPHICS;
 
 		std::vector<std::pair<std::string, FShaderStage>> m_Shaders;
 		std::function<void(SetupContext&)>                m_SetupFn;

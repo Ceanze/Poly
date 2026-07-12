@@ -221,7 +221,7 @@ namespace Poly
 		// 1. A newly created texture is created with the layout "UNDEFINED". This needs to be transfered to TRANSFER_DST before transfer
 		s_TransferCommandBuffer->PipelineTextureBarrier(
 		    pTexture.get(),
-		    FPipelineStage::TOP_OF_PIPE,
+		    FPipelineStage::ALL_COMMANDS,
 		    FPipelineStage::TRANSFER,
 		    FAccessFlag::NONE,
 		    FAccessFlag::TRANSFER_WRITE,

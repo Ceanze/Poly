@@ -8,7 +8,7 @@ namespace Poly
 
 	ResourceDeclaration& ResourceDeclaration::WithType(EResourceType type)
 	{
-		m_Type = type;
+		m_ResourceType = type;
 		return *this;
 	}
 

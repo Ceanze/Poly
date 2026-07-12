@@ -16,7 +16,7 @@ namespace Poly
 
 		std::string_view GetName() const { return m_Name; }
 
-		EResourceType  GetType() const override { return m_Type; }
+		EResourceType  GetResourceType() const override { return m_ResourceType; }
 		FResourceState GetInitialState() const override { return m_InitialState; }
 		uint32         GetWidth() const override { return m_Width; }
 		uint32         GetHeight() const override { return m_Height; }
@@ -25,7 +25,7 @@ namespace Poly
 	private:
 		const std::string m_Name;
 
-		EResourceType  m_Type{EResourceType::None};
+		EResourceType  m_ResourceType{EResourceType::None};
 		FResourceState m_InitialState{FResourceState::Unknown};
 		uint32         m_Width  = 0;
 		uint32         m_Height = 0;

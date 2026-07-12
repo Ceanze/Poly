@@ -34,10 +34,10 @@ namespace Poly
 		 */
 		virtual IResourceDeclaration& WithSize(uint32 width, uint32 height) = 0;
 
-		virtual EResourceType  GetType() const = 0;
+		virtual EResourceType  GetResourceType() const = 0;
 		virtual FResourceState GetInitialState() const = 0;
-		virtual uint32         GetWidth() const = 0;
-		virtual uint32         GetHeight() const = 0;
-		virtual bool           HasSize() const = 0;
+		virtual uint32         GetWidth() const        = 0;
+		virtual uint32         GetHeight() const       = 0;
+		virtual bool           HasSize() const         = 0;
 	};
 } // namespace Poly
