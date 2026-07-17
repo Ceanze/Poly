@@ -3,6 +3,7 @@
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 // glslang
+#include <glslang/Include/Common.h>
 #include <glslang/MachineIndependent/reflection.h>
 #include <SPIRV/GlslangToSpv.h>
 

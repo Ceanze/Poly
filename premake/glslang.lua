@@ -52,28 +52,6 @@ function generate_osdeplib(libpath)
 		filter {}
 end
 
-function generate_oglcompilerslib(libpath)
-	local root = libpath .. "/OGLCompilersDLL"
-
-	project "OGLCompiler"
-		kind "StaticLib"
-		language "C++"
-		location (_WORKING_DIR .. "/projects/%{prj.name}")
-
-		files
-		{
-			root .. "/InitializeDll.cpp",
-			root .. "/InitializeDll.h"
-		}
-
-		filter "system:windows"
-			defines { "GLSLANG_OSINCLUDE_WIN32" }
-
-		filter "system:linux OR system:macosx"
-			defines { "GLSLANG_OSINCLUDE_UNIX" }
-		filter {}
-end
-
 function generate_glslanglib(libpath)
 	generate_osdeplib(libpath)
 
@@ -114,6 +92,7 @@ function generate_glslanglib(libpath)
 
 		includedirs
 		{
+			libpath,
 			_WORKING_DIR .. "/projects/glslang/include"
 		}
 
@@ -125,7 +104,6 @@ function generate_glslanglib(libpath)
 
 		links
 		{
-			"OGLCompiler",
 			"GenericCodeGen",
 			"OSDependent"
 		}
@@ -160,7 +138,6 @@ function generate_glslanglib(libpath)
 
 		links
 		{
-			"OGLCompiler",
 			"OSDependent",
 			"MachineIndependent"
 		}
@@ -206,7 +183,7 @@ function generate_spirvlib(libpath)
 
 			-- Headers
 			root .. "/bitutils.h",
-			root .. "/spirv.hpp",
+			root .. "/spirv.hpp11",
 			root .. "/GLSL.std.450.h",
 			root .. "/GLSL.ext.EXT.h",
 			root .. "/GLSL.ext.KHR.h",
@@ -215,12 +192,16 @@ function generate_spirvlib(libpath)
 			root .. "/Logger.h",
 			root .. "/SpvBuilder.h",
 			root .. "/spvIR.h",
+			root .. "/spvUtil.h",
 			root .. "/doc.h",
 			root .. "/SpvTools.h",
 			root .. "/disassemble.h",
 			root .. "/GLSL.ext.AMD.h",
 			root .. "/GLSL.ext.NV.h",
-			root .. "/NonSemanticDebugPrintf.h"
+			root .. "/GLSL.ext.ARM.h",
+			root .. "/GLSL.ext.QCOM.h",
+			root .. "/NonSemanticDebugPrintf.h",
+			root .. "/NonSemanticShaderDebugInfo.h"
 		}
 
 		filter "system:windows"
@@ -236,7 +217,6 @@ local path = ( _WORKING_DIR .. "/Poly/libs/glslang")
 group "glslang"
 	generate_glslanglib(path)
 	generate_prebuildcommands(path)
-	generate_oglcompilerslib(path)
 	generate_spirvlib(path)
 
 group ""
