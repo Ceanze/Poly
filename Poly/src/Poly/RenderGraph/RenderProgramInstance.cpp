@@ -11,5 +11,7 @@ namespace Poly
 	void RenderProgramInstance::Execute(const RenderView& view)
 	{
 		(void)view;
+
+		m_FrameIndex = (m_FrameIndex + 1) % FRAMES_IN_FLIGHT;
 	}
 } // namespace Poly

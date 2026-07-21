@@ -19,6 +19,8 @@ namespace Poly
 	class RenderProgramInstance
 	{
 	public:
+		static constexpr uint32 FRAMES_IN_FLIGHT = 2;
+
 		explicit RenderProgramInstance(std::unique_ptr<RenderProgram> pRenderProgram);
 		~RenderProgramInstance() = default;
 		CLASS_REMOVE_COPY(RenderProgramInstance);
@@ -29,6 +31,7 @@ namespace Poly
 
 	private:
 		std::unique_ptr<RenderProgram> m_pRenderProgram;
+		uint32                         m_FrameIndex = 0;
 		// TODO (future): runtime handles for allocated GPU resources, pipeline/framebuffer caches
 	};
 } // namespace Poly
