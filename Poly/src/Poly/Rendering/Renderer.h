@@ -26,11 +26,11 @@ namespace Poly
 
 		/**
 		 * Sets the render program to use once it is safe to swap out the currently active one.
-		 * Constructs a RenderProgramInstance and queues it; it becomes active at the start of
-		 * the next Render() call.
+		 * Queues the compiled program; a RenderProgramInstance is constructed for
+		 * each window from it at the start of the next Render() call.
 		 * @param pRenderProgram
 		 */
-		void SetRenderProgram(std::unique_ptr<RenderProgram> pRenderProgram);
+		void SetRenderProgram(Ref<RenderProgram> pRenderProgram);
 
 		/**
 		 * Adds a window to be rendered when Render() is called
@@ -55,22 +55,24 @@ namespace Poly
 	private:
 		struct WindowContext
 		{
-			Window*        pWindow;
-			Ref<SwapChain> pSwapChain;
+			Window*                       pWindow;
+			Ref<SwapChain>                pSwapChain;
+			Unique<RenderProgramInstance> pRenderProgramInstance;
 		};
 
 		void CreateBackbufferResources(const WindowContext& windowCtx);
 
-		// Swaps in the queued RenderProgramInstance, if one is waiting. Called at a point in
-		// the frame where it's safe to retire the previously active instance (see
-		// plans/render_graph.md, "Render Program"). Real GPU-idle gating is future work.
-		void SwapRenderProgramInstanceIfQueued();
+		// Swaps in the queued RenderProgram, if one is waiting, by constructing a fresh
+		// RenderProgramInstance per window from it. Called at a point in the frame where it's
+		// safe to retire the previously active instances (see plans/render_graph.md, "Render
+		// Program"). Real GPU-idle gating is future work.
+		void SwapRenderProgramIfQueued();
 
-		bool                          m_HandleResize = false;
-		Ref<RenderGraphProgram>       m_pRenderGraphProgram;
-		std::vector<WindowContext>    m_Windows;
+		bool                       m_HandleResize = false;
+		Ref<RenderGraphProgram>    m_pRenderGraphProgram;
+		std::vector<WindowContext> m_Windows;
 
-		Unique<RenderProgramInstance> m_pActiveRenderProgramInstance;
-		Unique<RenderProgramInstance> m_pQueuedRenderProgramInstance;
+		Ref<RenderProgram> m_pActiveRenderProgram;
+		Ref<RenderProgram> m_pQueuedRenderProgram;
 	};
 } // namespace Poly

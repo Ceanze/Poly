@@ -37,9 +37,9 @@ namespace Poly
 		}
 	}
 
-	void Renderer::SetRenderProgram(std::unique_ptr<RenderProgram> pRenderProgram)
+	void Renderer::SetRenderProgram(Ref<RenderProgram> pRenderProgram)
 	{
-		m_pQueuedRenderProgramInstance = CreateUnique<RenderProgramInstance>(std::move(pRenderProgram));
+		m_pQueuedRenderProgram = std::move(pRenderProgram);
 	}
 
 	void Renderer::AddWindow(Window* pWindow)
@@ -54,7 +54,10 @@ namespace Poly
 		Ref<SwapChain> pSwapChain = RenderAPI::CreateSwapChain(&swapChainDesc);
 
 		WindowContext context{pWindow, pSwapChain};
-		m_Windows.emplace_back(context);
+		if (m_pActiveRenderProgram)
+			context.pRenderProgramInstance = CreateUnique<RenderProgramInstance>(m_pActiveRenderProgram);
+
+		m_Windows.emplace_back(std::move(context));
 	}
 
 	void Renderer::RemoveWindow(Window* pWindow)
@@ -64,16 +67,16 @@ namespace Poly
 
 	void Renderer::Render()
 	{
-		SwapRenderProgramInstanceIfQueued();
+		SwapRenderProgramIfQueued();
 
 		for (const WindowContext& windowCtx : m_Windows)
 		{
 			m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
 
-			if (m_pActiveRenderProgramInstance)
+			if (windowCtx.pRenderProgramInstance)
 			{
 				RenderView view{.pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
-				m_pActiveRenderProgramInstance->Execute(view);
+				windowCtx.pRenderProgramInstance->Execute(view);
 			}
 
 			std::vector<CommandBuffer*> emptyCommandbuffers;
@@ -107,9 +110,15 @@ namespace Poly
 		m_pRenderGraphProgram->RecreateResources(windowCtx.pWindow->GetWidth(), windowCtx.pWindow->GetHeight());
 	}
 
-	void Renderer::SwapRenderProgramInstanceIfQueued()
+	void Renderer::SwapRenderProgramIfQueued()
 	{
-		if (m_pQueuedRenderProgramInstance)
-			m_pActiveRenderProgramInstance = std::move(m_pQueuedRenderProgramInstance);
+		if (!m_pQueuedRenderProgram)
+			return;
+
+		m_pActiveRenderProgram = std::move(m_pQueuedRenderProgram);
+		m_pQueuedRenderProgram.reset();
+
+		for (WindowContext& windowCtx : m_Windows)
+			windowCtx.pRenderProgramInstance = CreateUnique<RenderProgramInstance>(m_pActiveRenderProgram);
 	}
 } // namespace Poly

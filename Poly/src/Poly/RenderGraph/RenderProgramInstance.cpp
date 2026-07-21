@@ -4,7 +4,7 @@
 
 namespace Poly
 {
-	RenderProgramInstance::RenderProgramInstance(std::unique_ptr<RenderProgram> pRenderProgram)
+	RenderProgramInstance::RenderProgramInstance(Ref<RenderProgram> pRenderProgram)
 	    : m_pRenderProgram(std::move(pRenderProgram))
 	{}
 

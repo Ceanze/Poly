@@ -374,12 +374,12 @@ namespace Poly
 		return SyncPlan(std::move(passPlans));
 	}
 
-	std::unique_ptr<RenderProgram> RenderProgramBuilder::Build()
+	Ref<RenderProgram> RenderProgramBuilder::Build()
 	{
 		auto flat     = FlattenFeatures();
 		auto nodes    = BuildDAG(flat);
 		auto sorted   = TopoSortALAP(nodes, flat);
 		auto syncPlan = PlanSynchronization(sorted);
-		return std::make_unique<RenderProgram>(std::move(sorted), std::move(syncPlan));
+		return CreateRef<RenderProgram>(std::move(sorted), std::move(syncPlan));
 	}
 } // namespace Poly

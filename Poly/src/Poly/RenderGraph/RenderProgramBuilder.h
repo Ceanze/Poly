@@ -3,7 +3,6 @@
 #include "RenderCatalog.h"
 #include "RenderProgram.h"
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -16,7 +15,7 @@ namespace Poly
 
 		RenderProgramBuilder& AddFeature(std::string_view name);
 
-		std::unique_ptr<RenderProgram> Build();
+		Ref<RenderProgram> Build();
 
 	private:
 		std::vector<ResolvedPass>    FlattenFeatures();

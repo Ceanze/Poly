@@ -3,8 +3,6 @@
 #include "Poly/Core/Core.h"
 #include "RenderProgram.h"
 
-#include <memory>
-
 namespace Poly
 {
 	struct RenderView;
@@ -13,15 +11,19 @@ namespace Poly
 	 * An instantiated, active version of a RenderProgram. Holds the compiled RenderProgram
 	 * together with the runtime graphics resources allocated for it.
 	 *
-	 * Ownership: constructed by Renderer::SetRenderProgram() and moved into place once it
-	 * becomes safe to swap out the previously active instance (see Renderer).
+	 * One instance exists per window (see Renderer::WindowContext) so that each window can
+	 * render a different view (camera/scene/target) and keep its own frame-in-flight state,
+	 * while all instances may share the same compiled RenderProgram.
+	 *
+	 * Ownership: constructed by Renderer for each window once a RenderProgram becomes active,
+	 * at a point where it's safe to retire the previously active instance (see Renderer).
 	 */
 	class RenderProgramInstance
 	{
 	public:
 		static constexpr uint32 FRAMES_IN_FLIGHT = 2;
 
-		explicit RenderProgramInstance(std::unique_ptr<RenderProgram> pRenderProgram);
+		explicit RenderProgramInstance(Ref<RenderProgram> pRenderProgram);
 		~RenderProgramInstance() = default;
 		CLASS_REMOVE_COPY(RenderProgramInstance);
 
@@ -30,8 +32,8 @@ namespace Poly
 		const RenderProgram& GetProgram() const { return *m_pRenderProgram; }
 
 	private:
-		std::unique_ptr<RenderProgram> m_pRenderProgram;
-		uint32                         m_FrameIndex = 0;
+		Ref<RenderProgram> m_pRenderProgram;
+		uint32             m_FrameIndex = 0;
 		// TODO (future): runtime handles for allocated GPU resources, pipeline/framebuffer caches
 	};
 } // namespace Poly
