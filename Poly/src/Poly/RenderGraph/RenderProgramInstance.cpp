@@ -10,8 +10,6 @@ namespace Poly
 
 	void RenderProgramInstance::Execute(const RenderView& view)
 	{
-		// TODO: iterate m_pRenderProgram->GetPasses() and dispatch pass execution once
-		// SetupContext/ExecuteContext and GPU resource allocation exist.
 		(void)view;
 	}
 } // namespace Poly
