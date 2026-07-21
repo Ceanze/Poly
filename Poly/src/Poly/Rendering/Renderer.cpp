@@ -72,7 +72,7 @@ namespace Poly
 
 			if (m_pActiveRenderProgramInstance)
 			{
-				RenderView view{.pTarget = windowCtx.pSwapChain.get()};
+				RenderView view{.pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
 				m_pActiveRenderProgramInstance->Execute(view);
 			}
 

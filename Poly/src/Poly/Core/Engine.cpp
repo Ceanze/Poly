@@ -7,6 +7,7 @@
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "polypch.h"
 #include "RenderAPI.h"
+#include "ThreadPool.h"
 #include "Timer.h"
 #include "Timestamp.h"
 
@@ -25,6 +26,8 @@ namespace Poly
 			POLY_CORE_FATAL("GLFW could not be initalized!");
 			return;
 		}
+
+		ThreadPool::Init();
 
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
@@ -64,6 +67,8 @@ namespace Poly
 
 	void Engine::Release()
 	{
+		ThreadPool::Release();
+
 		ShaderManager::Release();
 		ResourceLoader::Release();
 		ResourceManager::Release();
