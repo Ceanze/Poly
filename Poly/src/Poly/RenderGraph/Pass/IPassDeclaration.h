@@ -53,9 +53,11 @@ namespace Poly
 		 *
 		 * @param port The feature port to map.
 		 * @param shaderResourceName The name of the shader resource to map to. This should match a resource in the shader of the pass.
+		 * @param loadOp Overrides the auto-inferred attachment load op (first write in the program clears, later writes load).
+		 *               Leave at ELoadOp::NONE to keep the automatic behavior.
 		 * @return A reference to this for chaining.
 		 */
-		virtual PassDeclaration& MapResource(EFeaturePort port, std::string_view shaderResourceName) = 0;
+		virtual PassDeclaration& MapResource(EFeaturePort port, std::string_view shaderResourceName, ELoadOp loadOp = ELoadOp::NONE) = 0;
 
 		/*
 		 * Maps a global variable to a shader global of the pass.

@@ -93,8 +93,15 @@ layout(location = 0) out vec4 out_Color;
 void main()
 {
 	// Slot 0 here is a *texture* slot, unrelated to the buffer slot 0 used in the vertex shader -
-	// textureIndices and bufferAddresses are two independent arrays.
-	out_Color = texture(sampler2D(g_Textures[params.textureIndices[0]], g_Samplers[0]), in_UV);
+	// textureIndices and bufferAddresses are two independent arrays. Each textureIndices[] entry
+	// packs a texture index and a sampler index into one uint (see BindlessManager::TEXTURE_INDEX_BITS/
+	// SAMPLER_INDEX_BITS) - g_Textures and g_Samplers are registered into independent index spaces
+	// (4096 vs 256 slots) since many textures share the same handful of sampler configs, so the two
+	// halves must be unpacked separately rather than used as one shared index.
+	uint packed        = params.textureIndices[0];
+	uint textureIndex  = packed & 0xFFFu;         // low 12 bits (TEXTURE_INDEX_BITS)
+	uint samplerIndex  = (packed >> 12) & 0xFFu;  // next 8 bits (SAMPLER_INDEX_BITS)
+	out_Color = texture(sampler2D(g_Textures[textureIndex], g_Samplers[samplerIndex]), in_UV);
 }
 ```
 
@@ -283,8 +290,9 @@ void RenderProgramInstance::Execute(const RenderView& view)
 `PVKBuffer`, requiring buffers to opt in via a new `FBufferUsage::SHADER_DEVICE_ADDRESS` flag so only
 buffers actually consumed through `buffer_reference` pay for the `VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT`
 + `VkBufferDeviceAddressInfo` query cost. `m_ResourceCache.GetTextureHeapIndex()` is the texture-heap
-counterpart to `GetDeviceAddress()` - it returns whatever index the texture was registered at in the
-`g_Textures`/`g_Samplers` heap (registration itself, e.g. at asset-load time, is out of scope for this doc).
+counterpart to `GetDeviceAddress()` - it returns the packed texture+sampler index from
+`BindlessManager::RegisterTextureAndSampler()` (registration itself, e.g. at asset-load time, is out of
+scope for this doc).
 
 ## Future work
 

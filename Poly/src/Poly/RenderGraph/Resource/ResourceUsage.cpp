@@ -9,6 +9,24 @@ namespace Poly
 		return type == EResourceType::SampledImage || type == EResourceType::StorageImage;
 	}
 
+	bool IsBufferResourceType(EResourceType type)
+	{
+		switch (type)
+		{
+		case EResourceType::UniformTexelBuffer:
+		case EResourceType::StorageTexelBuffer:
+		case EResourceType::StorageBuffer:
+		case EResourceType::StorageBufferReadWrite:
+		case EResourceType::RawBuffer:
+		case EResourceType::RawBufferReadWrite:
+		case EResourceType::UniformBuffer:
+		case EResourceType::DynamicUniformBuffer:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	bool IsAttachmentSemanticPort(const std::string& resolvedName)
 	{
 		return resolvedName == ToSemanticName(EFeaturePort::Color) || resolvedName == ToSemanticName(EFeaturePort::Depth) ||

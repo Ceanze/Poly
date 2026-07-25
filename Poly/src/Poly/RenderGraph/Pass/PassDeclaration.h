@@ -34,6 +34,16 @@ namespace Poly
 	class SetupContext;
 	class ExecuteContext;
 
+	// A mapped feature port, plus an optional attachment load-op override. LoadOpOverride left at
+	// ELoadOp::NONE means "auto" - RenderProgramBuilder infers CLEAR on a resource's first write in
+	// the program and LOAD on subsequent writes (see PlanSynchronization).
+	struct ResourceMapping
+	{
+		EFeaturePort Port;
+		std::string  ShaderResourceName;
+		ELoadOp      LoadOpOverride = ELoadOp::NONE;
+	};
+
 	class PassDeclaration : public IPassDeclaration
 	{
 	public:
@@ -46,7 +56,7 @@ namespace Poly
 		PassDeclaration&                 OnQueue(FQueueType queue) override;
 		PassDeclarationGraphicsPipeline& WithGraphicsPipeline() override;
 
-		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName) override;
+		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName, ELoadOp loadOp = ELoadOp::NONE) override;
 		PassDeclaration& MapGlobal(std::string_view globalName, std::string_view shaderGlobalName) override;
 		PassDeclaration& ImportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
 		PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
@@ -61,7 +71,7 @@ namespace Poly
 		void CallSetupFn(SetupContext& ctx) const;
 		void CallExecuteFn(ExecuteContext& ctx) const;
 
-		const std::vector<std::pair<EFeaturePort, std::string>>& GetResourceMappings() const { return m_ResourceMappings; }
+		const std::vector<ResourceMapping>&                      GetResourceMappings() const { return m_ResourceMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetGlobalMappings() const { return m_GlobalMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetImportedResources() const { return m_ImportedResources; }
 		const std::vector<std::pair<std::string, std::string>>&  GetExportedResources() const { return m_ExportedResources; }
@@ -79,7 +89,7 @@ namespace Poly
 		std::function<void(ExecuteContext&)>              m_ExecuteFn;
 		PassDeclarationGraphicsPipeline                   m_GraphicsPipelineDecl;
 
-		std::vector<std::pair<EFeaturePort, std::string>> m_ResourceMappings;
+		std::vector<ResourceMapping>                      m_ResourceMappings;
 		std::vector<std::pair<std::string, std::string>>  m_GlobalMappings;
 		std::vector<std::pair<std::string, std::string>>  m_ImportedResources;
 		std::vector<std::pair<std::string, std::string>>  m_ExportedResources;

@@ -36,9 +36,9 @@ namespace Poly
 		return m_GraphicsPipelineDecl;
 	}
 
-	PassDeclaration& PassDeclaration::MapResource(EFeaturePort port, std::string_view shaderResourceName)
+	PassDeclaration& PassDeclaration::MapResource(EFeaturePort port, std::string_view shaderResourceName, ELoadOp loadOp)
 	{
-		m_ResourceMappings.emplace_back(port, std::string(shaderResourceName));
+		m_ResourceMappings.push_back({port, std::string(shaderResourceName), loadOp});
 		return *this;
 	}
 

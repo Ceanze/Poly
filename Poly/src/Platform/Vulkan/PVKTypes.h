@@ -89,6 +89,7 @@ namespace Poly
 		FLAG_CHECK(bufferUsage & FBufferUsage::TRANSFER_DST, mask |= VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		FLAG_CHECK(bufferUsage & FBufferUsage::RAY_TRACING, mask |= VK_BUFFER_USAGE_RAY_TRACING_BIT_NV);
 		FLAG_CHECK(bufferUsage & FBufferUsage::INDIRECT_BUFFER, mask |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
+		FLAG_CHECK(bufferUsage & FBufferUsage::SHADER_DEVICE_ADDRESS, mask |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
 		return mask;
 	}
 
@@ -338,6 +339,15 @@ namespace Poly
 		default:
 			return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 		}
+	}
+
+	inline VkDescriptorBindingFlags ConvertDescriptorBindingFlagVK(FDescriptorBindingFlag bindingFlag)
+	{
+		VkDescriptorBindingFlags mask = 0;
+		FLAG_CHECK(bindingFlag & FDescriptorBindingFlag::PARTIALLY_BOUND, mask |= VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
+		FLAG_CHECK(bindingFlag & FDescriptorBindingFlag::VARIABLE_DESCRIPTOR_COUNT, mask |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT);
+		FLAG_CHECK(bindingFlag & FDescriptorBindingFlag::UPDATE_AFTER_BIND, mask |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
+		return mask;
 	}
 
 	inline VkAttachmentLoadOp ConvertLoadOpVK(ELoadOp loadOp)

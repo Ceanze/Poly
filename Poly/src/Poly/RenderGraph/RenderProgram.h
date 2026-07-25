@@ -28,10 +28,22 @@ namespace Poly
 		EResourceType  ResourceType = EResourceType::None;
 		FResourceState InitialState = FResourceState::Unknown;
 
+		// Overrides the auto-inferred attachment load op ($Color/$Depth/$Stencil only). ELoadOp::NONE
+		// means "auto": RenderProgramBuilder::PlanSynchronization clears on a resource's first write
+		// in the program and loads on subsequent writes.
+		ELoadOp LoadOpOverride = ELoadOp::NONE;
+
 		// Explicit size from the matching IResourceDeclaration::WithSize(), or 0 if unset - in
 		// which case the resource is sized to the render target (see RenderProgramInstance).
 		uint32 Width  = 0;
 		uint32 Height = 0;
+	};
+
+	// Used to resolve bindless slot
+	struct ResolvedSlot
+	{
+		uint32      Slot = 0;
+		std::string ResourceName;
 	};
 
 	struct ResolvedPass
@@ -44,6 +56,12 @@ namespace Poly
 		std::function<void(ExecuteContext&)>              ExecuteFn;
 
 		FQueueType Queue = FQueueType::GRAPHICS;
+
+		std::vector<ResolvedSlot> BufferSlots;
+		std::vector<ResolvedSlot> TextureSlots;
+		uint32                    BufferSlotsOffset  = 0;
+		uint32                    TextureSlotsOffset = 0;
+		uint32                    PushConstantSize   = 0;
 	};
 
 	class RenderProgram

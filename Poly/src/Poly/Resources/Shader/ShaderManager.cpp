@@ -7,6 +7,7 @@
 
 namespace Poly
 {
+	std::mutex                   ShaderManager::s_Mutex   = {};
 	std::map<PolyID, ShaderData> ShaderManager::s_Shaders = {};
 
 	void ShaderManager::Init()
@@ -22,6 +23,7 @@ namespace Poly
 	{
 		PolyID hash{std::hash<std::string_view>{}(path)};
 
+		std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_Shaders.contains(hash))
 			return hash;
 
@@ -59,11 +61,13 @@ namespace Poly
 
 	bool ShaderManager::ShaderExists(PolyID shaderID)
 	{
+		std::lock_guard<std::mutex> lock(s_Mutex);
 		return s_Shaders.contains(shaderID);
 	}
 
 	const ShaderData& ShaderManager::GetShader(PolyID shaderID)
 	{
+		std::lock_guard<std::mutex> lock(s_Mutex);
 		const auto& shaderData = s_Shaders.find(shaderID);
 		const bool  exist      = shaderData != s_Shaders.end();
 		POLY_VALIDATE(exist, "Shader data cannot be gotten, shaderID {} is invalid", shaderID);

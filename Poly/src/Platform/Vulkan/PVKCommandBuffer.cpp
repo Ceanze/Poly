@@ -102,8 +102,12 @@ namespace Poly
 			colorAttachments.push_back(vkAttachment);
 		}
 
-		VkRenderingAttachmentInfo depthAttachmentVk   = ConvertRenderingAttachmentInfo(*pRenderingDesc->pDepthAttachment);
-		VkRenderingAttachmentInfo stencilAttachmentVk = ConvertRenderingAttachmentInfo(*pRenderingDesc->pStencilAttachment);
+		VkRenderingAttachmentInfo depthAttachmentVk   = {};
+		VkRenderingAttachmentInfo stencilAttachmentVk = {};
+		if (pRenderingDesc->pDepthAttachment)
+			depthAttachmentVk = ConvertRenderingAttachmentInfo(*pRenderingDesc->pDepthAttachment);
+		if (pRenderingDesc->pStencilAttachment)
+			stencilAttachmentVk = ConvertRenderingAttachmentInfo(*pRenderingDesc->pStencilAttachment);
 
 		VkRenderingInfo renderingInfo      = {};
 		renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -112,10 +116,10 @@ namespace Poly
 		renderingInfo.renderArea           = renderArea;
 		renderingInfo.layerCount           = pRenderingDesc->LayerCount;
 		renderingInfo.viewMask             = pRenderingDesc->ViewMask;
-		renderingInfo.colorAttachmentCount = colorAttachments.size();
+		renderingInfo.colorAttachmentCount = static_cast<uint32>(colorAttachments.size());
 		renderingInfo.pColorAttachments    = colorAttachments.data();
-		renderingInfo.pDepthAttachment     = &depthAttachmentVk;
-		renderingInfo.pStencilAttachment   = &stencilAttachmentVk;
+		renderingInfo.pDepthAttachment     = pRenderingDesc->pDepthAttachment ? &depthAttachmentVk : nullptr;
+		renderingInfo.pStencilAttachment   = pRenderingDesc->pStencilAttachment ? &stencilAttachmentVk : nullptr;
 
 		vkCmdBeginRendering(m_Buffer, &renderingInfo);
 	}

@@ -121,7 +121,7 @@ namespace Poly
 		 * Begin rendering stage - replaces render passes and framebuffers
 		 * @param RenderingDesc - The rendering details of where to render
 		 */
-		virtual void BeginRendering(const RenderingDesc* pRenderingDesc);
+		virtual void BeginRendering(const RenderingDesc* pRenderingDesc) = 0;
 
 		/**
 		 * Bind a pipeline

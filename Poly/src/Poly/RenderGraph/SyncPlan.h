@@ -74,6 +74,12 @@ namespace Poly
 		                                                        // for before this pass runs; absent = no wait needed
 		uint64_t SubmissionIndex = 0;                           // 1-based position within this pass's own queue's submission order; doubles as
 		                                                        // the SyncPoint signal value once this pass's work is submitted
+
+		// Load op for each of this pass's attachment writes ($Color/$Depth/$Stencil), keyed by resolved
+		// name. Computed once at compile time since it depends only on program order: CLEAR on a
+		// resource's first write in the program, LOAD on subsequent writes, unless a pass declared an
+		// explicit override (see ResolvedPort::LoadOpOverride).
+		std::unordered_map<std::string, ELoadOp> AttachmentLoadOps;
 	};
 
 	// The compile-time synchronization plan for a RenderProgram: one PassSyncPlan per pass, in the same

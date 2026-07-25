@@ -75,4 +75,13 @@ namespace Poly
 	{
 		return m_Buffer;
 	}
+
+	uint64_t PVKBuffer::GetDeviceAddress() const
+	{
+		VkBufferDeviceAddressInfo addressInfo = {};
+		addressInfo.sType                     = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+		addressInfo.buffer                    = m_Buffer;
+
+		return vkGetBufferDeviceAddress(PVKInstance::GetDevice(), &addressInfo);
+	}
 } // namespace Poly

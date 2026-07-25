@@ -28,6 +28,14 @@ namespace Poly
 	bool IsTextureResourceType(EResourceType type);
 
 	/*
+	 * Determines if a resource type is buffer-like and accessed via buffer device address (BDA) -
+	 * i.e. it's eligible for a bindless bufferAddresses[] slot (see plans/bindless.md).
+	 * @param type The resource type to check.
+	 * @return True if the resource type is buffer-like and BDA-eligible; false otherwise.
+	 */
+	bool IsBufferResourceType(EResourceType type);
+
+	/*
 	 * Determines if a resolved name corresponds to a semantic attachment port ("$Color"/"$Depth"/"$Stencil").
 	 * @param resolvedName The resolved name of the port to check.
 	 * @return True if the resolved name is a semantic attachment port; false otherwise.

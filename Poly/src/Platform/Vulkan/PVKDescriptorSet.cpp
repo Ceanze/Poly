@@ -49,10 +49,10 @@ namespace Poly
 		vkUpdateDescriptorSets(PVKInstance::GetDevice(), 1, &writeInfo, 0, nullptr);
 	}
 
-	void PVKDescriptorSet::UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler)
+	void PVKDescriptorSet::UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler, uint32 arrayIndex)
 	{
 		VkDescriptorImageInfo imageInfo = {};
-		imageInfo.sampler               = reinterpret_cast<PVKSampler*>(pSampler)->GetNativeVK();
+		imageInfo.sampler               = pSampler ? reinterpret_cast<PVKSampler*>(pSampler)->GetNativeVK() : VK_NULL_HANDLE;
 		imageInfo.imageView             = reinterpret_cast<const PVKTextureView*>(pTextureView)->GetNativeVK();
 		imageInfo.imageLayout           = ConvertTextureLayoutVK(layout);
 
@@ -66,7 +66,29 @@ namespace Poly
 		writeInfo.pBufferInfo          = nullptr;
 		writeInfo.pImageInfo           = &imageInfo;
 		writeInfo.pTexelBufferView     = nullptr;
-		writeInfo.dstArrayElement      = 0;
+		writeInfo.dstArrayElement      = arrayIndex;
+
+		vkUpdateDescriptorSets(PVKInstance::GetDevice(), 1, &writeInfo, 0, nullptr);
+	}
+
+	void PVKDescriptorSet::UpdateSamplerBinding(uint32 binding, Sampler* pSampler, uint32 arrayIndex)
+	{
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.sampler               = reinterpret_cast<PVKSampler*>(pSampler)->GetNativeVK();
+		imageInfo.imageView             = VK_NULL_HANDLE;
+		imageInfo.imageLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+
+		VkWriteDescriptorSet writeInfo = {};
+		writeInfo.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeInfo.pNext                = nullptr;
+		writeInfo.dstSet               = m_Set;
+		writeInfo.dstBinding           = binding;
+		writeInfo.descriptorCount      = 1;
+		writeInfo.descriptorType       = VK_DESCRIPTOR_TYPE_SAMPLER;
+		writeInfo.pBufferInfo          = nullptr;
+		writeInfo.pImageInfo           = &imageInfo;
+		writeInfo.pTexelBufferView     = nullptr;
+		writeInfo.dstArrayElement      = arrayIndex;
 
 		vkUpdateDescriptorSets(PVKInstance::GetDevice(), 1, &writeInfo, 0, nullptr);
 	}
@@ -75,10 +97,16 @@ namespace Poly
 	{
 		// Get pool sizes
 		std::unordered_map<EDescriptorType, VkDescriptorPoolSize> pools;
+		bool                                                      needsUpdateAfterBind = false;
 		for (auto& bindings : pLayout->GetBindings(m_SetIndex))
 		{
-			pools[bindings.DescriptorType].descriptorCount += 1;
+			pools[bindings.DescriptorType].descriptorCount += bindings.DescriptorCount;
 			pools[bindings.DescriptorType].type = ConvertDescriptorTypeVK(bindings.DescriptorType);
+
+			if (BitsSet(bindings.BindingFlags, FDescriptorBindingFlag::UPDATE_AFTER_BIND))
+				needsUpdateAfterBind = true;
+			if (BitsSet(bindings.BindingFlags, FDescriptorBindingFlag::VARIABLE_DESCRIPTOR_COUNT))
+				m_VariableDescriptorCount = bindings.DescriptorCount;
 		}
 
 		// Store the new sorted data in a packed array
@@ -92,6 +120,7 @@ namespace Poly
 		poolInfo.poolSizeCount              = static_cast<uint32>(poolSizes.size());
 		poolInfo.pPoolSizes                 = poolSizes.data();
 		poolInfo.maxSets                    = 1; // Since this instance will only be for one set
+		poolInfo.flags                      = needsUpdateAfterBind ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT : 0;
 
 		PVK_CHECK(vkCreateDescriptorPool(PVKInstance::GetDevice(), &poolInfo, nullptr, &m_Pool), "Failed to create descriptor pool with {} pools and {} max sets", poolInfo.poolSizeCount, poolInfo.maxSets);
 	}
@@ -100,11 +129,19 @@ namespace Poly
 	{
 		m_SetLayout = pLayout->GetDescriptorSetLayoutVK(m_SetIndex);
 
+		// For a bindless/variable-count binding (e.g. the global texture/sampler heap), the actual
+		// element count to allocate is decided here rather than at layout-creation time.
+		VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo = {};
+		variableCountInfo.sType                                              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+		variableCountInfo.descriptorSetCount                                 = 1;
+		variableCountInfo.pDescriptorCounts                                  = &m_VariableDescriptorCount;
+
 		VkDescriptorSetAllocateInfo allocInfo = {};
 		allocInfo.sType                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool              = m_Pool;
 		allocInfo.descriptorSetCount          = 1;
 		allocInfo.pSetLayouts                 = &m_SetLayout;
+		allocInfo.pNext                       = m_VariableDescriptorCount > 0 ? &variableCountInfo : nullptr;
 
 		PVK_CHECK(vkAllocateDescriptorSets(PVKInstance::GetDevice(), &allocInfo, &m_Set), "Failed to allocate descriptor sets for set {}!", m_SetIndex);
 	}

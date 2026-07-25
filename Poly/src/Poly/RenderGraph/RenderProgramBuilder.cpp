@@ -3,6 +3,7 @@
 #include "Feature/FeatureDeclaration.h"
 #include "Feature/FeaturePort.h"
 #include "Pass/PassDeclaration.h"
+#include "Poly/Resources/Shader/ShaderManager.h"
 #include "Resource/ResourceDeclaration.h"
 #include "Resource/ResourceUsage.h"
 #include "SetupContext.h"
@@ -78,8 +79,15 @@ namespace Poly
 				resolved.ExecuteFn    = pass->GetExecuteFn();
 				resolved.Queue        = pass->GetQueue();
 
-				for (const auto& [port, shaderName] : pass->GetResourceMappings())
-					resolved.Ports.push_back({shaderName, std::string(ToSemanticName(port)), /*IsWrite=*/true});
+				for (const ResourceMapping& mapping : pass->GetResourceMappings())
+				{
+					ResolvedPort port;
+					port.ShaderName      = mapping.ShaderResourceName;
+					port.ResolvedName    = std::string(ToSemanticName(mapping.Port));
+					port.IsWrite         = true;
+					port.LoadOpOverride  = mapping.LoadOpOverride;
+					resolved.Ports.push_back(std::move(port));
+				}
 
 				for (const auto& [globalName, shaderName] : pass->GetGlobalMappings())
 					resolved.Ports.push_back({shaderName, globalName, /*IsWrite=*/false});
@@ -253,6 +261,105 @@ namespace Poly
 		return result;
 	}
 
+	// Bindless slot assignment: walk each pass's ports in declaration order (the same order they
+	// were pushed in FlattenFeatures - ImportResource/ExportResource/MapResource/MapGlobal calls,
+	// in the order the pass author wrote them) and assign the next free textureIndices[]/
+	// bufferAddresses[] slot to each texture-/buffer-shaped port. Each shader stage is a separately
+	// compiled SPIR-V module, so a stage that never includes the shared BINDLESS_PUSH_CONSTANTS macro
+	// (e.g. a vertex shader with no bindless needs while the fragment shader has some) simply won't
+	// report a BindlessLayout - reflecting only one stage would silently miss slots another stage
+	// needs. So every stage is reflected and merged: the layout is present if any stage declares it,
+	// and PushConstantSize is the max across stages in case one stage's push-constant block has
+	// trailing fields beyond the shared macro that another stage's doesn't. Offsets/counts still come
+	// from the one shared macro and so are expected to agree wherever more than one stage declares
+	// them; a mismatch is logged rather than silently picking one. Passes whose shaders don't use the
+	// macro in any stage are left with empty slots and PushConstantSize == 0.
+	void RenderProgramBuilder::AssignBindlessSlots(std::vector<ResolvedPass>& passes) const
+	{
+		for (ResolvedPass& pass : passes)
+		{
+			if (pass.Shaders.empty())
+				continue;
+
+			ShaderBindlessLayout layout;
+			for (const auto& [shaderPath, shaderStage] : pass.Shaders)
+			{
+				const PolyID                shaderID    = ShaderManager::CreateShader(shaderPath, shaderStage);
+				const ShaderData&           shaderData  = ShaderManager::GetShader(shaderID);
+				const ShaderBindlessLayout& stageLayout = shaderData.Reflection.BindlessLayout;
+
+				if (stageLayout.HasTextureSlots)
+				{
+					if (layout.HasTextureSlots && (layout.TextureSlotsOffset != stageLayout.TextureSlotsOffset ||
+					                                layout.TextureSlotCount != stageLayout.TextureSlotCount))
+						POLY_CORE_ERROR("Pass '{}' shader stages disagree on textureIndices[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
+						                pass.Name, layout.TextureSlotCount, layout.TextureSlotsOffset,
+						                stageLayout.TextureSlotCount, stageLayout.TextureSlotsOffset);
+
+					layout.HasTextureSlots    = true;
+					layout.TextureSlotsOffset = stageLayout.TextureSlotsOffset;
+					layout.TextureSlotCount   = stageLayout.TextureSlotCount;
+				}
+
+				if (stageLayout.HasBufferSlots)
+				{
+					if (layout.HasBufferSlots && (layout.BufferSlotsOffset != stageLayout.BufferSlotsOffset ||
+					                               layout.BufferSlotCount != stageLayout.BufferSlotCount))
+						POLY_CORE_ERROR("Pass '{}' shader stages disagree on bufferAddresses[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
+						                pass.Name, layout.BufferSlotCount, layout.BufferSlotsOffset,
+						                stageLayout.BufferSlotCount, stageLayout.BufferSlotsOffset);
+
+					layout.HasBufferSlots    = true;
+					layout.BufferSlotsOffset = stageLayout.BufferSlotsOffset;
+					layout.BufferSlotCount   = stageLayout.BufferSlotCount;
+				}
+
+				for (const auto& pushConstant : shaderData.Reflection.PushConstants)
+					pass.PushConstantSize = std::max(pass.PushConstantSize, pushConstant.Offset + pushConstant.Size);
+			}
+
+			if (!layout.HasTextureSlots && !layout.HasBufferSlots)
+				continue;
+
+			pass.BufferSlotsOffset  = layout.BufferSlotsOffset;
+			pass.TextureSlotsOffset = layout.TextureSlotsOffset;
+
+			for (const ResolvedPort& port : pass.Ports)
+			{
+				if (IsTextureResourceType(port.ResourceType))
+				{
+					if (!layout.HasTextureSlots)
+						continue;
+
+					const uint32 slot = static_cast<uint32>(pass.TextureSlots.size());
+					if (slot >= layout.TextureSlotCount)
+					{
+						POLY_CORE_ERROR("Pass '{}' has more texture resources ({}) than its shader's textureIndices[] array supports ({}); '{}' was not assigned a slot.",
+						                pass.Name, slot + 1, layout.TextureSlotCount, port.ResolvedName);
+						continue;
+					}
+
+					pass.TextureSlots.push_back({slot, port.ResolvedName});
+				}
+				else if (IsBufferResourceType(port.ResourceType))
+				{
+					if (!layout.HasBufferSlots)
+						continue;
+
+					const uint32 slot = static_cast<uint32>(pass.BufferSlots.size());
+					if (slot >= layout.BufferSlotCount)
+					{
+						POLY_CORE_ERROR("Pass '{}' has more buffer resources ({}) than its shader's bufferAddresses[] array supports ({}); '{}' was not assigned a slot.",
+						                pass.Name, slot + 1, layout.BufferSlotCount, port.ResolvedName);
+						continue;
+					}
+
+					pass.BufferSlots.push_back({slot, port.ResolvedName});
+				}
+			}
+		}
+	}
+
 	// Phase 4: Plan explicit synchronization for the sorted pass list.
 	// Tracks, per resolved resource name, the last known layout/access/stage/owning-queue and compares
 	// it against what each port needs. Same-queue transitions batch into one BarrierGroup per consuming
@@ -311,7 +418,8 @@ namespace Poly
 
 				const ResourceUsage needed = DeriveResourceUsage(port.ResourceType, port.IsWrite, port.ResolvedName, passStages);
 
-				ResourceTrackState& rs = state[port.ResolvedName];
+				ResourceTrackState& rs           = state[port.ResolvedName];
+				const bool          isFirstTouch = !rs.IsTracked;
 				if (!rs.IsTracked)
 				{
 					rs.IsTracked = true;
@@ -324,6 +432,15 @@ namespace Poly
 						rs.Access                = seed.Access;
 						rs.Stage                 = seed.Stage;
 					}
+				}
+
+				// Attachment load op: a pass declaration can force one explicitly (LoadOpOverride); otherwise
+				// infer from program order - the first write to a resolved attachment name has nothing to
+				// preserve (CLEAR), any later write must preserve what an earlier pass already wrote (LOAD).
+				if (port.IsWrite && isAttachmentSemantic)
+				{
+					passPlans[i].AttachmentLoadOps[port.ResolvedName] =
+					    port.LoadOpOverride != ELoadOp::NONE ? port.LoadOpOverride : (isFirstTouch ? ELoadOp::CLEAR : ELoadOp::LOAD);
 				}
 
 				const bool queueDiffers  = rs.Queue != queue;
@@ -376,9 +493,10 @@ namespace Poly
 
 	Ref<RenderProgram> RenderProgramBuilder::Build()
 	{
-		auto flat     = FlattenFeatures();
-		auto nodes    = BuildDAG(flat);
-		auto sorted   = TopoSortALAP(nodes, flat);
+		auto flat   = FlattenFeatures();
+		auto nodes  = BuildDAG(flat);
+		auto sorted = TopoSortALAP(nodes, flat);
+		AssignBindlessSlots(sorted);
 		auto syncPlan = PlanSynchronization(sorted);
 		return CreateRef<RenderProgram>(std::move(sorted), std::move(syncPlan));
 	}
