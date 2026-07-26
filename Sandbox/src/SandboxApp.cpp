@@ -90,8 +90,6 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource(Poly::ResID("lights").GetAsExternal(), sizeof(LightBuffer), &data);
 
-		// m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
-
 		m_pProgram->SetScene(m_pScene);
 
 		// Poly::SceneSerializer sceneSerializer(m_pScene);

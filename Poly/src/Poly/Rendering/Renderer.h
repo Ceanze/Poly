@@ -19,6 +19,12 @@ namespace Poly
 		static Unique<Renderer> Create();
 
 		/**
+		 * Sets the scene to render (currently the same scene for all windows/render instances)
+		 * @param pScene - Scene to render
+		 */
+		void SetScene(Ref<Scene> pScene);
+
+		/**
 		 * Sets the currently used render graph program
 		 * @param pRenderGraphProgram
 		 */
@@ -72,6 +78,7 @@ namespace Poly
 		Ref<RenderGraphProgram>    m_pRenderGraphProgram;
 		std::vector<WindowContext> m_Windows;
 
+		Ref<Scene>         m_pScene;
 		Ref<RenderProgram> m_pActiveRenderProgram;
 		Ref<RenderProgram> m_pQueuedRenderProgram;
 	};

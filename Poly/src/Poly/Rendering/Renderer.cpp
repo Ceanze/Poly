@@ -27,6 +27,11 @@ namespace Poly
 		return CreateUnique<Renderer>();
 	}
 
+	void Renderer::SetScene(Ref<Scene> pScene)
+	{
+		m_pScene = pScene;
+	}
+
 	void Renderer::SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram)
 	{
 		m_pRenderGraphProgram = pRenderGraphProgram;
@@ -75,7 +80,8 @@ namespace Poly
 
 			if (windowCtx.pRenderProgramInstance)
 			{
-				RenderView view{.pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
+				RenderView view{.pScene  = m_pScene.get(),
+				                .pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
 				windowCtx.pRenderProgramInstance->Execute(view);
 			}
 
