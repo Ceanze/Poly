@@ -2,15 +2,15 @@
 
 ## No Scene→GPU bridge for the new system
 
-> High prio
+> Resolved by SceneRenderBridge (Poly/RenderGraph/SceneRenderBridge.h/.cpp)
 
-The old Scene::CreateRenderScene(RenderGraphProgram&) / RenderScene (RenderScene.h) batches meshes into vertex/instance/material buffers, but it's hard-coupled to the old RenderGraphProgram/ResID/PassResID types. There is no equivalent that builds a combined vertex buffer, per-instance transform buffer, and material-properties buffer matching pbr_bindless.frag's Vertex/MaterialValues layouts, nor anything that calls RenderProgramInstance::UpdateResource() with them.
+The old Scene::CreateRenderScene(RenderGraphProgram&) / RenderScene (RenderScene.h) batches meshes into vertex/instance/material buffers, but it's hard-coupled to the old RenderGraphProgram/ResID/PassResID types. SceneRenderBridge is the RG2 equivalent, wired via Scene::CreateSceneRenderBridge()/GetSceneRenderBridge() alongside (not replacing) the RG1 path. Unlike RenderScene it concatenates all meshes into one combined vertex/index buffer instead of binding each mesh's own buffer per draw - per-draw variation is expressed through DrawIndexedInstanced's baseVertex/firstIndex/firstInstance instead. Still open: no PBR pass is actually registered against RG2 yet (SandboxApp is still fully RG1) - that's blocked on the Renderer accessor below.
 
 ## Texture-per-material vs. one-texture-set-per-pass mismatch
 
-> High prio (indexed drawing handling for passes)
+> Resolved by SceneRenderBridge - moved into the MaterialValues buffer
 
-pbr_bindless.frag reads all textures from pc.textureIndices[0..5] — one fixed set for the whole pass/draw. But RecordPass builds and uploads push constants exactly once per pass, before ExecuteFn runs (RenderProgramInstance.cpp:585-595), not once per draw call. A multi-material scene like sponza can't get correct per-submesh textures this way unless texture indices move into the (already-indexed-by-gl_InstanceIndex) MaterialValues buffer instead of the push constant, or ExecuteFn gets a way to repack/repush constants between draws.
+pbr_bindless.frag used to read all textures from pc.textureIndices[0..5] — one fixed set for the whole pass/draw, built once per pass before ExecuteFn runs (RenderProgramInstance.cpp:585-595), not once per draw call. Per-material texture indices now live in MaterialValues.TextureIndices[6] (GPUMaterialData in SceneRenderBridge.h), indexed per-draw via in_MaterialIndex the same way the scalar PBR values already were - no push-constant repacking between draws needed.
 
 ## Renderer exposes no accessor to the live RenderProgramInstance
 

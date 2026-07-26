@@ -11,6 +11,11 @@
 //   bufferAddresses[1] = pbr_bindless.Vertices
 //   bufferAddresses[2] = pbr_bindless.Instances
 //   bufferAddresses[3.. ] = used by pbr_bindless.frag only, see there
+//
+// Vertices/Instances are combined, scene-wide buffers built by SceneRenderBridge (see
+// Poly/RenderGraph/SceneRenderBridge.h) - which mesh/instances a draw call touches comes from
+// DrawIndexedInstanced's own baseVertex/firstInstance parameters, not from anything in this push
+// constant, so the buffer addresses here never need to change between draw calls in the pass.
 
 // Structs
 struct Vertex
@@ -35,7 +40,7 @@ layout(buffer_reference, std430) readonly buffer VertexBuffer
 
 layout(buffer_reference, std430) readonly buffer InstanceBuffer
 {
-	mat4 transform[];
+	InstanceData data[];
 };
 
 layout(push_constant, std430) uniform PushConstants
@@ -55,10 +60,12 @@ void main() {
 	VertexBuffer   vertices  = VertexBuffer(pc.bufferAddresses[1]);
 	InstanceBuffer instances = InstanceBuffer(pc.bufferAddresses[2]);
 
-	vec4 worldPosition = instances.transform[gl_InstanceIndex] * vec4(vertices.vertex[gl_VertexIndex].Position.xyz, 1.0f);
+	InstanceData instanceData = instances.data[gl_InstanceIndex];
 
-	vec3 normal		= normalize(instances.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Normal).xyz;
-	vec3 tangent	= normalize(instances.transform[gl_InstanceIndex] * vertices.vertex[gl_VertexIndex].Tangent).xyz;
+	vec4 worldPosition = instanceData.Transform * vec4(vertices.vertex[gl_VertexIndex].Position.xyz, 1.0f);
+
+	vec3 normal		= normalize(instanceData.Transform * vertices.vertex[gl_VertexIndex].Normal).xyz;
+	vec3 tangent	= normalize(instanceData.Transform * vertices.vertex[gl_VertexIndex].Tangent).xyz;
 	vec3 bitangent	= normalize(cross(normal, tangent));
 	mat3 TBN		= mat3(tangent, bitangent, normal);
 
@@ -66,7 +73,7 @@ void main() {
 	out_Normal			= vertices.vertex[gl_VertexIndex].Normal.xyz;
 	out_TBN				= TBN;
 	out_WorldPos		= worldPosition.xyz;
-	out_MaterialIndex	= gl_InstanceIndex;
+	out_MaterialIndex	= instanceData.MaterialIndex;
 
 	gl_Position = camera.mat * worldPosition;
 }

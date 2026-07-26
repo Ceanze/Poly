@@ -414,15 +414,17 @@ namespace Poly
 
 		// Create and transfer data to buffers
 		// Vertices
+		// TRANSFER_SRC lets SceneRenderBridge copy this mesh's data GPU->GPU into the combined scene
+		// vertex/index buffers it builds for RG2's bindless PBR pass (see SceneRenderBridge.h).
 		BufferDesc desc           = {};
-		desc.BufferUsage          = FBufferUsage::TRANSFER_DST | FBufferUsage::STORAGE_BUFFER;
+		desc.BufferUsage          = FBufferUsage::TRANSFER_DST | FBufferUsage::TRANSFER_SRC | FBufferUsage::STORAGE_BUFFER;
 		desc.MemUsage             = EMemoryUsage::GPU_ONLY;
 		desc.Size                 = sizeof(Vertex) * vertices.size();
 		Ref<Buffer> pVertexBuffer = RenderAPI::CreateBuffer(&desc);
 		TransferDataToGPU(vertices.data(), desc.Size, sizeof(Vertex), pVertexBuffer);
 
 		// Indices
-		desc.BufferUsage         = FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
+		desc.BufferUsage         = FBufferUsage::TRANSFER_DST | FBufferUsage::TRANSFER_SRC | FBufferUsage::INDEX_BUFFER;
 		desc.MemUsage            = EMemoryUsage::GPU_ONLY;
 		desc.Size                = sizeof(uint32) * indices.size();
 		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);

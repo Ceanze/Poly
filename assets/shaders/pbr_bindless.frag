@@ -13,12 +13,12 @@ const float PI = 3.14159265359f;
 //   bufferAddresses[2] = pbr_bindless.Instances    (vert only)
 //   bufferAddresses[3] = $.scene:Lights
 //   bufferAddresses[4] = pbr_bindless.MaterialProperties
-//   textureIndices[0]  = pbr_bindless.Albedo
-//   textureIndices[1]  = pbr_bindless.Metallic
-//   textureIndices[2]  = pbr_bindless.Normal
-//   textureIndices[3]  = pbr_bindless.Roughness
-//   textureIndices[4]  = pbr_bindless.AO
-//   textureIndices[5]  = pbr_bindless.Combined
+//
+// Per-material texture indices used to live in textureIndices[0..5] here, but push constants only get
+// built once per pass, before ExecuteFn's draw loop runs - a multi-material scene can't get correct
+// per-submesh textures that way (see plans/missing_for_rg2.md). They now live inside each
+// MaterialValues row instead (MaterialValues.TextureIndices[], see below), indexed per-draw via
+// in_MaterialIndex the same way the scalar PBR values already were.
 
 // Inputs
 layout(location = 0) in vec2 in_TexCoord;
@@ -31,15 +31,6 @@ layout(location = 4) in mat3 in_TBN;
 layout(location = 0) out vec4 out_Color;
 
 // Structs
-struct MaterialValues
-{
-	vec4	Albedo;
-	float	AO;
-	float	Metallic;
-	float	Roughness;
-	float	IsCombined;
-};
-
 struct PointLight
 {
 	vec4	Color;
@@ -69,9 +60,9 @@ layout(push_constant, std430) uniform PushConstants
 	BINDLESS_PUSH_CONSTANTS;
 } pc;
 
-vec3 GenerateNormal(in mat3 TBN)
+vec3 GenerateNormal(in mat3 TBN, uint normalTexIndex)
 {
-	vec3 normal = SampleBindless(pc.textureIndices[2], in_TexCoord).rgb;
+	vec3 normal = SampleBindless(normalTexIndex, in_TexCoord).rgb;
 	normal = normal * 2.0f - 1.0f;
 	return normalize(TBN * normal);
 }
@@ -123,8 +114,8 @@ void main()
 	MaterialPropertiesBuffer materialProps = MaterialPropertiesBuffer(pc.bufferAddresses[4]);
 
 	MaterialValues mat = materialProps.material[in_MaterialIndex];
-	vec3 albedo		= (mat.Albedo * SampleBindless(pc.textureIndices[0], in_TexCoord)).rgb;
-	vec3 normal		= GenerateNormal(in_TBN);
+	vec3 albedo		= (mat.Albedo * SampleBindless(mat.TextureAlbedoIndex, in_TexCoord)).rgb;
+	vec3 normal		= GenerateNormal(in_TBN, mat.TextureNormalIndex);
 	vec3 viewDir	= normalize(camera.camPos.xyz - in_WorldPos);
 
 	float metallic	= 0.f;
@@ -133,16 +124,16 @@ void main()
 
 	if (mat.IsCombined > 0.5f)
 	{
-		vec3 tex	= SampleBindless(pc.textureIndices[5], in_TexCoord).rgb;
+		vec3 tex	= SampleBindless(mat.TextureCombinedIndex, in_TexCoord).rgb;
 		ao			= mat.AO		* tex.r;
 		roughness	= mat.Roughness	* tex.g;
 		metallic	= mat.Metallic	* tex.b;
 	}
 	else
 	{
-		metallic	= mat.Metallic	* SampleBindless(pc.textureIndices[1], in_TexCoord).r;
-		roughness	= mat.Roughness	* SampleBindless(pc.textureIndices[3], in_TexCoord).r;
-		ao			= mat.AO		* SampleBindless(pc.textureIndices[4], in_TexCoord).r;
+		metallic	= mat.Metallic	* SampleBindless(mat.TextureMetallicIndex, in_TexCoord).r;
+		roughness	= mat.Roughness	* SampleBindless(mat.TextureRoughnessIndex, in_TexCoord).r;
+		ao			= mat.AO		* SampleBindless(mat.TextureAmbientOcclusionIndex, in_TexCoord).r;
 	}
 
 	// Loop over the point lights
