@@ -103,9 +103,9 @@ namespace Poly
 			pools[bindings.DescriptorType].descriptorCount += bindings.DescriptorCount;
 			pools[bindings.DescriptorType].type = ConvertDescriptorTypeVK(bindings.DescriptorType);
 
-			if (BitsSet(bindings.BindingFlags, FDescriptorBindingFlag::UPDATE_AFTER_BIND))
+			if (BitsSet(bindings.BindingFlags, FDescriptorIndexingBindingFlag::UPDATE_AFTER_BIND))
 				needsUpdateAfterBind = true;
-			if (BitsSet(bindings.BindingFlags, FDescriptorBindingFlag::VARIABLE_DESCRIPTOR_COUNT))
+			if (BitsSet(bindings.BindingFlags, FDescriptorIndexingBindingFlag::VARIABLE_DESCRIPTOR_COUNT))
 				m_VariableDescriptorCount = bindings.DescriptorCount;
 		}
 

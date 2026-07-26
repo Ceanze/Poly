@@ -18,14 +18,14 @@ namespace Poly
 		texturesBinding.DescriptorType       = EDescriptorType::SAMPLED_IMAGE;
 		texturesBinding.DescriptorCount      = MAX_TEXTURES;
 		texturesBinding.ShaderStage          = FShaderStage::VERTEX | FShaderStage::FRAGMENT;
-		texturesBinding.BindingFlags         = FDescriptorBindingFlag::PARTIALLY_BOUND | FDescriptorBindingFlag::UPDATE_AFTER_BIND;
+		texturesBinding.BindingFlags         = FDescriptorIndexingBindingFlag::PARTIALLY_BOUND | FDescriptorIndexingBindingFlag::UPDATE_AFTER_BIND;
 
 		DescriptorSetBinding samplersBinding = {};
 		samplersBinding.Binding              = 1;
 		samplersBinding.DescriptorType       = EDescriptorType::SAMPLER;
 		samplersBinding.DescriptorCount      = MAX_SAMPLERS;
 		samplersBinding.ShaderStage          = FShaderStage::VERTEX | FShaderStage::FRAGMENT;
-		samplersBinding.BindingFlags         = FDescriptorBindingFlag::PARTIALLY_BOUND | FDescriptorBindingFlag::UPDATE_AFTER_BIND;
+		samplersBinding.BindingFlags         = FDescriptorIndexingBindingFlag::PARTIALLY_BOUND | FDescriptorIndexingBindingFlag::UPDATE_AFTER_BIND;
 
 		s_SetLayoutDesc.DescriptorSetBindings = {texturesBinding, samplersBinding};
 
@@ -47,10 +47,9 @@ namespace Poly
 
 	bool BindlessManager::SamplerDescLess::operator()(const SamplerDesc& a, const SamplerDesc& b) const
 	{
-		const auto AsTuple = [](const SamplerDesc& d)
-		{
+		const auto AsTuple = [](const SamplerDesc& d) {
 			return std::tie(d.MinFilter, d.MagFilter, d.AddressModeU, d.AddressModeV, d.AddressModeW, d.MipMapMode,
-			                 d.BorderColor, d.MipLodBias, d.MinLod, d.MaxLod, d.AnistropyEnable, d.MaxAnisotropy);
+			                d.BorderColor, d.MipLodBias, d.MinLod, d.MaxLod, d.AnistropyEnable, d.MaxAnisotropy);
 		};
 		return AsTuple(a) < AsTuple(b);
 	}

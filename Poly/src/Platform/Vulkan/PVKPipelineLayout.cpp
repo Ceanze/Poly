@@ -54,7 +54,7 @@ namespace Poly
 				bindingsVK.push_back(bindingVK);
 
 				bindingFlagsVK.push_back(ConvertDescriptorBindingFlagVK(binding.BindingFlags));
-				if (BitsSet(binding.BindingFlags, FDescriptorBindingFlag::UPDATE_AFTER_BIND))
+				if (BitsSet(binding.BindingFlags, FDescriptorIndexingBindingFlag::UPDATE_AFTER_BIND))
 					needsUpdateAfterBind = true;
 			}
 			m_DescriptorLayouts.push_back(savedLayout);

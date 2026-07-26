@@ -7,6 +7,7 @@ namespace Poly
 	class RenderGraphProgram;
 	class Window;
 	class Event;
+	class Scene;
 	class RenderProgram;
 	class RenderProgramInstance;
 
@@ -37,6 +38,15 @@ namespace Poly
 		 * @param pRenderProgram
 		 */
 		void SetRenderProgram(Ref<RenderProgram> pRenderProgram);
+
+		/**
+		 * Gets the RenderProgramInstance actively executing the current RenderProgram for a window.
+		 * Returns nullptr until a queued RenderProgram set via SetRenderProgram() has actually been
+		 * swapped in (see SwapRenderProgramIfQueued(), which runs at the start of the next Render()
+		 * call) - so this can still return nullptr on the very first frame after SetRenderProgram().
+		 * @param pWindow - window to get the instance for; nullptr uses the first added window.
+		 */
+		RenderProgramInstance* GetRenderProgramInstance(Window* pWindow = nullptr) const;
 
 		/**
 		 * Adds a window to be rendered when Render() is called

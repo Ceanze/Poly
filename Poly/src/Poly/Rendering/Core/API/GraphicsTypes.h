@@ -306,7 +306,7 @@ namespace Poly
 		VARIABLE_DESCRIPTOR_COUNT = FLAG(2), // Binding's array size is decided at allocation time, not layout-creation time
 		UPDATE_AFTER_BIND         = FLAG(3)  // May be updated after being bound to a command buffer, while still in flight
 	};
-	ENABLE_BITMASK_OPERATORS(FDescriptorBindingFlag);
+	ENABLE_BITMASK_OPERATORS(FDescriptorIndexingBindingFlag);
 
 	inline EDescriptorType ConvertBindpointToDescriptorType(FResourceBindPoint bindpoint)
 	{

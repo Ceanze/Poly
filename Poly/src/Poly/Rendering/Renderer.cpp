@@ -44,7 +44,21 @@ namespace Poly
 
 	void Renderer::SetRenderProgram(Ref<RenderProgram> pRenderProgram)
 	{
+		// TODO: Handle render program init in a clearer way
+		// This is done so now so that UpdateResource can be called in the program instance instead of after a Render call
 		m_pQueuedRenderProgram = std::move(pRenderProgram);
+		SwapRenderProgramIfQueued();
+	}
+
+	RenderProgramInstance* Renderer::GetRenderProgramInstance(Window* pWindow) const
+	{
+		for (const WindowContext& windowCtx : m_Windows)
+		{
+			if (!pWindow || windowCtx.pWindow == pWindow)
+				return windowCtx.pRenderProgramInstance.get();
+		}
+
+		return nullptr;
 	}
 
 	void Renderer::AddWindow(Window* pWindow)
@@ -72,11 +86,10 @@ namespace Poly
 
 	void Renderer::Render()
 	{
-		SwapRenderProgramIfQueued();
-
 		for (const WindowContext& windowCtx : m_Windows)
 		{
-			m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
+			if (m_pRenderGraphProgram)
+				m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
 
 			if (windowCtx.pRenderProgramInstance)
 			{
@@ -107,6 +120,11 @@ namespace Poly
 
 	void Renderer::CreateBackbufferResources(const WindowContext& windowCtx)
 	{
+		// The old (RG1) render graph program is optional - an app using only the new RenderProgram
+		// pipeline (see RenderProgram/RenderProgramInstance) never calls SetRenderGraph().
+		if (!m_pRenderGraphProgram)
+			return;
+
 		for (uint32 i = 0; i < BUFFER_COUNT; i++)
 		{
 			std::string name = "Backbuffer " + std::to_string(i);

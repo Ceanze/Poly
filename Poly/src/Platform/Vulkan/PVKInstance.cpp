@@ -591,6 +591,7 @@ namespace Poly
 		// TODO: Move this to an easier place for editing
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy        = VK_TRUE;
+		deviceFeatures.shaderInt64              = VK_TRUE;
 
 		VkPhysicalDeviceVulkan13Features vulkan13Features = {};
 		vulkan13Features.sType                            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;

@@ -192,7 +192,7 @@ namespace Poly
 	inline VkImageAspectFlags ConvertImageViewFlagsVK(FImageViewFlag imageViewFlag)
 	{
 		VkImageAspectFlags mask = 0;
-		FLAG_CHECK(imageViewFlag & FImageViewFlag::DEPTH_STENCIL, mask |= VK_IMAGE_ASPECT_DEPTH_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::DEPTH_STENCIL, mask |= VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 		FLAG_CHECK(imageViewFlag & FImageViewFlag::COLOR, mask |= VK_IMAGE_ASPECT_COLOR_BIT);
 		return mask;
 	}
@@ -341,12 +341,12 @@ namespace Poly
 		}
 	}
 
-	inline VkDescriptorBindingFlags ConvertDescriptorBindingFlagVK(FDescriptorBindingFlag bindingFlag)
+	inline VkDescriptorBindingFlags ConvertDescriptorBindingFlagVK(FDescriptorIndexingBindingFlag bindingFlag)
 	{
 		VkDescriptorBindingFlags mask = 0;
-		FLAG_CHECK(bindingFlag & FDescriptorBindingFlag::PARTIALLY_BOUND, mask |= VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
-		FLAG_CHECK(bindingFlag & FDescriptorBindingFlag::VARIABLE_DESCRIPTOR_COUNT, mask |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT);
-		FLAG_CHECK(bindingFlag & FDescriptorBindingFlag::UPDATE_AFTER_BIND, mask |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
+		FLAG_CHECK(bindingFlag & FDescriptorIndexingBindingFlag::PARTIALLY_BOUND, mask |= VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
+		FLAG_CHECK(bindingFlag & FDescriptorIndexingBindingFlag::VARIABLE_DESCRIPTOR_COUNT, mask |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT);
+		FLAG_CHECK(bindingFlag & FDescriptorIndexingBindingFlag::UPDATE_AFTER_BIND, mask |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
 		return mask;
 	}
 

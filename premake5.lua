@@ -198,6 +198,54 @@ project "Poly"
 		systemversion "latest"
 		buildoptions { "/utf-8" }
 
+project "RG2TestApp"
+	location "RG2TestApp"
+	kind "ConsoleApp"
+	cppdialect "c++20"
+
+	setDirs()
+	srcFiles()
+
+	externalincludedirs
+	{
+		get_vulkan_include_dir(vkPath),
+		"Poly/libs/glm",
+		"Poly/src",
+		"Poly/libs",
+		"Poly/libs/VMA/include",
+		"Poly/libs/entt/src",
+		"Poly/libs/spdlog/include"
+	}
+
+	links
+	{
+		"Poly"
+	}
+
+	filter "system:macosx"
+		links
+		{
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreFoundation.framework",
+			"Metal.framework",
+			"IOSurface.framework",
+			"QuartzCore.framework",
+			"vulkan"
+		}
+		libdirs
+		{
+			vkPath .. "/lib",
+		}
+		runpathdirs
+		{
+			vkPath .. "/lib",
+		}
+
+	filter "system:windows"
+		systemversion "latest"
+		buildoptions { "/utf-8" }
+
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
