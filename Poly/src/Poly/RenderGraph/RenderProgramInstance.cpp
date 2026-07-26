@@ -599,6 +599,8 @@ namespace Poly
 		for (const QueueReleasePlan& release : plan.PostReleases)
 			ApplyRelease(pCmd, release, pass.Queue, view);
 
+		ApplyBarrierGroup(pCmd, plan.PostBarriers, view);
+
 		pCmd->End();
 	}
 } // namespace Poly

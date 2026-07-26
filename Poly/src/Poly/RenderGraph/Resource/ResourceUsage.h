@@ -62,10 +62,13 @@ namespace Poly
 	                                  FPipelineStage passShaderStages);
 
 	/*
-	 * Converts a declared IResourceDeclaration::WithInitialState() into the equivalent barrier-planning state,
-	 * used to seed a resource's tracked state on first use instead of assuming ETextureLayout::UNDEFINED.
-	 * @param state The initial resource state.
+	 * Converts a declared FResourceState into the equivalent barrier-planning state. Used both to seed a
+	 * resource's tracked state on first use (RenderProgramBuilder::WithInitialState(), instead of assuming
+	 * ETextureLayout::UNDEFINED) and to require a resource end up in a specific state after its last use
+	 * in the program (RenderProgramBuilder::WithFinalState(), e.g. FResourceState::Present for a swapchain
+	 * image before vkQueuePresentKHR).
+	 * @param state The resource state to convert.
 	 * @return The converted resource usage.
 	 */
-	ResourceUsage ConvertInitialState(FResourceState state);
+	ResourceUsage ConvertResourceState(FResourceState state);
 } // namespace Poly

@@ -94,7 +94,7 @@ namespace Poly
 		}
 	}
 
-	ResourceUsage ConvertInitialState(FResourceState state)
+	ResourceUsage ConvertResourceState(FResourceState state)
 	{
 		switch (state)
 		{
@@ -131,7 +131,7 @@ namespace Poly
 			return {ETextureLayout::UNDEFINED, FAccessFlag::UNIFORM_READ, FPipelineStage::ALL_COMMANDS, FImageViewFlag::NONE};
 
 		default:
-			POLY_CORE_WARN("Unhandled initial resource state ({}), falling back to a conservative barrier.", (int)state);
+			POLY_CORE_WARN("Unhandled resource state ({}), falling back to a conservative barrier.", (int)state);
 			return {ETextureLayout::GENERAL, FAccessFlag::MEMORY_READ | FAccessFlag::MEMORY_WRITE, FPipelineStage::ALL_COMMANDS,
 			        FImageViewFlag::COLOR};
 		}

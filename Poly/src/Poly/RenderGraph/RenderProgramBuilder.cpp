@@ -38,6 +38,18 @@ namespace Poly
 		return *this;
 	}
 
+	RenderProgramBuilder& RenderProgramBuilder::WithInitialState(std::string_view resolvedName, FResourceState state)
+	{
+		m_InitialStates[std::string(resolvedName)] = state;
+		return *this;
+	}
+
+	RenderProgramBuilder& RenderProgramBuilder::WithFinalState(std::string_view resolvedName, FResourceState state)
+	{
+		m_FinalStates[std::string(resolvedName)] = state;
+		return *this;
+	}
+
 	// Phase 1: Expand features into an ordered flat list of passes with resolved port names.
 	// Import/export resource names are scoped per feature instance ("featureName#N.resName")
 	// so that two uses of the same feature don't share internal resource connections.
@@ -82,10 +94,10 @@ namespace Poly
 				for (const ResourceMapping& mapping : pass->GetResourceMappings())
 				{
 					ResolvedPort port;
-					port.ShaderName      = mapping.ShaderResourceName;
-					port.ResolvedName    = std::string(ToSemanticName(mapping.Port));
-					port.IsWrite         = true;
-					port.LoadOpOverride  = mapping.LoadOpOverride;
+					port.ShaderName     = mapping.ShaderResourceName;
+					port.ResolvedName   = std::string(ToSemanticName(mapping.Port));
+					port.IsWrite        = true;
+					port.LoadOpOverride = mapping.LoadOpOverride;
 					resolved.Ports.push_back(std::move(port));
 				}
 
@@ -113,6 +125,10 @@ namespace Poly
 						p.Height       = resDecl->GetHeight();
 						p.IsExternal   = !resDecl->HasSize();
 					}
+
+					// Builder-level override
+					if (auto it = m_InitialStates.find(p.ResolvedName); it != m_InitialStates.end())
+						p.InitialState = it->second;
 				}
 
 				flat.push_back(std::move(resolved));
@@ -291,7 +307,7 @@ namespace Poly
 				if (stageLayout.HasTextureSlots)
 				{
 					if (layout.HasTextureSlots && (layout.TextureSlotsOffset != stageLayout.TextureSlotsOffset ||
-					                                layout.TextureSlotCount != stageLayout.TextureSlotCount))
+					                               layout.TextureSlotCount != stageLayout.TextureSlotCount))
 						POLY_CORE_ERROR("Pass '{}' shader stages disagree on textureIndices[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
 						                pass.Name, layout.TextureSlotCount, layout.TextureSlotsOffset,
 						                stageLayout.TextureSlotCount, stageLayout.TextureSlotsOffset);
@@ -304,7 +320,7 @@ namespace Poly
 				if (stageLayout.HasBufferSlots)
 				{
 					if (layout.HasBufferSlots && (layout.BufferSlotsOffset != stageLayout.BufferSlotsOffset ||
-					                               layout.BufferSlotCount != stageLayout.BufferSlotCount))
+					                              layout.BufferSlotCount != stageLayout.BufferSlotCount))
 						POLY_CORE_ERROR("Pass '{}' shader stages disagree on bufferAddresses[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
 						                pass.Name, layout.BufferSlotCount, layout.BufferSlotsOffset,
 						                stageLayout.BufferSlotCount, stageLayout.BufferSlotsOffset);
@@ -371,6 +387,7 @@ namespace Poly
 	struct ResourceTrackState
 	{
 		bool           IsTracked     = false;
+		bool           IsTexture     = false;
 		ETextureLayout Layout        = ETextureLayout::UNDEFINED;
 		FAccessFlag    Access        = FAccessFlag::NONE;
 		FPipelineStage Stage         = FPipelineStage::NONE;
@@ -420,6 +437,7 @@ namespace Poly
 
 				ResourceTrackState& rs           = state[port.ResolvedName];
 				const bool          isFirstTouch = !rs.IsTracked;
+				rs.IsTexture                     = isTexture;
 				if (!rs.IsTracked)
 				{
 					rs.IsTracked = true;
@@ -427,7 +445,7 @@ namespace Poly
 
 					if (port.InitialState != FResourceState::Unknown)
 					{
-						const ResourceUsage seed = ConvertInitialState(port.InitialState);
+						const ResourceUsage seed = ConvertResourceState(port.InitialState);
 						rs.Layout                = seed.Layout;
 						rs.Access                = seed.Access;
 						rs.Stage                 = seed.Stage;
@@ -486,6 +504,32 @@ namespace Poly
 				}
 				// else: this queue already waited far enough -- cross-queue indirect sync elision.
 			}
+		}
+
+		// Closing transitions: for each resolved name with a declared WithFinalState(), leave it in that
+		// state after its last use in the program (e.g. "$Color" -> Present)
+		for (const auto& [resolvedName, finalState] : m_FinalStates)
+		{
+			auto it = state.find(resolvedName);
+			if (it == state.end() || !it->second.IsTracked)
+			{
+				POLY_CORE_WARN("WithFinalState was declared for '{}', but no pass in this program touches it.", resolvedName);
+				continue;
+			}
+
+			ResourceTrackState& rs            = it->second;
+			const ResourceUsage target        = ConvertResourceState(finalState);
+			const bool          layoutDiffers = rs.IsTexture && rs.Layout != target.Layout;
+
+			if (!layoutDiffers && rs.Access == target.Access && rs.Stage == target.Stage)
+				continue; // already exactly where it needs to end up
+
+			if (rs.IsTexture)
+				passPlans[rs.LastPassIndex].PostBarriers.Textures.push_back(
+				    {resolvedName, rs.Layout, target.Layout, rs.Access, target.Access, rs.Stage, target.Stage, target.AspectMask});
+			else
+				passPlans[rs.LastPassIndex].PostBarriers.Buffers.push_back(
+				    {resolvedName, rs.Access, target.Access, rs.Stage, target.Stage});
 		}
 
 		return SyncPlan(std::move(passPlans));

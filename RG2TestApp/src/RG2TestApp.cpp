@@ -16,12 +16,6 @@
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
 
-// RG2TestApp - exercises the new (RG2) render graph (Poly/RenderGraph/*) instead of the old
-// RenderGraph/RenderGraphProgram pipeline SandboxApp still uses. See plans/render_graph.md and
-// plans/bindless.md for the design this is built against, and plans/missing_for_rg2.md for what
-// still had to be worked around/added to get this running (RG2TestApp.cpp bottom, and the small
-// Renderer accessor + null-guard added alongside this app).
-
 namespace
 {
 	struct CameraBuffer
@@ -59,11 +53,15 @@ public:
 		m_pScene = Poly::Scene::Create("RG2TestScene");
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
-		Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
+		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
+		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		RegisterGeometryFeature();
 
-		Poly::Ref<Poly::RenderProgram> pProgram = m_Graph.Begin().AddFeature("geometry").Build();
+		Poly::Ref<Poly::RenderProgram> pProgram = m_Graph.Begin()
+		                                              .AddFeature("geometry")
+		                                              .WithFinalState(Poly::ToSemanticName(Poly::EFeaturePort::Color), Poly::FResourceState::Present)
+		                                              .Build();
 
 		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
 		pRenderer->SetScene(m_pScene);
@@ -126,12 +124,8 @@ public:
 	}
 
 private:
-	// Registers the "pbr" pass and wraps it in a "geometry" feature - the RG2 equivalent of
-	// SandboxApp's PBRPass::Create() + AddPass()/AddLink() calls. Buffer resources are mapped with
-	// MapGlobal() in the exact order pbr_bindless.vert/.frag hard-code their bufferAddresses[] slots
-	// at (see the comments at the top of those shaders, and plans/bindless.md) - AssignBindlessSlots()
-	// assigns slots by walking a pass's ports in this declaration order, so the order below is load
-	// bearing: Camera(0), scene.vertices(1), scene.instances(2), Lights(3), scene.materials(4).
+	// Current shader restriction means the order resources are registered must match the order they are bound in the shader. Until slang, this is the case
+	// the order below is load bearing: Camera(0), scene.vertices(1), scene.instances(2), Lights(3), scene.materials(4).
 	void RegisterGeometryFeature()
 	{
 		m_Graph.RegisterResource("Camera").WithType(Poly::EResourceType::UniformBuffer);
