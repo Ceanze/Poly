@@ -11,6 +11,10 @@ RenderGraph.RegisterPass("imgui")
     .WithGraphicsPipeline()
         .AddVertexInput()
             .Binding(0)
+            // Stride/VertexInputRate only need to be set once - the Vulkan backend reads them off
+            // VertexInputs[0] as the one shared binding for the whole pipeline (see PVKGraphicsPipeline::Init).
+            .Stride(sizeof(ImDrawVert))
+            .VertexInputRate(EVertexInputRate::VERTEX)
             .Location(0)
             .Format(EFormat::R32G32_SFLOAT)
             .Offset(offsetof(ImDrawVert, pos))

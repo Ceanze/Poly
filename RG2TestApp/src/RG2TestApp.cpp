@@ -1,7 +1,11 @@
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
+#include "Platform/API/Sampler.h"
+#include "Platform/API/Texture.h"
+#include "Platform/API/TextureView.h"
 #include "Poly.h"
 #include "Poly/Core/Input/InputManager.h"
+#include "Poly/Core/Logger.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Core/Window.h"
 #include "Poly/Events/MouseEvent.h"
@@ -12,9 +16,12 @@
 #include "Poly/RenderGraph/RenderProgramInstance.h"
 #include "Poly/RenderGraph/SceneRenderBridge.h"
 #include "Poly/Rendering/Renderer.h"
+#include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/ResourceManager.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
+
+#include <imgui/imgui.h>
 
 namespace
 {
@@ -35,6 +42,20 @@ namespace
 		glm::vec4  LightCount = {1.0f, 0.0f, 0.0f, 0.0f};
 		PointLight PointLight = {};
 	};
+
+	// Mirrors UIGlobalsBuffer in shaders/ui_bindless.vert byte-for-byte.
+	struct UIGlobalsBuffer
+	{
+		glm::vec2 Scale;
+		glm::vec2 Translate;
+	};
+
+	// Fixed-capacity ImGui vertex/index buffers, generous enough for ImGui::ShowDemoWindow(). Avoids
+	// resizing them mid-session, which would need frame-in-flight-aware deferred destruction that
+	// nothing else in RG2TestApp does yet (Camera/Lights follow the same single-buffer-updated-in-place
+	// pattern).
+	constexpr uint32 MAX_UI_VERTICES = 64 * 1024;
+	constexpr uint32 MAX_UI_INDICES  = 128 * 1024;
 } // namespace
 
 class RG2TestLayer : public Poly::Layer
@@ -57,9 +78,11 @@ public:
 		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		RegisterGeometryFeature();
+		RegisterUIFeature();
 
 		Poly::Ref<Poly::RenderProgram> pProgram = m_Graph.Begin()
 		                                              .AddFeature("geometry")
+		                                              .AddFeature("ui")
 		                                              .WithFinalState(Poly::ToSemanticName(Poly::EFeaturePort::Color), Poly::FResourceState::Present)
 		                                              .Build();
 
@@ -90,6 +113,8 @@ public:
 
 		pInstance->UpdateResource("Camera", m_pCameraBuffer);
 		pInstance->UpdateResource("Lights", m_pLightsBuffer);
+
+		SetupUIResources(pInstance);
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
@@ -111,6 +136,8 @@ public:
 		m_pCamera->Update(dt);
 		CameraBuffer cameraData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
 		m_pCameraBuffer->TransferData(&cameraData, sizeof(CameraBuffer), 0);
+
+		UpdateUI();
 	}
 
 	void OnDetach() override { delete m_pCamera; }
@@ -172,6 +199,198 @@ private:
 		m_Graph.RegisterFeature("geometry").WithPass("pbr");
 	}
 
+	// Font-only ImGui pass: only ever samples the font atlas, so its one texture resolves to a single
+	// bindless slot built once per frame - no per-draw texture switching, which RG2 doesn't support yet
+	// (ExecuteContext exposes no way to update push constants mid-pass; see ui_bindless.frag).
+	void RegisterUIFeature()
+	{
+		m_Graph.RegisterResource("UIGlobals").WithType(Poly::EResourceType::UniformBuffer);
+		m_Graph.RegisterResource("FontTexture").WithType(Poly::EResourceType::SampledImage);
+
+		// clang-format off
+		m_Graph.RegisterPass("ui")
+		    .WithShader("shaders/ui_bindless.vert", Poly::FShaderStage::VERTEX)
+		    .WithShader("shaders/ui_bindless.frag", Poly::FShaderStage::FRAGMENT)
+		    .MapResource(Poly::EFeaturePort::Color, "out_Color") // auto-inferred LOAD op: "geometry" already wrote $Color first
+		    .MapGlobal("UIGlobals", "globals")
+		    .MapGlobal("FontTexture", "sTexture")
+		    .WithGraphicsPipeline()
+		    .AddVertexInput()
+				.Binding(0)
+				// TODO: Set Stride/VertexInputRate on the pipeline, not per-vertex-input, since PVKGraphicsPipeline only reads them off the first vertex input.
+				// PVKGraphicsPipeline only reads Stride/VertexInputRate off VertexInputs[0] (one shared
+				// binding for the whole pipeline) - has to be set here even though it describes binding 0
+				// as a whole, not just the "pos" attribute.
+				.Stride(sizeof(ImDrawVert))
+				.VertexInputRate(Poly::EVertexInputRate::VERTEX)
+				.Location(0)
+				.Format(Poly::EFormat::R32G32_SFLOAT)
+				.Offset(offsetof(ImDrawVert, pos))
+		    .AddVertexInput()
+				.Binding(0)
+				.Location(1)
+				.Format(Poly::EFormat::R32G32_SFLOAT)
+				.Offset(offsetof(ImDrawVert, uv))
+		    .AddVertexInput()
+				.Binding(0)
+				.Location(2)
+				.Format(Poly::EFormat::R8G8B8A8_UNORM)
+				.Offset(offsetof(ImDrawVert, col))
+		    .FinishVertexInput()
+		    .Topology(Poly::ETopology::TRIANGLE_LIST)
+		    .PolygonMode(Poly::EPolygonMode::FILL)
+		    .CullMode(Poly::ECullMode::NONE)
+		    .ClockwiseFrontFace(true)
+		    .ViewportDynamic(true)
+		    .ScissorDynamic(true)
+		    .DepthTestEnable(false)
+		    .DepthWriteEnable(false)
+		    .AddColorBlendAttachment()
+				.BlendEnable(true)
+				.SrcColorBlendFactor(Poly::EBlendFactor::SRC_ALPHA)
+				.DstColorBlendFactor(Poly::EBlendFactor::ONE_MINUS_SRC_ALPHA)
+				.ColorBlendOp(Poly::EBlendOp::ADD)
+				.SrcAlphaBlendFactor(Poly::EBlendFactor::ONE_MINUS_SRC_ALPHA)
+				.DstAlphaBlendFactor(Poly::EBlendFactor::ZERO)
+				.AlphaBlendOp(Poly::EBlendOp::ADD)
+				.ColorWriteMask(Poly::FColorComponentFlag::RED | Poly::FColorComponentFlag::GREEN | Poly::FColorComponentFlag::BLUE |
+								Poly::FColorComponentFlag::ALPHA)
+		    .FinishColorBlendAttachment()
+		    .FinishPipeline()
+		    .WithExecuteFn([this](Poly::ExecuteContext& ctx) {
+			    ImDrawData* pDrawData = ImGui::GetDrawData();
+			    if (!pDrawData || !pDrawData->Valid || pDrawData->CmdListsCount == 0)
+				    return;
+
+			    Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
+			    pCmd->BindVertexBuffer(m_pUIVertexBuffer.get(), 0, 1, 0);
+			    pCmd->BindIndexBuffer(m_pUIIndexBuffer.get(), 0, Poly::EIndexType::UINT16);
+
+			    uint32 vertexOffset = 0;
+			    uint32 indexOffset  = 0;
+			    for (int i = 0; i < pDrawData->CmdListsCount; i++)
+			    {
+				    const ImDrawList* pCmdList = pDrawData->CmdLists[i];
+				    for (int j = 0; j < pCmdList->CmdBuffer.Size; j++)
+				    {
+					    const ImDrawCmd* pImCmd = &pCmdList->CmdBuffer[j];
+
+					    Poly::ScissorDesc scissor = {};
+					    scissor.OffsetX           = std::max(static_cast<int>(pImCmd->ClipRect.x), 0);
+					    scissor.OffsetY           = std::max(static_cast<int>(pImCmd->ClipRect.y), 0);
+					    scissor.Width             = static_cast<uint32>(pImCmd->ClipRect.z - pImCmd->ClipRect.x);
+					    scissor.Height            = static_cast<uint32>(pImCmd->ClipRect.w - pImCmd->ClipRect.y);
+					    pCmd->SetScissor(&scissor);
+
+					    pCmd->DrawIndexedInstanced(pImCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
+					    indexOffset += pImCmd->ElemCount;
+				    }
+				    vertexOffset += pCmdList->VtxBuffer.Size;
+			    }
+		    });
+		// clang-format on
+
+		m_Graph.RegisterFeature("ui").WithPass("ui");
+	}
+
+	// Creates the font atlas texture/sampler and the fixed-capacity vertex/index/globals buffers, and
+	// registers the font atlas + globals buffer with the render program instance once - only the
+	// buffers' contents change per frame afterwards (see UpdateUI()), same pattern as Camera/Lights.
+	void SetupUIResources(Poly::RenderProgramInstance* pInstance)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		unsigned char* pFontData = nullptr;
+		int            width = 0, height = 0;
+		io.Fonts->GetTexDataAsRGBA32(&pFontData, &width, &height);
+
+		m_pFontTexture = Poly::ResourceLoader::LoadTextureFromMemory(pFontData, width, height, 4, Poly::EFormat::R8G8B8A8_UNORM);
+
+		Poly::TextureViewDesc viewDesc = {};
+		viewDesc.pTexture              = m_pFontTexture.get();
+		viewDesc.ImageViewType         = Poly::EImageViewType::TYPE_2D;
+		viewDesc.ImageViewFlag         = Poly::FImageViewFlag::SHADER_RESOURCE;
+		viewDesc.Format                = Poly::EFormat::R8G8B8A8_UNORM;
+		viewDesc.MipLevelCount         = 1;
+		viewDesc.ArrayLayerCount       = 1;
+		m_pFontTextureView             = Poly::RenderAPI::CreateTextureView(&viewDesc);
+
+		Poly::SamplerDesc samplerDesc = {};
+		samplerDesc.MagFilter         = Poly::EFilter::LINEAR;
+		samplerDesc.MinFilter         = Poly::EFilter::LINEAR;
+		samplerDesc.MipMapMode        = Poly::ESamplerMipmapMode::LINEAR;
+		samplerDesc.AddressModeU      = Poly::ESamplerAddressMode::CLAMP_TO_EDGE;
+		samplerDesc.AddressModeV      = Poly::ESamplerAddressMode::CLAMP_TO_EDGE;
+		samplerDesc.AddressModeW      = Poly::ESamplerAddressMode::CLAMP_TO_EDGE;
+		samplerDesc.BorderColor       = Poly::EBorderColor::FLOAT_OPAQUE_WHITE;
+		m_pFontSampler                = Poly::RenderAPI::CreateSampler(&samplerDesc);
+
+		io.Fonts->TexID = (ImTextureID)m_pFontTextureView.get();
+
+		Poly::BufferDesc globalsDesc = {};
+		globalsDesc.Size             = sizeof(UIGlobalsBuffer);
+		globalsDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
+		globalsDesc.BufferUsage      = Poly::FBufferUsage::UNIFORM_BUFFER | Poly::FBufferUsage::SHADER_DEVICE_ADDRESS;
+		m_pUIGlobalsBuffer           = Poly::RenderAPI::CreateBuffer(&globalsDesc);
+
+		Poly::BufferDesc vertexDesc = {};
+		vertexDesc.Size             = MAX_UI_VERTICES * sizeof(ImDrawVert);
+		vertexDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
+		vertexDesc.BufferUsage      = Poly::FBufferUsage::VERTEX_BUFFER;
+		m_pUIVertexBuffer           = Poly::RenderAPI::CreateBuffer(&vertexDesc);
+
+		Poly::BufferDesc indexDesc = {};
+		indexDesc.Size             = MAX_UI_INDICES * sizeof(ImDrawIdx);
+		indexDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
+		indexDesc.BufferUsage      = Poly::FBufferUsage::INDEX_BUFFER;
+		m_pUIIndexBuffer           = Poly::RenderAPI::CreateBuffer(&indexDesc);
+
+		pInstance->UpdateResource("FontTexture", m_pFontTextureView, m_pFontSampler);
+		pInstance->UpdateResource("UIGlobals", m_pUIGlobalsBuffer);
+	}
+
+	// Builds this frame's ImGui draw data and uploads it - called once per frame from OnUpdate(),
+	// before Renderer::Render() records the "ui" pass's command buffer.
+	void UpdateUI()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		// TODO: replace with real UI content; demo window only proves font-only text/widget rendering works.
+		ImGui::ShowDemoWindow();
+		ImGui::Render();
+
+		ImDrawData* pDrawData = ImGui::GetDrawData();
+		if (!pDrawData || !pDrawData->Valid)
+			return;
+
+		UIGlobalsBuffer globals = {};
+		globals.Scale           = glm::vec2(2.0f / io.DisplaySize.x, 2.0f / io.DisplaySize.y);
+		globals.Translate       = glm::vec2(-1.0f, -1.0f);
+		m_pUIGlobalsBuffer->TransferData(&globals, sizeof(UIGlobalsBuffer), 0);
+
+		uint64 vertexOffset = 0;
+		uint64 indexOffset  = 0;
+		for (int i = 0; i < pDrawData->CmdListsCount; i++)
+		{
+			const ImDrawList* pCmdList = pDrawData->CmdLists[i];
+
+			uint64 vertexBufferSize = pCmdList->VtxBuffer.Size * sizeof(ImDrawVert);
+			uint64 indexBufferSize  = pCmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
+
+			if (vertexOffset + vertexBufferSize > m_pUIVertexBuffer->GetSize() || indexOffset + indexBufferSize > m_pUIIndexBuffer->GetSize())
+			{
+				POLY_CORE_WARN("ImGui draw data exceeds RG2TestApp's fixed UI buffer capacity - dropping remaining draw lists");
+				break;
+			}
+
+			m_pUIVertexBuffer->TransferData(pCmdList->VtxBuffer.Data, vertexBufferSize, vertexOffset);
+			m_pUIIndexBuffer->TransferData(pCmdList->IdxBuffer.Data, indexBufferSize, indexOffset);
+
+			vertexOffset += vertexBufferSize;
+			indexOffset += indexBufferSize;
+		}
+	}
+
 	bool WindowResizeCallback(Poly::Events::WindowResized& event)
 	{
 		m_pCamera->SetAspect(static_cast<float>(event.GetWidth()) / event.GetHeight());
@@ -197,6 +416,14 @@ private:
 
 	Poly::Ref<Poly::Buffer> m_pCameraBuffer;
 	Poly::Ref<Poly::Buffer> m_pLightsBuffer;
+
+	Poly::Ref<Poly::Texture>     m_pFontTexture;
+	Poly::Ref<Poly::TextureView> m_pFontTextureView;
+	Poly::Ref<Poly::Sampler>     m_pFontSampler;
+
+	Poly::Ref<Poly::Buffer> m_pUIGlobalsBuffer;
+	Poly::Ref<Poly::Buffer> m_pUIVertexBuffer;
+	Poly::Ref<Poly::Buffer> m_pUIIndexBuffer;
 };
 
 class RG2TestApp : public Poly::Application

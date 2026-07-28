@@ -8,7 +8,7 @@
 
 namespace
 {
-	constexpr bool g_ImGuiEnabled = false;
+	constexpr bool g_ImGuiEnabled = true;
 }
 
 namespace Poly
