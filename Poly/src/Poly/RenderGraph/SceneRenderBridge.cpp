@@ -1,6 +1,5 @@
 #include "SceneRenderBridge.h"
 
-#include "BindlessManager.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
 #include "Platform/API/CommandPool.h"
@@ -9,6 +8,7 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
+#include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/Scene/Components.h"
 #include "Poly/Scene/Scene.h"
 
@@ -140,7 +140,7 @@ namespace Poly
 			std::array<uint32, 6> packedIndices;
 			for (uint32 i = 0; i < 6; i++)
 			{
-				packedIndices[i] = BindlessManager::RegisterTextureAndSampler(
+				packedIndices[i] = ResourceManager::RegisterExternalTextureAndSampler(
 				    pMaterial->GetTextureView(kMaterialTextureOrder[i]), ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
 				    Sampler::GetDefaultLinearSampler().get());
 			}
@@ -153,25 +153,19 @@ namespace Poly
 
 	void SceneRenderBridge::RebuildCombinedMeshBuffers(const std::vector<std::pair<Mesh*, MeshRange>>& meshesToCopy, uint32 totalVertices, uint32 totalIndices)
 	{
-		BufferDesc vertexDesc  = {};
-		vertexDesc.BufferUsage = FBufferUsage::TRANSFER_DST | FBufferUsage::STORAGE_BUFFER | FBufferUsage::SHADER_DEVICE_ADDRESS;
-		vertexDesc.MemUsage    = EMemoryUsage::GPU_ONLY;
-		vertexDesc.Size        = sizeof(Vertex) * totalVertices;
-		m_pVertexBuffer        = RenderAPI::CreateBuffer(&vertexDesc);
+		m_VertexBufferHandle = ResourceManager::CreateStorageBuffer(sizeof(Vertex) * totalVertices, EMemoryUsage::GPU_ONLY, "SceneRenderBridge.Vertices");
+		m_IndexBufferHandle  = ResourceManager::CreateIndexBuffer(sizeof(uint32) * totalIndices, EMemoryUsage::GPU_ONLY, "SceneRenderBridge.Indices");
 
-		BufferDesc indexDesc  = {};
-		indexDesc.BufferUsage = FBufferUsage::TRANSFER_DST | FBufferUsage::INDEX_BUFFER;
-		indexDesc.MemUsage    = EMemoryUsage::GPU_ONLY;
-		indexDesc.Size        = sizeof(uint32) * totalIndices;
-		m_pIndexBuffer        = RenderAPI::CreateBuffer(&indexDesc);
+		Buffer* pVertexBuffer = ResourceManager::Resolve(m_VertexBufferHandle);
+		Buffer* pIndexBuffer  = ResourceManager::Resolve(m_IndexBufferHandle);
 
 		m_pCopyCommandPool->Reset();
 		m_pCopyCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 		for (const auto& [pMesh, range] : meshesToCopy)
 		{
-			m_pCopyCommandBuffer->CopyBuffer(pMesh->GetVertexBuffer(), m_pVertexBuffer.get(), sizeof(Vertex) * pMesh->GetVertexCount(), 0,
+			m_pCopyCommandBuffer->CopyBuffer(pMesh->GetVertexBuffer(), pVertexBuffer, sizeof(Vertex) * pMesh->GetVertexCount(), 0,
 			                                 sizeof(Vertex) * range.BaseVertex);
-			m_pCopyCommandBuffer->CopyBuffer(pMesh->GetIndexBuffer(), m_pIndexBuffer.get(), sizeof(uint32) * pMesh->GetIndexCount(), 0,
+			m_pCopyCommandBuffer->CopyBuffer(pMesh->GetIndexBuffer(), pIndexBuffer, sizeof(uint32) * pMesh->GetIndexCount(), 0,
 			                                 sizeof(uint32) * range.BaseIndex);
 		}
 		m_pCopyCommandBuffer->End();
@@ -184,22 +178,16 @@ namespace Poly
 
 	void SceneRenderBridge::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)
 	{
-		BufferDesc instanceDesc  = {};
-		instanceDesc.BufferUsage = FBufferUsage::STORAGE_BUFFER | FBufferUsage::SHADER_DEVICE_ADDRESS;
-		instanceDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
-		instanceDesc.Size        = sizeof(GPUInstanceData) * instances.size();
-		m_pInstanceBuffer        = RenderAPI::CreateBuffer(&instanceDesc);
-		m_pInstanceBuffer->TransferData(instances.data(), instanceDesc.Size, 0);
+		const uint64 instanceSize = sizeof(GPUInstanceData) * instances.size();
+		m_InstanceBufferHandle    = ResourceManager::CreateStorageBuffer(instanceSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Instances");
+		ResourceManager::UploadBufferData(m_InstanceBufferHandle, instances.data(), instanceSize);
 
-		BufferDesc materialDesc  = {};
-		materialDesc.BufferUsage = FBufferUsage::STORAGE_BUFFER | FBufferUsage::SHADER_DEVICE_ADDRESS;
-		materialDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
-		materialDesc.Size        = sizeof(GPUMaterialData) * materials.size();
-		m_pMaterialBuffer        = RenderAPI::CreateBuffer(&materialDesc);
-		m_pMaterialBuffer->TransferData(materials.data(), materialDesc.Size, 0);
+		const uint64 materialSize = sizeof(GPUMaterialData) * materials.size();
+		m_MaterialBufferHandle    = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Materials");
+		ResourceManager::UploadBufferData(m_MaterialBufferHandle, materials.data(), materialSize);
 
-		m_pProgramInstance->UpdateResource(Scene::VERTICES_RESOURCE_NAME_2, m_pVertexBuffer);
-		m_pProgramInstance->UpdateResource(Scene::INSTANCE_RESOURCE_NAME_2, m_pInstanceBuffer);
-		m_pProgramInstance->UpdateResource(Scene::MATERIAL_RESOURCE_NAME_2, m_pMaterialBuffer);
+		m_pProgramInstance->UpdateResource(Scene::VERTICES_RESOURCE_NAME_2, m_VertexBufferHandle);
+		m_pProgramInstance->UpdateResource(Scene::INSTANCE_RESOURCE_NAME_2, m_InstanceBufferHandle);
+		m_pProgramInstance->UpdateResource(Scene::MATERIAL_RESOURCE_NAME_2, m_MaterialBufferHandle);
 	}
 } // namespace Poly

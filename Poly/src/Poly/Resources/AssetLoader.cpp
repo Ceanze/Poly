@@ -1,4 +1,4 @@
-#include "ResourceLoader.h"
+#include "AssetLoader.h"
 
 #include "GLSLang.h"
 #include "IOManager.h"
@@ -12,8 +12,8 @@
 #include "Poly/Model/Material.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
+#include "AssetManager.h"
 #include "polypch.h"
-#include "ResourceManager.h"
 #include "Shader/ShaderCompiler.h"
 
 #include <assimp/Importer.hpp>
@@ -82,9 +82,9 @@ namespace
 			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
 			return;
 		}
-		PolyID id = ResourceManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
+		PolyID id = AssetManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
 
-		ManagedTexture managedTexture = ResourceManager::GetManagedTexture(id);
+		ManagedTexture managedTexture = AssetManager::GetManagedTexture(id);
 		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
 		pPolyMaterial->SetTextureView(ConvertTextureType(type), managedTexture.pTextureView.get());
 	}
@@ -92,12 +92,12 @@ namespace
 
 namespace Poly
 {
-	void ResourceLoader::Init()
+	void AssetLoader::Init()
 	{
 		// GLSL
 		s_GLSLInit = glslang::InitializeProcess();
 		if (!s_GLSLInit)
-			POLY_CORE_ERROR("[ResourceLoader]: Failed to initialize glslang! No shaders will be loaded!");
+			POLY_CORE_ERROR("[AssetLoader]: Failed to initialize glslang! No shaders will be loaded!");
 
 		// Command pools and buffers
 		s_TransferCommandPool   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
@@ -110,7 +110,7 @@ namespace Poly
 		s_Semaphore = RenderAPI::CreateBinarySemaphore();
 	}
 
-	void ResourceLoader::Release()
+	void AssetLoader::Release()
 	{
 		if (s_GLSLInit)
 			glslang::FinalizeProcess();
@@ -119,19 +119,19 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 
-		// Since ResourceLoader is a static class the destructor will be called after the release
+		// Since AssetLoader is a static class the destructor will be called after the release
 		// of the graphics device. Therefore the graphics resources are manually deleted
 		s_TransferCommandPool.reset();
 		s_GraphicsCommandPool.reset();
 		s_Semaphore.reset();
 	}
 
-	std::vector<byte> ResourceLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
+	std::vector<byte> AssetLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
 	{
 		std::string relativePath = IOManager::GetAssetsFolder() + std::string(path);
 		if (!s_GLSLInit)
 		{
-			POLY_CORE_ERROR("[ResourceLoader]: Failed to load shader, GLSL is not correctly initilized!");
+			POLY_CORE_ERROR("[AssetLoader]: Failed to load shader, GLSL is not correctly initilized!");
 			return {};
 		}
 
@@ -143,7 +143,7 @@ namespace Poly
 		return data;
 	}
 
-	std::vector<byte> ResourceLoader::LoadRawImage(const std::string& path)
+	std::vector<byte> AssetLoader::LoadRawImage(const std::string& path)
 	{
 		int texWidth  = 0;
 		int texHeight = 0;
@@ -165,7 +165,7 @@ namespace Poly
 		return image;
 	}
 
-	Ref<Texture> ResourceLoader::LoadTexture(const std::string& path, EFormat format)
+	Ref<Texture> AssetLoader::LoadTexture(const std::string& path, EFormat format)
 	{
 		// Load image
 		int texWidth  = 0;
@@ -183,7 +183,7 @@ namespace Poly
 		return pTexture;
 	}
 
-	Ref<Texture> ResourceLoader::LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format)
+	Ref<Texture> AssetLoader::LoadTextureFromMemory(void* data, uint32 width, uint32 height, uint32 channels, EFormat format)
 	{
 		// Create texture
 		TextureDesc textureDesc  = {};
@@ -297,7 +297,7 @@ namespace Poly
 		return pTexture;
 	}
 
-	Ref<Model> ResourceLoader::LoadModel(const std::string& path, Entity root)
+	Ref<Model> AssetLoader::LoadModel(const std::string& path, Entity root)
 	{
 		std::string absolutePath = IOManager::GetAssetsFolder() + path;
 
@@ -319,12 +319,12 @@ namespace Poly
 		return pModel;
 	}
 
-	Ref<Material> ResourceLoader::LoadMaterial(const std::string& path)
+	Ref<Material> AssetLoader::LoadMaterial(const std::string& path)
 	{
 		return nullptr;
 	}
 
-	void ResourceLoader::ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent)
+	void AssetLoader::ProcessNode(aiNode* pNode, const aiScene* pScene, const std::string& folder, Model* pModel, Entity parent)
 	{
 		for (uint32 i = 0; i < pNode->mNumMeshes; i++)
 		{
@@ -367,7 +367,7 @@ namespace Poly
 		}
 	}
 
-	Ref<Mesh> ResourceLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index)
+	Ref<Mesh> AssetLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index)
 	{
 		Ref<Mesh> pPolyMesh = Mesh::Create(pModel, index);
 
@@ -436,7 +436,7 @@ namespace Poly
 		return pPolyMesh;
 	}
 
-	Ref<Material> ResourceLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder)
+	Ref<Material> AssetLoader::ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder)
 	{
 		Ref<Material>  pPolyMaterial  = Material::Create(pModel, index);
 		MaterialValues materialValues = {};
@@ -476,7 +476,7 @@ namespace Poly
 			LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 0, pPolyMaterial, folder);
 		else
 		{
-			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			ManagedTexture mt = AssetManager::GetManagedTexture(AssetManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::ALBEDO, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::ALBEDO, mt.pTextureView.get());
 		}
@@ -490,7 +490,7 @@ namespace Poly
 			LoadAssimpMaterial(pMaterial, aiTextureType_HEIGHT, 0, pPolyMaterial, folder);
 		else
 		{
-			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			ManagedTexture mt = AssetManager::GetManagedTexture(AssetManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::NORMAL, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::NORMAL, mt.pTextureView.get());
 		}
@@ -502,7 +502,7 @@ namespace Poly
 			LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT, 0, pPolyMaterial, folder);
 		else
 		{
-			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			ManagedTexture mt = AssetManager::GetManagedTexture(AssetManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::AMBIENT_OCCLUSION, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::AMBIENT_OCCLUSION, mt.pTextureView.get());
 		}
@@ -514,7 +514,7 @@ namespace Poly
 			LoadAssimpMaterial(pMaterial, aiTextureType_REFLECTION, 0, pPolyMaterial, folder);
 		else
 		{
-			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			ManagedTexture mt = AssetManager::GetManagedTexture(AssetManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::METALIC, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::METALIC, mt.pTextureView.get());
 		}
@@ -526,7 +526,7 @@ namespace Poly
 			LoadAssimpMaterial(pMaterial, aiTextureType_SHININESS, 0, pPolyMaterial, folder);
 		else
 		{
-			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			ManagedTexture mt = AssetManager::GetManagedTexture(AssetManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::ROUGHNESS, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::ROUGHNESS, mt.pTextureView.get());
 		}
@@ -539,7 +539,7 @@ namespace Poly
 		}
 		else
 		{
-			ManagedTexture mt = ResourceManager::GetManagedTexture(ResourceManager::DEFAULT_TEXTURE_ID);
+			ManagedTexture mt = AssetManager::GetManagedTexture(AssetManager::DEFAULT_TEXTURE_ID);
 			pPolyMaterial->SetTexture(Material::Type::COMBINED, mt.pTexture.get());
 			pPolyMaterial->SetTextureView(Material::Type::COMBINED, mt.pTextureView.get());
 		}
@@ -548,7 +548,7 @@ namespace Poly
 		return pPolyMaterial;
 	}
 
-	void ResourceLoader::TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer)
+	void AssetLoader::TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer)
 	{
 		// Create transfer buffer
 		BufferDesc bufferDesc  = {};
@@ -613,7 +613,7 @@ namespace Poly
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 	}
 
-	glm::mat4 ResourceLoader::ConvertAiMatToGLM(const void* pMat)
+	glm::mat4 AssetLoader::ConvertAiMatToGLM(const void* pMat)
 	{
 		const aiMatrix4x4* mat = (aiMatrix4x4*)pMat;
 		return glm::mat4(mat->a1, mat->b1, mat->c1, mat->d1,

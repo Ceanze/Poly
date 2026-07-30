@@ -14,10 +14,10 @@
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/RenderGraph/RenderGraph.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
+#include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/RenderGraph/SceneRenderBridge.h"
 #include "Poly/Rendering/Renderer.h"
-#include "Poly/Resources/ResourceLoader.h"
-#include "Poly/Resources/ResourceManager.h"
+#include "Poly/Resources/AssetManager.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
 
@@ -74,8 +74,8 @@ public:
 		m_pScene = Poly::Scene::Create("RG2TestScene");
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
-		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		// Poly::AssetManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
+		Poly::AssetManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		RegisterGeometryFeature();
 		RegisterUIFeature();
@@ -90,29 +90,19 @@ public:
 		pRenderer->SetScene(m_pScene);
 		pRenderer->SetRenderProgram(pProgram);
 
-		// TODO: Move to a different place (application wide resource handler?) - use a staging buffer
-		Poly::BufferDesc cameraDesc = {};
-		cameraDesc.Size             = sizeof(CameraBuffer);
-		cameraDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
-		cameraDesc.BufferUsage      = Poly::FBufferUsage::UNIFORM_BUFFER | Poly::FBufferUsage::SHADER_DEVICE_ADDRESS;
-		m_pCameraBuffer             = Poly::RenderAPI::CreateBuffer(&cameraDesc);
-
-		Poly::BufferDesc lightsDesc = {};
-		lightsDesc.Size             = sizeof(LightBuffer);
-		lightsDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
-		lightsDesc.BufferUsage      = Poly::FBufferUsage::STORAGE_BUFFER | Poly::FBufferUsage::SHADER_DEVICE_ADDRESS;
-		m_pLightsBuffer             = Poly::RenderAPI::CreateBuffer(&lightsDesc);
+		m_CameraBufferHandle = Poly::ResourceManager::CreateUniformBuffer(sizeof(CameraBuffer), "Camera");
+		m_LightsBufferHandle = Poly::ResourceManager::CreateStorageBuffer(sizeof(LightBuffer), Poly::EMemoryUsage::CPU_VISIBLE, "Lights");
 
 		LightBuffer lights = {};
-		m_pLightsBuffer->TransferData(&lights, sizeof(LightBuffer), 0);
+		Poly::ResourceManager::UploadBufferData(m_LightsBufferHandle, &lights, sizeof(LightBuffer));
 
 		// TODO: Temporary solution to update the camera and lights buffers in the render program instance
 		Poly::RenderProgramInstance* pInstance = Poly::Application::Get().GetRenderer()->GetRenderProgramInstance();
 		if (!pInstance)
 			return;
 
-		pInstance->UpdateResource("Camera", m_pCameraBuffer);
-		pInstance->UpdateResource("Lights", m_pLightsBuffer);
+		pInstance->UpdateResource("Camera", m_CameraBufferHandle);
+		pInstance->UpdateResource("Lights", m_LightsBufferHandle);
 
 		SetupUIResources(pInstance);
 	}
@@ -135,7 +125,7 @@ public:
 
 		m_pCamera->Update(dt);
 		CameraBuffer cameraData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
-		m_pCameraBuffer->TransferData(&cameraData, sizeof(CameraBuffer), 0);
+		Poly::ResourceManager::UploadBufferData(m_CameraBufferHandle, &cameraData, sizeof(CameraBuffer));
 
 		UpdateUI();
 	}
@@ -263,8 +253,8 @@ private:
 				    return;
 
 			    Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
-			    pCmd->BindVertexBuffer(m_pUIVertexBuffer.get(), 0, 1, 0);
-			    pCmd->BindIndexBuffer(m_pUIIndexBuffer.get(), 0, Poly::EIndexType::UINT16);
+			    pCmd->BindVertexBuffer(Poly::ResourceManager::Resolve(m_UIVertexBufferHandle), 0, 1, 0);
+			    pCmd->BindIndexBuffer(Poly::ResourceManager::Resolve(m_UIIndexBufferHandle), 0, Poly::EIndexType::UINT16);
 
 			    uint32 vertexOffset = 0;
 			    uint32 indexOffset  = 0;
@@ -281,6 +271,11 @@ private:
 					    scissor.Width             = static_cast<uint32>(pImCmd->ClipRect.z - pImCmd->ClipRect.x);
 					    scissor.Height            = static_cast<uint32>(pImCmd->ClipRect.w - pImCmd->ClipRect.y);
 					    pCmd->SetScissor(&scissor);
+
+
+						ImTextureID texID = pImCmd->TexRef.GetTexID();
+						Poly::TextureHandle textureHandle(static_cast<uint32>(texID));
+						ctx.SetTextureSlot(0, textureHandle, m_FontSamplerHandle);
 
 					    pCmd->DrawIndexedInstanced(pImCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
 					    indexOffset += pImCmd->ElemCount;
@@ -304,16 +299,9 @@ private:
 		int            width = 0, height = 0;
 		io.Fonts->GetTexDataAsRGBA32(&pFontData, &width, &height);
 
-		m_pFontTexture = Poly::ResourceLoader::LoadTextureFromMemory(pFontData, width, height, 4, Poly::EFormat::R8G8B8A8_UNORM);
-
-		Poly::TextureViewDesc viewDesc = {};
-		viewDesc.pTexture              = m_pFontTexture.get();
-		viewDesc.ImageViewType         = Poly::EImageViewType::TYPE_2D;
-		viewDesc.ImageViewFlag         = Poly::FImageViewFlag::SHADER_RESOURCE;
-		viewDesc.Format                = Poly::EFormat::R8G8B8A8_UNORM;
-		viewDesc.MipLevelCount         = 1;
-		viewDesc.ArrayLayerCount       = 1;
-		m_pFontTextureView             = Poly::RenderAPI::CreateTextureView(&viewDesc);
+		m_FontTextureHandle =
+		    Poly::ResourceManager::CreateTexture2D(width, height, Poly::EFormat::R8G8B8A8_UNORM, Poly::FTextureUsage::SAMPLED, "ImGui Font Atlas");
+		Poly::ResourceManager::UploadTextureData(m_FontTextureHandle, pFontData, width, height);
 
 		Poly::SamplerDesc samplerDesc = {};
 		samplerDesc.MagFilter         = Poly::EFilter::LINEAR;
@@ -323,30 +311,17 @@ private:
 		samplerDesc.AddressModeV      = Poly::ESamplerAddressMode::CLAMP_TO_EDGE;
 		samplerDesc.AddressModeW      = Poly::ESamplerAddressMode::CLAMP_TO_EDGE;
 		samplerDesc.BorderColor       = Poly::EBorderColor::FLOAT_OPAQUE_WHITE;
-		m_pFontSampler                = Poly::RenderAPI::CreateSampler(&samplerDesc);
+		m_FontSamplerHandle           = Poly::ResourceManager::GetOrCreateSampler(samplerDesc);
 
-		io.Fonts->TexID = (ImTextureID)m_pFontTextureView.get();
+		io.Fonts->TexID = (ImTextureID)m_FontTextureHandle.Get();
 
-		Poly::BufferDesc globalsDesc = {};
-		globalsDesc.Size             = sizeof(UIGlobalsBuffer);
-		globalsDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
-		globalsDesc.BufferUsage      = Poly::FBufferUsage::UNIFORM_BUFFER | Poly::FBufferUsage::SHADER_DEVICE_ADDRESS;
-		m_pUIGlobalsBuffer           = Poly::RenderAPI::CreateBuffer(&globalsDesc);
+		m_UIGlobalsBufferHandle = Poly::ResourceManager::CreateUniformBuffer(sizeof(UIGlobalsBuffer), "UIGlobals");
+		m_UIVertexBufferHandle =
+		    Poly::ResourceManager::CreateVertexBuffer(MAX_UI_VERTICES * sizeof(ImDrawVert), Poly::EMemoryUsage::CPU_VISIBLE, "UI Vertices");
+		m_UIIndexBufferHandle = Poly::ResourceManager::CreateIndexBuffer(MAX_UI_INDICES * sizeof(ImDrawIdx), Poly::EMemoryUsage::CPU_VISIBLE, "UI Indices");
 
-		Poly::BufferDesc vertexDesc = {};
-		vertexDesc.Size             = MAX_UI_VERTICES * sizeof(ImDrawVert);
-		vertexDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
-		vertexDesc.BufferUsage      = Poly::FBufferUsage::VERTEX_BUFFER;
-		m_pUIVertexBuffer           = Poly::RenderAPI::CreateBuffer(&vertexDesc);
-
-		Poly::BufferDesc indexDesc = {};
-		indexDesc.Size             = MAX_UI_INDICES * sizeof(ImDrawIdx);
-		indexDesc.MemUsage         = Poly::EMemoryUsage::CPU_VISIBLE;
-		indexDesc.BufferUsage      = Poly::FBufferUsage::INDEX_BUFFER;
-		m_pUIIndexBuffer           = Poly::RenderAPI::CreateBuffer(&indexDesc);
-
-		pInstance->UpdateResource("FontTexture", m_pFontTextureView, m_pFontSampler);
-		pInstance->UpdateResource("UIGlobals", m_pUIGlobalsBuffer);
+		pInstance->UpdateResource("FontTexture", m_FontTextureHandle, m_FontSamplerHandle);
+		pInstance->UpdateResource("UIGlobals", m_UIGlobalsBufferHandle);
 	}
 
 	// Builds this frame's ImGui draw data and uploads it - called once per frame from OnUpdate(),
@@ -357,6 +332,23 @@ private:
 
 		// TODO: replace with real UI content; demo window only proves font-only text/widget rendering works.
 		ImGui::ShowDemoWindow();
+
+		// Temp
+		const auto& textures = Poly::ResourceManager::GetAllTextures();
+		if (ImGui::Begin("Textures"))
+		{
+			ImGui::BeginChild("TextureList", ImVec2(0, 0), ImGuiChildFlags_Borders);
+			for (const auto& textureInfo : textures)
+			{
+				const char* name = textureInfo.DebugName.empty() ? "(unnamed)" : textureInfo.DebugName.c_str();
+				ImGui::SeparatorText(name);
+				ImGui::Text("Handle: %u  (%ux%u)", textureInfo.Handle.Get(), textureInfo.Width, textureInfo.Height);
+				ImGui::Image(textureInfo.Handle.Get(), ImVec2(128, 128));
+			}
+			ImGui::EndChild();
+		}
+		ImGui::End();
+
 		ImGui::Render();
 
 		ImDrawData* pDrawData = ImGui::GetDrawData();
@@ -366,7 +358,10 @@ private:
 		UIGlobalsBuffer globals = {};
 		globals.Scale           = glm::vec2(2.0f / io.DisplaySize.x, 2.0f / io.DisplaySize.y);
 		globals.Translate       = glm::vec2(-1.0f, -1.0f);
-		m_pUIGlobalsBuffer->TransferData(&globals, sizeof(UIGlobalsBuffer), 0);
+		Poly::ResourceManager::UploadBufferData(m_UIGlobalsBufferHandle, &globals, sizeof(UIGlobalsBuffer));
+
+		Poly::Buffer* pUIVertexBuffer = Poly::ResourceManager::Resolve(m_UIVertexBufferHandle);
+		Poly::Buffer* pUIIndexBuffer  = Poly::ResourceManager::Resolve(m_UIIndexBufferHandle);
 
 		uint64 vertexOffset = 0;
 		uint64 indexOffset  = 0;
@@ -377,14 +372,14 @@ private:
 			uint64 vertexBufferSize = pCmdList->VtxBuffer.Size * sizeof(ImDrawVert);
 			uint64 indexBufferSize  = pCmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-			if (vertexOffset + vertexBufferSize > m_pUIVertexBuffer->GetSize() || indexOffset + indexBufferSize > m_pUIIndexBuffer->GetSize())
+			if (vertexOffset + vertexBufferSize > pUIVertexBuffer->GetSize() || indexOffset + indexBufferSize > pUIIndexBuffer->GetSize())
 			{
 				POLY_CORE_WARN("ImGui draw data exceeds RG2TestApp's fixed UI buffer capacity - dropping remaining draw lists");
 				break;
 			}
 
-			m_pUIVertexBuffer->TransferData(pCmdList->VtxBuffer.Data, vertexBufferSize, vertexOffset);
-			m_pUIIndexBuffer->TransferData(pCmdList->IdxBuffer.Data, indexBufferSize, indexOffset);
+			Poly::ResourceManager::UploadBufferData(m_UIVertexBufferHandle, pCmdList->VtxBuffer.Data, vertexBufferSize, vertexOffset);
+			Poly::ResourceManager::UploadBufferData(m_UIIndexBufferHandle, pCmdList->IdxBuffer.Data, indexBufferSize, indexOffset);
 
 			vertexOffset += vertexBufferSize;
 			indexOffset += indexBufferSize;
@@ -414,16 +409,15 @@ private:
 	Poly::Ref<Poly::Scene> m_pScene  = nullptr;
 	Poly::RenderGraph      m_Graph;
 
-	Poly::Ref<Poly::Buffer> m_pCameraBuffer;
-	Poly::Ref<Poly::Buffer> m_pLightsBuffer;
+	Poly::BufferHandle m_CameraBufferHandle;
+	Poly::BufferHandle m_LightsBufferHandle;
 
-	Poly::Ref<Poly::Texture>     m_pFontTexture;
-	Poly::Ref<Poly::TextureView> m_pFontTextureView;
-	Poly::Ref<Poly::Sampler>     m_pFontSampler;
+	Poly::TextureHandle m_FontTextureHandle;
+	Poly::SamplerHandle m_FontSamplerHandle;
 
-	Poly::Ref<Poly::Buffer> m_pUIGlobalsBuffer;
-	Poly::Ref<Poly::Buffer> m_pUIVertexBuffer;
-	Poly::Ref<Poly::Buffer> m_pUIIndexBuffer;
+	Poly::BufferHandle m_UIGlobalsBufferHandle;
+	Poly::BufferHandle m_UIVertexBufferHandle;
+	Poly::BufferHandle m_UIIndexBufferHandle;
 };
 
 class RG2TestApp : public Poly::Application

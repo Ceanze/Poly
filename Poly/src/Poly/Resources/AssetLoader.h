@@ -28,11 +28,11 @@ namespace Poly
 		Ref<Material> pMaterial;
 	};
 
-	class ResourceLoader
+	class AssetLoader
 	{
 	public:
-		ResourceLoader()  = default;
-		~ResourceLoader() = default;
+		AssetLoader()  = default;
+		~AssetLoader() = default;
 
 		static void Init();
 		static void Release();

@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "Entity.h"
 #include "Poly/Model/Model.h"
-#include "Poly/Resources/ResourceManager.h"
+#include "Poly/Resources/AssetManager.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -242,12 +242,12 @@ namespace Poly
 		uint32 meshIndex = node["MeshIndex"].as<uint32>();
 
 		Model* pModel;
-		if (ResourceManager::IsResourceLoaded(modelID))
-			pModel = ResourceManager::GetModel(modelID);
+		if (AssetManager::IsResourceLoaded(modelID))
+			pModel = AssetManager::GetModel(modelID);
 		else
 		{
-			ResourceManager::LoadModel(modelID);
-			pModel = ResourceManager::GetModel(modelID);
+			AssetManager::LoadModel(modelID);
+			pModel = AssetManager::GetModel(modelID);
 		}
 
 		entity.AddComponent<MeshComponent>(pModel, meshIndex);

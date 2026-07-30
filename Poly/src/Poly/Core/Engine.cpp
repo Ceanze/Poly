@@ -2,8 +2,8 @@
 
 #include "Application.h"
 #include "Poly/Core/Input/InputManager.h"
-#include "Poly/Resources/ResourceLoader.h"
-#include "Poly/Resources/ResourceManager.h"
+#include "Poly/Resources/AssetLoader.h"
+#include "Poly/Resources/AssetManager.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "polypch.h"
 #include "RenderAPI.h"
@@ -32,8 +32,8 @@ namespace Poly
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
 		ShaderManager::Init();
-		ResourceLoader::Init();
-		ResourceManager::Init();
+		AssetLoader::Init();
+		AssetManager::Init();
 	}
 
 	void Engine::Run(Application* pApp)
@@ -70,8 +70,8 @@ namespace Poly
 		ThreadPool::Release();
 
 		ShaderManager::Release();
-		ResourceLoader::Release();
-		ResourceManager::Release();
+		AssetLoader::Release();
+		AssetManager::Release();
 		RenderAPI::Release();
 		glfwTerminate();
 	}

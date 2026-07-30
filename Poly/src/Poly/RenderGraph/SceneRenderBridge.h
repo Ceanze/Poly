@@ -2,6 +2,7 @@
 
 #include "Poly/Core/Core.h"
 #include "Poly/Model/Material.h"
+#include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/RenderGraph/Shader/GPUInstanceData.h"
 #include "Poly/RenderGraph/Shader/GPUMaterialData.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
@@ -60,7 +61,7 @@ namespace Poly
 		void Update();
 
 		const std::vector<SceneDrawBatch>& GetDrawBatches() const { return m_DrawBatches; }
-		const Buffer*                      GetIndexBuffer() const { return m_pIndexBuffer.get(); }
+		Buffer*                            GetIndexBuffer() const { return ResourceManager::Resolve(m_IndexBufferHandle); }
 
 	private:
 		struct MeshRange
@@ -85,9 +86,9 @@ namespace Poly
 
 		std::vector<SceneDrawBatch> m_DrawBatches;
 
-		Ref<Buffer> m_pVertexBuffer;
-		Ref<Buffer> m_pIndexBuffer;
-		Ref<Buffer> m_pInstanceBuffer;
-		Ref<Buffer> m_pMaterialBuffer;
+		BufferHandle m_VertexBufferHandle;
+		BufferHandle m_IndexBufferHandle;
+		BufferHandle m_InstanceBufferHandle;
+		BufferHandle m_MaterialBufferHandle;
 	};
 } // namespace Poly

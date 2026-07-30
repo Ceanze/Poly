@@ -1,4 +1,4 @@
-#include "ResourceImporter.h"
+#include "AssetImporter.h"
 
 #include "IOManager.h"
 
@@ -13,7 +13,7 @@
 
 namespace Poly
 {
-	void ResourceImporter::LoadImports()
+	void AssetImporter::LoadImports()
 	{
 		if (!IOManager::FileExists(GetProjectPath()))
 			return;
@@ -33,24 +33,24 @@ namespace Poly
 				m_PathToImportedResource[pair.first.as<std::string>()] = {PolyID(pair.second.as<uint64>()), ResourceType::MATERIAL};
 	}
 
-	const std::unordered_map<std::string, ResourceImporter::ImportedResource>& ResourceImporter::GetImports()
+	const std::unordered_map<std::string, AssetImporter::ImportedResource>& AssetImporter::GetImports()
 	{
 		return m_PathToImportedResource;
 	}
 
-	PolyID ResourceImporter::GetPathID(const std::string& path)
+	PolyID AssetImporter::GetPathID(const std::string& path)
 	{
 		if (IsImported(path))
 			return m_PathToImportedResource.at(path).ResourceID;
 		return PolyID::None();
 	}
 
-	bool ResourceImporter::IsImported(const std::string& path)
+	bool AssetImporter::IsImported(const std::string& path)
 	{
 		return m_PathToImportedResource.contains(path);
 	}
 
-	PolyID ResourceImporter::Import(const std::string& path, ResourceType type)
+	PolyID AssetImporter::Import(const std::string& path, ResourceType type)
 	{
 		if (IsImported(path))
 			return m_PathToImportedResource[path].ResourceID;
@@ -61,27 +61,27 @@ namespace Poly
 		return pathID;
 	}
 
-	PolyID ResourceImporter::ImportModel(const std::string& path)
+	PolyID AssetImporter::ImportModel(const std::string& path)
 	{
 		return Import(path, ResourceType::MODEL);
 	}
 
-	PolyID ResourceImporter::ImportTexture(const std::string& path)
+	PolyID AssetImporter::ImportTexture(const std::string& path)
 	{
 		return Import(path, ResourceType::TEXTURE);
 	}
 
-	PolyID ResourceImporter::ImportMaterial(const std::string& path)
+	PolyID AssetImporter::ImportMaterial(const std::string& path)
 	{
 		return Import(path, ResourceType::MATERIAL);
 	}
 
-	std::string ResourceImporter::GetProjectPath()
+	std::string AssetImporter::GetProjectPath()
 	{
 		return IOManager::GetRootFolder() + PROJECT_POLYRES_FILE;
 	}
 
-	void ResourceImporter::UpdateProjectFile(const std::string& path, PolyID pathID, ResourceType type)
+	void AssetImporter::UpdateProjectFile(const std::string& path, PolyID pathID, ResourceType type)
 	{
 		if (!IOManager::FileExists(GetProjectPath()))
 			CreateProjectFile();
@@ -107,7 +107,7 @@ namespace Poly
 		file.close();
 	}
 
-	void ResourceImporter::CreateProjectFile()
+	void AssetImporter::CreateProjectFile()
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap << YAML::Key << "models" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
@@ -118,5 +118,5 @@ namespace Poly
 		file.close();
 	}
 
-	std::unordered_map<std::string, ResourceImporter::ImportedResource> ResourceImporter::m_PathToImportedResource;
+	std::unordered_map<std::string, AssetImporter::ImportedResource> AssetImporter::m_PathToImportedResource;
 } // namespace Poly

@@ -3,7 +3,6 @@
 #include "../RenderContext.h"
 #include "../RenderData.h"
 #include "Platform/API/Sampler.h"
-#include "Poly/Resources/ResourceLoader.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "polypch.h"
 

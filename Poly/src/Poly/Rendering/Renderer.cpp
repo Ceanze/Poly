@@ -7,6 +7,7 @@
 #include "Poly/Events/WindowEvent.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
 #include "Poly/RenderGraph/RenderView.h"
+#include "Poly/RenderGraph/ResourceManager.h"
 #include "polypch.h"
 #include "RenderGraph/RenderGraphProgram.h"
 #include "RenderGraph/Resource.h"
@@ -86,6 +87,8 @@ namespace Poly
 
 	void Renderer::Render()
 	{
+		ResourceManager::Update();
+
 		for (const WindowContext& windowCtx : m_Windows)
 		{
 			if (m_pRenderGraphProgram)

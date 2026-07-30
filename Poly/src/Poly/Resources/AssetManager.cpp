@@ -1,5 +1,6 @@
-#include "ResourceManager.h"
+#include "AssetManager.h"
 
+#include "AssetLoader.h"
 #include "IOManager.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/TextureView.h"
@@ -8,19 +9,18 @@
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
 #include "polypch.h"
-#include "ResourceImporter.h"
-#include "ResourceLoader.h"
+#include "AssetImporter.h"
 
 namespace Poly
 {
-	void ResourceManager::Init()
+	void AssetManager::Init()
 	{
 		RegisterDefaults();
-		ResourceImporter::LoadImports();
+		AssetImporter::LoadImports();
 		RegisterImports();
 	}
 
-	void ResourceManager::Release()
+	void AssetManager::Release()
 	{
 		m_Models.clear();
 		m_Textures.clear();
@@ -28,29 +28,29 @@ namespace Poly
 		m_IDToHandle.clear();
 	}
 
-	PolyID ResourceManager::ImportResource(const std::string& path, ResourceType type)
+	PolyID AssetManager::ImportResource(const std::string& path, ResourceType type)
 	{
 		PolyID pathID = PolyID::None();
 		if (type == ResourceType::MODEL || type == ResourceType::MESH)
 		{
-			pathID               = ResourceImporter::ImportModel(path);
+			pathID               = AssetImporter::ImportModel(path);
 			m_IDToHandle[pathID] = {.Index = UINT32_MAX, .Type = ResourceType::MODEL, .IsLoaded = false};
 		}
 		else if (type == ResourceType::TEXTURE)
 		{
-			pathID               = ResourceImporter::ImportTexture(path);
+			pathID               = AssetImporter::ImportTexture(path);
 			m_IDToHandle[pathID] = {.Index = UINT32_MAX, .Type = ResourceType::TEXTURE, .IsLoaded = false};
 		}
 		else if (type == ResourceType::MATERIAL)
 		{
-			pathID               = ResourceImporter::ImportMaterial(path);
+			pathID               = AssetImporter::ImportMaterial(path);
 			m_IDToHandle[pathID] = {.Index = UINT32_MAX, .Type = ResourceType::MATERIAL, .IsLoaded = false};
 		}
 
 		return pathID;
 	}
 
-	void ResourceManager::LoadTexture(PolyID textureID, EFormat format)
+	void AssetManager::LoadTexture(PolyID textureID, EFormat format)
 	{
 		if (!m_IDToHandle.contains(textureID))
 		{
@@ -63,10 +63,10 @@ namespace Poly
 		if (handle.IsLoaded)
 			return;
 
-		// TODO: As for now all calls to ResourceLoader are done with Absolute Paths - but we save in Relative Paths.
+		// TODO: As for now all calls to AssetLoader are done with Absolute Paths - but we save in Relative Paths.
 		//		 Either make sure this is clear, or have internal functions to check if path is Absolute or Relative
 		//		 to handle it.
-		Ref<Texture> pTex = ResourceLoader::LoadTexture(IOManager::GetAssetsFolder() + handle.Path, format);
+		Ref<Texture> pTex = AssetLoader::LoadTexture(IOManager::GetAssetsFolder() + handle.Path, format);
 
 		// TODO: Grab necessary data from texture
 		Poly::TextureViewDesc textureViewDesc = {
@@ -88,11 +88,11 @@ namespace Poly
 		handle.IsLoaded = true;
 	}
 
-	PolyID ResourceManager::ImportAndLoadTexture(const std::string& path, EFormat format)
+	PolyID AssetManager::ImportAndLoadTexture(const std::string& path, EFormat format)
 	{
 		std::string relativePath = path;
 
-		PolyID pathID = ResourceImporter::ImportTexture(path);
+		PolyID pathID = AssetImporter::ImportTexture(path);
 
 		if (!m_IDToHandle.contains(pathID))
 		{
@@ -107,7 +107,7 @@ namespace Poly
 		return pathID;
 	}
 
-	void ResourceManager::LoadModel(PolyID modelID, Entity root)
+	void AssetManager::LoadModel(PolyID modelID, Entity root)
 	{
 		if (!m_IDToHandle.contains(modelID))
 		{
@@ -120,7 +120,7 @@ namespace Poly
 		if (handle.IsLoaded)
 			return;
 
-		Ref<Model> pModel = ResourceLoader::LoadModel(handle.Path, root);
+		Ref<Model> pModel = AssetLoader::LoadModel(handle.Path, root);
 		pModel->SetModelID(modelID);
 		uint32 index = static_cast<uint32>(m_Models.size());
 		m_Models.push_back(pModel);
@@ -129,11 +129,11 @@ namespace Poly
 		handle.IsLoaded = true;
 	}
 
-	PolyID ResourceManager::ImportAndLoadModel(const std::string& path, Entity root)
+	PolyID AssetManager::ImportAndLoadModel(const std::string& path, Entity root)
 	{
 		std::string relativePath = path;
 
-		PolyID pathID = ResourceImporter::ImportModel(path);
+		PolyID pathID = AssetImporter::ImportModel(path);
 
 		if (!m_IDToHandle.contains(pathID))
 		{
@@ -148,7 +148,7 @@ namespace Poly
 		return pathID;
 	}
 
-	void ResourceManager::LoadMaterial(PolyID materialID)
+	void AssetManager::LoadMaterial(PolyID materialID)
 	{
 		if (!m_IDToHandle.contains(materialID))
 		{
@@ -161,7 +161,7 @@ namespace Poly
 		if (handle.IsLoaded)
 			return;
 
-		Ref<Material> pMaterial = ResourceLoader::LoadMaterial(handle.Path);
+		Ref<Material> pMaterial = AssetLoader::LoadMaterial(handle.Path);
 		uint32        index     = static_cast<uint32>(m_Materials.size());
 		m_Materials.push_back(pMaterial);
 
@@ -169,11 +169,11 @@ namespace Poly
 		handle.IsLoaded = true;
 	}
 
-	PolyID ResourceManager::ImportAndLoadMaterial(const std::string& path)
+	PolyID AssetManager::ImportAndLoadMaterial(const std::string& path)
 	{
 		std::string relativePath = IOManager::GetAssetsFolder() + path;
 
-		PolyID pathID = ResourceImporter::ImportMaterial(path);
+		PolyID pathID = AssetImporter::ImportMaterial(path);
 
 		if (!m_IDToHandle.contains(pathID))
 		{
@@ -188,7 +188,7 @@ namespace Poly
 		return pathID;
 	}
 
-	Mesh* ResourceManager::GetMesh(PolyID modelID, uint32 meshIndex)
+	Mesh* AssetManager::GetMesh(PolyID modelID, uint32 meshIndex)
 	{
 		if (!HasCorrectResource(modelID, ResourceType::MODEL))
 		{
@@ -205,7 +205,7 @@ namespace Poly
 		return nullptr;
 	}
 
-	Model* ResourceManager::GetModel(PolyID modelID)
+	Model* AssetManager::GetModel(PolyID modelID)
 	{
 		if (!HasCorrectResource(modelID, ResourceType::MODEL))
 		{
@@ -222,7 +222,7 @@ namespace Poly
 		return nullptr;
 	}
 
-	Texture* ResourceManager::GetTexture(PolyID textureID)
+	Texture* AssetManager::GetTexture(PolyID textureID)
 	{
 		if (!HasCorrectResource(textureID, ResourceType::TEXTURE))
 		{
@@ -239,7 +239,7 @@ namespace Poly
 		return nullptr;
 	}
 
-	TextureView* ResourceManager::GetTextureView(PolyID textureViewID)
+	TextureView* AssetManager::GetTextureView(PolyID textureViewID)
 	{
 		// Texture and texture view is saved under same ID
 		if (!HasCorrectResource(textureViewID, ResourceType::TEXTURE))
@@ -257,7 +257,7 @@ namespace Poly
 		return nullptr;
 	}
 
-	ManagedTexture ResourceManager::GetManagedTexture(PolyID polyTextureID)
+	ManagedTexture AssetManager::GetManagedTexture(PolyID polyTextureID)
 	{
 		// Texture, texture view, and managed texture is saved under same ID
 		if (polyTextureID > 0 && !HasCorrectResource(polyTextureID, ResourceType::TEXTURE))
@@ -275,7 +275,7 @@ namespace Poly
 		return {};
 	}
 
-	Material* ResourceManager::GetMaterial(PolyID materialID)
+	Material* AssetManager::GetMaterial(PolyID materialID)
 	{
 		if (!HasCorrectResource(materialID, ResourceType::TEXTURE))
 		{
@@ -292,7 +292,7 @@ namespace Poly
 		return m_Materials[DEFAULT_MATERIAL_ID].get();
 	}
 
-	Material* ResourceManager::GetMaterial(PolyID modelID, uint32 meshIndex)
+	Material* AssetManager::GetMaterial(PolyID modelID, uint32 meshIndex)
 	{
 		if (!HasCorrectResource(modelID, ResourceType::MODEL))
 		{
@@ -309,23 +309,23 @@ namespace Poly
 		return nullptr;
 	}
 
-	bool ResourceManager::IsResourceImported(const std::string& path)
+	bool AssetManager::IsResourceImported(const std::string& path)
 	{
-		return ResourceImporter::IsImported(path);
+		return AssetImporter::IsImported(path);
 	}
 
-	bool ResourceManager::IsResourceLoaded(PolyID id)
+	bool AssetManager::IsResourceLoaded(PolyID id)
 	{
 		return m_IDToHandle.contains(id) && m_IDToHandle[id].IsLoaded;
 	}
 
-	PolyID ResourceManager::GetPolyIDFromPath(const std::string& path)
+	PolyID AssetManager::GetPolyIDFromPath(const std::string& path)
 	{
 		std::string relativePath = path;
-		return ResourceImporter::GetPathID(relativePath);
+		return AssetImporter::GetPathID(relativePath);
 	}
 
-	void ResourceManager::RegisterDefaults()
+	void AssetManager::RegisterDefaults()
 	{
 		RegisterDefaultMaterial();
 
@@ -335,7 +335,7 @@ namespace Poly
 		m_IDToHandle[DEFAULT_MATERIAL_ID] = handle;
 	}
 
-	void ResourceManager::RegisterDefaultMaterial()
+	void AssetManager::RegisterDefaultMaterial()
 	{
 		Ref<Material> pMaterial = CreateRef<Material>();
 
@@ -345,7 +345,7 @@ namespace Poly
 		uint32       height   = 1;
 		uint32       channels = 4;
 		byte         data[4]  = {255, 255, 255, 255};
-		Ref<Texture> pTexture = ResourceLoader::LoadTextureFromMemory(&data, width, height, channels, EFormat::R8G8B8A8_UNORM);
+		Ref<Texture> pTexture = AssetLoader::LoadTextureFromMemory(&data, width, height, channels, EFormat::R8G8B8A8_UNORM);
 
 		Poly::TextureViewDesc textureViewDesc = {
 		    .pTexture        = pTexture.get(),
@@ -368,9 +368,9 @@ namespace Poly
 		pMaterial->SetMaterialValues(matVals);
 	}
 
-	void ResourceManager::RegisterImports()
+	void AssetManager::RegisterImports()
 	{
-		const auto& imports = ResourceImporter::GetImports();
+		const auto& imports = AssetImporter::GetImports();
 		for (const auto& [path, importedResource] : imports)
 		{
 			if (!m_IDToHandle.contains(importedResource.ResourceID))
@@ -385,7 +385,7 @@ namespace Poly
 		}
 	}
 
-	bool ResourceManager::HasCorrectResource(PolyID id, ResourceType type)
+	bool AssetManager::HasCorrectResource(PolyID id, ResourceType type)
 	{
 		if (!m_IDToHandle.contains(id))
 			return false;
@@ -393,9 +393,9 @@ namespace Poly
 		return m_IDToHandle[id].Type == type && m_IDToHandle[id].IsLoaded;
 	}
 
-	std::vector<ManagedTexture> ResourceManager::m_Textures;
-	std::vector<Ref<Model>>     ResourceManager::m_Models;
-	std::vector<Ref<Material>>  ResourceManager::m_Materials;
+	std::vector<ManagedTexture> AssetManager::m_Textures;
+	std::vector<Ref<Model>>     AssetManager::m_Models;
+	std::vector<Ref<Material>>  AssetManager::m_Materials;
 
-	std::unordered_map<PolyID, ResourceManager::ResourceHandle> ResourceManager::m_IDToHandle;
+	std::unordered_map<PolyID, AssetManager::ResourceHandle> AssetManager::m_IDToHandle;
 } // namespace Poly

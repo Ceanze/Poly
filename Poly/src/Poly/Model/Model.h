@@ -46,7 +46,7 @@ namespace Poly
 		PolyID GetPolyID() const { return m_ModelID; }
 
 	private:
-		friend class ResourceManager;
+		friend class AssetManager;
 		void SetModelID(PolyID modelID) { m_ModelID = modelID; }
 
 		std::vector<MeshInstance> m_MeshInstances;

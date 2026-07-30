@@ -3,6 +3,7 @@
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "RenderProgram.h"
+#include "ResourceManager.h"
 
 #include <array>
 #include <mutex>
@@ -49,28 +50,23 @@ namespace Poly
 		// global/semantic name). Safe to call once at setup for a resource that never changes, or every
 		// frame for one that does (e.g. re-pointing at a new frame's data). A buffer supplied here that
 		// will be accessed via BDA in a shader must have been created with FBufferUsage::SHADER_DEVICE_ADDRESS.
-		void UpdateResource(std::string_view resolvedName, Ref<Buffer> pBuffer);
-		void UpdateResource(std::string_view resolvedName, Ref<TextureView> pTextureView, Ref<Sampler> pSampler = nullptr);
+		void UpdateResource(std::string_view resolvedName, BufferHandle handle);
+		void UpdateResource(std::string_view resolvedName, TextureHandle handle, SamplerHandle sampler = {});
 
 		const RenderProgram& GetProgram() const { return *m_pRenderProgram; }
 
 	private:
 		// A resolved-name's backing GPU resource - either supplied externally via UpdateResource(), or
 		// allocated internally on first touch (texture-shaped only - see RenderProgramInstance.cpp for
-		// why graph-owned buffers aren't reachable yet). Exactly one of pBuffer/pTextureView is set.
+		// why graph-owned buffers aren't reachable yet). Exactly one of BufHandle/TexHandle is valid.
 		struct RuntimeResource
 		{
-			Ref<Buffer>      pBuffer;
-			Ref<Texture>     pTexture; // only set for internally-allocated textures - keeps the Texture alive alongside pTextureView
-			Ref<TextureView> pTextureView;
-			Ref<Sampler>     pSampler;
+			BufferHandle  BufHandle;
+			TextureHandle TexHandle;
+			SamplerHandle SamplerHnd;
 
-			// Cached bindless heap registration, assigned once the first time this resource is used
-			// in a bindless slot (see BindlessManager) - avoids re-registering the same resource every frame.
-			uint32 BindlessHeapIndex = ~0u;
-
-			bool IsBuffer() const { return pBuffer != nullptr; }
-			bool IsTexture() const { return pTextureView != nullptr; }
+			bool IsBuffer() const { return BufHandle.IsValid(); }
+			bool IsTexture() const { return TexHandle.IsValid(); }
 		};
 
 		// Per-pass runtime state, stable for the RenderProgramInstance's lifetime (ResolvedPass list
@@ -92,7 +88,7 @@ namespace Poly
 
 		RuntimeResource* ResolvePort(const ResolvedPort& port, const RenderView& view);
 		EFormat          GetPortFormat(const ResolvedPort& port, const RenderView& view);
-		uint32           GetOrRegisterBindlessTextureIndex(RuntimeResource* pResource, ETextureLayout layout);
+		uint32           GetBindlessIndex(const RuntimeResource* pResource);
 
 		Texture* GetTextureForBarrier(const std::string& resolvedName, const RenderView& view);
 		Buffer*  GetBufferForBarrier(const std::string& resolvedName);

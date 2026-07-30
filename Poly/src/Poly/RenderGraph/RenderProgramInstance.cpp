@@ -1,6 +1,5 @@
 #include "RenderProgramInstance.h"
 
-#include "BindlessManager.h"
 #include "ExecuteContext.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
@@ -84,26 +83,22 @@ namespace Poly
 		m_FrameIndex = (m_FrameIndex + 1) % FRAMES_IN_FLIGHT;
 	}
 
-	void RenderProgramInstance::UpdateResource(std::string_view resolvedName, Ref<Buffer> pBuffer)
+	void RenderProgramInstance::UpdateResource(std::string_view resolvedName, BufferHandle handle)
 	{
 		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
 		RuntimeResource&                      res = m_Resources[std::string(resolvedName)];
-		res.pBuffer                               = std::move(pBuffer);
-		res.pTexture.reset();
-		res.pTextureView.reset();
-		res.pSampler.reset();
-		res.BindlessHeapIndex = ~0u;
+		res.BufHandle                             = handle;
+		res.TexHandle                             = TextureHandle();
+		res.SamplerHnd                            = SamplerHandle();
 	}
 
-	void RenderProgramInstance::UpdateResource(std::string_view resolvedName, Ref<TextureView> pTextureView, Ref<Sampler> pSampler)
+	void RenderProgramInstance::UpdateResource(std::string_view resolvedName, TextureHandle handle, SamplerHandle sampler)
 	{
 		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
 		RuntimeResource&                      res = m_Resources[std::string(resolvedName)];
-		res.pBuffer.reset();
-		res.pTexture.reset(); // externally owned - the caller keeps the Texture alive, not us
-		res.pTextureView      = std::move(pTextureView);
-		res.pSampler          = pSampler ? std::move(pSampler) : Sampler::GetDefaultLinearSampler();
-		res.BindlessHeapIndex = ~0u; // re-register into the bindless heap next time it's used in a slot
+		res.BufHandle                             = BufferHandle();
+		res.TexHandle                             = handle;
+		res.SamplerHnd                            = sampler.IsValid() ? sampler : ResourceManager::GetDefaultLinearSampler();
 	}
 
 	void RenderProgramInstance::EnsurePerPassResources()
@@ -149,7 +144,7 @@ namespace Poly
 		const ResolvedPass& pass = m_pRenderProgram->GetPasses()[passIndex];
 
 		PipelineLayoutDesc desc   = {};
-		desc.DescriptorSetLayouts = {BindlessManager::GetSetLayoutDesc()}; // set 0 - shared bindless heap
+		desc.DescriptorSetLayouts = {ResourceManager::GetSetLayoutDesc()}; // set 0 - shared bindless heap
 
 		if (pass.PushConstantSize > 0)
 		{
@@ -170,7 +165,7 @@ namespace Poly
 			return view.pTarget ? view.pTarget->GetTexture()->GetDesc().Format : EFormat::R8G8B8A8_UNORM;
 
 		RuntimeResource* pRes = ResolvePort(port, view);
-		return (pRes && pRes->IsTexture()) ? pRes->pTextureView->GetTexture()->GetDesc().Format : EFormat::UNDEFINED;
+		return (pRes && pRes->IsTexture()) ? ResourceManager::Resolve(pRes->TexHandle)->GetDesc().Format : EFormat::UNDEFINED;
 	}
 
 	GraphicsPipeline* RenderProgramInstance::GetOrCreatePipeline(size_t passIndex, const RenderView& view)
@@ -247,37 +242,17 @@ namespace Poly
 		const uint32 width  = port.Width != 0 ? port.Width : (view.pTarget ? view.pTarget->GetTexture()->GetWidth() : 0);
 		const uint32 height = port.Height != 0 ? port.Height : (view.pTarget ? view.pTarget->GetTexture()->GetHeight() : 0);
 
-		TextureDesc texDesc = {};
-		texDesc.Width       = width;
-		texDesc.Height      = height;
-		texDesc.Depth       = 1;
-		texDesc.ArrayLayers = 1;
-		texDesc.MipLevels   = 1;
-		texDesc.SampleCount = 1;
-		texDesc.MemoryUsage = EMemoryUsage::GPU_ONLY;
-		texDesc.TextureDim  = ETextureDim::DIM_2D;
 		// TODO: IResourceDeclaration has no format setter yet (only WithSize/WithType/WithInitialState) -
 		// default until it does; only affects graph-owned internal resources, not externally-supplied ones.
-		texDesc.Format       = isDepthSemantic ? EFormat::D24_UNORM_S8_UINT : EFormat::R8G8B8A8_UNORM;
-		texDesc.TextureUsage = isDepthSemantic ? FTextureUsage::DEPTH_STENCIL_ATTACHMENT | FTextureUsage::SAMPLED
-		                                       : FTextureUsage::SAMPLED | (port.ResourceType == EResourceType::StorageImage
-		                                                                       ? FTextureUsage::STORAGE
-		                                                                       : FTextureUsage::COLOR_ATTACHMENT);
-
-		Ref<Texture> pTexture = RenderAPI::CreateTexture(&texDesc);
-
-		TextureViewDesc viewDesc = {};
-		viewDesc.pTexture        = pTexture.get();
-		viewDesc.ImageViewType   = EImageViewType::TYPE_2D;
-		viewDesc.Format          = texDesc.Format;
-		viewDesc.ImageViewFlag   = isDepthSemantic ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
-		viewDesc.MipLevelCount   = 1;
-		viewDesc.ArrayLayerCount = 1;
+		const EFormat       format = isDepthSemantic ? EFormat::D24_UNORM_S8_UINT : EFormat::R8G8B8A8_UNORM;
+		const FTextureUsage usage  = isDepthSemantic ? FTextureUsage::DEPTH_STENCIL_ATTACHMENT | FTextureUsage::SAMPLED
+		                                             : FTextureUsage::SAMPLED | (port.ResourceType == EResourceType::StorageImage
+		                                                                             ? FTextureUsage::STORAGE
+		                                                                             : FTextureUsage::COLOR_ATTACHMENT);
 
 		RuntimeResource res;
-		res.pTexture     = pTexture;
-		res.pTextureView = RenderAPI::CreateTextureView(&viewDesc);
-		res.pSampler     = Sampler::GetDefaultLinearSampler();
+		res.TexHandle  = ResourceManager::CreateTexture2D(width, height, format, usage, port.ResolvedName);
+		res.SamplerHnd = ResourceManager::GetDefaultLinearSampler();
 
 		auto [insertedIt, inserted] = m_Resources.emplace(port.ResolvedName, std::move(res));
 		return &insertedIt->second;
@@ -290,26 +265,20 @@ namespace Poly
 
 		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
 		auto                                  it = m_Resources.find(resolvedName);
-		return (it != m_Resources.end() && it->second.IsTexture()) ? it->second.pTextureView->GetTexture() : nullptr;
+		return (it != m_Resources.end() && it->second.IsTexture()) ? ResourceManager::Resolve(it->second.TexHandle) : nullptr;
 	}
 
 	Buffer* RenderProgramInstance::GetBufferForBarrier(const std::string& resolvedName)
 	{
 		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
 		auto                                  it = m_Resources.find(resolvedName);
-		return (it != m_Resources.end() && it->second.IsBuffer()) ? it->second.pBuffer.get() : nullptr;
+		return (it != m_Resources.end() && it->second.IsBuffer()) ? ResourceManager::Resolve(it->second.BufHandle) : nullptr;
 	}
 
-	uint32 RenderProgramInstance::GetOrRegisterBindlessTextureIndex(RuntimeResource* pResource, ETextureLayout layout)
+	uint32 RenderProgramInstance::GetBindlessIndex(const RuntimeResource* pResource)
 	{
-		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
-
-		if (pResource->BindlessHeapIndex != ~0u)
-			return pResource->BindlessHeapIndex;
-
-		Sampler* pSampler            = pResource->pSampler ? pResource->pSampler.get() : Sampler::GetDefaultLinearSampler().get();
-		pResource->BindlessHeapIndex = BindlessManager::RegisterTextureAndSampler(pResource->pTextureView.get(), layout, pSampler);
-		return pResource->BindlessHeapIndex;
+		const SamplerHandle sampler = pResource->SamplerHnd.IsValid() ? pResource->SamplerHnd : ResourceManager::GetDefaultLinearSampler();
+		return pResource->TexHandle.GetIndex() | (sampler.GetIndex() << ResourceManager::SAMPLER_INDEX_SHIFT);
 	}
 
 	void RenderProgramInstance::BuildPushConstants(size_t passIndex, std::vector<byte>& outData)
@@ -329,7 +298,7 @@ namespace Poly
 				continue;
 			}
 
-			const uint64 address = it->second.pBuffer->GetDeviceAddress();
+			const uint64 address = ResourceManager::Resolve(it->second.BufHandle)->GetDeviceAddress();
 			const uint32 offset  = pass.BufferSlotsOffset + slot.Slot * static_cast<uint32>(sizeof(uint64));
 			if (offset + sizeof(uint64) <= outData.size())
 				std::memcpy(outData.data() + offset, &address, sizeof(uint64));
@@ -345,7 +314,7 @@ namespace Poly
 				continue;
 			}
 
-			const uint32 heapIndex = GetOrRegisterBindlessTextureIndex(&it->second, ETextureLayout::SHADER_READ_ONLY_OPTIMAL);
+			const uint32 heapIndex = GetBindlessIndex(&it->second);
 			const uint32 offset    = pass.TextureSlotsOffset + slot.Slot * static_cast<uint32>(sizeof(uint32));
 			if (offset + sizeof(uint32) <= outData.size())
 				std::memcpy(outData.data() + offset, &heapIndex, sizeof(uint32));
@@ -531,7 +500,7 @@ namespace Poly
 					continue;
 
 				RenderingAttachmentInfo info         = {};
-				info.pTextureView                    = pRes->pTextureView.get();
+				info.pTextureView                    = ResourceManager::ResolveView(pRes->TexHandle);
 				info.TextureLayout                   = ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 				info.LoadOp                          = GetAttachmentLoadOp(plan, port.ResolvedName);
 				info.StoreOp                         = EStoreOp::STORE;
@@ -551,8 +520,9 @@ namespace Poly
 
 				if (width == 0)
 				{
-					width  = pRes->pTextureView->GetTexture()->GetWidth();
-					height = pRes->pTextureView->GetTexture()->GetHeight();
+					Texture* pDepthTexture = ResourceManager::Resolve(pRes->TexHandle);
+					width                  = pDepthTexture->GetWidth();
+					height                 = pDepthTexture->GetHeight();
 				}
 			}
 		}
@@ -580,7 +550,7 @@ namespace Poly
 		scissor.Height      = height;
 		pCmd->SetScissor(&scissor);
 
-		pCmd->BindDescriptor(pPipeline, BindlessManager::GetDescriptorSet());
+		pCmd->BindDescriptor(pPipeline, ResourceManager::GetDescriptorSet());
 
 		if (pass.PushConstantSize > 0)
 		{
@@ -590,7 +560,7 @@ namespace Poly
 			                          static_cast<uint32>(pushData.size()), pushData.data());
 		}
 
-		ExecuteContext ctx(pCmd, view);
+		ExecuteContext ctx(pCmd, view, GetOrCreatePipelineLayout(passIndex), pass.TextureSlotsOffset);
 		if (pass.ExecuteFn)
 			pass.ExecuteFn(ctx);
 
