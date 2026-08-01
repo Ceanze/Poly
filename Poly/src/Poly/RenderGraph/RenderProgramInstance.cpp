@@ -67,6 +67,21 @@ namespace Poly
 				submitDesc.WaitSyncPoints.push_back({pSrcSyncPoint, m_QueueTimelineBase[srcQueue] + waitValue});
 			}
 
+			// Acquire any pending uploads for each port resource, handles upload sync and queue acqusition.
+			for (const ResolvedPort& port : pass.Ports)
+			{
+				RuntimeResource* pRes = ResolvePort(port, view);
+				if (!pRes)
+					continue;
+
+				SyncPoint* pUploadSyncPoint = nullptr;
+				uint64     uploadValue      = 0;
+				const bool hasPendingUpload = pRes->IsTexture() ? ResourceManager::ConsumePendingUploadSync(pRes->TexHandle, &pUploadSyncPoint, &uploadValue)
+				                                                : ResourceManager::ConsumePendingUploadSync(pRes->BufHandle, &pUploadSyncPoint, &uploadValue);
+				if (hasPendingUpload)
+					submitDesc.WaitSyncPoints.push_back({pUploadSyncPoint, uploadValue});
+			}
+
 			const uint64 signalValue    = base + plan.SubmissionIndex;
 			submitDesc.SignalSyncPoints = {{pQueueSyncPoint, signalValue}};
 

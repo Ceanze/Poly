@@ -4,10 +4,13 @@
 #include "Platform/API/CommandPool.h"
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/DescriptorSet.h"
+#include "Platform/API/SyncPoint.h"
 #include "Poly/Core/RenderAPI.h"
 
+#include <algorithm>
 #include <cstring>
 #include <tuple>
+#include <unordered_set>
 
 namespace Poly
 {
@@ -39,11 +42,12 @@ namespace Poly
 
 		s_pHeapSet = RenderAPI::CreateDescriptorSet(s_pHeapPipelineLayout.get(), 0);
 
-		s_pTransferCommandPool   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
-		s_pTransferCommandBuffer = s_pTransferCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
-
-		s_pGraphicsCommandPool   = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::NONE);
-		s_pGraphicsCommandBuffer = s_pGraphicsCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		{
+			s_TransferCommandPools[i]   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
+			s_TransferCommandBuffers[i] = s_TransferCommandPools[i]->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+		}
+		s_pUploadSyncPoint = RenderAPI::CreateSyncPoint();
 
 		s_DefaultLinearSampler  = GetOrCreateSampler(Sampler::GetDefaultLinearSampler()->GetDesc());
 		s_DefaultNearestSampler = GetOrCreateSampler(Sampler::GetDefaultNearestSampler()->GetDesc());
@@ -53,9 +57,24 @@ namespace Poly
 	{
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
+		for (const auto& [queue, ring] : s_AcquireRings)
+			RenderAPI::GetCommandQueue(queue)->Wait();
 
-		s_pTransferCommandPool.reset();
-		s_pGraphicsCommandPool.reset();
+		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+			s_TransferCommandPools[i].reset();
+		s_AcquireRings.clear();
+		s_pUploadSyncPoint.reset();
+		s_UploadTimelineValue = 0;
+		s_SlotSignalValue     = {};
+
+		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		{
+			if (s_StagingBuffers[i])
+				s_StagingBuffers[i]->Unmap();
+			s_StagingBuffers[i].reset();
+		}
+		s_StagingBufferCapacity = {};
+		s_StagingBufferMapped   = {};
 
 		s_Textures.clear();
 		s_FreeTextureIndices.clear();
@@ -352,7 +371,7 @@ namespace Poly
 		s_PendingBufferDestroys.emplace_back(handle.GetIndex(), s_CurrentFrame);
 	}
 
-	void ResourceManager::UploadTextureData(TextureHandle handle, const void* pData, uint32 width, uint32 height)
+	void ResourceManager::UploadTextureData(TextureHandle handle, const void* pData, uint32 width, uint32 height, FQueueType targetQueue)
 	{
 		std::lock_guard<std::recursive_mutex> lock(s_Mutex);
 		if (!handle.IsValid() || handle.GetIndex() >= s_Textures.size() || s_Textures[handle.GetIndex()].Generation != handle.GetGeneration())
@@ -364,14 +383,15 @@ namespace Poly
 		// TODO: assumes 4 bytes/pixel (RGBA8), same simplification AssetLoader::LoadTextureFromMemory
 		// makes today - format/channels should determine the real stride instead.
 		PendingTextureUpload upload;
-		upload.Handle = handle;
-		upload.Width  = width;
-		upload.Height = height;
+		upload.Handle      = handle;
+		upload.Width       = width;
+		upload.Height      = height;
+		upload.TargetQueue = targetQueue;
 		upload.Data.assign(static_cast<const byte*>(pData), static_cast<const byte*>(pData) + static_cast<size_t>(width) * height * 4);
 		s_PendingTextureUploads.push_back(std::move(upload));
 	}
 
-	void ResourceManager::UploadBufferData(BufferHandle handle, const void* pData, uint64 size, uint64 offset)
+	void ResourceManager::UploadBufferData(BufferHandle handle, const void* pData, uint64 size, uint64 offset, FQueueType targetQueue)
 	{
 		std::lock_guard<std::recursive_mutex> lock(s_Mutex);
 		if (!handle.IsValid() || handle.GetIndex() >= s_Buffers.size())
@@ -395,10 +415,80 @@ namespace Poly
 		}
 
 		PendingBufferUpload upload;
-		upload.Handle = handle;
-		upload.Offset = offset;
+		upload.Handle      = handle;
+		upload.Offset      = offset;
+		upload.TargetQueue = targetQueue;
 		upload.Data.assign(static_cast<const byte*>(pData), static_cast<const byte*>(pData) + size);
 		s_PendingBufferUploads.push_back(std::move(upload));
+	}
+
+	bool ResourceManager::ConsumePendingUploadSync(TextureHandle handle, SyncPoint** ppSyncPoint, uint64* pValue)
+	{
+		std::lock_guard<std::recursive_mutex> lock(s_Mutex);
+		if (!handle.IsValid() || handle.GetIndex() >= s_Textures.size())
+			return false;
+
+		TextureSlot& slot = s_Textures[handle.GetIndex()];
+		if (!slot.Alive || slot.Generation != handle.GetGeneration() || slot.PendingUploadValue == 0)
+			return false;
+
+		*ppSyncPoint            = s_pUploadSyncPoint.get();
+		*pValue                 = slot.PendingUploadValue;
+		slot.PendingUploadValue = 0;
+		return true;
+	}
+
+	bool ResourceManager::ConsumePendingUploadSync(BufferHandle handle, SyncPoint** ppSyncPoint, uint64* pValue)
+	{
+		std::lock_guard<std::recursive_mutex> lock(s_Mutex);
+		if (!handle.IsValid() || handle.GetIndex() >= s_Buffers.size())
+			return false;
+
+		BufferSlot& slot = s_Buffers[handle.GetIndex()];
+		if (!slot.Alive || slot.Generation != handle.GetGeneration() || slot.PendingUploadValue == 0)
+			return false;
+
+		*ppSyncPoint            = s_pUploadSyncPoint.get();
+		*pValue                 = slot.PendingUploadValue;
+		slot.PendingUploadValue = 0;
+		return true;
+	}
+
+	void ResourceManager::EnsureStagingCapacity(uint32 slot, uint64 requiredSize)
+	{
+		if (s_StagingBuffers[slot] && s_StagingBufferCapacity[slot] >= requiredSize)
+			return;
+
+		if (s_StagingBuffers[slot])
+			s_StagingBuffers[slot]->Unmap();
+
+		const uint64 newCapacity = s_StagingBufferCapacity[slot] == 0 ? requiredSize : std::max(requiredSize, s_StagingBufferCapacity[slot] * 2);
+
+		BufferDesc stagingDesc  = {};
+		stagingDesc.BufferUsage = FBufferUsage::TRANSFER_SRC;
+		stagingDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
+		stagingDesc.Size        = newCapacity;
+
+		s_StagingBuffers[slot]        = RenderAPI::CreateBuffer(&stagingDesc);
+		s_StagingBufferCapacity[slot] = newCapacity;
+		s_StagingBufferMapped[slot]   = s_StagingBuffers[slot]->Map();
+	}
+
+	ResourceManager::QueueCommandRing& ResourceManager::GetOrCreateAcquireRing(FQueueType queue)
+	{
+		auto it = s_AcquireRings.find(queue);
+		if (it != s_AcquireRings.end())
+			return it->second;
+
+		QueueCommandRing ring;
+		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		{
+			ring.Pools[i]   = RenderAPI::CreateCommandPool(queue, FCommandPoolFlags::NONE);
+			ring.Buffers[i] = ring.Pools[i]->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+		}
+
+		auto [insertedIt, inserted] = s_AcquireRings.emplace(queue, std::move(ring));
+		return insertedIt->second;
 	}
 
 	void ResourceManager::FlushUploads()
@@ -406,35 +496,41 @@ namespace Poly
 		if (s_PendingTextureUploads.empty() && s_PendingBufferUploads.empty())
 			return;
 
+		const uint32 slot = static_cast<uint32>(s_CurrentFrame % FRAMES_IN_FLIGHT);
+
+		if (s_SlotSignalValue[slot] > 0)
+			s_pUploadSyncPoint->Wait(s_SlotSignalValue[slot]);
+
 		uint64 totalStagingSize = 0;
 		for (const auto& upload : s_PendingTextureUploads)
 			totalStagingSize += upload.Data.size();
 		for (const auto& upload : s_PendingBufferUploads)
 			totalStagingSize += upload.Data.size();
 
-		BufferDesc stagingDesc  = {};
-		stagingDesc.BufferUsage = FBufferUsage::TRANSFER_SRC;
-		stagingDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
-		stagingDesc.Size        = totalStagingSize;
-		Ref<Buffer> pStaging    = RenderAPI::CreateBuffer(&stagingDesc);
-
-		void*  pMapped = pStaging->Map();
+		EnsureStagingCapacity(slot, totalStagingSize);
+		byte*  pMapped = static_cast<byte*>(s_StagingBufferMapped[slot]);
 		uint64 offset  = 0;
 
 		const uint32 transferFamily = RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex();
-		const uint32 graphicsFamily = RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex();
-		const bool   sameQueue      = transferFamily == graphicsFamily;
 
-		s_pTransferCommandPool->Reset();
-		s_pTransferCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
+		// Group uploads by their declared target queue so each distinct queue gets exactly one acquire
+		// submission below - pointers stay valid since s_Pending*Uploads isn't mutated until the end.
+		std::unordered_map<FQueueType, std::vector<const PendingTextureUpload*>> texturesByTarget;
+		std::unordered_map<FQueueType, std::vector<const PendingBufferUpload*>>  buffersByTarget;
+
+		CommandPool*   pTransferPool = s_TransferCommandPools[slot].get();
+		CommandBuffer* pTransferCmd  = s_TransferCommandBuffers[slot];
+
+		pTransferPool->Reset();
+		pTransferCmd->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 
 		for (const auto& upload : s_PendingTextureUploads)
 		{
-			memcpy(static_cast<byte*>(pMapped) + offset, upload.Data.data(), upload.Data.size());
+			memcpy(pMapped + offset, upload.Data.data(), upload.Data.size());
 			Texture* pTexture = s_Textures[upload.Handle.GetIndex()].pTexture.get();
 
-			s_pTransferCommandBuffer->PipelineTextureBarrier(pTexture, FPipelineStage::ALL_COMMANDS, FPipelineStage::TRANSFER, FAccessFlag::NONE,
-			                                                 FAccessFlag::TRANSFER_WRITE, ETextureLayout::UNDEFINED, ETextureLayout::TRANSFER_DST_OPTIMAL);
+			pTransferCmd->PipelineTextureBarrier(pTexture, FPipelineStage::ALL_COMMANDS, FPipelineStage::TRANSFER, FAccessFlag::NONE,
+			                                     FAccessFlag::TRANSFER_WRITE, ETextureLayout::UNDEFINED, ETextureLayout::TRANSFER_DST_OPTIMAL);
 
 			CopyBufferDesc copyDesc = {};
 			copyDesc.BufferOffset   = offset;
@@ -442,59 +538,103 @@ namespace Poly
 			copyDesc.Height         = upload.Height;
 			copyDesc.Depth          = 1;
 			copyDesc.ArrayCount     = 1;
-			s_pTransferCommandBuffer->CopyBufferToTexture(pStaging.get(), pTexture, ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
+			pTransferCmd->CopyBufferToTexture(s_StagingBuffers[slot].get(), pTexture, ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
 
-			s_pTransferCommandBuffer->ReleaseTexture(pTexture, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
-			                                         ETextureLayout::TRANSFER_DST_OPTIMAL, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, transferFamily,
-			                                         graphicsFamily);
+			const uint32 targetFamily = RenderAPI::GetCommandQueue(upload.TargetQueue)->GetQueueFamilyIndex();
+			if (targetFamily != transferFamily)
+			{
+				pTransferCmd->ReleaseTexture(pTexture, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
+				                             ETextureLayout::TRANSFER_DST_OPTIMAL, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, transferFamily,
+				                             targetFamily);
+				texturesByTarget[upload.TargetQueue].push_back(&upload);
+			}
 
 			offset += upload.Data.size();
 		}
 
 		for (const auto& upload : s_PendingBufferUploads)
 		{
-			memcpy(static_cast<byte*>(pMapped) + offset, upload.Data.data(), upload.Data.size());
+			memcpy(pMapped + offset, upload.Data.data(), upload.Data.size());
 			Buffer* pBuffer = s_Buffers[upload.Handle.GetIndex()].pBuffer.get();
 
-			s_pTransferCommandBuffer->CopyBuffer(pStaging.get(), pBuffer, upload.Data.size(), offset, upload.Offset);
-			s_pTransferCommandBuffer->ReleaseBuffer(pBuffer, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
-			                                        transferFamily, graphicsFamily);
+			pTransferCmd->CopyBuffer(s_StagingBuffers[slot].get(), pBuffer, upload.Data.size(), offset, upload.Offset);
+
+			const uint32 targetFamily = RenderAPI::GetCommandQueue(upload.TargetQueue)->GetQueueFamilyIndex();
+			if (targetFamily != transferFamily)
+			{
+				pTransferCmd->ReleaseBuffer(pBuffer, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
+				                            transferFamily, targetFamily);
+				buffersByTarget[upload.TargetQueue].push_back(&upload);
+			}
 
 			offset += upload.Data.size();
 		}
 
-		pStaging->Unmap();
-		s_pTransferCommandBuffer->End();
+		pTransferCmd->End();
 
-		SubmitDesc transferSubmit     = {};
-		transferSubmit.CommandBuffers = {s_pTransferCommandBuffer};
-		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->SubmitIdle(transferSubmit);
+		const uint64 transferSignalValue = ++s_UploadTimelineValue;
+		SubmitDesc   transferSubmit      = {};
+		transferSubmit.CommandBuffers    = {pTransferCmd};
+		transferSubmit.SignalSyncPoints  = {{s_pUploadSyncPoint.get(), transferSignalValue}};
+		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(transferSubmit);
 
-		if (!sameQueue)
+		uint64 highestSignalValue = transferSignalValue;
+
+		std::unordered_set<FQueueType> targets;
+		for (const auto& [queue, uploads] : texturesByTarget)
+			targets.insert(queue);
+		for (const auto& [queue, uploads] : buffersByTarget)
+			targets.insert(queue);
+
+		for (FQueueType target : targets)
 		{
-			s_pGraphicsCommandPool->Reset();
-			s_pGraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
+			QueueCommandRing& ring = GetOrCreateAcquireRing(target);
+			ring.Pools[slot]->Reset();
+			ring.Buffers[slot]->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 
-			for (const auto& upload : s_PendingTextureUploads)
+			const uint32 targetFamily = RenderAPI::GetCommandQueue(target)->GetQueueFamilyIndex();
+
+			for (const PendingTextureUpload* pUpload : texturesByTarget[target])
 			{
-				Texture* pTexture = s_Textures[upload.Handle.GetIndex()].pTexture.get();
-				s_pGraphicsCommandBuffer->AcquireTexture(pTexture, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
-				                                         ETextureLayout::TRANSFER_DST_OPTIMAL, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, transferFamily,
-				                                         graphicsFamily);
+				Texture* pTexture = s_Textures[pUpload->Handle.GetIndex()].pTexture.get();
+				ring.Buffers[slot]->AcquireTexture(pTexture, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
+				                                   ETextureLayout::TRANSFER_DST_OPTIMAL, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, transferFamily,
+				                                   targetFamily);
 			}
-			for (const auto& upload : s_PendingBufferUploads)
+			for (const PendingBufferUpload* pUpload : buffersByTarget[target])
 			{
-				Buffer* pBuffer = s_Buffers[upload.Handle.GetIndex()].pBuffer.get();
-				s_pGraphicsCommandBuffer->AcquireBuffer(pBuffer, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
-				                                        transferFamily, graphicsFamily);
+				Buffer* pBuffer = s_Buffers[pUpload->Handle.GetIndex()].pBuffer.get();
+				ring.Buffers[slot]->AcquireBuffer(pBuffer, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
+				                                  transferFamily, targetFamily);
 			}
 
-			s_pGraphicsCommandBuffer->End();
+			ring.Buffers[slot]->End();
 
-			SubmitDesc graphicsSubmit     = {};
-			graphicsSubmit.CommandBuffers = {s_pGraphicsCommandBuffer};
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->SubmitIdle(graphicsSubmit);
+			const uint64 acquireSignalValue = ++s_UploadTimelineValue;
+			SubmitDesc   acquireSubmit      = {};
+			acquireSubmit.CommandBuffers    = {ring.Buffers[slot]};
+			acquireSubmit.WaitSyncPoints    = {{s_pUploadSyncPoint.get(), transferSignalValue}};
+			acquireSubmit.SignalSyncPoints  = {{s_pUploadSyncPoint.get(), acquireSignalValue}};
+			RenderAPI::GetCommandQueue(target)->Submit(acquireSubmit);
+
+			highestSignalValue = std::max(highestSignalValue, acquireSignalValue);
+
+			for (const PendingTextureUpload* pUpload : texturesByTarget[target])
+				s_Textures[pUpload->Handle.GetIndex()].PendingUploadValue = acquireSignalValue;
+			for (const PendingBufferUpload* pUpload : buffersByTarget[target])
+				s_Buffers[pUpload->Handle.GetIndex()].PendingUploadValue = acquireSignalValue;
 		}
+
+		// Same-family uploads never went through an acquire above, but a consumer on that queue still
+		// needs to wait for the transfer submit itself to finish before the copy is visible.
+		for (const auto& upload : s_PendingTextureUploads)
+			if (RenderAPI::GetCommandQueue(upload.TargetQueue)->GetQueueFamilyIndex() == transferFamily)
+				s_Textures[upload.Handle.GetIndex()].PendingUploadValue = transferSignalValue;
+		for (const auto& upload : s_PendingBufferUploads)
+			if (RenderAPI::GetCommandQueue(upload.TargetQueue)->GetQueueFamilyIndex() == transferFamily)
+				s_Buffers[upload.Handle.GetIndex()].PendingUploadValue = transferSignalValue;
+
+		s_SlotSignalValue[slot] = highestSignalValue;
 
 		s_PendingTextureUploads.clear();
 		s_PendingBufferUploads.clear();

@@ -8,9 +8,11 @@
 #include "Poly/Core/Core.h"
 #include "Poly/Core/Handle.h"
 
+#include <array>
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace Poly
@@ -18,6 +20,7 @@ namespace Poly
 	class DescriptorSet;
 	class CommandPool;
 	class CommandBuffer;
+	class SyncPoint;
 
 	using TextureHandle = Handle<struct TextureHandleTag>;
 	using BufferHandle  = Handle<struct BufferHandleTag>;
@@ -180,8 +183,12 @@ namespace Poly
 		 * @param pData - Pointer to the data to upload
 		 * @param width - Width of the texture
 		 * @param height - Height of the texture
+		 * @param targetQueue - Queue family the texture's ownership should be released to after the
+		 *        transfer completes - i.e. whichever queue the render program's first-touching pass
+		 *        runs on. Defaults to GRAPHICS since that's overwhelmingly the common case; get this
+		 *        wrong for a compute-first consumer and the acquire barrier never happens.
 		 */
-		static void UploadTextureData(TextureHandle handle, const void* pData, uint32 width, uint32 height);
+		static void UploadTextureData(TextureHandle handle, const void* pData, uint32 width, uint32 height, FQueueType targetQueue = FQueueType::GRAPHICS);
 
 		/*
 		 * Uploads data to a buffer. If GPU_ONLY the transfer is queued for next Execute of the render instance. If CPU_VISIBLE the transfer is immediate.
@@ -189,14 +196,31 @@ namespace Poly
 		 * @param pData - Pointer to the data to upload
 		 * @param size - Size of the data to upload
 		 * @param offset - Offset in the buffer to upload to
+		 * @param targetQueue - Queue family the buffer's ownership should be released to after the
+		 *        transfer completes (see UploadTextureData). Ignored for CPU_VISIBLE buffers, which
+		 *        transfer immediately and never change queue ownership.
 		 */
-		static void UploadBufferData(BufferHandle handle, const void* pData, uint64 size, uint64 offset = 0);
+		static void UploadBufferData(BufferHandle handle, const void* pData, uint64 size, uint64 offset = 0, FQueueType targetQueue = FQueueType::GRAPHICS);
 
 		/*
 		 * Updates resource manager state, handling any pending uploads and deferred destruction of resources. Should be called once per frame.
 		 * NOTE: Should only be called from the Renderer::Render() function
 		 */
 		static void Update();
+
+		/*
+		 * Checks whether a texture has a pending async upload whose queue-ownership-transfer completion
+		 * a consumer hasn't waited on yet. Single-consume: returns true at most once per upload - callers
+		 * (RenderProgramInstance, on a resource's first use after being supplied) are expected to fold the
+		 * returned sync point/value into their own submission's wait list before touching the resource.
+		 * @return true if a pending sync was found (and consumed) - ppSyncPoint/pValue are filled in
+		 */
+		static bool ConsumePendingUploadSync(TextureHandle handle, SyncPoint** ppSyncPoint, uint64* pValue);
+
+		/*
+		 * Same as the TextureHandle overload, for buffers.
+		 */
+		static bool ConsumePendingUploadSync(BufferHandle handle, SyncPoint** ppSyncPoint, uint64* pValue);
 
 		/*
 		 * Gets all textures registered in the resource manager.
@@ -234,6 +258,11 @@ namespace Poly
 			EFormat          Format = EFormat::UNDEFINED;
 			std::string      DebugName;
 			bool             Alive = false;
+
+			// Signal value on s_pUploadSyncPoint that a consumer must wait for before first touching this
+			// texture after an async upload - 0 once ConsumePendingUploadSync() has handed it off (or if
+			// no upload is pending). See FlushUploads().
+			uint64 PendingUploadValue = 0;
 		};
 
 		struct BufferSlot
@@ -242,6 +271,8 @@ namespace Poly
 			uint32      Generation = 0;
 			std::string DebugName;
 			bool        Alive = false;
+
+			uint64 PendingUploadValue = 0; // see TextureSlot::PendingUploadValue
 		};
 
 		struct SamplerDescLess
@@ -254,6 +285,7 @@ namespace Poly
 			TextureHandle     Handle;
 			std::vector<byte> Data;
 			uint32            Width, Height;
+			FQueueType        TargetQueue = FQueueType::GRAPHICS;
 		};
 
 		struct PendingBufferUpload
@@ -261,12 +293,22 @@ namespace Poly
 			BufferHandle      Handle;
 			std::vector<byte> Data;
 			uint64            Offset;
+			FQueueType        TargetQueue = FQueueType::GRAPHICS;
+		};
+
+		struct QueueCommandRing
+		{
+			std::array<Ref<CommandPool>, FRAMES_IN_FLIGHT> Pools;
+			std::array<CommandBuffer*, FRAMES_IN_FLIGHT>   Buffers{};
 		};
 
 		static uint32 AllocTextureSlot(); // pops the free-list or grows m_Textures - caller holds s_Mutex
 		static uint32 AllocBufferSlot();
 		static uint32 RegisterSamplerIndex(Sampler* pSampler, Ref<Sampler> pOwnedRef); // caller holds s_Mutex
 		static void   FlushUploads();                                                  // caller holds s_Mutex
+
+		static void              EnsureStagingCapacity(uint32 slot, uint64 requiredSize); // caller holds s_Mutex
+		static QueueCommandRing& GetOrCreateAcquireRing(FQueueType queue);                // caller holds s_Mutex
 
 		inline static std::recursive_mutex s_Mutex;
 
@@ -293,11 +335,20 @@ namespace Poly
 		inline static Ref<DescriptorSet>  s_pHeapSet;
 		inline static DescriptorSetLayout s_SetLayoutDesc;
 
-		// Persistent transfer/graphics command buffers reused every FlushUploads() call, mirroring the
-		// pattern AssetLoader::Init() already uses for the same purpose.
-		inline static Ref<CommandPool> s_pTransferCommandPool;
-		inline static CommandBuffer*   s_pTransferCommandBuffer = nullptr;
-		inline static Ref<CommandPool> s_pGraphicsCommandPool;
-		inline static CommandBuffer*   s_pGraphicsCommandBuffer = nullptr;
+		inline static std::array<Ref<CommandPool>, FRAMES_IN_FLIGHT> s_TransferCommandPools;
+		inline static std::array<CommandBuffer*, FRAMES_IN_FLIGHT>   s_TransferCommandBuffers{};
+
+		inline static std::unordered_map<FQueueType, QueueCommandRing> s_AcquireRings;
+
+		inline static std::array<Ref<Buffer>, FRAMES_IN_FLIGHT> s_StagingBuffers;
+		inline static std::array<uint64, FRAMES_IN_FLIGHT>      s_StagingBufferCapacity{};
+		inline static std::array<void*, FRAMES_IN_FLIGHT>       s_StagingBufferMapped{};
+
+		// Single timeline shared by the transfer submit and every per-target-queue acquire submit each
+		// flush. Values are assigned in submission order, so it's fine for different queues to signal it.
+		inline static Ref<SyncPoint> s_pUploadSyncPoint;
+		inline static uint64         s_UploadTimelineValue = 0;
+
+		inline static std::array<uint64, FRAMES_IN_FLIGHT> s_SlotSignalValue{};
 	};
 } // namespace Poly
