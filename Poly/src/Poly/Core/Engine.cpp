@@ -4,6 +4,7 @@
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Resources/AssetLoader.h"
 #include "Poly/Resources/AssetManager.h"
+#include "Poly/Resources/GeometryPool.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "polypch.h"
 #include "RenderAPI.h"
@@ -32,6 +33,7 @@ namespace Poly
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
 		ShaderManager::Init();
+		GeometryPool::Init();
 		AssetLoader::Init();
 		AssetManager::Init();
 	}
@@ -72,6 +74,7 @@ namespace Poly
 		ShaderManager::Release();
 		AssetLoader::Release();
 		AssetManager::Release();
+		GeometryPool::Release();
 		RenderAPI::Release();
 		glfwTerminate();
 	}

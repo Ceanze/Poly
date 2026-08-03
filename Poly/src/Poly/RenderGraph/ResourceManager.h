@@ -116,6 +116,19 @@ namespace Poly
 		static BufferHandle CreateStorageBuffer(uint64 size, EMemoryUsage memUsage = EMemoryUsage::GPU_ONLY, std::string debugName = "");
 
 		/*
+		 * Grows (or shrinks) a buffer in place: creates a new buffer of newSize and queues a copy
+		 * of the old buffer's contents into it (up to min(oldSize, newSize)) for the next
+		 * FlushUploads() - same as UploadBufferData, this does not block or submit anything of its
+		 * own. The old handle is invalidated - callers must switch to the returned handle.
+		 * @param handle - handle to the buffer to resize
+		 * @param newSize - new size in bytes
+		 * @param targetQueue - queue family the resized buffer's ownership should be released to
+		 *        once the copy completes, same meaning as UploadBufferData's targetQueue
+		 * @return BufferHandle - handle to the resized buffer, replacing the input handle
+		 */
+		static BufferHandle ResizeBuffer(BufferHandle handle, uint64 newSize, FQueueType targetQueue = FQueueType::GRAPHICS);
+
+		/*
 		 * Creates a custom texture view - should only be used for special cases where the default view is not sufficient.
 		 * Note: If a non-default view is needed to be created, consider creating a new method for it instead
 		 * @param texture - Handle to the texture
@@ -296,6 +309,14 @@ namespace Poly
 			FQueueType        TargetQueue = FQueueType::GRAPHICS;
 		};
 
+		struct PendingBufferCopy
+		{
+			BufferHandle SrcHandle;
+			BufferHandle DstHandle;
+			uint64       Size;
+			FQueueType   TargetQueue = FQueueType::GRAPHICS;
+		};
+
 		struct QueueCommandRing
 		{
 			std::array<Ref<CommandPool>, FRAMES_IN_FLIGHT> Pools;
@@ -325,6 +346,7 @@ namespace Poly
 
 		inline static std::vector<PendingTextureUpload> s_PendingTextureUploads;
 		inline static std::vector<PendingBufferUpload>  s_PendingBufferUploads;
+		inline static std::vector<PendingBufferCopy>    s_PendingBufferCopies;
 
 		// {slot index, frame it was destroyed on} - swept in Update() once FRAMES_IN_FLIGHT frames have passed.
 		inline static std::vector<std::pair<uint32, uint64>> s_PendingTextureDestroys;
