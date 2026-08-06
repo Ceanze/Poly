@@ -151,11 +151,17 @@ namespace Poly
 	void SceneRenderBridge::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)
 	{
 		const uint64 instanceSize = sizeof(GPUInstanceData) * instances.size();
-		m_InstanceBufferHandle    = ResourceManager::CreateStorageBuffer(instanceSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Instances");
+		if (!m_InstanceBufferHandle.IsValid())
+			m_InstanceBufferHandle = ResourceManager::CreateStorageBuffer(instanceSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Instances");
+		else
+			m_InstanceBufferHandle = ResourceManager::ResizeBuffer(m_InstanceBufferHandle, instanceSize);
 		ResourceManager::UploadBufferData(m_InstanceBufferHandle, instances.data(), instanceSize);
 
 		const uint64 materialSize = sizeof(GPUMaterialData) * materials.size();
-		m_MaterialBufferHandle    = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Materials");
+		if (!m_MaterialBufferHandle.IsValid())
+			m_MaterialBufferHandle = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Materials");
+		else
+			m_MaterialBufferHandle = ResourceManager::ResizeBuffer(m_MaterialBufferHandle, materialSize);
 		ResourceManager::UploadBufferData(m_MaterialBufferHandle, materials.data(), materialSize);
 
 		m_pProgramInstance->UpdateResource(Scene::VERTICES_RESOURCE_NAME_2, GeometryPool::GetVertexBufferHandle());
