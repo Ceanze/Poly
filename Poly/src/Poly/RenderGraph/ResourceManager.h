@@ -333,6 +333,13 @@ namespace Poly
 			std::array<CommandBuffer*, FRAMES_IN_FLIGHT>   Buffers{};
 		};
 
+		struct StagingBufferData
+		{
+			Ref<Buffer> pBuffer;
+			uint64      Capacity = 0;
+			void*       Mapped   = nullptr;
+		};
+
 		static uint32 AllocTextureSlot(); // pops the free-list or grows m_Textures - caller holds s_Mutex
 		static uint32 AllocBufferSlot();
 		static uint32 RegisterSamplerIndex(Sampler* pSampler, Ref<Sampler> pOwnedRef); // caller holds s_Mutex
@@ -373,9 +380,7 @@ namespace Poly
 
 		inline static std::unordered_map<FQueueType, QueueCommandRing> s_AcquireRings;
 
-		inline static std::array<Ref<Buffer>, FRAMES_IN_FLIGHT> s_StagingBuffers;
-		inline static std::array<uint64, FRAMES_IN_FLIGHT>      s_StagingBufferCapacity{};
-		inline static std::array<void*, FRAMES_IN_FLIGHT>       s_StagingBufferMapped{};
+		inline static std::array<StagingBufferData, FRAMES_IN_FLIGHT> s_StagingBuffers;
 
 		// Single timeline shared by the transfer submit and every per-target-queue acquire submit each
 		// flush. Values are assigned in submission order, so it's fine for different queues to signal it.

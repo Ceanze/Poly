@@ -69,12 +69,11 @@ namespace Poly
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
-			if (s_StagingBuffers[i])
-				s_StagingBuffers[i]->Unmap();
-			s_StagingBuffers[i].reset();
+			if (s_StagingBuffers[i].pBuffer)
+				s_StagingBuffers[i].pBuffer->Unmap();
+			s_StagingBuffers[i].pBuffer.reset();
 		}
-		s_StagingBufferCapacity = {};
-		s_StagingBufferMapped   = {};
+		s_StagingBuffers = {};
 
 		s_Textures.clear();
 		s_FreeTextureIndices.clear();
@@ -513,22 +512,22 @@ namespace Poly
 
 	void ResourceManager::EnsureStagingCapacity(uint32 slot, uint64 requiredSize)
 	{
-		if (s_StagingBuffers[slot] && s_StagingBufferCapacity[slot] >= requiredSize)
+		if (s_StagingBuffers[slot].pBuffer && s_StagingBuffers[slot].Capacity >= requiredSize)
 			return;
 
-		if (s_StagingBuffers[slot])
-			s_StagingBuffers[slot]->Unmap();
+		if (s_StagingBuffers[slot].pBuffer)
+			s_StagingBuffers[slot].pBuffer->Unmap();
 
-		const uint64 newCapacity = s_StagingBufferCapacity[slot] == 0 ? requiredSize : std::max(requiredSize, s_StagingBufferCapacity[slot] * 2);
+		const uint64 newCapacity = s_StagingBuffers[slot].Capacity == 0 ? requiredSize : std::max(requiredSize, s_StagingBuffers[slot].Capacity * 2);
 
 		BufferDesc stagingDesc  = {};
 		stagingDesc.BufferUsage = FBufferUsage::TRANSFER_SRC;
 		stagingDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
 		stagingDesc.Size        = newCapacity;
 
-		s_StagingBuffers[slot]        = RenderAPI::CreateBuffer(&stagingDesc);
-		s_StagingBufferCapacity[slot] = newCapacity;
-		s_StagingBufferMapped[slot]   = s_StagingBuffers[slot]->Map();
+		s_StagingBuffers[slot].pBuffer  = RenderAPI::CreateBuffer(&stagingDesc);
+		s_StagingBuffers[slot].Capacity = newCapacity;
+		s_StagingBuffers[slot].Mapped   = s_StagingBuffers[slot].pBuffer->Map();
 	}
 
 	ResourceManager::QueueCommandRing& ResourceManager::GetOrCreateAcquireRing(FQueueType queue)
@@ -565,7 +564,7 @@ namespace Poly
 			totalStagingSize += upload.Data.size();
 
 		EnsureStagingCapacity(slot, totalStagingSize);
-		byte*  pMapped = static_cast<byte*>(s_StagingBufferMapped[slot]);
+		byte*  pMapped = static_cast<byte*>(s_StagingBuffers[slot].Mapped);
 		uint64 offset  = 0;
 
 		const uint32 transferFamily = RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex();
@@ -593,7 +592,7 @@ namespace Poly
 			copyDesc.Height         = upload.Height;
 			copyDesc.Depth          = 1;
 			copyDesc.ArrayCount     = 1;
-			pTransferCmd->CopyBufferToTexture(s_StagingBuffers[slot].get(), pTexture, ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
+			pTransferCmd->CopyBufferToTexture(s_StagingBuffers[slot].pBuffer.get(), pTexture, ETextureLayout::TRANSFER_DST_OPTIMAL, copyDesc);
 
 			const uint32 targetFamily = RenderAPI::GetCommandQueue(upload.TargetQueue)->GetQueueFamilyIndex();
 			if (targetFamily != transferFamily)
@@ -612,7 +611,7 @@ namespace Poly
 			memcpy(pMapped + offset, upload.Data.data(), upload.Data.size());
 			Buffer* pBuffer = s_Buffers[upload.Handle.GetIndex()].pBuffer.get();
 
-			pTransferCmd->CopyBuffer(s_StagingBuffers[slot].get(), pBuffer, upload.Data.size(), offset, upload.Offset);
+			pTransferCmd->CopyBuffer(s_StagingBuffers[slot].pBuffer.get(), pBuffer, upload.Data.size(), offset, upload.Offset);
 
 			const uint32 targetFamily = RenderAPI::GetCommandQueue(upload.TargetQueue)->GetQueueFamilyIndex();
 			if (targetFamily != transferFamily)
