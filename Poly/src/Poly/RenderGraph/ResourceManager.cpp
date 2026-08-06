@@ -220,7 +220,7 @@ namespace Poly
 		return CreateBuffer(size, FBufferUsage::STORAGE_BUFFER | FBufferUsage::SHADER_DEVICE_ADDRESS, memUsage, std::move(debugName));
 	}
 
-	BufferHandle ResourceManager::ResizeBuffer(BufferHandle handle, uint64 newSize, FQueueType targetQueue)
+	BufferHandle ResourceManager::ResizeBuffer(BufferHandle handle, uint64 newSize, FQueueType targetQueue, uint64 preserveBytes)
 	{
 		std::lock_guard<std::recursive_mutex> lock(s_Mutex);
 
@@ -261,7 +261,7 @@ namespace Poly
 		PendingBufferCopy copy;
 		copy.SrcHandle   = handle;
 		copy.DstHandle   = newHandle;
-		copy.Size        = std::min(oldDesc.Size, newSize);
+		copy.Size        = std::min({oldDesc.Size, newSize, preserveBytes});
 		copy.TargetQueue = targetQueue;
 		s_PendingBufferCopies.push_back(copy);
 

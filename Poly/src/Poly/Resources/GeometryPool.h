@@ -7,12 +7,6 @@
 
 namespace Poly
 {
-	struct MeshRange
-	{
-		BufferRange Vertices;
-		BufferRange Indices;
-	};
-
 	/*
 	 * Owns the engine-wide shared vertex and index buffers that all loaded meshes' geometry is
 	 * appended into at load time, instead of each Mesh owning its own standalone buffer. Meshes
@@ -38,9 +32,13 @@ namespace Poly
 		static BufferHandle GetIndexBufferHandle();
 
 	private:
-		inline static BufferArena s_VertexArena{sizeof(Vertex), FBufferUsage::TRANSFER_SRC | FBufferUsage::STORAGE_BUFFER, EMemoryUsage::GPU_ONLY,
+		inline static BufferArena s_VertexArena{sizeof(Vertex),
+		                                        FBufferUsage::TRANSFER_SRC | FBufferUsage::STORAGE_BUFFER | FBufferUsage::SHADER_DEVICE_ADDRESS,
+		                                        EMemoryUsage::GPU_ONLY,
 		                                        "GeometryPool.Vertices"};
-		inline static BufferArena s_IndexArena{sizeof(uint32), FBufferUsage::TRANSFER_SRC | FBufferUsage::INDEX_BUFFER, EMemoryUsage::GPU_ONLY,
+		inline static BufferArena s_IndexArena{sizeof(uint32),
+		                                       FBufferUsage::TRANSFER_SRC | FBufferUsage::INDEX_BUFFER | FBufferUsage::SHADER_DEVICE_ADDRESS,
+		                                       EMemoryUsage::GPU_ONLY,
 		                                       "GeometryPool.Indices"};
 	};
 } // namespace Poly

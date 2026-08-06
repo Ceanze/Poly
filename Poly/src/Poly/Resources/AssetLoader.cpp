@@ -1,5 +1,6 @@
 #include "AssetLoader.h"
 
+#include "AssetManager.h"
 #include "GLSLang.h"
 #include "IOManager.h"
 #include "Platform/API/BinarySemaphore.h"
@@ -12,7 +13,7 @@
 #include "Poly/Model/Material.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
-#include "AssetManager.h"
+#include "Poly/Resources/GeometryPool.h"
 #include "polypch.h"
 #include "Shader/ShaderCompiler.h"
 
@@ -369,8 +370,6 @@ namespace Poly
 
 	Ref<Mesh> AssetLoader::ProcessMesh(aiMesh* pMesh, const aiScene* pScene, Model* pModel, uint32 index)
 	{
-		Ref<Mesh> pPolyMesh = Mesh::Create(pModel, index);
-
 		std::vector<Vertex> vertices(pMesh->mNumVertices);
 		std::vector<uint32> indices(pMesh->mNumFaces * 3);
 
@@ -412,26 +411,8 @@ namespace Poly
 			indices[i * 3 + 2] = pMesh->mFaces[i].mIndices[2];
 		}
 
-		// Create and transfer data to buffers
-		// Vertices
-		// TRANSFER_SRC lets SceneRenderBridge copy this mesh's data GPU->GPU into the combined scene
-		// vertex/index buffers it builds for RG2's bindless PBR pass (see SceneRenderBridge.h).
-		BufferDesc desc           = {};
-		desc.BufferUsage          = FBufferUsage::TRANSFER_DST | FBufferUsage::TRANSFER_SRC | FBufferUsage::STORAGE_BUFFER;
-		desc.MemUsage             = EMemoryUsage::GPU_ONLY;
-		desc.Size                 = sizeof(Vertex) * vertices.size();
-		Ref<Buffer> pVertexBuffer = RenderAPI::CreateBuffer(&desc);
-		TransferDataToGPU(vertices.data(), desc.Size, sizeof(Vertex), pVertexBuffer);
-
-		// Indices
-		desc.BufferUsage         = FBufferUsage::TRANSFER_DST | FBufferUsage::TRANSFER_SRC | FBufferUsage::INDEX_BUFFER;
-		desc.MemUsage            = EMemoryUsage::GPU_ONLY;
-		desc.Size                = sizeof(uint32) * indices.size();
-		Ref<Buffer> pIndexBuffer = RenderAPI::CreateBuffer(&desc);
-		TransferDataToGPU(indices.data(), desc.Size, sizeof(uint32), pIndexBuffer);
-
-		pPolyMesh->SetVertexBuffer(pVertexBuffer, static_cast<uint32>(vertices.size()));
-		pPolyMesh->SetIndexBuffer(pIndexBuffer, static_cast<uint32>(indices.size()));
+		MeshRange meshRange = GeometryPool::UploadMesh(vertices, indices);
+		Ref<Mesh> pPolyMesh = Mesh::Create(pModel, std::move(meshRange), index);
 
 		return pPolyMesh;
 	}
@@ -546,71 +527,6 @@ namespace Poly
 
 		pPolyMaterial->SetMaterialValues(materialValues);
 		return pPolyMaterial;
-	}
-
-	void AssetLoader::TransferDataToGPU(const void* data, uint64 size, uint32 count, Ref<Buffer> pDestinationBuffer)
-	{
-		// Create transfer buffer
-		BufferDesc bufferDesc  = {};
-		bufferDesc.BufferUsage = FBufferUsage::TRANSFER_SRC;
-		bufferDesc.MemUsage    = EMemoryUsage::CPU_VISIBLE;
-		bufferDesc.Size        = size;
-		Ref<Buffer> pBuffer    = RenderAPI::CreateBuffer(&bufferDesc);
-
-		// Map transfer buffer
-		void* buffMap = pBuffer->Map();
-		memcpy(buffMap, data, size);
-		pBuffer->Unmap();
-
-		// Copy over data from buffer to texture
-		s_TransferCommandPool->Reset();
-		s_TransferCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
-		s_TransferCommandBuffer->CopyBuffer(pBuffer.get(), pDestinationBuffer.get(), size, 0, 0);
-		s_TransferCommandBuffer->ReleaseBuffer(
-		    pDestinationBuffer.get(),
-		    FPipelineStage::TRANSFER,
-		    FPipelineStage::TRANSFER,
-		    FAccessFlag::TRANSFER_READ,
-		    RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-		    RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex());
-		s_TransferCommandBuffer->End();
-
-		// Semaphore to make sure the transfer is done before acquire
-		s_Semaphore->ClearWaitStageMask();
-		s_Semaphore->AddWaitStageMask(FPipelineStage::ALL_COMMANDS);
-
-		// Submit to transfer queue
-		{
-			SubmitDesc submitDesc       = {};
-			submitDesc.CommandBuffers   = {s_TransferCommandBuffer};
-			submitDesc.SignalSemaphores = {s_Semaphore.get()};
-			RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(submitDesc);
-		}
-
-		// Acquire texture to graphics queue
-		s_GraphicsCommandPool->Reset();
-		s_GraphicsCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
-		s_GraphicsCommandBuffer->AcquireBuffer(
-		    pDestinationBuffer.get(),
-		    FPipelineStage::TRANSFER,
-		    FPipelineStage::TRANSFER,
-		    FAccessFlag::TRANSFER_READ,
-		    RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->GetQueueFamilyIndex(),
-		    RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->GetQueueFamilyIndex());
-		s_GraphicsCommandBuffer->End();
-
-		// Submit to graphics queue
-		{
-			SubmitDesc submitDesc     = {};
-			submitDesc.CommandBuffers = {s_GraphicsCommandBuffer};
-			submitDesc.WaitSemaphores = {s_Semaphore.get()};
-			RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Submit(submitDesc);
-		}
-
-		// Wait on both queues (or something better, this is the simple approach)
-		// TODO: Use semaphore here instead!
-		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
-		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
 	}
 
 	glm::mat4 AssetLoader::ConvertAiMatToGLM(const void* pMat)

@@ -66,7 +66,7 @@ namespace Poly
 
 			// Vertex buffer
 			PassResID     vertexID      = ResID(resGroupName + ":" + Scene::VERTICES_RESOURCE_NAME).GetAsExternal();
-			const Buffer* pVertexBuffer = batch.MeshInstance.pMesh->GetVertexBuffer();
+			const Buffer* pVertexBuffer = nullptr; // batch.MeshInstance.pMesh->GetVertexBuffer(); NOTE: Deprecated for RG2
 			m_Program.UpdateGraphResource(vertexID, ResourceView{pVertexBuffer, pVertexBuffer->GetSize(), 0}, batchIndex);
 
 			// Albedo

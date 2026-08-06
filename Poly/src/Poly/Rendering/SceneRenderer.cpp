@@ -20,9 +20,10 @@ namespace Poly
 		uint32            instanceCount = static_cast<uint32>(pSceneBatch->Matrices.size());
 
 		Ref<Mesh>     pMesh        = pSceneBatch->MeshInstance.pMesh;
-		const Buffer* pIndexBuffer = pMesh->GetIndexBuffer();
+		const Buffer* pIndexBuffer = nullptr; // pMesh->GetIndexBuffer(); NOTE: Deprecated for RG2
 		commandBuffer->BindIndexBuffer(pIndexBuffer, 0, EIndexType::UINT32);
 
-		commandBuffer->DrawIndexedInstanced(pMesh->GetIndexCount(), instanceCount, 0, 0, 0);
+		// commandBuffer->DrawIndexedInstanced(pMesh->GetIndexCount(), instanceCount, 0, 0, 0); NOTE: Deprecated for RG2
+		commandBuffer->DrawIndexedInstanced(0, instanceCount, 0, 0, 0);
 	}
 } // namespace Poly

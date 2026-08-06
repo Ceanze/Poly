@@ -1,14 +1,12 @@
 #include "SceneRenderBridge.h"
 
 #include "Platform/API/Buffer.h"
-#include "Platform/API/CommandBuffer.h"
-#include "Platform/API/CommandPool.h"
-#include "Platform/API/CommandQueue.h"
 #include "Platform/API/Sampler.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
 #include "Poly/RenderGraph/ResourceManager.h"
+#include "Poly/Resources/GeometryPool.h"
 #include "Poly/Scene/Components.h"
 #include "Poly/Scene/Scene.h"
 
@@ -26,10 +24,7 @@ namespace Poly
 	SceneRenderBridge::SceneRenderBridge(Scene& scene, Ref<RenderProgramInstance> pProgramInstance)
 	    : m_Scene(scene)
 	    , m_pProgramInstance(std::move(pProgramInstance))
-	{
-		m_pCopyCommandPool   = RenderAPI::CreateCommandPool(FQueueType::GRAPHICS, FCommandPoolFlags::RESET_COMMAND_BUFFERS);
-		m_pCopyCommandBuffer = m_pCopyCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
-	}
+	{}
 
 	void SceneRenderBridge::Update()
 	{
@@ -69,25 +64,23 @@ namespace Poly
 		// once, in first-seen order, recording where each mesh's slice ends up.
 		std::unordered_map<Mesh*, MeshRange>     meshRanges;
 		std::vector<std::pair<Mesh*, MeshRange>> meshesToCopy;
-		uint32                                   totalVertices = 0;
-		uint32                                   totalIndices  = 0;
 
 		for (const PendingBatch& batch : pendingBatches)
 		{
-			Mesh* pMesh = batch.Instance.pMesh.get();
+			Mesh*       pMesh       = batch.Instance.pMesh.get();
+			BufferRange vertexRange = pMesh->GetMeshRange().Vertices;
+			BufferRange indexRange  = pMesh->GetMeshRange().Indices;
+
 			if (meshRanges.contains(pMesh))
 				continue;
 
 			MeshRange range;
-			range.BaseVertex = totalVertices;
-			range.BaseIndex  = totalIndices;
-			range.IndexCount = pMesh->GetIndexCount();
+			range.BaseVertex = vertexRange.ElementOffset;
+			range.BaseIndex  = indexRange.ElementOffset;
+			range.IndexCount = indexRange.ElementCount;
 
 			meshRanges[pMesh] = range;
 			meshesToCopy.push_back({pMesh, range});
-
-			totalVertices += pMesh->GetVertexCount();
-			totalIndices += pMesh->GetIndexCount();
 		}
 
 		// Resolve unique materials - one GPUMaterialData row each.
@@ -125,8 +118,12 @@ namespace Poly
 				instanceData.push_back(GPUInstanceData{transform, materialIdx});
 		}
 
-		RebuildCombinedMeshBuffers(meshesToCopy, totalVertices, totalIndices);
 		UploadInstanceAndMaterialBuffers(instanceData, materialData);
+	}
+
+	Buffer* SceneRenderBridge::GetIndexBuffer() const
+	{
+		return ResourceManager::Resolve(GeometryPool::GetIndexBufferHandle());
 	}
 
 	GPUMaterialData SceneRenderBridge::BuildMaterialData(Material* pMaterial)
@@ -151,31 +148,6 @@ namespace Poly
 		return data;
 	}
 
-	void SceneRenderBridge::RebuildCombinedMeshBuffers(const std::vector<std::pair<Mesh*, MeshRange>>& meshesToCopy, uint32 totalVertices, uint32 totalIndices)
-	{
-		m_VertexBufferHandle = ResourceManager::CreateStorageBuffer(sizeof(Vertex) * totalVertices, EMemoryUsage::GPU_ONLY, "SceneRenderBridge.Vertices");
-		m_IndexBufferHandle  = ResourceManager::CreateIndexBuffer(sizeof(uint32) * totalIndices, EMemoryUsage::GPU_ONLY, "SceneRenderBridge.Indices");
-
-		Buffer* pVertexBuffer = ResourceManager::Resolve(m_VertexBufferHandle);
-		Buffer* pIndexBuffer  = ResourceManager::Resolve(m_IndexBufferHandle);
-
-		m_pCopyCommandPool->Reset();
-		m_pCopyCommandBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
-		for (const auto& [pMesh, range] : meshesToCopy)
-		{
-			m_pCopyCommandBuffer->CopyBuffer(pMesh->GetVertexBuffer(), pVertexBuffer, sizeof(Vertex) * pMesh->GetVertexCount(), 0,
-			                                 sizeof(Vertex) * range.BaseVertex);
-			m_pCopyCommandBuffer->CopyBuffer(pMesh->GetIndexBuffer(), pIndexBuffer, sizeof(uint32) * pMesh->GetIndexCount(), 0,
-			                                 sizeof(uint32) * range.BaseIndex);
-		}
-		m_pCopyCommandBuffer->End();
-
-		// Blocking: this only runs when the scene's mesh/material set actually changed, not every frame
-		SubmitDesc submitDesc     = {};
-		submitDesc.CommandBuffers = {m_pCopyCommandBuffer};
-		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->SubmitIdle(submitDesc);
-	}
-
 	void SceneRenderBridge::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)
 	{
 		const uint64 instanceSize = sizeof(GPUInstanceData) * instances.size();
@@ -186,7 +158,7 @@ namespace Poly
 		m_MaterialBufferHandle    = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Materials");
 		ResourceManager::UploadBufferData(m_MaterialBufferHandle, materials.data(), materialSize);
 
-		m_pProgramInstance->UpdateResource(Scene::VERTICES_RESOURCE_NAME_2, m_VertexBufferHandle);
+		m_pProgramInstance->UpdateResource(Scene::VERTICES_RESOURCE_NAME_2, GeometryPool::GetVertexBufferHandle());
 		m_pProgramInstance->UpdateResource(Scene::INSTANCE_RESOURCE_NAME_2, m_InstanceBufferHandle);
 		m_pProgramInstance->UpdateResource(Scene::MATERIAL_RESOURCE_NAME_2, m_MaterialBufferHandle);
 	}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Platform/API/GraphicsPipeline.h"
+#include "Poly/RenderGraph/BufferRange.h"
 
 #include <glm/glm.hpp>
 
@@ -57,46 +58,32 @@ namespace Poly
 	// 8 bytes of padding this struct doesn't otherwise use are simply never touched by the shader.
 	static_assert(sizeof(Vertex) == 64, "Vertex must keep a 64-byte stride to match pbr_bindless.vert's Vertex layout");
 
+	struct MeshRange
+	{
+		BufferRange Vertices;
+		BufferRange Indices;
+	};
+
 	class Mesh
 	{
 	public:
-		Mesh(Model* pModel, uint32 meshIndex)
+		Mesh(Model* pModel, MeshRange meshRange, uint32 meshIndex)
 		    : m_pModel(pModel)
+		    , m_MeshRange(std::move(meshRange))
 		    , m_MeshIndex(meshIndex)
 		{}
 		~Mesh() = default;
 
-		static Ref<Mesh> Create(Model* pModel, uint32 meshIndex) { return CreateRef<Mesh>(pModel, meshIndex); }
+		static Ref<Mesh> Create(Model* pModel, MeshRange meshRange, uint32 meshIndex) { return CreateRef<Mesh>(pModel, meshRange, meshIndex); }
 
-		void SetVertexBuffer(Ref<Buffer> pBuffer, uint32 vertexCount)
-		{
-			m_pVertexBuffer = pBuffer;
-			m_VertexCount   = vertexCount;
-		}
-
-		void SetIndexBuffer(Ref<Buffer> pBuffer, uint32 indexCount)
-		{
-			m_pIndexBuffer = pBuffer;
-			m_IndexCount   = indexCount;
-		}
-
-		const Buffer* GetVertexBuffer() const { return m_pVertexBuffer.get(); }
-
-		const Buffer* GetIndexBuffer() const { return m_pIndexBuffer.get(); }
-
-		uint32 GetVertexCount() const { return m_VertexCount; }
-
-		uint32 GetIndexCount() const { return m_IndexCount; }
+		const MeshRange& GetMeshRange() const { return m_MeshRange; }
 
 		uint32 GetMeshIndex() const { return m_MeshIndex; }
 
 		Model* GetModel() const { return m_pModel; }
 
 	private:
-		Ref<Buffer> m_pVertexBuffer = nullptr;
-		Ref<Buffer> m_pIndexBuffer  = nullptr;
-		uint32      m_VertexCount   = 0;
-		uint32      m_IndexCount    = 0;
+		MeshRange m_MeshRange;
 
 		Model* m_pModel;
 		uint32 m_MeshIndex;

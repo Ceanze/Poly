@@ -117,16 +117,19 @@ namespace Poly
 
 		/*
 		 * Grows (or shrinks) a buffer in place: creates a new buffer of newSize and queues a copy
-		 * of the old buffer's contents into it (up to min(oldSize, newSize)) for the next
-		 * FlushUploads() - same as UploadBufferData, this does not block or submit anything of its
-		 * own. The old handle is invalidated - callers must switch to the returned handle.
+		 * of the old buffer's contents into it for the next FlushUploads() - The old handle is
+		 * invalidated - callers must switch to the returned handle.
 		 * @param handle - handle to the buffer to resize
 		 * @param newSize - new size in bytes
 		 * @param targetQueue - queue family the resized buffer's ownership should be released to
 		 *        once the copy completes, same meaning as UploadBufferData's targetQueue
+		 * @param preserveBytes - how many bytes of the old buffer to actually copy forward
+		 *        (starting at offset 0). Defaults to copying everything that fits, min(oldSize,
+		 *        newSize). Pass this explicitly whenever the old buffer has allocated-but-not-yet-
+		 *        written space beyond what's actually in use
 		 * @return BufferHandle - handle to the resized buffer, replacing the input handle
 		 */
-		static BufferHandle ResizeBuffer(BufferHandle handle, uint64 newSize, FQueueType targetQueue = FQueueType::GRAPHICS);
+		static BufferHandle ResizeBuffer(BufferHandle handle, uint64 newSize, FQueueType targetQueue = FQueueType::GRAPHICS, uint64 preserveBytes = ~0ull);
 
 		/*
 		 * Creates a custom texture view - should only be used for special cases where the default view is not sufficient.

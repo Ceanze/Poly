@@ -39,9 +39,14 @@ namespace Poly
 		newCapacity                   = std::max(newCapacity, requiredCount);
 
 		if (!m_Handle.IsValid())
+		{
 			m_Handle = ResourceManager::CreateBuffer(static_cast<uint64>(newCapacity) * m_ElementStride, m_Usage, m_MemUsage, m_DebugName);
+		}
 		else
-			m_Handle = ResourceManager::ResizeBuffer(m_Handle, static_cast<uint64>(newCapacity) * m_ElementStride);
+		{
+			const uint64 usedBytes = static_cast<uint64>(m_ElementCount) * m_ElementStride;
+			m_Handle               = ResourceManager::ResizeBuffer(m_Handle, static_cast<uint64>(newCapacity) * m_ElementStride, FQueueType::GRAPHICS, usedBytes);
+		}
 
 		m_ElementCapacity = newCapacity;
 	}

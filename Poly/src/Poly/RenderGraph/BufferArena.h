@@ -1,17 +1,12 @@
 #pragma once
 
+#include "Poly/RenderGraph/BufferRange.h"
 #include "Poly/RenderGraph/ResourceManager.h"
 
 #include <string>
 
 namespace Poly
 {
-	struct BufferRange
-	{
-		uint32 ElementOffset = 0;
-		uint32 ElementCount  = 0;
-	};
-
 	/*
 	 * Append-only (bump) allocator over a single GPU buffer that grows on demand. Never frees
 	 * individual allocations - intended for data that's loaded once and kept alive for the
