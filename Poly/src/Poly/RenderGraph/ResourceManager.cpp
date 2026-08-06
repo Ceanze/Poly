@@ -44,10 +44,10 @@ namespace Poly
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
-			s_TransferCommandPools[i]   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
-			s_TransferCommandBuffers[i] = s_TransferCommandPools[i]->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+			s_TransferCommands[i].pPool   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
+			s_TransferCommands[i].pBuffer = s_TransferCommands[i].pPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 		}
-		s_pUploadSyncPoint = RenderAPI::CreateSyncPoint();
+		s_UploadTimeline.pSyncPoint = RenderAPI::CreateSyncPoint();
 
 		s_DefaultLinearSampler  = GetOrCreateSampler(Sampler::GetDefaultLinearSampler()->GetDesc());
 		s_DefaultNearestSampler = GetOrCreateSampler(Sampler::GetDefaultNearestSampler()->GetDesc());
@@ -61,11 +61,10 @@ namespace Poly
 			RenderAPI::GetCommandQueue(queue)->Wait();
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
-			s_TransferCommandPools[i].reset();
+			s_TransferCommands[i].pPool.reset();
 		s_AcquireRings.clear();
-		s_pUploadSyncPoint.reset();
-		s_UploadTimelineValue = 0;
-		s_SlotSignalValue     = {};
+		s_UploadTimeline  = {};
+		s_SlotSignalValue = {};
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
@@ -488,7 +487,7 @@ namespace Poly
 		if (!slot.Alive || slot.Generation != handle.GetGeneration() || slot.PendingUploadValue == 0)
 			return false;
 
-		*ppSyncPoint            = s_pUploadSyncPoint.get();
+		*ppSyncPoint            = s_UploadTimeline.pSyncPoint.get();
 		*pValue                 = slot.PendingUploadValue;
 		slot.PendingUploadValue = 0;
 		return true;
@@ -504,7 +503,7 @@ namespace Poly
 		if (!slot.Alive || slot.Generation != handle.GetGeneration() || slot.PendingUploadValue == 0)
 			return false;
 
-		*ppSyncPoint            = s_pUploadSyncPoint.get();
+		*ppSyncPoint            = s_UploadTimeline.pSyncPoint.get();
 		*pValue                 = slot.PendingUploadValue;
 		slot.PendingUploadValue = 0;
 		return true;
@@ -539,8 +538,8 @@ namespace Poly
 		QueueCommandRing ring;
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
-			ring.Pools[i]   = RenderAPI::CreateCommandPool(queue, FCommandPoolFlags::NONE);
-			ring.Buffers[i] = ring.Pools[i]->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
+			ring.Slots[i].pPool   = RenderAPI::CreateCommandPool(queue, FCommandPoolFlags::NONE);
+			ring.Slots[i].pBuffer = ring.Slots[i].pPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
 		}
 
 		auto [insertedIt, inserted] = s_AcquireRings.emplace(queue, std::move(ring));
@@ -555,7 +554,7 @@ namespace Poly
 		const uint32 slot = static_cast<uint32>(s_CurrentFrame % FRAMES_IN_FLIGHT);
 
 		if (s_SlotSignalValue[slot] > 0)
-			s_pUploadSyncPoint->Wait(s_SlotSignalValue[slot]);
+			s_UploadTimeline.pSyncPoint->Wait(s_SlotSignalValue[slot]);
 
 		uint64 totalStagingSize = 0;
 		for (const auto& upload : s_PendingTextureUploads)
@@ -572,8 +571,8 @@ namespace Poly
 		std::unordered_map<FQueueType, std::vector<TextureHandle>> texturesByTarget;
 		std::unordered_map<FQueueType, std::vector<BufferHandle>>  buffersByTarget;
 
-		CommandPool*   pTransferPool = s_TransferCommandPools[slot].get();
-		CommandBuffer* pTransferCmd  = s_TransferCommandBuffers[slot];
+		CommandPool*   pTransferPool = s_TransferCommands[slot].pPool.get();
+		CommandBuffer* pTransferCmd  = s_TransferCommands[slot].pBuffer;
 
 		pTransferPool->Reset();
 		pTransferCmd->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
@@ -643,10 +642,10 @@ namespace Poly
 
 		pTransferCmd->End();
 
-		const uint64 transferSignalValue = ++s_UploadTimelineValue;
+		const uint64 transferSignalValue = ++s_UploadTimeline.Value;
 		SubmitDesc   transferSubmit      = {};
 		transferSubmit.CommandBuffers    = {pTransferCmd};
-		transferSubmit.SignalSyncPoints  = {{s_pUploadSyncPoint.get(), transferSignalValue}};
+		transferSubmit.SignalSyncPoints  = {{s_UploadTimeline.pSyncPoint.get(), transferSignalValue}};
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Submit(transferSubmit);
 
 		uint64 highestSignalValue = transferSignalValue;
@@ -660,32 +659,32 @@ namespace Poly
 		for (FQueueType target : targets)
 		{
 			QueueCommandRing& ring = GetOrCreateAcquireRing(target);
-			ring.Pools[slot]->Reset();
-			ring.Buffers[slot]->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
+			ring.Slots[slot].pPool->Reset();
+			ring.Slots[slot].pBuffer->Begin(FCommandBufferFlag::ONE_TIME_SUBMIT);
 
 			const uint32 targetFamily = RenderAPI::GetCommandQueue(target)->GetQueueFamilyIndex();
 
 			for (const auto& handle : texturesByTarget[target])
 			{
 				Texture* pTexture = s_Textures[handle.GetIndex()].pTexture.get();
-				ring.Buffers[slot]->AcquireTexture(pTexture, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
-				                                   ETextureLayout::TRANSFER_DST_OPTIMAL, ETextureLayout::SHADER_READ_ONLY_OPTIMAL, transferFamily,
-				                                   targetFamily);
+				ring.Slots[slot].pBuffer->AcquireTexture(pTexture, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
+				                                         ETextureLayout::TRANSFER_DST_OPTIMAL, ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
+				                                         transferFamily, targetFamily);
 			}
 			for (const auto& bufferHandle : buffersByTarget[target])
 			{
 				Buffer* pBuffer = s_Buffers[bufferHandle.GetIndex()].pBuffer.get();
-				ring.Buffers[slot]->AcquireBuffer(pBuffer, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
-				                                  transferFamily, targetFamily);
+				ring.Slots[slot].pBuffer->AcquireBuffer(pBuffer, FPipelineStage::TRANSFER, FPipelineStage::TRANSFER, FAccessFlag::TRANSFER_READ,
+				                                        transferFamily, targetFamily);
 			}
 
-			ring.Buffers[slot]->End();
+			ring.Slots[slot].pBuffer->End();
 
-			const uint64 acquireSignalValue = ++s_UploadTimelineValue;
+			const uint64 acquireSignalValue = ++s_UploadTimeline.Value;
 			SubmitDesc   acquireSubmit      = {};
-			acquireSubmit.CommandBuffers    = {ring.Buffers[slot]};
-			acquireSubmit.WaitSyncPoints    = {{s_pUploadSyncPoint.get(), transferSignalValue}};
-			acquireSubmit.SignalSyncPoints  = {{s_pUploadSyncPoint.get(), acquireSignalValue}};
+			acquireSubmit.CommandBuffers    = {ring.Slots[slot].pBuffer};
+			acquireSubmit.WaitSyncPoints    = {{s_UploadTimeline.pSyncPoint.get(), transferSignalValue}};
+			acquireSubmit.SignalSyncPoints  = {{s_UploadTimeline.pSyncPoint.get(), acquireSignalValue}};
 			RenderAPI::GetCommandQueue(target)->Submit(acquireSubmit);
 
 			highestSignalValue = std::max(highestSignalValue, acquireSignalValue);
@@ -695,8 +694,7 @@ namespace Poly
 			for (const auto& bufferHandle : buffersByTarget[target])
 				s_Buffers[bufferHandle.GetIndex()].PendingUploadValue = acquireSignalValue;
 
-			// Any ResizeBuffer copy targeting this queue is now retirable once that value is
-			// reached
+			// Any ResizeBuffer copy targeting this queue is now retirable once that value is reached
 			for (const auto& copy : s_PendingBufferCopies)
 				if (copy.TargetQueue == target)
 					EnqueueBufferDestroy(copy.SrcHandle.GetIndex(), acquireSignalValue);
@@ -734,7 +732,7 @@ namespace Poly
 
 		const auto isSafeToFree = [](const PendingDestroy& entry) {
 			if (entry.RequiredSyncValue != 0)
-				return s_pUploadSyncPoint->GetValue() >= entry.RequiredSyncValue;
+				return s_UploadTimeline.pSyncPoint->GetValue() >= entry.RequiredSyncValue;
 			return s_CurrentFrame - entry.DestroyedOnFrame >= FRAMES_IN_FLIGHT;
 		};
 

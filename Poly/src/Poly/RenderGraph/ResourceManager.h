@@ -273,12 +273,8 @@ namespace Poly
 			uint32           Width = 0, Height = 0;
 			EFormat          Format = EFormat::UNDEFINED;
 			std::string      DebugName;
-			bool             Alive = false;
-
-			// Signal value on s_pUploadSyncPoint that a consumer must wait for before first touching this
-			// texture after an async upload - 0 once ConsumePendingUploadSync() has handed it off (or if
-			// no upload is pending). See FlushUploads().
-			uint64 PendingUploadValue = 0;
+			bool             Alive              = false;
+			uint64           PendingUploadValue = 0;
 		};
 
 		struct BufferSlot
@@ -327,10 +323,15 @@ namespace Poly
 			uint64 RequiredSyncValue = 0;
 		};
 
+		struct PerFrameCommandBuffer
+		{
+			Ref<CommandPool> pPool;
+			CommandBuffer*   pBuffer = nullptr;
+		};
+
 		struct QueueCommandRing
 		{
-			std::array<Ref<CommandPool>, FRAMES_IN_FLIGHT> Pools;
-			std::array<CommandBuffer*, FRAMES_IN_FLIGHT>   Buffers{};
+			std::array<PerFrameCommandBuffer, FRAMES_IN_FLIGHT> Slots;
 		};
 
 		struct StagingBufferData
@@ -338,6 +339,12 @@ namespace Poly
 			Ref<Buffer> pBuffer;
 			uint64      Capacity = 0;
 			void*       Mapped   = nullptr;
+		};
+
+		struct UploadTimeline
+		{
+			Ref<SyncPoint> pSyncPoint;
+			uint64         Value = 0;
 		};
 
 		static uint32 AllocTextureSlot(); // pops the free-list or grows m_Textures - caller holds s_Mutex
@@ -375,17 +382,13 @@ namespace Poly
 		inline static Ref<DescriptorSet>  s_pHeapSet;
 		inline static DescriptorSetLayout s_SetLayoutDesc;
 
-		inline static std::array<Ref<CommandPool>, FRAMES_IN_FLIGHT> s_TransferCommandPools;
-		inline static std::array<CommandBuffer*, FRAMES_IN_FLIGHT>   s_TransferCommandBuffers{};
+		inline static std::array<PerFrameCommandBuffer, FRAMES_IN_FLIGHT> s_TransferCommands;
 
 		inline static std::unordered_map<FQueueType, QueueCommandRing> s_AcquireRings;
 
 		inline static std::array<StagingBufferData, FRAMES_IN_FLIGHT> s_StagingBuffers;
 
-		// Single timeline shared by the transfer submit and every per-target-queue acquire submit each
-		// flush. Values are assigned in submission order, so it's fine for different queues to signal it.
-		inline static Ref<SyncPoint> s_pUploadSyncPoint;
-		inline static uint64         s_UploadTimelineValue = 0;
+		inline static UploadTimeline s_UploadTimeline;
 
 		inline static std::array<uint64, FRAMES_IN_FLIGHT> s_SlotSignalValue{};
 	};

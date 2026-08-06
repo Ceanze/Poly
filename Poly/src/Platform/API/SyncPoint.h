@@ -10,7 +10,7 @@ namespace Poly
 	struct SyncPointValue
 	{
 		SyncPoint* pSyncPoint;
-		uint64     Value;
+		uint64     Value = 0;
 	};
 
 	class SyncPoint
