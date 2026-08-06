@@ -265,8 +265,8 @@ namespace Poly
 		copy.TargetQueue = targetQueue;
 		s_PendingBufferCopies.push_back(copy);
 
-		// Destroy is deferred to after flushing, this is safe
-		Destroy(handle);
+		// Mark as dead, it will be queued for destruction once the copy completes
+		s_Buffers[handle.GetIndex()].Alive = false;
 
 		return newHandle;
 	}
@@ -406,7 +406,7 @@ namespace Poly
 			return;
 
 		slot.Alive = false;
-		s_PendingTextureDestroys.emplace_back(handle.GetIndex(), s_CurrentFrame);
+		s_PendingTextureDestroys.push_back({handle.GetIndex(), s_CurrentFrame});
 	}
 
 	void ResourceManager::Destroy(BufferHandle handle)
@@ -420,7 +420,12 @@ namespace Poly
 			return;
 
 		slot.Alive = false;
-		s_PendingBufferDestroys.emplace_back(handle.GetIndex(), s_CurrentFrame);
+		EnqueueBufferDestroy(handle.GetIndex());
+	}
+
+	void ResourceManager::EnqueueBufferDestroy(uint32 index, uint64 requiredSyncValue)
+	{
+		s_PendingBufferDestroys.push_back({index, s_CurrentFrame, requiredSyncValue});
 	}
 
 	void ResourceManager::UploadTextureData(TextureHandle handle, const void* pData, uint32 width, uint32 height, FQueueType targetQueue)
@@ -690,6 +695,12 @@ namespace Poly
 				s_Textures[handle.GetIndex()].PendingUploadValue = acquireSignalValue;
 			for (const auto& bufferHandle : buffersByTarget[target])
 				s_Buffers[bufferHandle.GetIndex()].PendingUploadValue = acquireSignalValue;
+
+			// Any ResizeBuffer copy targeting this queue is now retirable once that value is
+			// reached
+			for (const auto& copy : s_PendingBufferCopies)
+				if (copy.TargetQueue == target)
+					EnqueueBufferDestroy(copy.SrcHandle.GetIndex(), acquireSignalValue);
 		}
 
 		// Same-family uploads/copies never went through an acquire above, but a consumer on that
@@ -702,7 +713,10 @@ namespace Poly
 				s_Buffers[upload.Handle.GetIndex()].PendingUploadValue = transferSignalValue;
 		for (const auto& copy : s_PendingBufferCopies)
 			if (RenderAPI::GetCommandQueue(copy.TargetQueue)->GetQueueFamilyIndex() == transferFamily)
+			{
 				s_Buffers[copy.DstHandle.GetIndex()].PendingUploadValue = transferSignalValue;
+				EnqueueBufferDestroy(copy.SrcHandle.GetIndex(), transferSignalValue);
+			}
 
 		s_SlotSignalValue[slot] = highestSignalValue;
 
@@ -719,26 +733,32 @@ namespace Poly
 
 		s_CurrentFrame++;
 
-		std::erase_if(s_PendingTextureDestroys, [](const std::pair<uint32, uint64>& entry) {
-			if (s_CurrentFrame - entry.second < FRAMES_IN_FLIGHT)
+		const auto isSafeToFree = [](const PendingDestroy& entry) {
+			if (entry.RequiredSyncValue != 0)
+				return s_pUploadSyncPoint->GetValue() >= entry.RequiredSyncValue;
+			return s_CurrentFrame - entry.DestroyedOnFrame >= FRAMES_IN_FLIGHT;
+		};
+
+		std::erase_if(s_PendingTextureDestroys, [&isSafeToFree](const PendingDestroy& entry) {
+			if (!isSafeToFree(entry))
 				return false;
 
-			TextureSlot& slot = s_Textures[entry.first];
+			TextureSlot& slot = s_Textures[entry.Index];
 			slot.pTexture.reset();
 			slot.pDefaultView.reset();
 			slot.Generation++;
-			s_FreeTextureIndices.push_back(entry.first);
+			s_FreeTextureIndices.push_back(entry.Index);
 			return true;
 		});
 
-		std::erase_if(s_PendingBufferDestroys, [](const std::pair<uint32, uint64>& entry) {
-			if (s_CurrentFrame - entry.second < FRAMES_IN_FLIGHT)
+		std::erase_if(s_PendingBufferDestroys, [&isSafeToFree](const PendingDestroy& entry) {
+			if (!isSafeToFree(entry))
 				return false;
 
-			BufferSlot& slot = s_Buffers[entry.first];
+			BufferSlot& slot = s_Buffers[entry.Index];
 			slot.pBuffer.reset();
 			slot.Generation++;
-			s_FreeBufferIndices.push_back(entry.first);
+			s_FreeBufferIndices.push_back(entry.Index);
 			return true;
 		});
 	}

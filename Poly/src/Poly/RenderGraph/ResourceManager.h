@@ -320,6 +320,13 @@ namespace Poly
 			FQueueType   TargetQueue = FQueueType::GRAPHICS;
 		};
 
+		struct PendingDestroy
+		{
+			uint32 Index             = 0;
+			uint64 DestroyedOnFrame  = 0;
+			uint64 RequiredSyncValue = 0;
+		};
+
 		struct QueueCommandRing
 		{
 			std::array<Ref<CommandPool>, FRAMES_IN_FLIGHT> Pools;
@@ -330,6 +337,8 @@ namespace Poly
 		static uint32 AllocBufferSlot();
 		static uint32 RegisterSamplerIndex(Sampler* pSampler, Ref<Sampler> pOwnedRef); // caller holds s_Mutex
 		static void   FlushUploads();                                                  // caller holds s_Mutex
+
+		static void EnqueueBufferDestroy(uint32 index, uint64 requiredSyncValue = 0);
 
 		static void              EnsureStagingCapacity(uint32 slot, uint64 requiredSize); // caller holds s_Mutex
 		static QueueCommandRing& GetOrCreateAcquireRing(FQueueType queue);                // caller holds s_Mutex
@@ -351,10 +360,9 @@ namespace Poly
 		inline static std::vector<PendingBufferUpload>  s_PendingBufferUploads;
 		inline static std::vector<PendingBufferCopy>    s_PendingBufferCopies;
 
-		// {slot index, frame it was destroyed on} - swept in Update() once FRAMES_IN_FLIGHT frames have passed.
-		inline static std::vector<std::pair<uint32, uint64>> s_PendingTextureDestroys;
-		inline static std::vector<std::pair<uint32, uint64>> s_PendingBufferDestroys;
-		inline static uint64                                 s_CurrentFrame = 0;
+		inline static std::vector<PendingDestroy> s_PendingTextureDestroys;
+		inline static std::vector<PendingDestroy> s_PendingBufferDestroys;
+		inline static uint64                      s_CurrentFrame = 0;
 
 		inline static Ref<PipelineLayout> s_pHeapPipelineLayout; // only used to own the set-0 VkDescriptorSetLayout
 		inline static Ref<DescriptorSet>  s_pHeapSet;
