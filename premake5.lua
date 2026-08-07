@@ -42,10 +42,6 @@ function generate_spirv_reflect()
 	include("premake/spirv-reflect.lua")
 end
 
-function generate_nvrhi()
-	include("premake/nvrhi.lua")
-end
-
 vkPath = get_vk_sdk_path()
 print(vkPath)
 
@@ -96,7 +92,6 @@ generate_assimp()
 generate_imgui()
 generate_yamlcpp()
 generate_spirv_reflect()
-generate_nvrhi()
 
 -- Include all src files in the project
 function srcFiles()
@@ -141,9 +136,7 @@ project "Poly"
 		"SPIRV",
 		"imgui",
 		"yaml-cpp",
-		"SPIRV-Reflect",
-		"nvrhi",
-		"nvrhi_vk"
+		"SPIRV-Reflect"
 	}
 
 	includedirs
@@ -180,7 +173,6 @@ project "Poly"
 	externalincludedirs
 	{
 		get_vulkan_include_dir(vkPath),
-		"%{prj.name}/libs/NVRHI/include",
 		"%{prj.name}/libs/spdlog/include",
 		"%{prj.name}/libs/glfw/include",
 		"%{prj.name}/libs/glm",
