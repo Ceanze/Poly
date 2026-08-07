@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Platform/Vulkan/PVKTypes.h"
 #include "Poly/Core/Core.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
@@ -12,6 +13,7 @@ namespace Poly
 	class Texture;
 	class Pipeline;
 	class Framebuffer;
+	class TextureView;
 	class CommandPool;
 	class CommandQueue;
 	class DescriptorSet;
@@ -65,6 +67,28 @@ namespace Poly
 		FAccessFlag DstAccessFlag = FAccessFlag::NONE;
 	};
 
+	struct RenderingAttachmentInfo
+	{
+		TextureView*   pTextureView  = nullptr;
+		ETextureLayout TextureLayout = ETextureLayout::UNDEFINED;
+		ELoadOp        LoadOp        = ELoadOp::NONE;
+		EStoreOp       StoreOp       = EStoreOp::NONE;
+		ClearValue     ClearValue;
+	};
+
+	struct RenderingDesc
+	{
+		uint32                               RenderWidth   = 0;
+		uint32                               RenderHeight  = 0;
+		int32                                RenderXOffset = 0;
+		int32                                RenderYOffset = 0;
+		uint32                               LayerCount    = 0;
+		uint32                               ViewMask      = 0;
+		std::vector<RenderingAttachmentInfo> ColorAttachments;
+		RenderingAttachmentInfo*             pDepthAttachment   = nullptr;
+		RenderingAttachmentInfo*             pStencilAttachment = nullptr;
+	};
+
 	class CommandBuffer
 	{
 	public:
@@ -92,6 +116,12 @@ namespace Poly
 		 * @param clearColorCount - Amount of clear colors to use from clear colors
 		 */
 		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues) = 0;
+
+		/**
+		 * Begin rendering stage - replaces render passes and framebuffers
+		 * @param RenderingDesc - The rendering details of where to render
+		 */
+		virtual void BeginRendering(const RenderingDesc* pRenderingDesc) = 0;
 
 		/**
 		 * Bind a pipeline
@@ -300,6 +330,11 @@ namespace Poly
 		 * End the render pass
 		 */
 		virtual void EndRenderPass() = 0;
+
+		/**
+		 * End the rendering instructions
+		 */
+		virtual void EndRendering() = 0;
 
 		/**
 		 * End the recording of commands

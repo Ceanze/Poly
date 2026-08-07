@@ -18,11 +18,12 @@ namespace Poly
 
 	struct DescriptorSetBinding
 	{
-		uint32          Binding         = 0;
-		EDescriptorType DescriptorType  = EDescriptorType::NONE;
-		uint32          DescriptorCount = 0;
-		FShaderStage    ShaderStage     = FShaderStage::NONE;
-		Sampler*        pSampler        = nullptr;
+		uint32                         Binding         = 0;
+		EDescriptorType                DescriptorType  = EDescriptorType::NONE;
+		uint32                         DescriptorCount = 0;
+		FShaderStage                   ShaderStage     = FShaderStage::NONE;
+		Sampler*                       pSampler        = nullptr;
+		FDescriptorIndexingBindingFlag BindingFlags    = FDescriptorIndexingBindingFlag::NONE;
 	};
 
 	struct DescriptorSetLayout

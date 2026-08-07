@@ -4,6 +4,7 @@
 #include "Poly/Resources/Shader/ShaderReflection.h"
 
 #include <map>
+#include <mutex>
 
 namespace Poly
 {
@@ -32,6 +33,9 @@ namespace Poly
 		// TODO: Add a "onShaderUpdated" callback/notifier
 
 	private:
+		// Guards s_Shaders - CreateShader()/GetShader() can now be called concurrently, e.g. from
+		// RenderProgramInstance's per-pass lazy pipeline creation during multithreaded recording.
+		static std::mutex                   s_Mutex;
 		static std::map<PolyID, ShaderData> s_Shaders;
 	};
 } // namespace Poly

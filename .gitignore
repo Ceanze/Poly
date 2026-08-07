@@ -380,6 +380,7 @@ bin-int/
 imgui.ini
 projects/*
 compile_commands.json
+.zed/*
 
 # Xcode
 *.xcuserstate

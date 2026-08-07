@@ -12,7 +12,7 @@
 #include "Poly/Rendering/RenderGraph/RenderGraphCompiler.h"
 #include "Poly/Rendering/RenderGraph/RenderGraphProgram.h"
 #include "Poly/Rendering/RenderGraph/Resource.h"
-#include "Poly/Resources/ResourceManager.h"
+#include "Poly/Resources/AssetManager.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
 #include "Poly/Scene/SceneSerializer.h"
@@ -90,19 +90,17 @@ public:
 		LightBuffer data = {};
 		m_pProgram->UpdateGraphResource(Poly::ResID("lights").GetAsExternal(), sizeof(LightBuffer), &data);
 
-		// m_pProgram->UpdateGraphResource({ "$.scene:instance" }, sizeof(LightBuffer), &data);
-
 		m_pProgram->SetScene(m_pScene);
 
 		// Poly::SceneSerializer sceneSerializer(m_pScene);
 		// sceneSerializer.Deserialize("CubeScene.polyscene");
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
-		// Poly::ResourceManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::ResourceManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		// Poly::AssetManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
+		Poly::AssetManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
 
-		m_TextureID    = Poly::ResourceManager::ImportAndLoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
-		m_pTextureView = Poly::ResourceManager::GetTextureView(m_TextureID);
+		m_TextureID    = Poly::AssetManager::ImportAndLoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
+		m_pTextureView = Poly::AssetManager::GetTextureView(m_TextureID);
 
 		// Set active render graph program
 		Poly::Application::Get().GetRenderer()->SetRenderGraph(m_pProgram);

@@ -92,7 +92,7 @@ namespace Poly
 		if (BitsSet(bindPoint, FResourceBindPoint::VERTEX))
 			return FPipelineStage::VERTEX_SHADER;
 		if (BitsSet(bindPoint, FResourceBindPoint::INDEX))
-			return FPipelineStage::BOTTOM_OF_PIPE;
+			return FPipelineStage::ALL_COMMANDS;
 		if (BitsSet(bindPoint, FResourceBindPoint::INDIRECT))
 			return FPipelineStage::DRAW_INDIRECT;
 		if (BitsSet(bindPoint, FResourceBindPoint::INPUT_ATTACHMENT))

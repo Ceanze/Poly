@@ -130,6 +130,28 @@ namespace Poly
 				result.PushConstants.push_back({pushConstant->name ? pushConstant->name : "",
 				                                pushConstant->size,
 				                                pushConstant->offset});
+
+				// Confirm the shared BINDLESS_PUSH_CONSTANTS layout (see plans/bindless.md) - just
+				// reports where textureIndices[]/bufferAddresses[] sit, doesn't map them to resources
+				for (uint32_t i = 0; i < pushConstant->member_count; i++)
+				{
+					const SpvReflectBlockVariable& member = pushConstant->members[i];
+					if (!member.name)
+						continue;
+
+					if (std::string_view(member.name) == "textureIndices")
+					{
+						result.BindlessLayout.HasTextureSlots    = true;
+						result.BindlessLayout.TextureSlotsOffset = member.offset;
+						result.BindlessLayout.TextureSlotCount   = member.array.dims_count > 0 ? member.array.dims[0] : 0;
+					}
+					else if (std::string_view(member.name) == "bufferAddresses")
+					{
+						result.BindlessLayout.HasBufferSlots    = true;
+						result.BindlessLayout.BufferSlotsOffset = member.offset;
+						result.BindlessLayout.BufferSlotCount   = member.array.dims_count > 0 ? member.array.dims[0] : 0;
+					}
+				}
 			}
 		}
 

@@ -10,6 +10,8 @@ namespace Poly
 	class Entity;
 	class RenderScene;
 	class RenderGraphProgram;
+	class SceneRenderBridge;
+	class RenderProgramInstance;
 
 	class Scene
 	{
@@ -23,6 +25,16 @@ namespace Poly
 		static constexpr const char* METALLIC_TEX_RESOURCE_NAME  = "metallicTex";
 		static constexpr const char* ROUGHNESS_TEX_RESOURCE_NAME = "roughnessTex";
 		static constexpr const char* AO_TEX_RESOURCE_NAME        = "aoTex";
+
+		static constexpr const char* VERTICES_RESOURCE_NAME_2      = "scene.vertices";
+		static constexpr const char* INSTANCE_RESOURCE_NAME_2      = "scene.instances";
+		static constexpr const char* MATERIAL_RESOURCE_NAME_2      = "scene.materials";
+		static constexpr const char* ALBEDO_TEX_RESOURCE_NAME_2    = "scene.albedoTex";
+		static constexpr const char* NORMAL_TEX_RESOURCE_NAME_2    = "scene.normalTex";
+		static constexpr const char* COMBINED_TEX_RESOURCE_NAME_2  = "scene.combinedTex";
+		static constexpr const char* METALLIC_TEX_RESOURCE_NAME_2  = "scene.metallicTex";
+		static constexpr const char* ROUGHNESS_TEX_RESOURCE_NAME_2 = "scene.roughnessTex";
+		static constexpr const char* AO_TEX_RESOURCE_NAME_2        = "scene.aoTex";
 
 		struct DrawData
 		{
@@ -103,10 +115,24 @@ namespace Poly
 		 */
 		RenderScene* GetRenderScene() const { return m_pRenderScene.get(); }
 
+		/**
+		 * Internally creates a RG2 scene render bridge bound to the render program instance provided.
+		 * Coexists with CreateRenderScene() during the RG1->RG2 migration - see SceneRenderBridge.h.
+		 */
+		void CreateSceneRenderBridge(Ref<RenderProgramInstance> pProgramInstance);
+
+		/**
+		 * Gets the previously created scene render bridge, else nullptr
+		 *
+		 * @return existing scene render bridge, else nullptr
+		 */
+		SceneRenderBridge* GetSceneRenderBridge() const { return m_pSceneRenderBridge.get(); }
+
 	private:
 		friend class Entity;
 		friend class SceneRenderer; // TODO: Remove when scene renderer uses the new RenderScene instead
 		friend class RenderScene;   // TODO: Will be removed when interface for views exist
+		friend class SceneRenderBridge;
 		friend class SceneSerializer;
 		friend class EntitySerializer;
 
@@ -114,8 +140,9 @@ namespace Poly
 
 		std::string m_Name;
 
-		entt::registry   m_Registry;
-		ResourceGroup    m_ResourceGroup;
-		Ref<RenderScene> m_pRenderScene;
+		entt::registry         m_Registry;
+		ResourceGroup          m_ResourceGroup;
+		Ref<RenderScene>       m_pRenderScene;
+		Ref<SceneRenderBridge> m_pSceneRenderBridge;
 	};
 } // namespace Poly

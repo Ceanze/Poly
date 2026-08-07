@@ -1,8 +1,8 @@
 #pragma once
 
+#include "AssetTypes.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 #include "Poly/Scene/Entity.h"
-#include "ResourceTypes.h"
 
 namespace Poly
 {
@@ -12,15 +12,15 @@ namespace Poly
 	class Material;
 	class TextureView;
 
-	class ResourceManager
+	class AssetManager
 	{
 	public:
 		inline static const PolyID DEFAULT_MATERIAL_ID = PolyID::None();
 		inline static const PolyID DEFAULT_TEXTURE_ID  = PolyID::None();
 
 	public:
-		ResourceManager()  = default;
-		~ResourceManager() = default;
+		AssetManager()  = default;
+		~AssetManager() = default;
 
 		static void Init();
 		static void Release();

@@ -47,7 +47,7 @@ namespace Poly
 		shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
 
 		DirStackFileIncluder includer;
-		includer.pushExternalLocalDirectory(folder);
+		includer.pushExternalDirectory(folder);
 
 		std::string preprocessedGLSL;
 

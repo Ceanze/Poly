@@ -79,7 +79,8 @@ namespace Poly
 		TRANSFER_DST            = FLAG(6),        // Same as COPY_DST (Directx name)
 		COPY_DST                = TRANSFER_DST,   // Same as TRANSFER_DST (VK name)
 		RAY_TRACING             = FLAG(7),
-		INDIRECT_BUFFER         = FLAG(8)
+		INDIRECT_BUFFER         = FLAG(8),
+		SHADER_DEVICE_ADDRESS   = FLAG(9) // Required to query Buffer::GetDeviceAddress() (bindless BDA access)
 	};
 	ENABLE_BITMASK_OPERATORS(FBufferUsage);
 
@@ -200,7 +201,6 @@ namespace Poly
 	enum class FPipelineStage : uint32
 	{
 		NONE                    = 0,
-		TOP_OF_PIPE             = FLAG(1),
 		DRAW_INDIRECT           = FLAG(2),
 		VERTEX_INPUT            = FLAG(3),
 		VERTEX_SHADER           = FLAG(4),
@@ -210,7 +210,6 @@ namespace Poly
 		COLOR_ATTACHMENT_OUTPUT = FLAG(8),
 		COMPUTE_SHADER          = FLAG(9),
 		TRANSFER                = FLAG(10),
-		BOTTOM_OF_PIPE          = FLAG(11),
 		ALL_GRAPHICS            = FLAG(12),
 		ALL_COMMANDS            = FLAG(13),
 		HOST                    = FLAG(14)
@@ -299,6 +298,15 @@ namespace Poly
 		INPUT_ATTACHMENT                = 11,
 		RENDER_TARGET                   = INPUT_ATTACHMENT
 	};
+
+	enum class FDescriptorIndexingBindingFlag : uint32
+	{
+		NONE                      = 0,
+		PARTIALLY_BOUND           = FLAG(1), // Not every element needs to be written/valid
+		VARIABLE_DESCRIPTOR_COUNT = FLAG(2), // Binding's array size is decided at allocation time, not layout-creation time
+		UPDATE_AFTER_BIND         = FLAG(3)  // May be updated after being bound to a command buffer, while still in flight
+	};
+	ENABLE_BITMASK_OPERATORS(FDescriptorIndexingBindingFlag);
 
 	inline EDescriptorType ConvertBindpointToDescriptorType(FResourceBindPoint bindpoint)
 	{

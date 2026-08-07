@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ResourceTypes.h"
+#include "AssetTypes.h"
 
 struct aiNode;
 struct aiScene;
@@ -13,7 +13,7 @@ namespace YAML
 
 namespace Poly
 {
-	class ResourceImporter
+	class AssetImporter
 	{
 	public:
 		struct ImportedResource
@@ -23,8 +23,8 @@ namespace Poly
 		};
 
 	public:
-		ResourceImporter()  = default;
-		~ResourceImporter() = default;
+		AssetImporter()  = default;
+		~AssetImporter() = default;
 
 		static void LoadImports();
 

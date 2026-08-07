@@ -122,9 +122,14 @@ namespace Poly
 		ColorBlendStateDesc ColorBlendState = {};
 
 		PipelineLayout*     pPipelineLayout = nullptr;
-		GraphicsRenderPass* pRenderPass     = nullptr;
+		GraphicsRenderPass* pRenderPass     = nullptr; // nullptr => use dynamic rendering (see attachment formats below)
 
 		uint32 Subpass = 0;
+
+		// Only used when pRenderPass == nullptr (dynamic rendering, VK_KHR_dynamic_rendering)
+		std::vector<EFormat> ColorAttachmentFormats;
+		EFormat              DepthAttachmentFormat   = EFormat::UNDEFINED;
+		EFormat              StencilAttachmentFormat = EFormat::UNDEFINED;
 
 		// Shaders
 		Shader* pVertexShader   = nullptr;

@@ -58,6 +58,11 @@ namespace Poly
 		virtual uint64 GetSize() const = 0;
 
 		/**
+		 * @return GPU device address of the buffer - only valid if created with FBufferUsage::SHADER_DEVICE_ADDRESS
+		 */
+		virtual uint64 GetDeviceAddress() const = 0;
+
+		/**
 		 * @return const BufferDesc
 		 */
 		inline const BufferDesc& GetDesc() const

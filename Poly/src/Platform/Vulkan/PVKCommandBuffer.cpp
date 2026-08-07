@@ -1,5 +1,7 @@
 #include "PVKCommandBuffer.h"
 
+#include "Platform/API/CommandBuffer.h"
+#include "Platform/Vulkan/PVKTypes.h"
 #include "Poly/Core/PolyUtils.h"
 #include "polypch.h"
 #include "PVKBuffer.h"
@@ -11,6 +13,28 @@
 #include "PVKPipelineLayout.h"
 #include "PVKRenderPass.h"
 #include "PVKTexture.h"
+#include "PVKTextureView.h"
+
+namespace
+{
+	VkRenderingAttachmentInfo ConvertRenderingAttachmentInfo(const Poly::RenderingAttachmentInfo& attachment)
+	{
+		VkRenderingAttachmentInfo vkAttachment = {};
+		vkAttachment.sType                     = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+		vkAttachment.pNext                     = nullptr;
+		vkAttachment.imageView                 = reinterpret_cast<Poly::PVKTextureView*>(attachment.pTextureView)->GetNativeVK();
+		vkAttachment.imageLayout               = ConvertTextureLayoutVK(attachment.TextureLayout);
+		vkAttachment.resolveMode               = VK_RESOLVE_MODE_NONE;
+		vkAttachment.resolveImageView          = VK_NULL_HANDLE;
+		vkAttachment.resolveImageLayout        = VK_IMAGE_LAYOUT_UNDEFINED;
+		vkAttachment.loadOp                    = ConvertLoadOpVK(attachment.LoadOp);
+		vkAttachment.storeOp                   = ConvertStoreOpVK(attachment.StoreOp);
+
+		memcpy(&vkAttachment.clearValue, &attachment.ClearValue, sizeof(Poly::ClearValue));
+
+		return vkAttachment;
+	}
+} // namespace
 
 namespace Poly
 {
@@ -63,6 +87,41 @@ namespace Poly
 		renderPassInfo.pNext             = nullptr;
 
 		vkCmdBeginRenderPass(m_Buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	}
+
+	void PVKCommandBuffer::BeginRendering(const RenderingDesc* pRenderingDesc)
+	{
+		VkRect2D renderArea = {.offset = {pRenderingDesc->RenderXOffset, pRenderingDesc->RenderYOffset},
+		                       .extent = {pRenderingDesc->RenderWidth, pRenderingDesc->RenderHeight}};
+
+		std::vector<VkRenderingAttachmentInfo> colorAttachments;
+		colorAttachments.reserve(pRenderingDesc->ColorAttachments.size());
+		for (const auto& attachment : pRenderingDesc->ColorAttachments)
+		{
+			VkRenderingAttachmentInfo vkAttachment = ConvertRenderingAttachmentInfo(attachment);
+			colorAttachments.push_back(vkAttachment);
+		}
+
+		VkRenderingAttachmentInfo depthAttachmentVk   = {};
+		VkRenderingAttachmentInfo stencilAttachmentVk = {};
+		if (pRenderingDesc->pDepthAttachment)
+			depthAttachmentVk = ConvertRenderingAttachmentInfo(*pRenderingDesc->pDepthAttachment);
+		if (pRenderingDesc->pStencilAttachment)
+			stencilAttachmentVk = ConvertRenderingAttachmentInfo(*pRenderingDesc->pStencilAttachment);
+
+		VkRenderingInfo renderingInfo      = {};
+		renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
+		renderingInfo.pNext                = nullptr;
+		renderingInfo.flags                = 0;
+		renderingInfo.renderArea           = renderArea;
+		renderingInfo.layerCount           = pRenderingDesc->LayerCount;
+		renderingInfo.viewMask             = pRenderingDesc->ViewMask;
+		renderingInfo.colorAttachmentCount = static_cast<uint32>(colorAttachments.size());
+		renderingInfo.pColorAttachments    = colorAttachments.data();
+		renderingInfo.pDepthAttachment     = pRenderingDesc->pDepthAttachment ? &depthAttachmentVk : nullptr;
+		renderingInfo.pStencilAttachment   = pRenderingDesc->pStencilAttachment ? &stencilAttachmentVk : nullptr;
+
+		vkCmdBeginRendering(m_Buffer, &renderingInfo);
 	}
 
 	void PVKCommandBuffer::BindPipeline(Pipeline* pPipeline)
@@ -580,6 +639,11 @@ namespace Poly
 	void PVKCommandBuffer::EndRenderPass()
 	{
 		vkCmdEndRenderPass(m_Buffer);
+	}
+
+	void PVKCommandBuffer::EndRendering()
+	{
+		vkCmdEndRendering(m_Buffer);
 	}
 
 	void PVKCommandBuffer::End()

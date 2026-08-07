@@ -30,12 +30,15 @@ namespace Poly
 		for (auto& set : pDesc->DescriptorSetLayouts)
 		{
 			std::vector<VkDescriptorSetLayoutBinding> bindingsVK;
+			std::vector<VkDescriptorBindingFlags>     bindingFlagsVK;
 			bindingsVK.reserve(set.DescriptorSetBindings.size());
+			bindingFlagsVK.reserve(set.DescriptorSetBindings.size());
 
 			// Bindings in set
 			// Bindings are saved for later use in Descriptors (Used when sets are updated in vkUpdateDescriptorSet)
 			DescriptorSetLayout savedLayout = {};
 			savedLayout.DescriptorSetBindings.reserve(set.DescriptorSetBindings.size());
+			bool needsUpdateAfterBind = false;
 			for (auto& binding : set.DescriptorSetBindings)
 			{
 				// Save custom type
@@ -49,8 +52,19 @@ namespace Poly
 				bindingVK.pImmutableSamplers           = nullptr; // TODO: Implement this
 				bindingVK.stageFlags                   = ConvertShaderStageVK(binding.ShaderStage);
 				bindingsVK.push_back(bindingVK);
+
+				bindingFlagsVK.push_back(ConvertDescriptorBindingFlagVK(binding.BindingFlags));
+				if (BitsSet(binding.BindingFlags, FDescriptorIndexingBindingFlag::UPDATE_AFTER_BIND))
+					needsUpdateAfterBind = true;
 			}
 			m_DescriptorLayouts.push_back(savedLayout);
+
+			// Descriptor indexing / bindless: per-binding flags (partially bound, variable count,
+			// update-after-bind), only meaningfully populated for a bindless heap-style set
+			VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo = {};
+			bindingFlagsCreateInfo.sType                                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+			bindingFlagsCreateInfo.bindingCount                                = static_cast<uint32>(bindingFlagsVK.size());
+			bindingFlagsCreateInfo.pBindingFlags                               = bindingFlagsVK.data();
 
 			// Create VK Descriptor layout
 			VkDescriptorSetLayout           vkLayout;
@@ -58,8 +72,8 @@ namespace Poly
 			createInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			createInfo.bindingCount                    = static_cast<uint32>(bindingsVK.size());
 			createInfo.pBindings                       = bindingsVK.data();
-			createInfo.flags                           = 0;
-			createInfo.pNext                           = nullptr;
+			createInfo.flags                           = needsUpdateAfterBind ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT : 0;
+			createInfo.pNext                           = &bindingFlagsCreateInfo;
 			vkCreateDescriptorSetLayout(PVKInstance::GetDevice(), &createInfo, nullptr, &vkLayout);
 			m_DescriptorSetLayoutsVK.push_back(vkLayout);
 		}

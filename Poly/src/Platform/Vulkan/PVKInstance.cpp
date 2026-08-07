@@ -584,7 +584,6 @@ namespace Poly
 			queueCreateInfo.queueFamilyIndex        = queueSpec.QueueFamily;
 			queueCreateInfo.queueCount              = queueSpec.QueueCount;
 			queueCreateInfo.pQueuePriorities        = allPriorities.back().data();
-			;
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
@@ -592,16 +591,26 @@ namespace Poly
 		// TODO: Move this to an easier place for editing
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy        = VK_TRUE;
+		deviceFeatures.shaderInt64              = VK_TRUE;
 
 		VkPhysicalDeviceVulkan13Features vulkan13Features = {};
 		vulkan13Features.sType                            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
 		vulkan13Features.synchronization2                 = VK_TRUE;
+		vulkan13Features.dynamicRendering                 = VK_TRUE;
 		vulkan13Features.pNext                            = nullptr;
 
-		VkPhysicalDeviceVulkan12Features vulkan12Features = {};
-		vulkan12Features.sType                            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-		vulkan12Features.timelineSemaphore                = VK_TRUE;
-		vulkan12Features.pNext                            = &vulkan13Features;
+		// Descriptor indexing + buffer device address (bindless)
+		VkPhysicalDeviceVulkan12Features vulkan12Features             = {};
+		vulkan12Features.sType                                        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		vulkan12Features.timelineSemaphore                            = VK_TRUE;
+		vulkan12Features.bufferDeviceAddress                          = VK_TRUE;
+		vulkan12Features.shaderSampledImageArrayNonUniformIndexing    = VK_TRUE;
+		vulkan12Features.descriptorBindingPartiallyBound              = VK_TRUE;
+		vulkan12Features.descriptorBindingVariableDescriptorCount     = VK_TRUE;
+		vulkan12Features.runtimeDescriptorArray                       = VK_TRUE;
+		vulkan12Features.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+		vulkan12Features.descriptorBindingUpdateUnusedWhilePending    = VK_TRUE;
+		vulkan12Features.pNext                                        = &vulkan13Features;
 
 		// Create info for the logical device
 		VkDeviceCreateInfo createInfo      = {};
@@ -660,6 +669,10 @@ namespace Poly
 		{
 			createInfo.flags |= VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT;
 		}
+
+		// Required so VMA allocates memory with VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT for buffers
+		// created with FBufferUsage::SHADER_DEVICE_ADDRESS (bindless BDA access)
+		createInfo.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 
 		// Uncomment to enable recording to CSV file.
 		/*

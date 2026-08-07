@@ -35,9 +35,20 @@ namespace Poly
 		 * @param binding - The binding to update
 		 * @param layout - The layout the texture will be in during the update
 		 * @param pTextureView - The texture view to update
-		 * @param pSampler - Sampler for the texture
+		 * @param pSampler - Sampler for the texture (ignored for a pure SAMPLED_IMAGE binding - only
+		 *                   relevant for COMBINED_IMAGE_SAMPLER)
+		 * @param arrayIndex - Element index to update, for an array/bindless-heap binding (0 otherwise)
 		 */
-		virtual void UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler) = 0;
+		virtual void UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler, uint32 arrayIndex = 0) = 0;
+
+		/**
+		 * Updates a pure SAMPLER binding (as opposed to COMBINED_IMAGE_SAMPLER) - used for the
+		 * bindless sampler heap, which is a separate binding from the texture heap
+		 * @param binding - The binding to update
+		 * @param pSampler - Sampler to write into the binding
+		 * @param arrayIndex - Element index to update, for an array/bindless-heap binding (0 otherwise)
+		 */
+		virtual void UpdateSamplerBinding(uint32 binding, Sampler* pSampler, uint32 arrayIndex = 0) = 0;
 
 		/**
 		 * @return Native handle to the API specific object

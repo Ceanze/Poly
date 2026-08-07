@@ -3,6 +3,7 @@
 #include "Platform/API/CommandQueue.h"
 #include "Platform/API/Sampler.h"
 #include "Platform/Vulkan/PVKInstance.h"
+#include "Poly/RenderGraph/ResourceManager.h"
 #include "polypch.h"
 
 namespace Poly
@@ -22,12 +23,14 @@ namespace Poly
 		}
 
 		Sampler::InitDefaults();
+		ResourceManager::Init();
 	}
 
 	void RenderAPI::Release()
 	{
 		m_pGraphicsQueue->Wait();
 		m_FramebufferCache.Reset();
+		ResourceManager::Release();
 
 		if (m_pGraphicsInstance)
 		{

@@ -22,6 +22,7 @@ namespace Poly
 		virtual uint64 GetSize() const override final;
 		virtual uint64 GetAlignment() const override final;
 		virtual uint64 GetNative() const override final;
+		virtual uint64 GetDeviceAddress() const override final;
 
 		VkBuffer GetNativeVK() const;
 

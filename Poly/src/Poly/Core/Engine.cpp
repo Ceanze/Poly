@@ -2,11 +2,13 @@
 
 #include "Application.h"
 #include "Poly/Core/Input/InputManager.h"
-#include "Poly/Resources/ResourceLoader.h"
-#include "Poly/Resources/ResourceManager.h"
+#include "Poly/Resources/AssetLoader.h"
+#include "Poly/Resources/AssetManager.h"
+#include "Poly/Resources/GeometryPool.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "polypch.h"
 #include "RenderAPI.h"
+#include "ThreadPool.h"
 #include "Timer.h"
 #include "Timestamp.h"
 
@@ -26,11 +28,14 @@ namespace Poly
 			return;
 		}
 
+		ThreadPool::Init();
+
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
 		ShaderManager::Init();
-		ResourceLoader::Init();
-		ResourceManager::Init();
+		GeometryPool::Init();
+		AssetLoader::Init();
+		AssetManager::Init();
 	}
 
 	void Engine::Run(Application* pApp)
@@ -64,9 +69,12 @@ namespace Poly
 
 	void Engine::Release()
 	{
+		ThreadPool::Release();
+
 		ShaderManager::Release();
-		ResourceLoader::Release();
-		ResourceManager::Release();
+		AssetLoader::Release();
+		AssetManager::Release();
+		GeometryPool::Release();
 		RenderAPI::Release();
 		glfwTerminate();
 	}

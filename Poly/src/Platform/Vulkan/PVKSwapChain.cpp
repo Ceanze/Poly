@@ -34,28 +34,29 @@ namespace Poly
 
 	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers)
 	{
-		if (!m_ResizeRequired)
-		{
-			SubmitDesc submitDesc       = {};
-			submitDesc.CommandBuffers   = commandBuffers;
-			submitDesc.SignalSemaphores = {m_RenderSemaphores[m_ImageIndex].get()};
-			submitDesc.WaitSemaphores   = {m_AcquireSemaphores[m_FrameIndex].get()};
-			submitDesc.SignalSyncPoints = {{m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
-			p_SwapchainDesc.pQueue->Submit(submitDesc);
+		SubmitDesc submitDesc       = {};
+		submitDesc.CommandBuffers   = commandBuffers;
+		submitDesc.SignalSemaphores = {m_RenderSemaphores[m_ImageIndex].get()};
+		submitDesc.WaitSemaphores   = {m_AcquireSemaphores[m_FrameIndex].get()};
+		submitDesc.SignalSyncPoints = {{m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
+		p_SwapchainDesc.pQueue->Submit(submitDesc);
 
-			VkSemaphore    waitSemaphore = m_RenderSemaphores[m_ImageIndex]->GetNativeVK();
-			VkSwapchainKHR swapChains[]  = {m_SwapChain};
+		VkSemaphore    waitSemaphore = m_RenderSemaphores[m_ImageIndex]->GetNativeVK();
+		VkSwapchainKHR swapChains[]  = {m_SwapChain};
 
-			VkPresentInfoKHR presentInfo   = {};
-			presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-			presentInfo.waitSemaphoreCount = 1;
-			presentInfo.pWaitSemaphores    = &waitSemaphore;
-			presentInfo.swapchainCount     = 1;
-			presentInfo.pSwapchains        = swapChains;
-			presentInfo.pImageIndices      = &m_ImageIndex;
-			presentInfo.pResults           = nullptr; // Optional
-			PVK_CHECK(vkQueuePresentKHR(m_PresentQueue, &presentInfo), "Failed to present image!");
-		}
+		VkPresentInfoKHR presentInfo   = {};
+		presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores    = &waitSemaphore;
+		presentInfo.swapchainCount     = 1;
+		presentInfo.pSwapchains        = swapChains;
+		presentInfo.pImageIndices      = &m_ImageIndex;
+		presentInfo.pResults           = nullptr; // Optional
+		const VkResult presentResult   = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+		if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
+			m_ResizeRequired = true; // defer the actual recreate to the next AcquireNextImage() call
+		else
+			PVK_CHECK(presentResult, "Failed to present image!");
 
 		return AcquireNextImage();
 	}
@@ -300,6 +301,13 @@ namespace Poly
 
 	PresentResult PVKSwapChain::AcquireNextImage()
 	{
+		if (m_ResizeRequired)
+		{
+			m_ResizeRequired = false;
+			RecreateSwapChain();
+			return PresentResult::RECREATED_SWAPCHAIN;
+		}
+
 		m_FrameIndex = (m_FrameIndex + 1) % p_SwapchainDesc.BufferCount;
 
 		// + 1 to wait for the coming frames submit, and not the previous one
@@ -310,14 +318,19 @@ namespace Poly
 		m_FrameSyncPoint->Wait(waitValue);
 
 		VkResult result = vkAcquireNextImageKHR(PVKInstance::GetDevice(), m_SwapChain, UINT64_MAX, m_AcquireSemaphores[m_FrameIndex]->GetNativeVK(), VK_NULL_HANDLE, &m_ImageIndex);
-		if (result == VkResult::VK_ERROR_OUT_OF_DATE_KHR || result == VkResult::VK_SUBOPTIMAL_KHR || m_ResizeRequired) // VK_SUBOPTIMAL_KHR could be considered successful, currently it is not, and a recreate will be done for those too
+		if (result == VkResult::VK_ERROR_OUT_OF_DATE_KHR)
 		{
-			m_ResizeRequired = false;
 			RecreateSwapChain();
 			return PresentResult::RECREATED_SWAPCHAIN;
 		}
 
-		PVK_CHECK(result, "Failed to acquire image!");
+		// VK_SUBOPTIMAL_KHR is successful acquire - the image and its semaphore are valid. Use
+		// them normally this frame (so the semaphore actually gets waited-on and consumed by the coming
+		// submit) and defer the recreate to the next AcquireNextImage() call.
+		if (result == VkResult::VK_SUBOPTIMAL_KHR)
+			m_ResizeRequired = true;
+		else
+			PVK_CHECK(result, "Failed to acquire image!");
 
 		m_AcquireSemaphores[m_FrameIndex]->AddWaitStageMask(FPipelineStage::COLOR_ATTACHMENT_OUTPUT);
 

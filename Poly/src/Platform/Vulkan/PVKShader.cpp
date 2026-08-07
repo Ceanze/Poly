@@ -1,6 +1,5 @@
 #include "PVKShader.h"
 
-#include "Poly/Resources/ResourceLoader.h"
 #include "polypch.h"
 #include "PVKInstance.h"
 #include "VulkanCommon.h"

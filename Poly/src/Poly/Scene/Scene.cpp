@@ -2,6 +2,7 @@
 
 #include "Components.h"
 #include "Entity.h"
+#include "Poly/RenderGraph/SceneRenderBridge.h"
 #include "Poly/Rendering/RenderScene.h"
 
 namespace Poly
@@ -71,12 +72,20 @@ namespace Poly
 		if (m_pRenderScene)
 			m_pRenderScene->Update();
 
+		if (m_pSceneRenderBridge)
+			m_pSceneRenderBridge->Update();
+
 		m_Registry.clear<DirtyTag>();
 	}
 
 	void Scene::CreateRenderScene(RenderGraphProgram& program)
 	{
 		m_pRenderScene = CreateRef<RenderScene>(*this, program);
+	}
+
+	void Scene::CreateSceneRenderBridge(Ref<RenderProgramInstance> pProgramInstance)
+	{
+		m_pSceneRenderBridge = CreateRef<SceneRenderBridge>(*this, std::move(pProgramInstance));
 	}
 
 	PolyID Scene::GetIdOfEntity(entt::entity entity)

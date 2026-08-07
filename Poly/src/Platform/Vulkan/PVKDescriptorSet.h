@@ -9,7 +9,6 @@ namespace Poly
 {
 	class PVKBuffer;
 	class PVKSampler;
-	// class PVKPipelineLayout;
 
 	class PVKDescriptorSet : public DescriptorSet
 	{
@@ -20,7 +19,8 @@ namespace Poly
 		virtual void Init(PipelineLayout* pLayout, uint32 setIndex) override final;
 
 		virtual void UpdateBufferBinding(uint32 binding, const Buffer* pBuffer, uint64 offset, uint64 range) override final;
-		virtual void UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler) override final;
+		virtual void UpdateTextureBinding(uint32 binding, ETextureLayout layout, const TextureView* pTextureView, Sampler* pSampler, uint32 arrayIndex = 0) override final;
+		virtual void UpdateSamplerBinding(uint32 binding, Sampler* pSampler, uint32 arrayIndex = 0) override final;
 
 		VkDescriptorSetLayout   GetSetLayout() const { return m_SetLayout; };
 		virtual uint64          GetNative() const override final { return reinterpret_cast<uint64>(m_Set); }
@@ -32,10 +32,11 @@ namespace Poly
 		void CreatePool(PVKPipelineLayout* pLayout);
 		void CreateDescriptorSet(PVKPipelineLayout* pLayout);
 
-		VkDescriptorSet       m_Set             = VK_NULL_HANDLE;
-		VkDescriptorPool      m_Pool            = VK_NULL_HANDLE;
-		VkDescriptorSetLayout m_SetLayout       = VK_NULL_HANDLE;
-		uint32                m_SetIndex        = 0;
-		PVKPipelineLayout*    m_pPipelineLayout = nullptr;
+		VkDescriptorSet       m_Set                     = VK_NULL_HANDLE;
+		VkDescriptorPool      m_Pool                    = VK_NULL_HANDLE;
+		VkDescriptorSetLayout m_SetLayout               = VK_NULL_HANDLE;
+		uint32                m_SetIndex                = 0;
+		PVKPipelineLayout*    m_pPipelineLayout         = nullptr;
+		uint32                m_VariableDescriptorCount = 0; // Nonzero only for bindless/variable-count sets
 	};
 } // namespace Poly

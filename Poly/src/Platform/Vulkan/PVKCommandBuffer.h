@@ -19,6 +19,8 @@ namespace Poly
 
 		virtual void BeginRenderPass(GraphicsRenderPass* pRenderPass, Framebuffer* pFramebuffer, uint32 width, uint32 height, std::vector<ClearValue> clearValues) override final;
 
+		virtual void BeginRendering(const RenderingDesc* pRenderingDesc) override final;
+
 		virtual void BindPipeline(Pipeline* pPipeline) override final;
 
 		virtual void BindDescriptor(const Pipeline* pPipeline, const DescriptorSet* pDescriptor, uint32 dynamicOffsetCount = 0, const uint32* pDynamicOffsets = nullptr) override final;
@@ -64,6 +66,8 @@ namespace Poly
 		virtual void PipelineBarrier(FPipelineStage srcStage, FPipelineStage dstStage, const std::vector<AccessBarrier>& accessBarriers, const std::vector<BufferBarrier>& bufferBarriers, const std::vector<TextureBarrier>& textureBarriers) override final;
 
 		virtual void EndRenderPass() override final;
+
+		virtual void EndRendering() override final;
 
 		virtual void End() override final;
 

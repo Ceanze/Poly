@@ -14,7 +14,7 @@
 #include "Poly/Rendering/RenderGraph/PassResID.h"
 #include "Poly/Rendering/Utilities/DescriptorCache.h"
 #include "Poly/Rendering/Utilities/StagingBufferCache.h"
-#include "Poly/Resources/ResourceLoader.h"
+#include "Poly/Resources/AssetLoader.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 
 #include <imgui.h>
@@ -260,7 +260,7 @@ namespace Poly
 		io.Fonts->GetTexDataAsRGBA32(&fontData, &width, &height);
 
 		// Setup texture
-		m_pFontTexture = ResourceLoader::LoadTextureFromMemory(fontData, width, height, 4, EFormat::R8G8B8A8_UNORM);
+		m_pFontTexture = AssetLoader::LoadTextureFromMemory(fontData, width, height, 4, EFormat::R8G8B8A8_UNORM);
 
 		// Setup texture view
 		TextureViewDesc viewDesc = {};

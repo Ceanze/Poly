@@ -200,9 +200,26 @@ namespace Poly
 		if (!pDesc->pVertexShader && !pDesc->pFragmentShader)
 			POLY_VALIDATE(false, "Atleast one shader must be bound to a graphics pipeline!");
 
+		// Dynamic rendering (VK_KHR_dynamic_rendering) - used instead of a VkRenderPass/subpass when pDesc->pRenderPass is null
+		std::vector<VkFormat>         dynamicColorFormats;
+		VkPipelineRenderingCreateInfo renderingCreateInfo = {};
+		if (!pDesc->pRenderPass)
+		{
+			dynamicColorFormats.reserve(pDesc->ColorAttachmentFormats.size());
+			for (EFormat format : pDesc->ColorAttachmentFormats)
+				dynamicColorFormats.push_back(ConvertFormatVK(format));
+
+			renderingCreateInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+			renderingCreateInfo.colorAttachmentCount    = static_cast<uint32>(dynamicColorFormats.size());
+			renderingCreateInfo.pColorAttachmentFormats = dynamicColorFormats.data();
+			renderingCreateInfo.depthAttachmentFormat   = pDesc->DepthAttachmentFormat != EFormat::UNDEFINED ? ConvertFormatVK(pDesc->DepthAttachmentFormat) : VK_FORMAT_UNDEFINED;
+			renderingCreateInfo.stencilAttachmentFormat = pDesc->StencilAttachmentFormat != EFormat::UNDEFINED ? ConvertFormatVK(pDesc->StencilAttachmentFormat) : VK_FORMAT_UNDEFINED;
+		}
+
 		// Finally, create the pipeline
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType                        = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.pNext                        = pDesc->pRenderPass ? nullptr : &renderingCreateInfo;
 		pipelineInfo.stageCount                   = static_cast<uint32>(shaderStages.size());
 		pipelineInfo.pStages                      = shaderStages.data();
 		pipelineInfo.pVertexInputState            = &vertexInputInfo;
@@ -214,7 +231,7 @@ namespace Poly
 		pipelineInfo.pColorBlendState             = &colorBlending;
 		pipelineInfo.pDynamicState                = &dynamicState;
 		pipelineInfo.layout                       = m_pPipelineLayout->GetNativeVK();
-		pipelineInfo.renderPass                   = reinterpret_cast<PVKRenderPass*>(pDesc->pRenderPass)->GetNativeVK();
+		pipelineInfo.renderPass                   = pDesc->pRenderPass ? reinterpret_cast<PVKRenderPass*>(pDesc->pRenderPass)->GetNativeVK() : VK_NULL_HANDLE;
 		pipelineInfo.subpass                      = pDesc->Subpass;
 		pipelineInfo.basePipelineHandle           = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex            = -1;             // Optional
