@@ -35,6 +35,7 @@ namespace Poly
 		}
 
 		WaitForFrameSlotReuse(m_FrameIndex);
+		ResizeSizedToTargetResources(view);
 
 		const auto& passes    = m_pRenderProgram->GetPasses();
 		const auto& passPlans = m_pRenderProgram->GetSyncPlan().GetPassPlans();
@@ -136,6 +137,26 @@ namespace Poly
 	{
 		for (const auto& [queue, value] : m_FrameReclaimValues[frameIndex])
 			GetOrCreateQueueSyncPoint(queue)->Wait(value);
+	}
+
+	void RenderProgramInstance::ResizeSizedToTargetResources(const RenderView& view)
+	{
+		for (auto& [name, res] : m_Resources)
+		{
+			if (!res.IsSizedToTarget || res.IsBuffer())
+				continue;
+
+			TextureDesc desc = ResourceManager::Resolve(res.TexHandle)->GetDesc();
+			if (desc.Width != view.pTarget->GetTexture()->GetDesc().Width || desc.Height != view.pTarget->GetTexture()->GetDesc().Height)
+			{
+				TextureHandle oldHandle = res.TexHandle;
+				desc.Width              = view.pTarget->GetTexture()->GetDesc().Width;
+				desc.Height             = view.pTarget->GetTexture()->GetDesc().Height;
+				res.TexHandle           = ResourceManager::CreateTexture2D(desc.Width, desc.Height, desc.Format, desc.TextureUsage, desc.DebugName);
+
+				ResourceManager::Destroy(oldHandle);
+			}
+		}
 	}
 
 	SyncPoint* RenderProgramInstance::GetOrCreateQueueSyncPoint(FQueueType queue)
@@ -254,8 +275,9 @@ namespace Poly
 		}
 
 		// Graph-owned texture: allocate now, sized either explicitly (WithSize()) or to the render target.
-		const uint32 width  = port.Width != 0 ? port.Width : (view.pTarget ? view.pTarget->GetTexture()->GetWidth() : 0);
-		const uint32 height = port.Height != 0 ? port.Height : (view.pTarget ? view.pTarget->GetTexture()->GetHeight() : 0);
+		const bool   isSizedToTarget = (port.Width == 0 || port.Height == 0);
+		const uint32 width           = port.Width != 0 ? port.Width : (view.pTarget ? view.pTarget->GetTexture()->GetWidth() : 0);
+		const uint32 height          = port.Height != 0 ? port.Height : (view.pTarget ? view.pTarget->GetTexture()->GetHeight() : 0);
 
 		// TODO: IResourceDeclaration has no format setter yet (only WithSize/WithType/WithInitialState) -
 		// default until it does; only affects graph-owned internal resources, not externally-supplied ones.
@@ -266,8 +288,9 @@ namespace Poly
 		                                                                             : FTextureUsage::COLOR_ATTACHMENT);
 
 		RuntimeResource res;
-		res.TexHandle  = ResourceManager::CreateTexture2D(width, height, format, usage, port.ResolvedName);
-		res.SamplerHnd = ResourceManager::GetDefaultLinearSampler();
+		res.TexHandle       = ResourceManager::CreateTexture2D(width, height, format, usage, port.ResolvedName);
+		res.SamplerHnd      = ResourceManager::GetDefaultLinearSampler();
+		res.IsSizedToTarget = isSizedToTarget;
 
 		auto [insertedIt, inserted] = m_Resources.emplace(port.ResolvedName, std::move(res));
 		return &insertedIt->second;

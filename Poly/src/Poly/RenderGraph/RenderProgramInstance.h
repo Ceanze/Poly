@@ -64,6 +64,7 @@ namespace Poly
 			BufferHandle  BufHandle;
 			TextureHandle TexHandle;
 			SamplerHandle SamplerHnd;
+			bool          IsSizedToTarget = false;
 
 			bool IsBuffer() const { return BufHandle.IsValid(); }
 			bool IsTexture() const { return TexHandle.IsValid(); }
@@ -81,6 +82,7 @@ namespace Poly
 
 		void EnsurePerPassResources();
 		void WaitForFrameSlotReuse(uint32 frameIndex);
+		void ResizeSizedToTargetResources(const RenderView& view);
 
 		CommandBuffer*    GetCommandBuffer(size_t passIndex) const { return m_PassResources[passIndex].CommandBuffers[m_FrameIndex]; }
 		PipelineLayout*   GetOrCreatePipelineLayout(size_t passIndex);
