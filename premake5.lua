@@ -45,6 +45,10 @@ end
 vkPath = get_vk_sdk_path()
 print(vkPath)
 
+-- Absolute repo root, resolved at generation time so runtime code never has to
+-- depend on the process working directory (which differs per-project/per-IDE).
+ROOT_DIR = path.getabsolute(".")
+
 workspace "Poly"
 	architecture "x64"
 	startproject "Sandbox"
@@ -58,6 +62,11 @@ workspace "Poly"
 	}
 
 	multiprocessorcompile ("on")
+
+	defines
+	{
+		'POLY_ROOT_DIR="' .. ROOT_DIR .. '"'
+	}
 
 	filter "system:windows"
 		defines

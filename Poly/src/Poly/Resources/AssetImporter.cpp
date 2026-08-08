@@ -1,6 +1,6 @@
 #include "AssetImporter.h"
 
-#include "IOManager.h"
+#include "Poly/Resources/VFS/VirtualFileSystem.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/mesh.h>
@@ -15,10 +15,10 @@ namespace Poly
 {
 	void AssetImporter::LoadImports()
 	{
-		if (!IOManager::FileExists(GetProjectPath()))
+		if (!VirtualFileSystem::Exists(GetProjectPath()))
 			return;
 
-		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
+		YAML::Node projectFile = YAML::Load(VirtualFileSystem::ReadText(GetProjectPath()));
 
 		if (projectFile["models"])
 			for (auto pair : projectFile["models"])
@@ -78,15 +78,15 @@ namespace Poly
 
 	std::string AssetImporter::GetProjectPath()
 	{
-		return IOManager::GetRootFolder() + PROJECT_POLYRES_FILE;
+		return "compat/" + std::string(PROJECT_POLYRES_FILE);
 	}
 
 	void AssetImporter::UpdateProjectFile(const std::string& path, PolyID pathID, ResourceType type)
 	{
-		if (!IOManager::FileExists(GetProjectPath()))
+		if (!VirtualFileSystem::Exists(GetProjectPath()))
 			CreateProjectFile();
 
-		YAML::Node projectFile = YAML::LoadFile(GetProjectPath());
+		YAML::Node projectFile = YAML::Load(VirtualFileSystem::ReadText(GetProjectPath()));
 		uint64     id          = static_cast<uint64>(pathID);
 
 		switch (type)
@@ -113,9 +113,7 @@ namespace Poly
 		out << YAML::BeginMap << YAML::Key << "models" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
 		out << YAML::BeginMap << YAML::Key << "textures" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
 		out << YAML::BeginMap << YAML::Key << "materials" << YAML::Value << YAML::BeginMap << YAML::EndMap << YAML::EndMap;
-		std::ofstream file(GetProjectPath());
-		file << out.c_str();
-		file.close();
+		VirtualFileSystem::WriteText(GetProjectPath(), out.c_str());
 	}
 
 	std::unordered_map<std::string, AssetImporter::ImportedResource> AssetImporter::m_PathToImportedResource;

@@ -18,8 +18,8 @@ namespace Poly
 	{
 		PassReflection reflection;
 
-		PolyID vertShader = ShaderManager::CreateShader("shaders/pbr.vert", FShaderStage::VERTEX);
-		PolyID fragShader = ShaderManager::CreateShader("shaders/pbr.frag", FShaderStage::FRAGMENT);
+		PolyID vertShader = ShaderManager::CreateShader("assets/shaders/pbr.vert", FShaderStage::VERTEX);
+		PolyID fragShader = ShaderManager::CreateShader("assets/shaders/pbr.frag", FShaderStage::FRAGMENT);
 
 		SetShaderID(FShaderStage::VERTEX, vertShader);
 		SetShaderID(FShaderStage::FRAGMENT, fragShader);

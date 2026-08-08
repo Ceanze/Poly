@@ -12,6 +12,6 @@ namespace Poly
 		ShaderCompiler() = default;
 
 		// Compiles the spirv - should probably return a shader or similar later
-		static const std::vector<byte> CompileGLSL(const std::string& filename, const std::string& folder, FShaderStage shaderStage);
+		static const std::vector<byte> CompileGLSL(std::string_view path, FShaderStage shaderStage);
 	};
 } // namespace Poly
