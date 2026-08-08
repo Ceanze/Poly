@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "Entity.h"
 #include "EntitySerializer.h"
-#include "Poly/Resources/IOManager.h"
+#include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "Scene.h"
 
 #include <yaml-cpp/yaml.h>
@@ -29,33 +29,30 @@ namespace Poly
 		emitter << YAML::EndSeq;
 		emitter << YAML::EndMap;
 
-		std::ofstream file(IOManager::GetScenesFolder() + path);
-		file << emitter.c_str();
-		file.close();
+		VirtualFileSystem::WriteText(path, emitter.c_str());
 	}
 
 	void SceneSerializer::Deserialize(const std::string& path)
 	{
-		const std::string fullPath = IOManager::GetScenesFolder() + path;
 		if (!m_pScene->IsEmpty())
 		{
-			POLY_CORE_WARN("Cannot deserialize scene at path {}, active scene is not empty", fullPath);
+			POLY_CORE_WARN("Cannot deserialize scene at path {}, active scene is not empty", path);
 			return;
 		}
 
-		if (!IOManager::FileExists(fullPath))
+		if (!VirtualFileSystem::Exists(path))
 		{
-			POLY_CORE_WARN("Cannot deserialize scene at path {}, file cannot be found", fullPath);
+			POLY_CORE_WARN("Cannot deserialize scene at path {}, file cannot be found", path);
 			return;
 		}
 
-		YAML::Node sceneFile = YAML::LoadFile(fullPath);
+		YAML::Node sceneFile = YAML::Load(VirtualFileSystem::ReadText(path));
 
 		bool isValid = !!sceneFile["Scene"];
 
 		if (!isValid)
 		{
-			POLY_CORE_WARN("Cannot deserialize scene at path {}, scene file is not valid", fullPath);
+			POLY_CORE_WARN("Cannot deserialize scene at path {}, scene file is not valid", path);
 			return;
 		}
 
@@ -67,7 +64,7 @@ namespace Poly
 			for (auto entityNode : entitiesNode)
 				if (!DeserializeEntity(entitySerializer, entityNode))
 				{
-					POLY_CORE_WARN("Cannot deserialize scene at path {}, an entity in scene file is invalid", fullPath);
+					POLY_CORE_WARN("Cannot deserialize scene at path {}, an entity in scene file is invalid", path);
 					return;
 				}
 		}

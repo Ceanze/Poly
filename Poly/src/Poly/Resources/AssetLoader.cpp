@@ -2,7 +2,6 @@
 
 #include "AssetManager.h"
 #include "GLSLang.h"
-#include "IOManager.h"
 #include "Platform/API/BinarySemaphore.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
@@ -14,6 +13,8 @@
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
 #include "Poly/Resources/GeometryPool.h"
+#include "Poly/Resources/PathUtils.h"
+#include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "polypch.h"
 #include "Shader/ShaderCompiler.h"
 
@@ -83,7 +84,7 @@ namespace
 			POLY_CORE_WARN("Failed to get texture {} with index {}", path.C_Str(), index);
 			return;
 		}
-		PolyID id = AssetManager::ImportAndLoadTexture(std::string(folder + path.C_Str()), EFormat::R8G8B8A8_UNORM);
+		PolyID id = AssetManager::ImportAndLoadTexture(std::string(folder + "/" + path.C_Str()), EFormat::R8G8B8A8_UNORM);
 
 		ManagedTexture managedTexture = AssetManager::GetManagedTexture(id);
 		pPolyMaterial->SetTexture(ConvertTextureType(type), managedTexture.pTexture.get());
@@ -129,17 +130,13 @@ namespace Poly
 
 	std::vector<byte> AssetLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
 	{
-		std::string relativePath = IOManager::GetAssetsFolder() + std::string(path);
 		if (!s_GLSLInit)
 		{
 			POLY_CORE_ERROR("[AssetLoader]: Failed to load shader, GLSL is not correctly initilized!");
 			return {};
 		}
 
-		std::string folder   = IOManager::GetFolderFromPath(relativePath);
-		std::string filename = IOManager::GetFilenameFromPath(relativePath);
-
-		const std::vector<byte> data = ShaderCompiler::CompileGLSL(filename, folder, shaderStage);
+		const std::vector<byte> data = ShaderCompiler::CompileGLSL(path, shaderStage);
 
 		return data;
 	}
@@ -150,7 +147,8 @@ namespace Poly
 		int texHeight = 0;
 		int channels  = 0;
 
-		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, 0);
+		std::vector<byte> content = VirtualFileSystem::Read(path);
+		byte*             data    = stbi_load_from_memory(content.data(), content.size(), &texWidth, &texHeight, &channels, 0);
 		if (!data)
 		{
 			POLY_CORE_ERROR("Failed to load image {}", path);
@@ -173,7 +171,8 @@ namespace Poly
 		int texHeight = 0;
 		int channels  = 0;
 
-		byte* data = stbi_load(path.c_str(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
+		std::vector<byte> content = VirtualFileSystem::Read(path);
+		byte*             data    = stbi_load_from_memory(content.data(), content.size(), &texWidth, &texHeight, &channels, STBI_rgb_alpha);
 		if (!data)
 			POLY_VALIDATE(false, "Failed to load image {}", path);
 
@@ -300,22 +299,25 @@ namespace Poly
 
 	Ref<Model> AssetLoader::LoadModel(const std::string& path, Entity root)
 	{
-		std::string absolutePath = IOManager::GetAssetsFolder() + path;
+		std::string resolvedPath = VirtualFileSystem::Resolve(path);
+		if (resolvedPath.empty())
+		{
+			POLY_CORE_ERROR("Could not resolve model path {}", path);
+			return nullptr;
+		}
 
 		Assimp::Importer importer;
-		const aiScene*   pScene = importer.ReadFile(absolutePath, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-
-		std::string folder = IOManager::GetFolderFromPath(path);
+		const aiScene*   pScene = importer.ReadFile(resolvedPath, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 		if (!pScene)
 		{
-			POLY_CORE_WARN("Could not open mesh at path {}", absolutePath);
+			POLY_CORE_WARN("Could not open mesh at path {}", resolvedPath);
 			return nullptr;
 		}
 
 		Ref<Model> pModel = Model::Create();
 
-		ProcessNode(pScene->mRootNode, pScene, folder, pModel.get(), root);
+		ProcessNode(pScene->mRootNode, pScene, PathUtils::GetDirectoryPath(path), pModel.get(), root);
 
 		return pModel;
 	}

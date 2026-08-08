@@ -97,9 +97,9 @@ public:
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::AssetManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::AssetManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		Poly::AssetManager::ImportAndLoadModel("assets/models/sponza/gltf/sponza.gltf", cubeEntity);
 
-		m_TextureID    = Poly::AssetManager::ImportAndLoadTexture("textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
+		m_TextureID    = Poly::AssetManager::ImportAndLoadTexture("assets/textures/ceanze.png", Poly::EFormat::R8G8B8A8_UNORM);
 		m_pTextureView = Poly::AssetManager::GetTextureView(m_TextureID);
 
 		// Set active render graph program

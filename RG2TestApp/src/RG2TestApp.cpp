@@ -75,7 +75,7 @@ public:
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::AssetManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::AssetManager::ImportAndLoadModel("models/sponza/gltf/sponza.gltf", cubeEntity);
+		Poly::AssetManager::ImportAndLoadModel("assets/models/sponza/gltf/sponza.gltf", cubeEntity);
 
 		RegisterGeometryFeature();
 		RegisterUIFeature();
@@ -152,8 +152,8 @@ private:
 		m_Graph.RegisterResource(Poly::Scene::MATERIAL_RESOURCE_NAME_2).WithType(Poly::EResourceType::StorageBuffer);
 
 		m_Graph.RegisterPass("pbr")
-		    .WithShader("shaders/pbr_bindless.vert", Poly::FShaderStage::VERTEX)
-		    .WithShader("shaders/pbr_bindless.frag", Poly::FShaderStage::FRAGMENT)
+		    .WithShader("assets/shaders/pbr_bindless.vert", Poly::FShaderStage::VERTEX)
+		    .WithShader("assets/shaders/pbr_bindless.frag", Poly::FShaderStage::FRAGMENT)
 		    .MapResource(Poly::EFeaturePort::Color, "out_Color")
 		    .MapResource(Poly::EFeaturePort::Depth, "depth")
 		    .MapGlobal("Camera", "camera")
@@ -199,8 +199,8 @@ private:
 
 		// clang-format off
 		m_Graph.RegisterPass("ui")
-		    .WithShader("shaders/ui_bindless.vert", Poly::FShaderStage::VERTEX)
-		    .WithShader("shaders/ui_bindless.frag", Poly::FShaderStage::FRAGMENT)
+		    .WithShader("assets/shaders/ui_bindless.vert", Poly::FShaderStage::VERTEX)
+		    .WithShader("assets/shaders/ui_bindless.frag", Poly::FShaderStage::FRAGMENT)
 		    .MapResource(Poly::EFeaturePort::Color, "out_Color") // auto-inferred LOAD op: "geometry" already wrote $Color first
 		    .MapGlobal("UIGlobals", "globals")
 		    .MapGlobal("FontTexture", "sTexture")

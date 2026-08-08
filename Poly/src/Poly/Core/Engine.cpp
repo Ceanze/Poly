@@ -6,6 +6,8 @@
 #include "Poly/Resources/AssetManager.h"
 #include "Poly/Resources/GeometryPool.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
+#include "Poly/Resources/VFS/FileDirectoryBackend.h"
+#include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "polypch.h"
 #include "RenderAPI.h"
 #include "ThreadPool.h"
@@ -29,6 +31,8 @@ namespace Poly
 		}
 
 		ThreadPool::Init();
+		VirtualFileSystem::Mount("assets/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR "/assets"), EMountMode::ReadWrite, 0);
+		VirtualFileSystem::Mount("compat/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR), EMountMode::ReadWrite, 0); // TODO: Remove when the project.polyres file is gone from the asset importer
 
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 

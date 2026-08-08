@@ -1,15 +1,15 @@
 #include "AssetManager.h"
 
+#include "AssetImporter.h"
 #include "AssetLoader.h"
-#include "IOManager.h"
 #include "Platform/API/Texture.h"
 #include "Platform/API/TextureView.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Model/Material.h"
 #include "Poly/Model/Mesh.h"
 #include "Poly/Model/Model.h"
+#include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "polypch.h"
-#include "AssetImporter.h"
 
 namespace Poly
 {
@@ -63,10 +63,7 @@ namespace Poly
 		if (handle.IsLoaded)
 			return;
 
-		// TODO: As for now all calls to AssetLoader are done with Absolute Paths - but we save in Relative Paths.
-		//		 Either make sure this is clear, or have internal functions to check if path is Absolute or Relative
-		//		 to handle it.
-		Ref<Texture> pTex = AssetLoader::LoadTexture(IOManager::GetAssetsFolder() + handle.Path, format);
+		Ref<Texture> pTex = AssetLoader::LoadTexture(handle.Path, format);
 
 		// TODO: Grab necessary data from texture
 		Poly::TextureViewDesc textureViewDesc = {
@@ -90,14 +87,12 @@ namespace Poly
 
 	PolyID AssetManager::ImportAndLoadTexture(const std::string& path, EFormat format)
 	{
-		std::string relativePath = path;
-
 		PolyID pathID = AssetImporter::ImportTexture(path);
 
 		if (!m_IDToHandle.contains(pathID))
 		{
 			ResourceHandle handle = {};
-			handle.Path           = relativePath;
+			handle.Path           = path;
 			handle.Type           = ResourceType::TEXTURE;
 			m_IDToHandle[pathID]  = handle;
 		}
@@ -171,14 +166,12 @@ namespace Poly
 
 	PolyID AssetManager::ImportAndLoadMaterial(const std::string& path)
 	{
-		std::string relativePath = IOManager::GetAssetsFolder() + path;
-
 		PolyID pathID = AssetImporter::ImportMaterial(path);
 
 		if (!m_IDToHandle.contains(pathID))
 		{
 			ResourceHandle handle = {};
-			handle.Path           = relativePath;
+			handle.Path           = path;
 			handle.Type           = ResourceType::MATERIAL;
 			m_IDToHandle[pathID]  = handle;
 		}
