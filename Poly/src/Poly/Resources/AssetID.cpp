@@ -5,7 +5,7 @@
 
 namespace
 {
-	std::string NormalizeForHashing(std::string_view vfsPath)
+	constexpr std::string NormalizeForHashing(std::string_view vfsPath)
 	{
 		std::string normalized(vfsPath);
 
@@ -22,7 +22,7 @@ namespace
 	constexpr uint64 FNV_OFFSET_BASIS = 14695981039346656037ull;
 	constexpr uint64 FNV_PRIME        = 1099511628211ull;
 
-	uint64 FNV1a64(std::string_view data)
+	constexpr uint64 FNV1a64(std::string_view data)
 	{
 		uint64 hash = FNV_OFFSET_BASIS;
 		for (unsigned char c : data)

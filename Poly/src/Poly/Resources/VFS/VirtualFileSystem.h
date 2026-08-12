@@ -54,6 +54,16 @@ namespace Poly
 		static std::vector<std::string> ListFiles(std::string_view virtualPath);
 
 		/**
+		 * Recursively enumerates all files across mounted backends, following priority of backends.
+		 * Pass "/" to scan every mount regardless of its virtual root (e.g. for a full asset scan
+		 * where the caller doesn't know which roots are mounted). "/" is otherwise reserved and
+		 * cannot be used as a mount's virtual root.
+		 * @param virtualPath The virtual path to enumerate from, or "/" to enumerate all mounts.
+		 * @return a list of files found for the vfsPath provided, relative to the virtual root of the mount
+		 */
+		static std::vector<std::string> EnumerateFiles(std::string_view virtualPath = "/");
+
+		/**
 		 * Reads the contents of a file from the virtual file system, following priority of backends.
 		 * @param virtualPath The virtual path of the file to read.
 		 * @return A vector of bytes containing the file's contents, or an empty vector if the file does not exist or cannot be read.

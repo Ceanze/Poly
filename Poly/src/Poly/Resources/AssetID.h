@@ -10,7 +10,8 @@ namespace Poly
 		 * Given the same VFS path, this always produces the same id for the given VFS
 		 * @param vfsPath - virtual path of the asset, e.g. "assets/textures/foo.png"
 		 */
-		AssetID(std::string_view vfsPath);
+		explicit constexpr AssetID(std::string_view vfsPath);
+		explicit constexpr AssetID(uint64 id);
 		AssetID()                     = default;
 		AssetID(const AssetID& other) = default;
 
@@ -19,9 +20,6 @@ namespace Poly
 		bool operator<(const AssetID& other) const noexcept;
 		bool operator==(const AssetID& other) const noexcept;
 		bool operator!=(const AssetID& other) const noexcept;
-
-	private:
-		explicit constexpr AssetID(uint64 id);
 
 		uint64 m_Id = 0;
 	};

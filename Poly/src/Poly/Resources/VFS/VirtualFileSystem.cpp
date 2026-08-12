@@ -9,6 +9,12 @@ namespace Poly
 {
 	MountHandle VirtualFileSystem::Mount(std::string_view virtualRoot, Unique<IFileSystemBackend> backend, EMountMode mode, int32 priority)
 	{
+		if (virtualRoot == "/")
+		{
+			POLY_CORE_WARN("\"/\" is reserved as the VFS wildcard root and cannot be used as a mount's virtual root");
+			return MountHandle(-1);
+		}
+
 		MountHandle handle = s_NextMountHandle++;
 		SMount      mount  = {std::string(virtualRoot), std::move(backend), mode, priority, handle};
 		s_Mounts.insert(std::upper_bound(s_Mounts.begin(), s_Mounts.end(), mount), std::move(mount));
@@ -62,6 +68,27 @@ namespace Poly
 				std::vector<std::string> files        = mount.Backend->ListFiles(relativePath);
 				uniqueFiles.insert(files.begin(), files.end());
 			}
+		}
+
+		return std::vector<std::string>(uniqueFiles.begin(), uniqueFiles.end());
+	}
+
+	std::vector<std::string> VirtualFileSystem::EnumerateFiles(std::string_view virtualPath)
+	{
+		bool scanAll = virtualPath == "/";
+
+		std::unordered_set<std::string> uniqueFiles;
+		for (const auto& mount : s_Mounts)
+		{
+			if (!scanAll && !virtualPath.starts_with(mount.VirtualRoot))
+				continue;
+
+			std::string relativePath = scanAll ? "" : std::string(virtualPath.substr(mount.VirtualRoot.size()));
+			mount.Backend->EnumerateFiles(relativePath, [&](const FileSystemEntry& entry)
+			{
+				if (!entry.IsDirectory)
+					uniqueFiles.insert(mount.VirtualRoot + entry.RelativePath);
+			});
 		}
 
 		return std::vector<std::string>(uniqueFiles.begin(), uniqueFiles.end());

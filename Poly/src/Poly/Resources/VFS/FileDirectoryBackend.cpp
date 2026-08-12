@@ -32,6 +32,22 @@ namespace Poly
 		return files;
 	}
 
+	void FileDirectoryBackend::EnumerateFiles(std::string_view relativePath, const std::function<void(const FileSystemEntry&)>& callback) const
+	{
+		std::filesystem::path root = m_PhysicalPath / relativePath;
+		if (!std::filesystem::exists(root))
+			return;
+
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(root))
+		{
+			FileSystemEntry fsEntry;
+			fsEntry.RelativePath = std::filesystem::relative(entry.path(), m_PhysicalPath).generic_string();
+			fsEntry.IsDirectory  = entry.is_directory();
+			fsEntry.Size         = fsEntry.IsDirectory ? 0 : static_cast<uint64>(entry.file_size());
+			callback(fsEntry);
+		}
+	}
+
 	std::vector<byte> FileDirectoryBackend::Read(std::string_view relativePath) const
 	{
 		std::ifstream file(m_PhysicalPath / relativePath, std::ios::binary);
