@@ -28,7 +28,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
+// Removed since TextureAssetImporter has it now
+// #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 namespace
