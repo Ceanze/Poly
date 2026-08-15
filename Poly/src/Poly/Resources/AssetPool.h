@@ -9,22 +9,25 @@ namespace Poly
 	class AssetPool : public IAssetPool
 	{
 	public:
-		AssetHandle<AssetType> Emplace(AssetID id, T&& asset)
+		AssetHandle<AssetType> Emplace(AssetID id, AssetType&& asset)
 		{
 			uint32 index;
 			if (!m_FreeIndices.empty())
 			{
 				index = m_FreeIndices.back();
 				m_FreeIndices.pop_back();
-				m_Assets[index].AssetType = std::move(asset);
+				m_Assets[index].Asset = std::move(asset);
+				m_Assets[index].ID    = id;
 			}
 			else
 			{
-				index = (uint32)m_Slots.size();
-				m_Assets.push_back(SlotData{std::move(asset), 0});
+				index = (uint32)m_Assets.size();
+				m_Assets.push_back(SlotData{std::move(asset), id, 0});
 			}
 
 			m_IDToIndex[id] = index;
+
+			return AssetHandle<AssetType>(index, m_Assets[index].Generation);
 		}
 
 		AssetType* Resolve(AssetHandle<AssetType> handle)
@@ -47,7 +50,7 @@ namespace Poly
 				return nullptr;
 			}
 
-			return &slot.AssetType;
+			return &slot.Asset;
 		}
 
 		AssetHandle<AssetType> GetHandle(AssetID id) const
@@ -60,7 +63,7 @@ namespace Poly
 
 		bool Contains(AssetID id) override
 		{
-			return m_IdToIndex.contains(id);
+			return m_IDToIndex.contains(id);
 		}
 
 		void Erase(AssetID id) override
@@ -71,20 +74,37 @@ namespace Poly
 
 			uint32 idx = itr->second;
 			m_Assets[idx].Generation++;
-			m_Assets[idx].AssetType = AssetType{};
+			m_Assets[idx].Asset = AssetType{};
 			m_FreeIndices.push_back(idx);
 			m_IDToIndex.erase(itr);
+		}
+
+		void Erase(AssetHandle<AssetType> handle)
+		{
+			if (!handle.IsValid())
+				return;
+
+			const uint32 index = handle.GetIndex();
+			if (index >= m_Assets.size())
+				return;
+
+			SlotData& slot = m_Assets[index];
+			if (handle.GetGeneration() != slot.Generation)
+				return; // Stale handle, already unloaded/reused
+
+			Erase(slot.ID);
 		}
 
 	private:
 		struct SlotData
 		{
-			AssetType AssetType;
+			AssetType Asset;
+			AssetID   ID;
 			uint32    Generation;
 		};
 
 		std::vector<SlotData>               m_Assets;
 		std::vector<uint32>                 m_FreeIndices;
-		std::unordered_map<AssetID, uint32> m_IdToIndex;
+		std::unordered_map<AssetID, uint32> m_IDToIndex;
 	};
 } // namespace Poly

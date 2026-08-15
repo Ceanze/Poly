@@ -27,7 +27,7 @@ namespace Poly
 		}
 	}
 
-	std::string AssetRegistry::ResolvePath(AssetID assetID) const
+	const std::string& AssetRegistry::ResolvePath(AssetID assetID) const
 	{
 		const auto itr = m_IDToPath.find(assetID);
 		if (itr == m_IDToPath.end())

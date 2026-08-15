@@ -17,7 +17,7 @@ namespace Poly
 
 		void ScanAssets();
 
-		std::string ResolvePath(AssetID assetID) const;
+		const std::string& ResolvePath(AssetID assetID) const;
 
 		template<typename AssetType>
 		AssetHandle<AssetType> GetHandle(AssetID id) const
@@ -32,9 +32,36 @@ namespace Poly
 		}
 
 		template<typename AssetType>
-		void Emplace(AssetID assetID, AssetType&& assetType)
+		AssetHandle<AssetType> Emplace(AssetID assetID, AssetType&& asset)
 		{
 			return GetOrCreatePool<AssetType>().Emplace(assetID, std::move(asset));
+		}
+
+		template<typename AssetType>
+		bool IsLoaded(AssetID id) const
+		{
+			return GetPool<AssetType>() ? GetPool<AssetType>()->Contains(id) : false;
+		}
+
+		bool IsLoaded(AssetID id) const
+		{
+			for (auto& [type, pool] : m_Pools)
+				if (pool->Contains(id))
+					return true;
+			return false;
+		}
+
+		template<typename AssetType>
+		void Unload(AssetHandle<AssetType> handle)
+		{
+			if (AssetPool<AssetType>* pool = GetPool<AssetType>())
+				pool->Erase(handle);
+		}
+
+		void UnloadAll()
+		{
+			m_Pools.clear();
+			m_IDToPath.clear();
 		}
 
 	private:

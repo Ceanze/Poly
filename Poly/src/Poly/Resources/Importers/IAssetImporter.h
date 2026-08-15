@@ -12,6 +12,6 @@ namespace Poly
 
 		virtual std::vector<std::string> GetSupportedExtensions() const = 0;
 
-		virtual bool Import(std::string_view vfsPath, const AssetID& assetID, AssetRegistry& registry);
+		virtual bool Import(std::string_view vfsPath, AssetRegistry& registry) = 0;
 	};
 } // namespace Poly

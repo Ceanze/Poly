@@ -13,19 +13,24 @@ namespace Poly
 
 	void AssetHandler::Init()
 	{
+		m_Registry.ScanAssets();
 	}
 
 	void AssetHandler::Release()
 	{
+		m_Registry.UnloadAll();
+		m_ExtensionToImporter.clear();
+		m_Importers.clear();
 	}
 
 	IAssetImporter* AssetHandler::GetImporter(std::string_view vfsPath)
 	{
+		// TODO: Remove any #fragments at the end of paths for sub-assets before parsing
 		std::string extension = PathUtils::GetExtension(vfsPath);
 		if (extension.empty())
 		{
 			POLY_CORE_WARN("No extension found for {}", vfsPath);
-			return;
+			return nullptr;
 		}
 
 		auto it = m_ExtensionToImporter.find(extension);
@@ -52,13 +57,28 @@ namespace Poly
 	template<typename AssetType>
 	AssetHandle<AssetType> AssetHandler::Load(std::string_view vfsPath)
 	{
-		return Load<AssetType>(AssetID(vfsPath));
+		AssetID id(vfsPath);
+		if (m_Registry.IsLoaded<AssetType>(id))
+			return m_Registry.GetHandle<AssetType>(id);
+
+		IAssetImporter* pImporter = GetImporter(vfsPath);
+		if (!pImporter)
+			return AssetHandle<AssetType>();
+
+		if (!pImporter->Import(vfsPath, m_Registry))
+			return AssetHandle<AssetType>();
+
+		return m_Registry.GetHandle<AssetType>(id);
 	}
 
 	template<typename AssetType>
 	AssetHandle<AssetType> AssetHandler::Load(AssetID assetID)
 	{
-		return AssetHandle<AssetType>();
+		const std::string& path = m_Registry.ResolvePath(assetID);
+		if (path.empty())
+			return AssetHandle<AssetType>();
+
+		return Load(path);
 	}
 
 	template<typename AssetType>
@@ -82,6 +102,7 @@ namespace Poly
 	template<typename AssetType>
 	void AssetHandler::Unload(AssetHandle<AssetType> handle)
 	{
+		m_Registry.Unload<AssetType>(handle);
 	}
 
 	// Instansiate the supported types (this allows us to hide the definition from the header)

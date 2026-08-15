@@ -9,6 +9,9 @@ namespace Poly
 	public:
 		virtual ~IAsset() = default;
 
-		virtual AssetID GetID() = 0;
+		AssetID GetID() { return p_ID; }
+
+	protected:
+		AssetID p_ID;
 	};
 } // namespace Poly
