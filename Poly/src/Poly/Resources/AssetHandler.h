@@ -19,6 +19,13 @@ namespace Poly
 		static void Init();
 		static void Release();
 
+		/**
+		 * Scans all the mounted folders in the VFS for assets, registering their assetIds and paths.
+		 * Also scans and imports any existing .meta files.
+		 * All importers that adds supported extensions must be registered before scanning, as non-supported files are ignored.
+		 */
+		static void ScanAssets();
+
 		template<typename AssetType>
 		static AssetHandle<AssetType> Load(std::string_view vfsPath);
 

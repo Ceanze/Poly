@@ -3,6 +3,8 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
+// TODO: Refactor components to individual files
+
 namespace Poly
 {
 	class Model;
@@ -26,7 +28,7 @@ namespace Poly
 	{
 		glm::vec3 Translation = {0.0f, 0.0f, 0.0f};
 		glm::vec3 Scale       = {1.0f, 1.0f, 1.0f};
-		glm::quat Orientation;
+		glm::quat Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
 		glm::mat4 GetTransform() const
 		{
@@ -34,6 +36,7 @@ namespace Poly
 		}
 	};
 
+	// TODO: Remove in favor of MeshAssetComponent
 	struct MeshComponent
 	{
 		MeshComponent(Model* pModel, uint32 meshIndex)

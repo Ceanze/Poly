@@ -13,7 +13,6 @@ namespace Poly
 
 	void AssetHandler::Init()
 	{
-		m_Registry.ScanAssets();
 	}
 
 	void AssetHandler::Release()
@@ -21,6 +20,12 @@ namespace Poly
 		m_Registry.UnloadAll();
 		m_ExtensionToImporter.clear();
 		m_Importers.clear();
+	}
+
+	void AssetHandler::ScanAssets()
+	{
+		// TODO: Scan only extensions that are from registered importers
+		m_Registry.ScanAssets();
 	}
 
 	IAssetImporter* AssetHandler::GetImporter(std::string_view vfsPath)
