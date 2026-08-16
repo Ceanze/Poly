@@ -1,13 +1,16 @@
 #include "SceneRenderBridge.h"
 
 #include "Platform/API/Buffer.h"
-#include "Platform/API/Sampler.h"
-#include "Poly/Core/RenderAPI.h"
-#include "Poly/Model/Mesh.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
 #include "Poly/RenderGraph/ResourceManager.h"
+#include "Poly/Resources/AssetHandler.h"
+#include "Poly/Resources/AssetTypes/MaterialAsset.h"
+#include "Poly/Resources/AssetTypes/MeshAsset.h"
+#include "Poly/Resources/AssetTypes/TextureAsset.h"
 #include "Poly/Resources/GeometryPool.h"
 #include "Poly/Scene/Components.h"
+#include "Poly/Scene/Components/MaterialComponent.h"
+#include "Poly/Scene/Components/MeshAssetComponent.h"
 #include "Poly/Scene/Scene.h"
 
 #include <cstring>
@@ -17,6 +20,9 @@ namespace
 	constexpr Poly::Material::Type kMaterialTextureOrder[6] = {
 	    Poly::Material::Type::ALBEDO, Poly::Material::Type::METALIC, Poly::Material::Type::NORMAL,
 	    Poly::Material::Type::ROUGHNESS, Poly::Material::Type::AMBIENT_OCCLUSION, Poly::Material::Type::COMBINED};
+
+	// TODO: Point this at a real default texture (white/flat-normal) once ResourceManager has one.
+	constexpr uint32 kInvalidTextureIndex = ~0u;
 } // namespace
 
 namespace Poly
@@ -30,25 +36,27 @@ namespace Poly
 	{
 		struct PendingBatch
 		{
-			MeshInstance           Instance;
-			std::vector<glm::mat4> Transforms;
+			AssetHandle<MeshAsset>     MeshHandle;
+			AssetHandle<MaterialAsset> MaterialHandle;
+			std::vector<glm::mat4>     Transforms;
 		};
 
 		std::vector<PendingBatch>          pendingBatches;
-		std::unordered_map<size_t, size_t> hashToBatchIndex;
+		std::unordered_map<uint64, size_t> keyToBatchIndex;
 
 		// TODO: When/if possible, only walk dirty entities instead of the whole registry every rebuild.
-		auto view = m_Scene.m_Registry.view<MeshComponent, TransformComponent>();
-		for (auto [entity, meshComp, transform] : view.each())
+		auto view = m_Scene.m_Registry.view<MeshAssetComponent, MaterialComponent, TransformComponent>();
+		for (auto [entity, mesh, material, transform] : view.each())
 		{
-			MeshInstance instance = meshComp.pModel->GetMeshInstance(meshComp.MeshIndex);
-			const size_t hash     = instance.GetUniqueHash();
+			// Handles are dense packed (index|generation) ints, so this is a bijective batch key -
+			// no hash collisions possible, unlike hashing the two asset pointers together.
+			const uint64 key = (uint64(mesh.MeshHandle.Get()) << 32) | uint64(material.MaterialHandle.Get());
 
-			auto it = hashToBatchIndex.find(hash);
-			if (it == hashToBatchIndex.end())
+			auto it = keyToBatchIndex.find(key);
+			if (it == keyToBatchIndex.end())
 			{
-				hashToBatchIndex[hash] = pendingBatches.size();
-				pendingBatches.push_back({instance, {transform.GetTransform()}});
+				keyToBatchIndex[key] = pendingBatches.size();
+				pendingBatches.push_back({mesh.MeshHandle, material.MaterialHandle, {transform.GetTransform()}});
 			}
 			else
 			{
@@ -60,41 +68,17 @@ namespace Poly
 		if (pendingBatches.empty())
 			return;
 
-		// Resolve unique meshes - copy each mesh's GPU vertex/index data into the combined buffers exactly
-		// once, in first-seen order, recording where each mesh's slice ends up.
-		std::unordered_map<Mesh*, MeshRange>     meshRanges;
-		std::vector<std::pair<Mesh*, MeshRange>> meshesToCopy;
-
-		for (const PendingBatch& batch : pendingBatches)
-		{
-			Mesh*       pMesh       = batch.Instance.pMesh.get();
-			BufferRange vertexRange = pMesh->GetMeshRange().Vertices;
-			BufferRange indexRange  = pMesh->GetMeshRange().Indices;
-
-			if (meshRanges.contains(pMesh))
-				continue;
-
-			MeshRange range;
-			range.BaseVertex = vertexRange.ElementOffset;
-			range.BaseIndex  = indexRange.ElementOffset;
-			range.IndexCount = indexRange.ElementCount;
-
-			meshRanges[pMesh] = range;
-			meshesToCopy.push_back({pMesh, range});
-		}
-
 		// Resolve unique materials - one GPUMaterialData row each.
-		std::unordered_map<Material*, uint32> materialIndices;
-		std::vector<GPUMaterialData>          materialData;
+		std::unordered_map<AssetHandle<MaterialAsset>, uint32> materialIndices;
+		std::vector<GPUMaterialData>                           materialData;
 
 		for (const PendingBatch& batch : pendingBatches)
 		{
-			Material* pMaterial = batch.Instance.pMaterial.get();
-			if (materialIndices.contains(pMaterial))
+			if (materialIndices.contains(batch.MaterialHandle))
 				continue;
 
-			materialIndices[pMaterial] = static_cast<uint32>(materialData.size());
-			materialData.push_back(BuildMaterialData(pMaterial));
+			materialIndices[batch.MaterialHandle] = static_cast<uint32>(materialData.size());
+			materialData.push_back(BuildMaterialData(batch.MaterialHandle));
 		}
 
 		// Lay out instances contiguously per batch and record each batch's draw parameters.
@@ -103,13 +87,20 @@ namespace Poly
 
 		for (const PendingBatch& batch : pendingBatches)
 		{
-			const MeshRange& range       = meshRanges[batch.Instance.pMesh.get()];
-			const uint32     materialIdx = materialIndices[batch.Instance.pMaterial.get()];
+			MeshAsset* pMeshAsset = AssetHandler::Resolve(batch.MeshHandle);
+			if (!pMeshAsset)
+			{
+				POLY_CORE_WARN("Skipping batch - mesh asset handle {} is no longer valid", batch.MeshHandle.Get());
+				continue;
+			}
+
+			const MeshRange& range       = pMeshAsset->GetMeshRange();
+			const uint32     materialIdx = materialIndices[batch.MaterialHandle];
 
 			SceneDrawBatch drawBatch;
-			drawBatch.BaseVertex    = range.BaseVertex;
-			drawBatch.BaseIndex     = range.BaseIndex;
-			drawBatch.IndexCount    = range.IndexCount;
+			drawBatch.BaseVertex    = range.Vertices.ElementOffset;
+			drawBatch.BaseIndex     = range.Indices.ElementOffset;
+			drawBatch.IndexCount    = range.Indices.ElementCount;
 			drawBatch.FirstInstance = static_cast<uint32>(instanceData.size());
 			drawBatch.InstanceCount = static_cast<uint32>(batch.Transforms.size());
 			m_DrawBatches.push_back(drawBatch);
@@ -126,26 +117,41 @@ namespace Poly
 		return ResourceManager::Resolve(GeometryPool::GetIndexBufferHandle());
 	}
 
-	GPUMaterialData SceneRenderBridge::BuildMaterialData(Material* pMaterial)
+	GPUMaterialData SceneRenderBridge::BuildMaterialData(AssetHandle<MaterialAsset> materialHandle)
 	{
 		GPUMaterialData data = {};
-		data.Values          = *pMaterial->GetMaterialValues();
 
-		auto it = m_MaterialTextureCache.find(pMaterial);
+		MaterialAsset* pMaterialAsset = AssetHandler::Resolve(materialHandle);
+		if (!pMaterialAsset)
+		{
+			POLY_CORE_WARN("Skipping material data build - material asset handle {} is no longer valid", materialHandle.Get());
+			return data;
+		}
+
+		data.Values = pMaterialAsset->GetValues();
+
+		auto it = m_MaterialTextureCache.find(materialHandle);
 		if (it == m_MaterialTextureCache.end())
 		{
 			std::array<uint32, 6> packedIndices;
 			for (uint32 i = 0; i < 6; i++)
-			{
-				packedIndices[i] = ResourceManager::RegisterExternalTextureAndSampler(
-				    pMaterial->GetTextureView(kMaterialTextureOrder[i]), ETextureLayout::SHADER_READ_ONLY_OPTIMAL,
-				    Sampler::GetDefaultLinearSampler().get());
-			}
-			it = m_MaterialTextureCache.emplace(pMaterial, packedIndices).first;
+				packedIndices[i] = PackTextureIndex(pMaterialAsset->GetTexture(kMaterialTextureOrder[i]));
+
+			it = m_MaterialTextureCache.emplace(materialHandle, packedIndices).first;
 		}
 
 		std::memcpy(&data.TextureAlbedoIndex, it->second.data(), sizeof(data.TextureAlbedoIndex) * it->second.size());
 		return data;
+	}
+
+	uint32 SceneRenderBridge::PackTextureIndex(AssetHandle<TextureAsset> textureHandle)
+	{
+		TextureAsset* pTextureAsset = AssetHandler::Resolve(textureHandle);
+		if (!pTextureAsset)
+			return kInvalidTextureIndex;
+
+		const SamplerHandle samplerHandle = ResourceManager::GetDefaultLinearSampler();
+		return pTextureAsset->GetHandle().GetIndex() | (samplerHandle.GetIndex() << ResourceManager::SAMPLER_INDEX_SHIFT);
 	}
 
 	void SceneRenderBridge::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)

@@ -13,9 +13,10 @@ namespace Poly
 	public:
 		explicit TextureAsset(AssetID id);
 
-		uint32  GetWidth() const;
-		uint32  GetHeight() const;
-		EFormat GetFormat() const;
+		uint32        GetWidth() const;
+		uint32        GetHeight() const;
+		EFormat       GetFormat() const;
+		TextureHandle GetHandle() const;
 
 		void SetTextureHandle(TextureHandle textureHandle);
 

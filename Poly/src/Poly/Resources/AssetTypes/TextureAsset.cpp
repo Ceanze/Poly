@@ -36,6 +36,11 @@ namespace Poly
 		return pTextureView->GetDesc().Format;
 	}
 
+	TextureHandle TextureAsset::GetHandle() const
+	{
+		return m_TextureHandle;
+	}
+
 	void TextureAsset::SetTextureHandle(TextureHandle textureHandle)
 	{
 		m_TextureHandle = textureHandle;
