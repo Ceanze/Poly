@@ -51,6 +51,6 @@ namespace Poly
 
 		inline static AssetRegistry                                    m_Registry;
 		inline static std::unordered_map<std::string, IAssetImporter*> m_ExtensionToImporter;
-		inline static std::vector<Unique<IAssetImporter>>              m_Importers;
+		static std::vector<Unique<IAssetImporter>>                     m_Importers;
 	};
 } // namespace Poly

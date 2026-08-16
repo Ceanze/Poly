@@ -8,6 +8,7 @@ namespace Poly
 	class MeshAsset : public IAsset
 	{
 	public:
+		MeshAsset() = default;
 		MeshAsset(AssetID id, MeshRange meshRange);
 
 		const MeshRange& GetMeshRange() const;

@@ -1,7 +1,7 @@
 #include "SceneAssetImporter.h"
 
-#include "Poly/Format.h"
 #include "Poly/Model/Vertex.h"
+#include "Poly/Poly/Format.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/MaterialAsset.h"
 #include "Poly/Resources/AssetTypes/MeshAsset.h"
@@ -90,8 +90,7 @@ namespace
 
 namespace Poly
 {
-	std::vector<std::string>
-	SceneAssetImporter::GetSupportedExtensions() const
+	std::vector<std::string> SceneAssetImporter::GetSupportedExtensions() const
 	{
 		return {".gltf", ".glb", ".fbx", ".obj"};
 	}
@@ -130,10 +129,12 @@ namespace Poly
 
 		sceneAsset.SetRootNode(sceneAsset.AddNode(ImportNode(sceneAsset, pScene, pScene->mRootNode)));
 
+		registry.Emplace(sceneAsset.GetID(), std::move(sceneAsset));
+
 		return true;
 	}
 
-	MaterialAsset SceneAssetImporter::LoadMaterial(AssetID assetID, const aiMaterial* pMaterial, std::string_view vfsPath)
+	MaterialAsset SceneAssetImporter::LoadMaterial(const AssetID& assetID, const aiMaterial* pMaterial, std::string_view vfsPath)
 	{
 		MaterialAsset  materialAsset(assetID);
 		MaterialValues materialValues = {};
@@ -210,7 +211,7 @@ namespace Poly
 		return materialAsset;
 	}
 
-	MeshAsset SceneAssetImporter::LoadMesh(AssetID assetID, const aiMesh* pMesh)
+	MeshAsset SceneAssetImporter::LoadMesh(const AssetID& assetID, const aiMesh* pMesh)
 	{
 		std::vector<Vertex> vertices(pMesh->mNumVertices);
 		std::vector<uint32> indices(pMesh->mNumFaces * 3);

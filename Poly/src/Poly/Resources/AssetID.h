@@ -1,5 +1,44 @@
 #pragma once
 
+#include <algorithm>
+#include <cctype>
+#include <string>
+#include <string_view>
+
+namespace Poly::Internal
+{
+	// Helpers backing AssetID's constexpr constructor - kept visible in the header since a
+	// constexpr function's definition (and everything it calls) must be visible in every TU
+	// that uses it; splitting them into AssetID.cpp caused unresolved externals elsewhere.
+	constexpr std::string AssetID_NormalizeForHashing(std::string_view vfsPath)
+	{
+		std::string normalized(vfsPath);
+
+		std::replace(normalized.begin(), normalized.end(), '\\', '/');
+
+		std::transform(normalized.begin(), normalized.end(), normalized.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+		while (normalized.size() > 1 && normalized.back() == '/')
+			normalized.pop_back();
+
+		return normalized;
+	}
+
+	constexpr uint64 ASSET_ID_FNV_OFFSET_BASIS = 14695981039346656037ull;
+	constexpr uint64 ASSET_ID_FNV_PRIME        = 1099511628211ull;
+
+	constexpr uint64 AssetID_FNV1a64(std::string_view data)
+	{
+		uint64 hash = ASSET_ID_FNV_OFFSET_BASIS;
+		for (unsigned char c : data)
+		{
+			hash ^= c;
+			hash *= ASSET_ID_FNV_PRIME;
+		}
+		return hash;
+	}
+} // namespace Poly::Internal
+
 namespace Poly
 {
 	class AssetID
@@ -10,8 +49,14 @@ namespace Poly
 		 * Given the same VFS path, this always produces the same id for the given VFS
 		 * @param vfsPath - virtual path of the asset, e.g. "assets/textures/foo.png"
 		 */
-		explicit constexpr AssetID(std::string_view vfsPath);
-		explicit constexpr AssetID(uint64 id);
+		explicit constexpr AssetID(std::string_view vfsPath)
+		    : m_Id(Internal::AssetID_FNV1a64(Internal::AssetID_NormalizeForHashing(vfsPath)))
+		{}
+
+		explicit constexpr AssetID(uint64 id)
+		    : m_Id(id)
+		{}
+
 		AssetID()                     = default;
 		AssetID(const AssetID& other) = default;
 

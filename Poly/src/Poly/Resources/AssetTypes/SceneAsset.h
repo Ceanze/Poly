@@ -28,10 +28,13 @@ namespace Poly
 			std::vector<uint32>     ChildrenIndices;
 		};
 
+		SceneAsset() = default;
 		explicit SceneAsset(AssetID id);
 
 		const AssetHandle<MeshAsset>&     GetMeshAsset(uint32 index) const;
 		const AssetHandle<MaterialAsset>& GetMaterialAsset(uint32 index) const;
+		const Node&                       GetNode(uint32 index) const;
+		uint32                            GetRootNodeIndex() const { return m_RootNodeIndex; }
 
 		uint32 AddNode(Node&& node);
 		uint32 AddMeshAsset(AssetHandle<MeshAsset> meshAsset);

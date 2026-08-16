@@ -1,15 +1,15 @@
-#include "Poly/Resources/AssetHandler.h"
-
 #include "AssetHandler.h"
+
+#include "Poly/Resources/AssetTypes/MaterialAsset.h"
+#include "Poly/Resources/AssetTypes/MeshAsset.h"
+#include "Poly/Resources/AssetTypes/SceneAsset.h"
+#include "Poly/Resources/AssetTypes/TextureAsset.h"
 #include "Poly/Resources/Importers/IAssetImporter.h"
 #include "Poly/Resources/PathUtils.h"
 
 namespace Poly
 {
-	class MeshAsset;
-	class SceneAsset;
-	class TextureAsset;
-	class MaterialAsset;
+	std::vector<Unique<IAssetImporter>> AssetHandler::m_Importers;
 
 	void AssetHandler::Init()
 	{
@@ -83,13 +83,13 @@ namespace Poly
 		if (path.empty())
 			return AssetHandle<AssetType>();
 
-		return Load(path);
+		return Load<AssetType>(path);
 	}
 
 	template<typename AssetType>
 	std::future<AssetHandle<AssetType>> AssetHandler::LoadAsync(std::string_view vfsPath)
 	{
-		return LoadAsync(AssetID(vfsPath));
+		return LoadAsync<AssetType>(AssetID(vfsPath));
 	}
 
 	template<typename AssetType>
@@ -110,7 +110,7 @@ namespace Poly
 		m_Registry.Unload<AssetType>(handle);
 	}
 
-	// Instansiate the supported types (this allows us to hide the definition from the header)
+	// Instantiate the supported types (this allows us to hide the definition from the header)
 	template AssetHandle<MeshAsset>     AssetHandler::Load<MeshAsset>(std::string_view);
 	template AssetHandle<SceneAsset>    AssetHandler::Load<SceneAsset>(std::string_view);
 	template AssetHandle<TextureAsset>  AssetHandler::Load<TextureAsset>(std::string_view);

@@ -2,16 +2,18 @@
 
 #include "Poly/Model/Model.h" // TODO: See if this can be removed
 #include "Poly/Rendering/RenderGraph/ResourceGroup.h"
+#include "Poly/Resources/AssetHandle.h"
 
 #include <entt/entt.hpp>
 
 namespace Poly
 {
-	class Entity;
 	class RenderScene;
 	class RenderGraphProgram;
 	class SceneRenderBridge;
 	class RenderProgramInstance;
+	class SceneAsset;
+	class Entity;
 
 	class Scene
 	{
@@ -73,6 +75,15 @@ namespace Poly
 		 * @param entity - entity to destroy
 		 */
 		void DestroyEntity(Entity entity);
+
+		/**
+		 * Instantiates a loaded SceneAsset's node hierarchy into this scene as entities, wiring up
+		 * TransformComponent/HierarchyComponent and, per renderable, MeshAssetComponent/MaterialComponent.
+		 * @param sceneAssetHandle - handle to an already-loaded SceneAsset (see AssetHandler::Load<SceneAsset>)
+		 * @param parent - optional entity to parent the instantiated hierarchy's root under
+		 * @return the created root entity, else Entity::None() if the handle was invalid
+		 */
+		Entity InstantiateSceneAsset(AssetHandle<SceneAsset> sceneAssetHandle, Entity parent);
 
 		/**
 		 * Gets the resource group for the scene with all of the resources it might use
@@ -137,6 +148,7 @@ namespace Poly
 		friend class EntitySerializer;
 
 		PolyID GetIdOfEntity(entt::entity entity);
+		Entity InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent);
 
 		std::string m_Name;
 

@@ -11,6 +11,7 @@ namespace Poly
 	class TextureAsset : public IAsset
 	{
 	public:
+		TextureAsset() = default;
 		explicit TextureAsset(AssetID id);
 
 		uint32        GetWidth() const;

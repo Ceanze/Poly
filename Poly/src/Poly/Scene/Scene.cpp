@@ -1,9 +1,13 @@
 #include "Scene.h"
 
 #include "Components.h"
-#include "Entity.h"
+#include "Components/MaterialComponent.h"
+#include "Components/MeshAssetComponent.h"
 #include "Poly/RenderGraph/SceneRenderBridge.h"
 #include "Poly/Rendering/RenderScene.h"
+#include "Poly/Resources/AssetHandler.h"
+#include "Poly/Resources/AssetTypes/SceneAsset.h"
+#include "Poly/Scene/Entity.h"
 
 namespace Poly
 {
@@ -62,6 +66,52 @@ namespace Poly
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+	}
+
+	Entity Scene::InstantiateSceneAsset(AssetHandle<SceneAsset> sceneAssetHandle, Entity parent)
+	{
+		SceneAsset* pSceneAsset = AssetHandler::Resolve(sceneAssetHandle);
+		if (!pSceneAsset)
+		{
+			POLY_CORE_WARN("Cannot instantiate scene asset - handle {} is invalid", sceneAssetHandle.Get());
+			return Entity::None();
+		}
+
+		return InstantiateNode(pSceneAsset, pSceneAsset->GetRootNodeIndex(), parent);
+	}
+
+	Entity Scene::InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent)
+	{
+		const SceneAsset::Node& node = pSceneAsset->GetNode(nodeIndex);
+
+		Entity entity                             = CreateEntity();
+		entity.GetComponent<TransformComponent>() = TransformComponent{
+		    .Translation = node.Translation,
+		    .Scale       = node.Scale,
+		    .Orientation = node.Orientation};
+
+		if (parent != Entity::None())
+			entity.SetParent(parent);
+
+		// The node entity itself only carries a renderable when there's exactly one - extra
+		// renderables on the same node (multi-primitive meshes) get their own identity-transform
+		// child entity, since MeshAssetComponent/MaterialComponent are one-per-entity.
+		for (size_t i = 0; i < node.Renderables.size(); i++)
+		{
+			const SceneAsset::Renderable& renderable = node.Renderables[i];
+			Entity                        target     = (i == 0) ? entity : CreateEntity();
+
+			if (i != 0)
+				target.SetParent(entity);
+
+			target.AddComponent<MeshAssetComponent>(pSceneAsset->GetMeshAsset(renderable.MeshIndex));
+			target.AddComponent<MaterialComponent>(pSceneAsset->GetMaterialAsset(renderable.MaterialIndex));
+		}
+
+		for (uint32 childIndex : node.ChildrenIndices)
+			InstantiateNode(pSceneAsset, childIndex, entity);
+
+		return entity;
 	}
 
 	void Scene::Update()

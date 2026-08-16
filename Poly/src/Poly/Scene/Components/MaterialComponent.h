@@ -9,5 +9,5 @@ namespace Poly
 	struct MaterialComponent
 	{
 		AssetHandle<MaterialAsset> MaterialHandle;
-	}
-}
+	};
+} // namespace Poly

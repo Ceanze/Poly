@@ -17,7 +17,7 @@
 #include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/RenderGraph/SceneRenderBridge.h"
 #include "Poly/Rendering/Renderer.h"
-#include "Poly/Resources/AssetManager.h"
+#include "Poly/Resources/AssetHandler.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
 
@@ -33,7 +33,7 @@ namespace
 
 	struct PointLight
 	{
-		glm::vec4 Color    = {1.0f, 1.0f, 1.0f, 1.0f};
+		glm::vec4 Color    = {100.0f, 100.0f, 100.0f, 1.0f};
 		glm::vec4 Position = {0.0f, 1.0f, -1.0f, 1.0f};
 	};
 
@@ -75,7 +75,9 @@ public:
 
 		Poly::Entity cubeEntity = m_pScene->CreateEntity();
 		// Poly::AssetManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::AssetManager::ImportAndLoadModel("assets/models/sponza/gltf/sponza.gltf", cubeEntity);
+		// Poly::AssetManager::ImportAndLoadModel("assets/models/sponza/gltf/sponza.gltf", cubeEntity);
+		auto sponzaHandle = Poly::AssetHandler::Load<Poly::SceneAsset>("assets/models/sponza/gltf/sponza.gltf");
+		m_pScene->InstantiateSceneAsset(sponzaHandle, Poly::Entity::None());
 
 		RegisterGeometryFeature();
 		RegisterUIFeature();

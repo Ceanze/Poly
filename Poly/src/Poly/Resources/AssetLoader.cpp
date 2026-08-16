@@ -15,6 +15,7 @@
 #include "Poly/Resources/GeometryPool.h"
 #include "Poly/Resources/PathUtils.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
+#include "Poly/Scene/Scene.h"
 #include "polypch.h"
 #include "Shader/ShaderCompiler.h"
 

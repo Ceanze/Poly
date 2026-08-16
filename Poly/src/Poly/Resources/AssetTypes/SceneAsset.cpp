@@ -29,6 +29,17 @@ namespace Poly
 		return m_Materials[index];
 	}
 
+	const SceneAsset::Node& SceneAsset::GetNode(uint32 index) const
+	{
+		if (index >= m_Nodes.size())
+		{
+			POLY_CORE_FATAL("Invalid node index used to get scene asset node");
+			return m_Nodes.front();
+		}
+
+		return m_Nodes[index];
+	}
+
 	uint32 SceneAsset::AddNode(Node&& node)
 	{
 		uint32 index = m_Nodes.size();

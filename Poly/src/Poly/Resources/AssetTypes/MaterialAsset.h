@@ -11,6 +11,7 @@ namespace Poly
 	class MaterialAsset : public IAsset
 	{
 	public:
+		MaterialAsset() = default;
 		explicit MaterialAsset(AssetID assetID);
 
 		const MaterialValues&     GetValues() const;

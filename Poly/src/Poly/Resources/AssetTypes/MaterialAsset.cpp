@@ -2,6 +2,11 @@
 
 namespace Poly
 {
+	MaterialAsset::MaterialAsset(AssetID assetID)
+	{
+		p_ID = assetID;
+	}
+
 	const MaterialValues& MaterialAsset::GetValues() const
 	{
 		return m_Values;
