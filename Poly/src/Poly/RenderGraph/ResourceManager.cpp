@@ -149,7 +149,9 @@ namespace Poly
 		viewDesc.pTexture        = pTexture.get();
 		viewDesc.ImageViewType   = EImageViewType::TYPE_2D;
 		viewDesc.Format          = format;
-		viewDesc.ImageViewFlag   = isDepth ? FImageViewFlag::DEPTH_STENCIL : FImageViewFlag::COLOR;
+		viewDesc.ImageViewFlag   = (format == EFormat::DEPTH) ? FImageViewFlag::DEPTH
+		                           : isDepth                   ? FImageViewFlag::DEPTH_STENCIL
+		                                                      : FImageViewFlag::COLOR;
 		viewDesc.MipLevelCount   = 1;
 		viewDesc.ArrayLayerCount = 1;
 		viewDesc.DebugName       = debugName;

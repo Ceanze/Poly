@@ -56,7 +56,12 @@ namespace Poly
 			return {ETextureLayout::COLOR_ATTACHMENT_OPTIMAL, FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE,
 			        FPipelineStage::COLOR_ATTACHMENT_OUTPUT, FImageViewFlag::COLOR};
 
-		if (resolvedName == ToSemanticName(EFeaturePort::Depth) || resolvedName == ToSemanticName(EFeaturePort::Stencil))
+		if (resolvedName == ToSemanticName(EFeaturePort::Depth))
+			return {ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+			        FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE,
+			        FPipelineStage::EARLY_FRAGMENT_TEST | FPipelineStage::LATE_FRAGMENT_TEST, FImageViewFlag::DEPTH};
+
+		if (resolvedName == ToSemanticName(EFeaturePort::Stencil))
 			return {ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			        FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE,
 			        FPipelineStage::EARLY_FRAGMENT_TEST | FPipelineStage::LATE_FRAGMENT_TEST, FImageViewFlag::DEPTH_STENCIL};

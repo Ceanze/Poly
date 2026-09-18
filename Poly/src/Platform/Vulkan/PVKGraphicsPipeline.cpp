@@ -212,8 +212,17 @@ namespace Poly
 			renderingCreateInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
 			renderingCreateInfo.colorAttachmentCount    = static_cast<uint32>(dynamicColorFormats.size());
 			renderingCreateInfo.pColorAttachmentFormats = dynamicColorFormats.data();
-			renderingCreateInfo.depthAttachmentFormat   = pDesc->DepthAttachmentFormat != EFormat::UNDEFINED ? ConvertFormatVK(pDesc->DepthAttachmentFormat) : VK_FORMAT_UNDEFINED;
-			renderingCreateInfo.stencilAttachmentFormat = pDesc->StencilAttachmentFormat != EFormat::UNDEFINED ? ConvertFormatVK(pDesc->StencilAttachmentFormat) : VK_FORMAT_UNDEFINED;
+			auto resolveAttachmentFormat                = [](EFormat format) -> VkFormat {
+				if (format == EFormat::UNDEFINED)
+					return VK_FORMAT_UNDEFINED;
+				if (format == EFormat::DEPTH_STENCIL)
+					return PVKInstance::FindDepthStencilFormat();
+				if (format == EFormat::DEPTH)
+					return PVKInstance::FindDepthFormat();
+				return ConvertFormatVK(format);
+			};
+			renderingCreateInfo.depthAttachmentFormat   = resolveAttachmentFormat(pDesc->DepthAttachmentFormat);
+			renderingCreateInfo.stencilAttachmentFormat = resolveAttachmentFormat(pDesc->StencilAttachmentFormat);
 		}
 
 		// Finally, create the pipeline

@@ -193,6 +193,7 @@ namespace Poly
 	{
 		VkImageAspectFlags mask = 0;
 		FLAG_CHECK(imageViewFlag & FImageViewFlag::DEPTH_STENCIL, mask |= VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+		FLAG_CHECK(imageViewFlag & FImageViewFlag::DEPTH, mask |= VK_IMAGE_ASPECT_DEPTH_BIT);
 		FLAG_CHECK(imageViewFlag & FImageViewFlag::COLOR, mask |= VK_IMAGE_ASPECT_COLOR_BIT);
 		return mask;
 	}

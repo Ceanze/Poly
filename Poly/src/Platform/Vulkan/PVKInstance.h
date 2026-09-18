@@ -49,6 +49,7 @@ namespace Poly
 		virtual Ref<DescriptorSet> CreateDescriptorSetCopy(const Ref<DescriptorSet>& pSrcDescriptorSet) override final;
 
 		static VkFormat FindDepthFormat();
+		static VkFormat FindDepthStencilFormat();
 		static void     SetDebugName(VkObjectType objectType, uint64_t handle, const std::string& name);
 
 		static VkDevice                     GetDevice() { return s_Device; }

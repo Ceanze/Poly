@@ -1,6 +1,7 @@
 #include "RenderProgramInstance.h"
 
 #include "ExecuteContext.h"
+#include "Platform/API/BinarySemaphore.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
 #include "Platform/API/CommandPool.h"
@@ -26,7 +27,7 @@ namespace Poly
 	    : m_pRenderProgram(std::move(pRenderProgram))
 	{}
 
-	void RenderProgramInstance::Execute(const RenderView& view)
+	void RenderProgramInstance::Execute(const RenderView& view, BinarySemaphore* pAcquireSemaphore)
 	{
 		if (!m_Initialized)
 		{
@@ -62,6 +63,9 @@ namespace Poly
 
 			SubmitDesc submitDesc     = {};
 			submitDesc.CommandBuffers = {GetCommandBuffer(i)};
+			if (i == 0 && pAcquireSemaphore)
+				submitDesc.WaitSemaphores = {pAcquireSemaphore};
+
 			for (const auto& [srcQueue, waitValue] : plan.RequiredWaits)
 			{
 				SyncPoint* pSrcSyncPoint = GetOrCreateQueueSyncPoint(srcQueue);
@@ -281,7 +285,9 @@ namespace Poly
 
 		// TODO: IResourceDeclaration has no format setter yet (only WithSize/WithType/WithInitialState) -
 		// default until it does; only affects graph-owned internal resources, not externally-supplied ones.
-		const EFormat       format = isDepthSemantic ? EFormat::D24_UNORM_S8_UINT : EFormat::R8G8B8A8_UNORM;
+		const EFormat       format = (port.ResolvedName == "$Depth") ? EFormat::DEPTH
+		                           : (port.ResolvedName == "$Stencil") ? EFormat::DEPTH_STENCIL
+		                                                               : EFormat::R8G8B8A8_UNORM;
 		const FTextureUsage usage  = isDepthSemantic ? FTextureUsage::DEPTH_STENCIL_ATTACHMENT | FTextureUsage::SAMPLED
 		                                             : FTextureUsage::SAMPLED | (port.ResourceType == EResourceType::StorageImage
 		                                                                             ? FTextureUsage::STORAGE

@@ -98,7 +98,7 @@ namespace Poly
 			{
 				RenderView view{.pScene  = m_pScene.get(),
 				                .pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
-				windowCtx.pRenderProgramInstance->Execute(view);
+				windowCtx.pRenderProgramInstance->Execute(view, windowCtx.pSwapChain->GetAcquireSemaphore());
 			}
 
 			std::vector<CommandBuffer*> emptyCommandbuffers;

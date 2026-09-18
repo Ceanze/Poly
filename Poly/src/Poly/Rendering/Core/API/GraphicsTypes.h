@@ -95,6 +95,7 @@ namespace Poly
 		R32G32B32_SFLOAT    = 6,
 		R32G32B32A32_SFLOAT = 7,
 		DEPTH_STENCIL       = 8, // Shorthand for using the most optimal depth-stencil format that is supported
+		DEPTH               = 9, // Shorthand for using the most optimal depth-only format that is supported
 	};
 
 	enum class FTextureUsage : uint32
@@ -179,7 +180,8 @@ namespace Poly
 		NONE            = 0,
 		COLOR           = FLAG(1),
 		SHADER_RESOURCE = COLOR,
-		DEPTH_STENCIL   = FLAG(2)
+		DEPTH_STENCIL   = FLAG(2),
+		DEPTH           = FLAG(3)
 	};
 	ENABLE_BITMASK_OPERATORS(FImageViewFlag);
 

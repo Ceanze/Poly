@@ -18,6 +18,7 @@ namespace Poly
 	class SyncPoint;
 	class CommandPool;
 	class CommandBuffer;
+	class BinarySemaphore;
 	class TextureView;
 	class PipelineLayout;
 	class GraphicsPipeline;
@@ -42,7 +43,7 @@ namespace Poly
 		~RenderProgramInstance() = default;
 		CLASS_REMOVE_COPY(RenderProgramInstance);
 
-		void Execute(const RenderView& view);
+		void Execute(const RenderView& view, BinarySemaphore* pAcquireSemaphore = nullptr);
 
 		// Supplies (or replaces) an externally-owned resource for a port whose ResolvedPort::IsExternal
 		// is true - i.e. anything not registered with an explicit size on the RenderGraph. Looked up by

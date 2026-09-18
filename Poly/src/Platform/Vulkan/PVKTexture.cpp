@@ -33,9 +33,9 @@ namespace Poly
 
 		VkFormat vkFormat = ConvertFormatVK(p_TextureDesc.Format);
 		if (p_TextureDesc.Format == EFormat::DEPTH_STENCIL)
-		{
+			vkFormat = PVKInstance::FindDepthStencilFormat();
+		else if (p_TextureDesc.Format == EFormat::DEPTH)
 			vkFormat = PVKInstance::FindDepthFormat();
-		}
 
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

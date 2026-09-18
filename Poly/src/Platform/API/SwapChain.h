@@ -10,6 +10,7 @@ namespace Poly
 	class TextureView;
 	class CommandQueue;
 	class CommandBuffer;
+	class BinarySemaphore;
 
 	struct SwapChainDesc
 	{
@@ -61,6 +62,12 @@ namespace Poly
 		 * @return Texture pointer of image view buffers
 		 */
 		virtual Ref<TextureView> GetTextureView(uint32 bufferIndex) const = 0;
+
+		/**
+		 * Get the acquire semaphore for the current frame's swapchain image.
+		 * Must be waited on by the first queue submission that accesses the image.
+		 */
+		virtual BinarySemaphore* GetAcquireSemaphore() const = 0;
 
 		/**
 		 * Get the current backbuffer index
