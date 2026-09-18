@@ -325,8 +325,9 @@ namespace Poly
 
 		struct PerFrameCommandBuffer
 		{
+			PerFrameCommandBuffer() : pBuffer(nullptr) {}
 			Ref<CommandPool> pPool;
-			CommandBuffer*   pBuffer = nullptr;
+			CommandBuffer*   pBuffer;
 		};
 
 		struct QueueCommandRing
@@ -336,15 +337,17 @@ namespace Poly
 
 		struct StagingBufferData
 		{
+			StagingBufferData() : Capacity(0), Mapped(nullptr) {}
 			Ref<Buffer> pBuffer;
-			uint64      Capacity = 0;
-			void*       Mapped   = nullptr;
+			uint64      Capacity;
+			void*       Mapped;
 		};
 
 		struct UploadTimeline
 		{
+			UploadTimeline() : Value(0) {}
 			Ref<SyncPoint> pSyncPoint;
-			uint64         Value = 0;
+			uint64         Value;
 		};
 
 		static uint32 AllocTextureSlot(); // pops the free-list or grows m_Textures - caller holds s_Mutex
