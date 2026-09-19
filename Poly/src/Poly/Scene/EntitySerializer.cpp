@@ -4,6 +4,7 @@
 #include "Entity.h"
 #include "Poly/Model/Model.h"
 #include "Poly/Resources/AssetManager.h"
+#include "Scene.h"
 
 #include <yaml-cpp/yaml.h>
 

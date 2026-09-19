@@ -24,6 +24,8 @@ namespace Poly
 		m_ResourceGroup.AddResource(METALLIC_TEX_RESOURCE_NAME, false);
 		m_ResourceGroup.AddResource(ROUGHNESS_TEX_RESOURCE_NAME, false);
 		m_ResourceGroup.AddResource(AO_TEX_RESOURCE_NAME, false);
+
+		m_Registry.ctx().emplace<Scene*>(this);
 	}
 
 	Entity Scene::CreateEntity()
@@ -40,7 +42,7 @@ namespace Poly
 		m_Registry.emplace<IDComponent>(entity, id);
 		m_Registry.emplace<DirtyTag>(entity);
 
-		return Entity(this, entity);
+		return Entity({m_Registry, entity});
 	}
 
 	Entity Scene::GetOrCreateEntityWithID(PolyID id)
@@ -60,7 +62,7 @@ namespace Poly
 		if (enttEntity == entt::null)
 			return CreateEntityWithID(id);
 
-		return Entity(this, enttEntity);
+		return Entity({m_Registry, enttEntity});
 	}
 
 	void Scene::DestroyEntity(Entity entity)

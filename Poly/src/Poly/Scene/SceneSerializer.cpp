@@ -21,7 +21,7 @@ namespace Poly
 
 		EntitySerializer entitySerializer;
 		m_pScene->m_Registry.each([&](auto eid) {
-			Entity entity = {m_pScene.get(), eid};
+			Entity entity = Entity({m_pScene->m_Registry, eid});
 
 			SerializeEntity(entitySerializer, emitter, entity);
 		});
