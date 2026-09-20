@@ -110,6 +110,25 @@ namespace Poly
 				for (const auto& [resName, shaderName] : pass->GetExportedResources())
 					resolved.Ports.push_back({shaderName, scope + resName, /*IsWrite=*/true});
 
+				// Read/WriteResource ports: graph dependency + barrier state only, no shader binding (empty ShaderName).
+				// These must reference a registered resource, otherwise the name would silently fall through to a
+				// transient render-target-sized texture below.
+				for (const ResourceUse& use : pass->GetResourceUses())
+				{
+					if (!m_Catalog->GetResourceRegistry().Get(use.Name))
+					{
+						POLY_CORE_ERROR("Pass '{}' uses resource '{}' via Read/WriteResource, but it is not registered on the render graph; skipping.",
+						                passName, use.Name);
+						continue;
+					}
+
+					ResolvedPort port;
+					port.ResolvedName = use.Name;
+					port.IsWrite      = use.IsWrite;
+					port.UsageState   = use.State;
+					resolved.Ports.push_back(std::move(port));
+				}
+
 				// A port whose resolved name matches a resource registered on the RenderGraph with an
 				// explicit size is graph-owned/allocated at that fixed size (e.g. a shadow map); one
 				// registered without a size is assumed externally owned, supplied per-frame via
@@ -342,6 +361,10 @@ namespace Poly
 
 			for (const ResolvedPort& port : pass.Ports)
 			{
+				// Read/WriteResource ports have no shader variable, so they don't occupy a bindless slot.
+				if (port.ShaderName.empty() && port.UsageState != FResourceState::Unknown)
+					continue;
+
 				if (IsTextureResourceType(port.ResourceType))
 				{
 					if (!layout.HasTextureSlots)
@@ -433,7 +456,9 @@ namespace Poly
 					POLY_CORE_WARN("Pass '{}' port '{}' has no resource type; it will not be synchronized.", pass.Name,
 					               port.ResolvedName);
 
-				const ResourceUsage needed = DeriveResourceUsage(port.ResourceType, port.IsWrite, port.ResolvedName, passStages);
+				const ResourceUsage needed = port.UsageState != FResourceState::Unknown
+				                                 ? ConvertResourceState(port.UsageState)
+				                                 : DeriveResourceUsage(port.ResourceType, port.IsWrite, port.ResolvedName, passStages);
 
 				ResourceTrackState& rs           = state[port.ResolvedName];
 				const bool          isFirstTouch = !rs.IsTracked;

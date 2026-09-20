@@ -37,7 +37,7 @@ namespace Poly
 
 		ThreadPool::Init();
 		VirtualFileSystem::Mount("assets/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR "/assets"), EMountMode::ReadWrite, 0);
-		VirtualFileSystem::Mount("compat/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR), EMountMode::ReadWrite, 0); // TODO: Remove when the project.polyres file is gone from the asset importer
+		// VirtualFileSystem::Mount("compat/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR), EMountMode::ReadWrite, 0); // TODO: Remove when the project.polyres file is gone from the asset importer
 
 		AssetHandler::Init();
 		AssetHandler::RegisterImporter(CreateUnique<TextureAssetImporter>());

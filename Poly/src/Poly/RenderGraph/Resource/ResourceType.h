@@ -15,6 +15,7 @@ namespace Poly
 		RawBufferReadWrite,     // RawBuffer_UAV  - read/write byte-addressable buffer
 		UniformBuffer,          // ConstantBuffer
 		DynamicUniformBuffer,   // VolatileConstantBuffer
+		IndirectBuffer,         // Draw/dispatch arguments - never shader-bound, only used via Read/WriteResource
 		Sampler,
 		AccelerationStructure, // RayTracingAccelStruct
 		PushConstants,

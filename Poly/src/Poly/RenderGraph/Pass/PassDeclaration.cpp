@@ -60,6 +60,18 @@ namespace Poly
 		return *this;
 	}
 
+	PassDeclaration& PassDeclaration::ReadResource(std::string_view resourceName, FResourceState state)
+	{
+		m_ResourceUses.push_back({std::string(resourceName), state, false});
+		return *this;
+	}
+
+	PassDeclaration& PassDeclaration::WriteResource(std::string_view resourceName, FResourceState state)
+	{
+		m_ResourceUses.push_back({std::string(resourceName), state, true});
+		return *this;
+	}
+
 	void PassDeclaration::CallSetupFn(SetupContext& ctx) const
 	{
 		if (m_SetupFn)

@@ -48,6 +48,14 @@ namespace Poly
 		ELoadOp      LoadOpOverride = ELoadOp::NONE;
 	};
 
+	// A resource used by a pass without a shader binding, see IPassDeclaration::ReadResource/WriteResource.
+	struct ResourceUse
+	{
+		std::string    Name;
+		FResourceState State;
+		bool           IsWrite;
+	};
+
 	class PassDeclaration : public IPassDeclaration
 	{
 	public:
@@ -64,6 +72,8 @@ namespace Poly
 		PassDeclaration& MapGlobal(std::string_view globalName, std::string_view shaderGlobalName) override;
 		PassDeclaration& ImportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
 		PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) override;
+		PassDeclaration& ReadResource(std::string_view resourceName, FResourceState state) override;
+		PassDeclaration& WriteResource(std::string_view resourceName, FResourceState state) override;
 
 		std::string_view GetName() const { return m_Name; }
 		FQueueType       GetQueue() const { return m_Queue; }
@@ -79,6 +89,7 @@ namespace Poly
 		const std::vector<std::pair<std::string, std::string>>&  GetGlobalMappings() const { return m_GlobalMappings; }
 		const std::vector<std::pair<std::string, std::string>>&  GetImportedResources() const { return m_ImportedResources; }
 		const std::vector<std::pair<std::string, std::string>>&  GetExportedResources() const { return m_ExportedResources; }
+		const std::vector<ResourceUse>&                          GetResourceUses() const { return m_ResourceUses; }
 
 		// Idea: A pass declaration should always be able to provide a full declaration of a pass for creation
 		// of graphic resources. Meaning, for instance, the pipeline declaration is always valid, no matter if the
@@ -97,5 +108,6 @@ namespace Poly
 		std::vector<std::pair<std::string, std::string>>  m_GlobalMappings;
 		std::vector<std::pair<std::string, std::string>>  m_ImportedResources;
 		std::vector<std::pair<std::string, std::string>>  m_ExportedResources;
+		std::vector<ResourceUse>                          m_ResourceUses;
 	};
 } // namespace Poly

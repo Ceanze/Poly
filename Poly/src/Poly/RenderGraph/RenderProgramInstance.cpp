@@ -285,9 +285,9 @@ namespace Poly
 
 		// TODO: IResourceDeclaration has no format setter yet (only WithSize/WithType/WithInitialState) -
 		// default until it does; only affects graph-owned internal resources, not externally-supplied ones.
-		const EFormat       format = (port.ResolvedName == "$Depth") ? EFormat::DEPTH
-		                           : (port.ResolvedName == "$Stencil") ? EFormat::DEPTH_STENCIL
-		                                                               : EFormat::R8G8B8A8_UNORM;
+		const EFormat       format = (port.ResolvedName == "$Depth")     ? EFormat::DEPTH
+		                             : (port.ResolvedName == "$Stencil") ? EFormat::DEPTH_STENCIL
+		                                                                 : EFormat::R8G8B8A8_UNORM;
 		const FTextureUsage usage  = isDepthSemantic ? FTextureUsage::DEPTH_STENCIL_ATTACHMENT | FTextureUsage::SAMPLED
 		                                             : FTextureUsage::SAMPLED | (port.ResourceType == EResourceType::StorageImage
 		                                                                             ? FTextureUsage::STORAGE
@@ -604,7 +604,18 @@ namespace Poly
 			                          static_cast<uint32>(pushData.size()), pushData.data());
 		}
 
-		ExecuteContext ctx(pCmd, view, GetOrCreatePipelineLayout(passIndex), pass.TextureSlotsOffset);
+		std::vector<DeclaredBuffer> declaredBuffers;
+		for (const ResolvedPort& port : pass.Ports)
+		{
+			if (!port.ShaderName.empty() || port.UsageState == FResourceState::Unknown)
+				continue;
+
+			RuntimeResource* pRes = ResolvePort(port, view);
+			if (pRes && pRes->IsBuffer())
+				declaredBuffers.push_back({port.ResolvedName, ResourceManager::Resolve(pRes->BufHandle)});
+		}
+
+		ExecuteContext ctx(pCmd, view, GetOrCreatePipelineLayout(passIndex), pass.TextureSlotsOffset, std::move(declaredBuffers));
 		if (pass.ExecuteFn)
 			pass.ExecuteFn(ctx);
 

@@ -28,6 +28,11 @@ namespace Poly
 		EResourceType  ResourceType = EResourceType::None;
 		FResourceState InitialState = FResourceState::Unknown;
 
+		// Set for ports declared via ReadResource()/WriteResource(): the state the resource must be in for
+		// this pass. Such ports have an empty ShaderName (no shader binding). Unknown means the usage is
+		// derived from ResourceType instead (DeriveResourceUsage).
+		FResourceState UsageState = FResourceState::Unknown;
+
 		// Overrides the auto-inferred attachment load op ($Color/$Depth/$Stencil only). ELoadOp::NONE
 		// means "auto": RenderProgramBuilder::PlanSynchronization clears on a resource's first write
 		// in the program and loads on subsequent writes.

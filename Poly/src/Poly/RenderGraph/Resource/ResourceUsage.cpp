@@ -135,6 +135,15 @@ namespace Poly
 		case FResourceState::ConstantBuffer:
 			return {ETextureLayout::UNDEFINED, FAccessFlag::UNIFORM_READ, FPipelineStage::ALL_COMMANDS, FImageViewFlag::NONE};
 
+		case FResourceState::VertexBuffer:
+			return {ETextureLayout::UNDEFINED, FAccessFlag::VERTEX_ATTRIBUTE_READ, FPipelineStage::VERTEX_INPUT, FImageViewFlag::NONE};
+
+		case FResourceState::IndexBuffer:
+			return {ETextureLayout::UNDEFINED, FAccessFlag::INDEX_READ, FPipelineStage::VERTEX_INPUT, FImageViewFlag::NONE};
+
+		case FResourceState::IndirectArgument:
+			return {ETextureLayout::UNDEFINED, FAccessFlag::INDIRECT_COMMAND_READ, FPipelineStage::DRAW_INDIRECT, FImageViewFlag::NONE};
+
 		default:
 			POLY_CORE_WARN("Unhandled resource state ({}), falling back to a conservative barrier.", (int)state);
 			return {ETextureLayout::GENERAL, FAccessFlag::MEMORY_READ | FAccessFlag::MEMORY_WRITE, FPipelineStage::ALL_COMMANDS,

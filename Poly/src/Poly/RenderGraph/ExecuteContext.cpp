@@ -13,4 +13,16 @@ namespace Poly
 
 		m_pCmdBuffer->UpdatePushConstants(m_pPipelineLayout, FShaderStage::VERTEX | FShaderStage::FRAGMENT, offset, sizeof(uint32), &heapIndex);
 	}
+
+	Buffer* ExecuteContext::GetBuffer(std::string_view resourceName) const
+	{
+		for (const DeclaredBuffer& declared : m_DeclaredBuffers)
+		{
+			if (declared.Name == resourceName)
+				return declared.pBuffer;
+		}
+
+		POLY_CORE_ERROR("Resource '{}' was not declared by this pass via ReadResource/WriteResource, or has not been supplied yet", resourceName);
+		return nullptr;
+	}
 } // namespace Poly
