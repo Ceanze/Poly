@@ -83,6 +83,7 @@ namespace Poly
 
 		void EnsurePerPassResources();
 		void WaitForFrameSlotReuse(uint32 frameIndex);
+		void ApplyWorldResources(const RenderView& view);
 		void ResizeSizedToTargetResources(const RenderView& view);
 
 		CommandBuffer*    GetCommandBuffer(size_t passIndex) const { return m_PassResources[passIndex].CommandBuffers[m_FrameIndex]; }

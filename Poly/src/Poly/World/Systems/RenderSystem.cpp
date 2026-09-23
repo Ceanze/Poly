@@ -1,7 +1,7 @@
-#include "SceneRenderBridge.h"
+#include "RenderSystem.h"
 
 #include "Platform/API/Buffer.h"
-#include "Poly/RenderGraph/RenderProgramInstance.h"
+#include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/MaterialAsset.h"
@@ -11,7 +11,7 @@
 #include "Poly/Scene/Components.h"
 #include "Poly/Scene/Components/MaterialComponent.h"
 #include "Poly/Scene/Components/MeshAssetComponent.h"
-#include "Poly/Scene/Scene.h"
+#include "Poly/World/World.h"
 
 #include <cstring>
 
@@ -27,12 +27,45 @@ namespace
 
 namespace Poly
 {
-	SceneRenderBridge::SceneRenderBridge(Scene& scene, Ref<RenderProgramInstance> pProgramInstance)
-	    : m_Scene(scene)
-	    , m_pProgramInstance(std::move(pProgramInstance))
+	RenderSystem::RenderSystem(RenderCatalog& catalog)
+	    : m_Catalog(catalog)
 	{}
 
-	void SceneRenderBridge::Update()
+	void RenderSystem::OnInit(World& world)
+	{
+		m_Catalog.RegisterResource(VERTICES_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
+		m_Catalog.RegisterResource(INSTANCE_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
+		m_Catalog.RegisterResource(MATERIAL_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
+	}
+
+	void RenderSystem::Update(World& world)
+	{
+		if (!m_NeedsRebuild && world.View<DirtyTag>().empty())
+			return;
+
+		m_NeedsRebuild = false;
+		Rebuild(world);
+	}
+
+	void RenderSystem::OnShutdown(World& world)
+	{
+		RenderResourceTable& resources = world.GetRenderResources();
+		resources.Remove(VERTICES_RESOURCE_NAME);
+		resources.Remove(INSTANCE_RESOURCE_NAME);
+		resources.Remove(MATERIAL_RESOURCE_NAME);
+
+		ResourceManager::Destroy(m_InstanceBufferHandle);
+		ResourceManager::Destroy(m_MaterialBufferHandle);
+		m_InstanceBufferHandle = {};
+		m_MaterialBufferHandle = {};
+	}
+
+	Buffer* RenderSystem::GetIndexBuffer() const
+	{
+		return ResourceManager::Resolve(GeometryPool::GetIndexBufferHandle());
+	}
+
+	void RenderSystem::Rebuild(World& world)
 	{
 		struct PendingBatch
 		{
@@ -45,8 +78,7 @@ namespace Poly
 		std::unordered_map<uint64, size_t> keyToBatchIndex;
 
 		// TODO: When/if possible, only walk dirty entities instead of the whole registry every rebuild.
-		auto view = m_Scene.m_Registry.view<MeshAssetComponent, MaterialComponent, TransformComponent>();
-		for (auto [entity, mesh, material, transform] : view.each())
+		for (auto [entity, mesh, material, transform] : world.View<MeshAssetComponent, MaterialComponent, TransformComponent>().each())
 		{
 			// Handles are dense packed (index|generation) ints, so this is a bijective batch key -
 			// no hash collisions possible, unlike hashing the two asset pointers together.
@@ -97,7 +129,7 @@ namespace Poly
 			const MeshRange& range       = pMeshAsset->GetMeshRange();
 			const uint32     materialIdx = materialIndices[batch.MaterialHandle];
 
-			SceneDrawBatch drawBatch;
+			DrawBatch drawBatch;
 			drawBatch.BaseVertex    = range.Vertices.ElementOffset;
 			drawBatch.BaseIndex     = range.Indices.ElementOffset;
 			drawBatch.IndexCount    = range.Indices.ElementCount;
@@ -110,14 +142,14 @@ namespace Poly
 		}
 
 		UploadInstanceAndMaterialBuffers(instanceData, materialData);
+
+		RenderResourceTable& resources = world.GetRenderResources();
+		resources.Set(VERTICES_RESOURCE_NAME, GeometryPool::GetVertexBufferHandle());
+		resources.Set(INSTANCE_RESOURCE_NAME, m_InstanceBufferHandle);
+		resources.Set(MATERIAL_RESOURCE_NAME, m_MaterialBufferHandle);
 	}
 
-	Buffer* SceneRenderBridge::GetIndexBuffer() const
-	{
-		return ResourceManager::Resolve(GeometryPool::GetIndexBufferHandle());
-	}
-
-	GPUMaterialData SceneRenderBridge::BuildMaterialData(AssetHandle<MaterialAsset> materialHandle)
+	GPUMaterialData RenderSystem::BuildMaterialData(AssetHandle<MaterialAsset> materialHandle)
 	{
 		GPUMaterialData data = {};
 
@@ -144,7 +176,7 @@ namespace Poly
 		return data;
 	}
 
-	uint32 SceneRenderBridge::PackTextureIndex(AssetHandle<TextureAsset> textureHandle)
+	uint32 RenderSystem::PackTextureIndex(AssetHandle<TextureAsset> textureHandle)
 	{
 		TextureAsset* pTextureAsset = AssetHandler::Resolve(textureHandle);
 		if (!pTextureAsset)
@@ -154,24 +186,20 @@ namespace Poly
 		return pTextureAsset->GetHandle().GetIndex() | (samplerHandle.GetIndex() << ResourceManager::SAMPLER_INDEX_SHIFT);
 	}
 
-	void SceneRenderBridge::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)
+	void RenderSystem::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)
 	{
 		const uint64 instanceSize = sizeof(GPUInstanceData) * instances.size();
 		if (!m_InstanceBufferHandle.IsValid())
-			m_InstanceBufferHandle = ResourceManager::CreateStorageBuffer(instanceSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Instances");
+			m_InstanceBufferHandle = ResourceManager::CreateStorageBuffer(instanceSize, EMemoryUsage::CPU_VISIBLE, "RenderSystem.Instances");
 		else
 			m_InstanceBufferHandle = ResourceManager::ResizeBuffer(m_InstanceBufferHandle, instanceSize);
 		ResourceManager::UploadBufferData(m_InstanceBufferHandle, instances.data(), instanceSize);
 
 		const uint64 materialSize = sizeof(GPUMaterialData) * materials.size();
 		if (!m_MaterialBufferHandle.IsValid())
-			m_MaterialBufferHandle = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "SceneRenderBridge.Materials");
+			m_MaterialBufferHandle = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "RenderSystem.Materials");
 		else
 			m_MaterialBufferHandle = ResourceManager::ResizeBuffer(m_MaterialBufferHandle, materialSize);
 		ResourceManager::UploadBufferData(m_MaterialBufferHandle, materials.data(), materialSize);
-
-		m_pProgramInstance->UpdateResource(Scene::VERTICES_RESOURCE_NAME_2, GeometryPool::GetVertexBufferHandle());
-		m_pProgramInstance->UpdateResource(Scene::INSTANCE_RESOURCE_NAME_2, m_InstanceBufferHandle);
-		m_pProgramInstance->UpdateResource(Scene::MATERIAL_RESOURCE_NAME_2, m_MaterialBufferHandle);
 	}
 } // namespace Poly

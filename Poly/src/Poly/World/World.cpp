@@ -80,6 +80,8 @@ namespace Poly
 			for (SystemEntry& system : systems)
 				system.Update(*this);
 		}
+
+		m_Registry.clear<DirtyTag>();
 	}
 
 	Entity World::InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent)

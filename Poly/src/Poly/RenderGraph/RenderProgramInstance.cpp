@@ -16,6 +16,7 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Core/ThreadPool.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
+#include "Poly/World/World.h"
 #include "RenderView.h"
 #include "Resource/ResourceUsage.h"
 
@@ -36,6 +37,7 @@ namespace Poly
 		}
 
 		WaitForFrameSlotReuse(m_FrameIndex);
+		ApplyWorldResources(view);
 		ResizeSizedToTargetResources(view);
 
 		const auto& passes    = m_pRenderProgram->GetPasses();
@@ -121,7 +123,21 @@ namespace Poly
 		res.SamplerHnd                            = sampler.IsValid() ? sampler : ResourceManager::GetDefaultLinearSampler();
 	}
 
-	void RenderProgramInstance::EnsurePerPassResources()
+	void RenderProgramInstance::ApplyWorldResources(const RenderView& view)
+	{
+		if (!view.pWorld)
+			return;
+
+		for (const auto& [name, entry] : view.pWorld->GetRenderResources().GetEntries())
+		{
+			if (entry.BufHandle.IsValid())
+				UpdateResource(name, entry.BufHandle);
+			else if (entry.TexHandle.IsValid())
+				UpdateResource(name, entry.TexHandle, entry.SamplerHnd);
+		}
+	}
+
+		void RenderProgramInstance::EnsurePerPassResources()
 	{
 		const auto& passes = m_pRenderProgram->GetPasses();
 		m_PassResources.resize(passes.size());

@@ -1,10 +1,13 @@
 #pragma once
 
+#include "Poly/RenderGraph/RenderResourceTable.h"
 #include "Poly/Resources/AssetHandle.h"
 #include "Poly/Scene/Entity.h"
 
 #include <array>
 #include <functional>
+#include <typeindex>
+#include <unordered_map>
 
 namespace Poly
 {
@@ -75,9 +78,62 @@ namespace Poly
 
 		/**
 		 * Runs all systems once. Phases run in order PreUpdate, Update, PostUpdate, and systems
-		 * within a phase run in the order they were added
+		 * within a phase run in the order they were added. Clears all DirtyTags once every system has run
 		 */
 		void Update();
+
+		/**
+		 * Creates a view over all entities that have every one of the given components
+		 * @code
+		 * for (auto [entity, mesh, transform] : world.View<MeshAssetComponent, TransformComponent>().each()) {}
+		 * @endcode
+		 * @tparam TComponents - components the entities must have
+		 * @return view over the matching entities
+		 */
+		template<typename... TComponents>
+		auto View()
+		{
+			return m_Registry.view<TComponents...>();
+		}
+
+		/**
+		 * Const version of View(), the components are only accessible as const
+		 */
+		template<typename... TComponents>
+		auto View() const
+		{
+			return m_Registry.view<TComponents...>();
+		}
+
+		/**
+		 * Gets a class-based system previously added with AddSystem<TSystem>().
+		 * If multiple systems of the same type were added, the first one is returned
+		 * @tparam TSystem - system type
+		 * @return the system, or nullptr if no system of that type has been added
+		 */
+		template<typename TSystem>
+		TSystem* GetSystem()
+		{
+			auto it = m_SystemLookup.find(std::type_index(typeid(TSystem)));
+			return it != m_SystemLookup.end() ? static_cast<TSystem*>(it->second.get()) : nullptr;
+		}
+
+		/**
+		 * Const version of GetSystem()
+		 */
+		template<typename TSystem>
+		const TSystem* GetSystem() const
+		{
+			auto it = m_SystemLookup.find(std::type_index(typeid(TSystem)));
+			return it != m_SystemLookup.end() ? static_cast<const TSystem*>(it->second.get()) : nullptr;
+		}
+
+		/**
+		 * Resources provided by the world to the render program rendering the world.
+		 * See RenderResourceTable
+		 */
+		RenderResourceTable&       GetRenderResources() { return m_RenderResources; }
+		const RenderResourceTable& GetRenderResources() const { return m_RenderResources; }
 
 		/**
 		 * Constructs and adds a class-based system. The world owns the system and keeps it alive for its own lifetime.
@@ -139,6 +195,8 @@ namespace Poly
 				};
 			}
 
+			m_SystemLookup.try_emplace(std::type_index(typeid(TSystem)), pSystem);
+
 			if constexpr (requires(TSystem& system, World& world) { system.OnInit(world); })
 				pSystem->OnInit(*this);
 
@@ -183,5 +241,8 @@ namespace Poly
 		std::string    m_Name;
 
 		std::array<std::vector<SystemEntry>, static_cast<size_t>(Phase::Count)> m_Systems;
+		std::unordered_map<std::type_index, Ref<void>>                          m_SystemLookup;
+
+		RenderResourceTable m_RenderResources;
 	};
 } // namespace Poly
