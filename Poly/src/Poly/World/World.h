@@ -34,13 +34,13 @@ namespace Poly
 		CLASS_REMOVE_COPY(World);
 
 		/**
-		 * Creates and adds an entity with transform, hierarchy and ID components to the world
+		 * Creates and adds an entity with transform, world transform, hierarchy and ID components to the world
 		 * @return new entity
 		 */
 		Entity CreateEntity();
 
 		/**
-		 * Creates and adds an entity with transform, hierarchy and ID components to the world with a predetermined PolyID
+		 * Creates and adds an entity with transform, world transform, hierarchy and ID components to the world with a predetermined PolyID
 		 * @param id - ID of the entity to create
 		 * @return new entity
 		 */

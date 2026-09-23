@@ -78,7 +78,7 @@ namespace Poly
 		std::unordered_map<uint64, size_t> keyToBatchIndex;
 
 		// TODO: When/if possible, only walk dirty entities instead of the whole registry every rebuild.
-		for (auto [entity, mesh, material, transform] : world.View<MeshAssetComponent, MaterialComponent, TransformComponent>().each())
+		for (auto [entity, mesh, material, transform] : world.View<MeshAssetComponent, MaterialComponent, WorldTransformComponent>().each())
 		{
 			// Handles are dense packed (index|generation) ints, so this is a bijective batch key -
 			// no hash collisions possible, unlike hashing the two asset pointers together.
@@ -88,11 +88,11 @@ namespace Poly
 			if (it == keyToBatchIndex.end())
 			{
 				keyToBatchIndex[key] = pendingBatches.size();
-				pendingBatches.push_back({mesh.MeshHandle, material.MaterialHandle, {transform.GetTransform()}});
+				pendingBatches.push_back({mesh.MeshHandle, material.MaterialHandle, {transform.Matrix}});
 			}
 			else
 			{
-				pendingBatches[it->second].Transforms.push_back(transform.GetTransform());
+				pendingBatches[it->second].Transforms.push_back(transform.Matrix);
 			}
 		}
 

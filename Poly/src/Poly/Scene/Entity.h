@@ -9,16 +9,16 @@ namespace Poly
 	class Entity
 	{
 	public:
-		static const uint8 LAST_SIBLING_INDEX = UINT8_MAX;
+		static const uint32 LAST_SIBLING_INDEX = UINT32_MAX;
 
 	public:
 		~Entity() = default;
 
 		static Entity None() { return Entity({}); }
 
-		void SetParent(Entity parent, uint8 siblingIndex = LAST_SIBLING_INDEX);
+		void SetParent(Entity parent, uint32 siblingIndex = LAST_SIBLING_INDEX);
 
-		void SetSiblingIndex(uint8 index);
+		void SetSiblingIndex(uint32 index);
 
 		Entity GetParent()
 		{
@@ -78,8 +78,7 @@ namespace Poly
 		{}
 
 		void RemoveFromParent();
-		void PlaceInParent(entt::entity parent, uint8 index);
-		void PlaceLastInParent(entt::entity parent);
+		void PlaceInParent(entt::entity parent, uint32 index);
 
 		entt::handle m_Handle;
 	};

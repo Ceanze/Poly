@@ -188,7 +188,7 @@ namespace Poly
 
 		auto&  hierarchyComp = entity.GetComponent<HierarchyComponent>();
 		Scene* pScene        = entity.GetScene();
-		emitter << YAML::Key << "ChildrenCount" << YAML::Value << static_cast<int>(hierarchyComp.ChildrenCount);
+		emitter << YAML::Key << "ChildrenCount" << YAML::Value << hierarchyComp.ChildrenCount;
 		emitter << YAML::Key << "Parent" << YAML::Value << pScene->GetIdOfEntity(hierarchyComp.Parent);
 		emitter << YAML::Key << "First" << YAML::Value << pScene->GetIdOfEntity(hierarchyComp.First);
 		emitter << YAML::Key << "Next" << YAML::Value << pScene->GetIdOfEntity(hierarchyComp.Next);
@@ -224,7 +224,7 @@ namespace Poly
 		// Entity should always have hierarchy component
 		HierarchyComponent& hierarchyComp = entity.GetComponent<HierarchyComponent>();
 
-		hierarchyComp.ChildrenCount = static_cast<uint8>(node["ChildrenCount"].as<int>());
+		hierarchyComp.ChildrenCount = node["ChildrenCount"].as<uint32>();
 		hierarchyComp.Parent        = entity.GetScene()->GetOrCreateEntityWithID(node["Parent"].as<uint64>());
 		hierarchyComp.First         = entity.GetScene()->GetOrCreateEntityWithID(node["First"].as<uint64>());
 		hierarchyComp.Next          = entity.GetScene()->GetOrCreateEntityWithID(node["Next"].as<uint64>());

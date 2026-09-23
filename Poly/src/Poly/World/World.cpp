@@ -4,12 +4,15 @@
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Scene/Components/MaterialComponent.h"
 #include "Poly/Scene/Components/MeshAssetComponent.h"
+#include "Poly/World/Systems/TransformSystem.h"
 
 namespace Poly
 {
 	World::World(const std::string_view name)
 	    : m_Name(name)
-	{}
+	{
+		AddSystem<TransformSystem>(Phase::PostUpdate);
+	}
 
 	World::~World()
 	{
@@ -34,6 +37,7 @@ namespace Poly
 		entt::entity entity = m_Registry.create();
 
 		m_Registry.emplace<TransformComponent>(entity);
+		m_Registry.emplace<WorldTransformComponent>(entity);
 		m_Registry.emplace<HierarchyComponent>(entity);
 		m_Registry.emplace<IDComponent>(entity, id);
 		m_Registry.emplace<DirtyTag>(entity);

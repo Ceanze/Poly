@@ -17,7 +17,7 @@ namespace Poly
 	// Components
 	struct HierarchyComponent
 	{
-		uint8        ChildrenCount = 0;
+		uint32       ChildrenCount = 0;
 		entt::entity Parent        = entt::null;
 		entt::entity First         = entt::null;
 		entt::entity Next          = entt::null;
@@ -34,6 +34,11 @@ namespace Poly
 		{
 			return glm::translate(glm::mat4(1.0f), Translation) * glm::toMat4(Orientation) * glm::scale(glm::mat4(1.0f), Scale);
 		}
+	};
+
+	struct WorldTransformComponent
+	{
+		glm::mat4 Matrix = glm::mat4(1.0f);
 	};
 
 	// TODO: Remove in favor of MeshAssetComponent
