@@ -50,8 +50,6 @@ namespace Poly
 
 	void Renderer::SetRenderProgram(Ref<RenderProgram> pRenderProgram)
 	{
-		// TODO: Handle render program init in a clearer way
-		// This is done so now so that UpdateResource can be called in the program instance instead of after a Render call
 		m_pQueuedRenderProgram = std::move(pRenderProgram);
 		SwapRenderProgramIfQueued();
 	}
@@ -102,9 +100,11 @@ namespace Poly
 			if (windowCtx.pRenderProgramInstance)
 			{
 				const RenderRequest* pRequest = FindRequest(windowCtx.pWindow);
-				RenderView           view{.pScene  = m_pScene.get(),
-				                          .pWorld  = pRequest ? pRequest->pWorld : nullptr,
-				                          .pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
+				RenderView           view{.pScene           = m_pScene.get(),
+				                          .pGlobalResources = &m_GlobalResources,
+				                          .pWorld           = pRequest ? pRequest->pWorld : nullptr,
+				                          .pViewResources   = pRequest ? pRequest->pViewResources : nullptr,
+				                          .pTarget          = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
 				windowCtx.pRenderProgramInstance->Execute(view, windowCtx.pSwapChain->GetAcquireSemaphore());
 			}
 

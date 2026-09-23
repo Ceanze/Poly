@@ -14,11 +14,11 @@
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/RenderGraph.h"
-#include "Poly/RenderGraph/RenderProgramInstance.h"
+#include "Poly/RenderGraph/RenderResourceTable.h"
 #include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/Rendering/Renderer.h"
-#include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Resources/AssetHandler.h"
+#include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/World/Systems/RenderSystem.h"
 #include "Poly/World/World.h"
@@ -96,21 +96,17 @@ public:
 		LightBuffer lights = {};
 		Poly::ResourceManager::UploadBufferData(m_LightsBufferHandle, &lights, sizeof(LightBuffer));
 
-		Poly::RenderResourceTable& worldResources = m_World.GetRenderResources();
-		worldResources.Set("Camera", m_CameraBufferHandle);
-		worldResources.Set("Lights", m_LightsBufferHandle);
+		m_ViewResources.Set("Camera", m_CameraBufferHandle);
+		m_ViewResources.Set("Lights", m_LightsBufferHandle);
 
-		Poly::RenderProgramInstance* pInstance = Poly::Application::Get().GetRenderer()->GetRenderProgramInstance();
-		if (!pInstance)
-			return;
-
-		SetupUIResources(pInstance);
+		SetupUIResources();
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
 		m_World.Update();
-		Poly::Application::Get().GetRenderer()->Submit({.pWorld = &m_World});
+		Poly::Application::Get().GetRenderer()->Submit({.pWorld         = &m_World,
+		                                                .pViewResources = &m_ViewResources});
 
 		m_pCamera->Update(dt);
 		CameraBuffer cameraData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
@@ -277,9 +273,9 @@ private:
 	}
 
 	// Creates the font atlas texture/sampler and the fixed-capacity vertex/index/globals buffers, and
-	// registers the font atlas + globals buffer with the render program instance once - only the
-	// buffers' contents change per frame afterwards (see UpdateUI()), same pattern as Camera/Lights.
-	void SetupUIResources(Poly::RenderProgramInstance* pInstance)
+	// provides the font atlas + globals buffer as global resources once, so they carry over to any render
+	// program instance - only the buffers' contents change per frame afterwards (see UpdateUI()).
+	void SetupUIResources()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
@@ -308,8 +304,9 @@ private:
 		    Poly::ResourceManager::CreateVertexBuffer(MAX_UI_VERTICES * sizeof(ImDrawVert), Poly::EMemoryUsage::CPU_VISIBLE, "UI Vertices");
 		m_UIIndexBufferHandle = Poly::ResourceManager::CreateIndexBuffer(MAX_UI_INDICES * sizeof(ImDrawIdx), Poly::EMemoryUsage::CPU_VISIBLE, "UI Indices");
 
-		pInstance->UpdateResource("FontTexture", m_FontTextureHandle, m_FontSamplerHandle);
-		pInstance->UpdateResource("UIGlobals", m_UIGlobalsBufferHandle);
+		Poly::RenderResourceTable& globalResources = Poly::Application::Get().GetRenderer()->GetGlobalResources();
+		globalResources.Set("FontTexture", m_FontTextureHandle, m_FontSamplerHandle);
+		globalResources.Set("UIGlobals", m_UIGlobalsBufferHandle);
 	}
 
 	// Builds this frame's ImGui draw data and uploads it - called once per frame from OnUpdate(),
@@ -397,6 +394,7 @@ private:
 	Poly::Ref<Poly::RenderCatalog> m_pCatalog = Poly::CreateRef<Poly::RenderCatalog>();
 	Poly::RenderGraph              m_Graph{m_pCatalog};
 	Poly::World                    m_World{"RG2TestWorld"};
+	Poly::RenderResourceTable      m_ViewResources;
 
 	Poly::BufferHandle m_CameraBufferHandle;
 	Poly::BufferHandle m_LightsBufferHandle;

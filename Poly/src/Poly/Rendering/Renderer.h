@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Poly/RenderGraph/RenderResourceTable.h"
 #include "Poly/Rendering/RenderRequest.h"
 
 namespace Poly
@@ -34,6 +35,14 @@ namespace Poly
 		 * @param request - the render request to submit for next render call
 		 */
 		void Submit(const RenderRequest& request);
+
+		/**
+		 * Gets the resources provided to every render program instance
+		 * Owned by the renderer, so they persist when the active render program is swapped out.
+		 * Overridden by world and view resources with the same name.
+		 */
+		RenderResourceTable&       GetGlobalResources() { return m_GlobalResources; }
+		const RenderResourceTable& GetGlobalResources() const { return m_GlobalResources; }
 
 		/**
 		 * Sets the currently used render graph program
@@ -105,5 +114,6 @@ namespace Poly
 		Ref<RenderProgram> m_pQueuedRenderProgram;
 
 		std::vector<RenderRequest> m_FrameRequests;
+		RenderResourceTable        m_GlobalResources;
 	};
 } // namespace Poly
