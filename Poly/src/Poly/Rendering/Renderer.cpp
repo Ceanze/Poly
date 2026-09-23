@@ -33,6 +33,11 @@ namespace Poly
 		m_pScene = pScene;
 	}
 
+	void Renderer::Submit(const RenderRequest& request)
+	{
+		m_FrameRequests.push_back(request);
+	}
+
 	void Renderer::SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram)
 	{
 		m_pRenderGraphProgram = pRenderGraphProgram;
@@ -96,8 +101,10 @@ namespace Poly
 
 			if (windowCtx.pRenderProgramInstance)
 			{
-				RenderView view{.pScene  = m_pScene.get(),
-				                .pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
+				const RenderRequest* pRequest = FindRequest(windowCtx.pWindow);
+				RenderView           view{.pScene  = m_pScene.get(),
+				                          .pWorld  = pRequest ? pRequest->pWorld : nullptr,
+				                          .pTarget = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
 				windowCtx.pRenderProgramInstance->Execute(view, windowCtx.pSwapChain->GetAcquireSemaphore());
 			}
 
@@ -106,6 +113,8 @@ namespace Poly
 			if (res == PresentResult::RECREATED_SWAPCHAIN)
 				CreateBackbufferResources(windowCtx);
 		}
+
+		m_FrameRequests.clear();
 	}
 
 	void Renderer::OnEvent(Event& event)
@@ -135,6 +144,20 @@ namespace Poly
 		}
 
 		m_pRenderGraphProgram->RecreateResources(windowCtx.pWindow->GetWidth(), windowCtx.pWindow->GetHeight());
+	}
+
+	const RenderRequest* Renderer::FindRequest(const Window* pWindow) const
+	{
+		const Window* pDefaultWindow = m_Windows.empty() ? nullptr : m_Windows.front().pWindow;
+
+		for (auto it = m_FrameRequests.rbegin(); it != m_FrameRequests.rend(); ++it)
+		{
+			const Window* pTargetWindow = it->pWindow ? it->pWindow : pDefaultWindow;
+			if (pTargetWindow == pWindow)
+				return &(*it);
+		}
+
+		return nullptr;
 	}
 
 	void Renderer::SwapRenderProgramIfQueued()

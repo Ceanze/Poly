@@ -50,6 +50,12 @@ namespace Poly
 		CommandBuffer*    GetCommandBuffer() const { return m_pCmdBuffer; }
 		const RenderView& GetView() const { return m_View; }
 
+		/*
+		 * Gets the world submitted for this frame. Read-only, as passes may be recorded concurrently.
+		 * @return The world, or nullptr if no world was submitted for the window being rendered this frame.
+		 */
+		const World* GetWorld() const { return m_View.pWorld; }
+
 	private:
 		CommandBuffer*    m_pCmdBuffer;
 		const RenderView& m_View;

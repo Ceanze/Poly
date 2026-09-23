@@ -20,6 +20,7 @@
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Scene/Entity.h"
 #include "Poly/Scene/Scene.h"
+#include "Poly/World/World.h"
 
 #include <imgui/imgui.h>
 
@@ -125,6 +126,9 @@ public:
 
 		m_pScene->Update();
 
+		m_World.Update();
+		Poly::Application::Get().GetRenderer()->Submit({.pWorld = &m_World});
+
 		m_pCamera->Update(dt);
 		CameraBuffer cameraData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
 		Poly::ResourceManager::UploadBufferData(m_CameraBufferHandle, &cameraData, sizeof(CameraBuffer));
@@ -174,7 +178,7 @@ private:
 		    .AddColorBlendAttachment()
 		    .BlendEnable(false)
 		    .ColorWriteMask(Poly::FColorComponentFlag::RED | Poly::FColorComponentFlag::GREEN | Poly::FColorComponentFlag::BLUE |
-		                    Poly::FColorComponentFlag::ALPHA)
+			                Poly::FColorComponentFlag::ALPHA)
 		    .FinishColorBlendAttachment()
 		    .FinishPipeline()
 		    .WithExecuteFn([this](Poly::ExecuteContext& ctx) {
@@ -410,6 +414,7 @@ private:
 	Poly::Camera*          m_pCamera = nullptr;
 	Poly::Ref<Poly::Scene> m_pScene  = nullptr;
 	Poly::RenderGraph      m_Graph;
+	Poly::World            m_World{"RG2TestWorld"};
 
 	Poly::BufferHandle m_CameraBufferHandle;
 	Poly::BufferHandle m_LightsBufferHandle;

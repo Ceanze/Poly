@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Poly/Rendering/RenderRequest.h"
+
 namespace Poly
 {
 	class Resource;
@@ -24,6 +26,14 @@ namespace Poly
 		 * @param pScene - Scene to render
 		 */
 		void SetScene(Ref<Scene> pScene);
+
+		/**
+		 * Submits a world to be rendered during the next Render() call. Requests only live for a single
+		 * frame and are cleared once Render() finishes, so a world has to be submitted every frame it should be rendered.
+		 * If multiple requests target the same window, the last submitted one is used.
+		 * @param request - the render request to submit for next render call
+		 */
+		void Submit(const RenderRequest& request);
 
 		/**
 		 * Sets the currently used render graph program
@@ -61,8 +71,8 @@ namespace Poly
 		void RemoveWindow(Window* pWindow);
 
 		/**
-		 * Renders the with the current render graph
-		 * @param [FUTURE PURPOSE - Scene to render]
+		 * Renders all windows with the current render program, using the worlds submitted via Submit() this frame.
+		 * Windows without a submitted world still execute their render program, with no world set.
 		 */
 		void Render();
 
@@ -78,6 +88,8 @@ namespace Poly
 
 		void CreateBackbufferResources(const WindowContext& windowCtx);
 
+		const RenderRequest* FindRequest(const Window* pWindow) const;
+
 		// Swaps in the queued RenderProgram, if one is waiting, by constructing a fresh
 		// RenderProgramInstance per window from it. Called at a point in the frame where it's
 		// safe to retire the previously active instances (see plans/render_graph.md, "Render
@@ -91,5 +103,7 @@ namespace Poly
 		Ref<Scene>         m_pScene;
 		Ref<RenderProgram> m_pActiveRenderProgram;
 		Ref<RenderProgram> m_pQueuedRenderProgram;
+
+		std::vector<RenderRequest> m_FrameRequests;
 	};
 } // namespace Poly
