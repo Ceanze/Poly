@@ -3,7 +3,6 @@
 #include "Components.h"
 #include "Components/MaterialComponent.h"
 #include "Components/MeshAssetComponent.h"
-#include "Poly/Rendering/RenderScene.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Scene/Entity.h"
@@ -11,19 +10,8 @@
 namespace Poly
 {
 	Scene::Scene(const std::string& name)
-	    : m_ResourceGroup("scene")
-	    , m_Name(name)
+	    : m_Name(name)
 	{
-		m_ResourceGroup.AddResource(VERTICES_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(INSTANCE_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(MATERIAL_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(ALBEDO_TEX_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(NORMAL_TEX_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(COMBINED_TEX_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(METALLIC_TEX_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(ROUGHNESS_TEX_RESOURCE_NAME, false);
-		m_ResourceGroup.AddResource(AO_TEX_RESOURCE_NAME, false);
-
 		m_Registry.ctx().emplace<Scene*>(this);
 	}
 
@@ -120,15 +108,7 @@ namespace Poly
 		if (m_Registry.storage<DirtyTag>().empty())
 			return;
 
-		if (m_pRenderScene)
-			m_pRenderScene->Update();
-
 		m_Registry.clear<DirtyTag>();
-	}
-
-	void Scene::CreateRenderScene(RenderGraphProgram& program)
-	{
-		m_pRenderScene = CreateRef<RenderScene>(*this, program);
 	}
 
 	PolyID Scene::GetIdOfEntity(entt::entity entity)

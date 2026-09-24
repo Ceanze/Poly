@@ -1,15 +1,12 @@
 #pragma once
 
 #include "Poly/Model/Model.h" // TODO: See if this can be removed
-#include "Poly/Rendering/RenderGraph/ResourceGroup.h"
 #include "Poly/Resources/AssetHandle.h"
 
 #include <entt/entt.hpp>
 
 namespace Poly
 {
-	class RenderScene;
-	class RenderGraphProgram;
 	class SceneAsset;
 	class Entity;
 
@@ -74,13 +71,6 @@ namespace Poly
 		Entity InstantiateSceneAsset(AssetHandle<SceneAsset> sceneAssetHandle, Entity parent);
 
 		/**
-		 * Gets the resource group for the scene with all of the resources it might use
-		 * NOTE: Resource pointers might not be valid before render graph execution
-		 * @return ResourceGroup const pointer
-		 */
-		const ResourceGroup& GetResourceGroup() const { return m_ResourceGroup; }
-
-		/**
 		 * Sets the name of the scene
 		 * @param name - new name of the scene
 		 */
@@ -101,23 +91,8 @@ namespace Poly
 		 */
 		void Update();
 
-		/**
-		 * Internally creates a render scene bound to the program provided.
-		 * This is automatically done when a scene is set to a render graph program.
-		 */
-		void CreateRenderScene(RenderGraphProgram& program);
-
-		/**
-		 * Gets the previously created render scene, else nullptr
-		 *
-		 * @return existing renderscene, else nullptr
-		 */
-		RenderScene* GetRenderScene() const { return m_pRenderScene.get(); }
-
 	private:
 		friend class Entity;
-		friend class SceneRenderer; // TODO: Remove when scene renderer uses the new RenderScene instead
-		friend class RenderScene;   // TODO: Will be removed when interface for views exist
 		friend class SceneSerializer;
 		friend class EntitySerializer;
 
@@ -126,8 +101,6 @@ namespace Poly
 
 		std::string m_Name;
 
-		entt::registry         m_Registry;
-		ResourceGroup          m_ResourceGroup;
-		Ref<RenderScene>       m_pRenderScene;
+		entt::registry m_Registry;
 	};
 } // namespace Poly
