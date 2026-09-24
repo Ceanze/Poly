@@ -1,6 +1,7 @@
 #include "RenderProgramInstance.h"
 
 #include "ExecuteContext.h"
+#include "Platform/API/BinarySemaphore.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
 #include "Platform/API/CommandPool.h"
@@ -15,6 +16,8 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Core/ThreadPool.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
+#include "Poly/World/World.h"
+#include "RenderResourceTable.h"
 #include "RenderView.h"
 #include "Resource/ResourceUsage.h"
 
@@ -26,7 +29,7 @@ namespace Poly
 	    : m_pRenderProgram(std::move(pRenderProgram))
 	{}
 
-	void RenderProgramInstance::Execute(const RenderView& view)
+	void RenderProgramInstance::Execute(const RenderView& view, BinarySemaphore* pAcquireSemaphore)
 	{
 		if (!m_Initialized)
 		{
@@ -35,6 +38,7 @@ namespace Poly
 		}
 
 		WaitForFrameSlotReuse(m_FrameIndex);
+		ApplyExternalResources(view);
 		ResizeSizedToTargetResources(view);
 
 		const auto& passes    = m_pRenderProgram->GetPasses();
@@ -62,6 +66,9 @@ namespace Poly
 
 			SubmitDesc submitDesc     = {};
 			submitDesc.CommandBuffers = {GetCommandBuffer(i)};
+			if (i == 0 && pAcquireSemaphore)
+				submitDesc.WaitSemaphores = {pAcquireSemaphore};
+
 			for (const auto& [srcQueue, waitValue] : plan.RequiredWaits)
 			{
 				SyncPoint* pSrcSyncPoint = GetOrCreateQueueSyncPoint(srcQueue);
@@ -99,22 +106,39 @@ namespace Poly
 		m_FrameIndex = (m_FrameIndex + 1) % FRAMES_IN_FLIGHT;
 	}
 
-	void RenderProgramInstance::UpdateResource(std::string_view resolvedName, BufferHandle handle)
+	void RenderProgramInstance::ApplyExternalResources(const RenderView& view)
 	{
 		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
-		RuntimeResource&                      res = m_Resources[std::string(resolvedName)];
-		res.BufHandle                             = handle;
-		res.TexHandle                             = TextureHandle();
-		res.SamplerHnd                            = SamplerHandle();
+		std::erase_if(m_Resources, [](const auto& entry) { return entry.second.IsExternal; });
+
+		// Order matters - closer in time resources get priority and overwrites further away ones
+		if (view.pGlobalResources)
+			ApplyResourceTable(*view.pGlobalResources);
+		if (view.pWorld)
+			ApplyResourceTable(view.pWorld->GetRenderResources());
+		if (view.pViewResources)
+			ApplyResourceTable(*view.pViewResources);
 	}
 
-	void RenderProgramInstance::UpdateResource(std::string_view resolvedName, TextureHandle handle, SamplerHandle sampler)
+	void RenderProgramInstance::ApplyResourceTable(const RenderResourceTable& table)
 	{
-		std::lock_guard<std::recursive_mutex> lock(m_ResourcesMutex);
-		RuntimeResource&                      res = m_Resources[std::string(resolvedName)];
-		res.BufHandle                             = BufferHandle();
-		res.TexHandle                             = handle;
-		res.SamplerHnd                            = sampler.IsValid() ? sampler : ResourceManager::GetDefaultLinearSampler();
+		for (const auto& [name, entry] : table.GetEntries())
+		{
+			if (!entry.BufHandle.IsValid() && !entry.TexHandle.IsValid())
+				continue;
+
+			RuntimeResource& res = m_Resources[name];
+			if (!res.IsExternal && (res.IsBuffer() || res.IsTexture()))
+			{
+				POLY_CORE_WARN("Resource '{}' is owned by the render program, ignoring externally provided resource", name);
+				continue;
+			}
+
+			res.IsExternal = true;
+			res.BufHandle  = entry.BufHandle;
+			res.TexHandle  = entry.TexHandle;
+			res.SamplerHnd = entry.TexHandle.IsValid() && !entry.SamplerHnd.IsValid() ? ResourceManager::GetDefaultLinearSampler() : entry.SamplerHnd;
+		}
 	}
 
 	void RenderProgramInstance::EnsurePerPassResources()
@@ -261,7 +285,7 @@ namespace Poly
 
 		if (port.IsExternal)
 		{
-			POLY_CORE_WARN("Resource '{}' has not been supplied via UpdateResource() yet", port.ResolvedName);
+			POLY_CORE_WARN("Resource '{}' is not provided by any global, world or view resource table", port.ResolvedName);
 			return nullptr;
 		}
 
@@ -269,7 +293,7 @@ namespace Poly
 		if (!isDepthSemantic && !IsTextureResourceType(port.ResourceType))
 		{
 			POLY_CORE_ERROR("Resource '{}' is buffer-shaped but not external; graph-owned buffers aren't "
-			                "supported yet - supply it via UpdateResource() instead.",
+			                "supported yet - provide it through a RenderResourceTable instead.",
 			                port.ResolvedName);
 			return nullptr;
 		}
@@ -281,7 +305,9 @@ namespace Poly
 
 		// TODO: IResourceDeclaration has no format setter yet (only WithSize/WithType/WithInitialState) -
 		// default until it does; only affects graph-owned internal resources, not externally-supplied ones.
-		const EFormat       format = isDepthSemantic ? EFormat::D24_UNORM_S8_UINT : EFormat::R8G8B8A8_UNORM;
+		const EFormat       format = (port.ResolvedName == "$Depth")     ? EFormat::DEPTH
+		                             : (port.ResolvedName == "$Stencil") ? EFormat::DEPTH_STENCIL
+		                                                                 : EFormat::R8G8B8A8_UNORM;
 		const FTextureUsage usage  = isDepthSemantic ? FTextureUsage::DEPTH_STENCIL_ATTACHMENT | FTextureUsage::SAMPLED
 		                                             : FTextureUsage::SAMPLED | (port.ResourceType == EResourceType::StorageImage
 		                                                                             ? FTextureUsage::STORAGE
@@ -598,7 +624,18 @@ namespace Poly
 			                          static_cast<uint32>(pushData.size()), pushData.data());
 		}
 
-		ExecuteContext ctx(pCmd, view, GetOrCreatePipelineLayout(passIndex), pass.TextureSlotsOffset);
+		std::vector<DeclaredBuffer> declaredBuffers;
+		for (const ResolvedPort& port : pass.Ports)
+		{
+			if (!port.ShaderName.empty() || port.UsageState == FResourceState::Unknown)
+				continue;
+
+			RuntimeResource* pRes = ResolvePort(port, view);
+			if (pRes && pRes->IsBuffer())
+				declaredBuffers.push_back({port.ResolvedName, ResourceManager::Resolve(pRes->BufHandle)});
+		}
+
+		ExecuteContext ctx(pCmd, view, GetOrCreatePipelineLayout(passIndex), pass.TextureSlotsOffset, std::move(declaredBuffers));
 		if (pass.ExecuteFn)
 			pass.ExecuteFn(ctx);
 

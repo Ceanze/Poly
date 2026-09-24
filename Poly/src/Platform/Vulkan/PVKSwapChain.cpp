@@ -32,12 +32,16 @@ namespace Poly
 		AcquireNextImage();
 	}
 
+	BinarySemaphore* PVKSwapChain::GetAcquireSemaphore() const
+	{
+		return m_AcquireSemaphores[m_FrameIndex].get();
+	}
+
 	PresentResult PVKSwapChain::Present(const std::vector<CommandBuffer*>& commandBuffers)
 	{
 		SubmitDesc submitDesc       = {};
 		submitDesc.CommandBuffers   = commandBuffers;
 		submitDesc.SignalSemaphores = {m_RenderSemaphores[m_ImageIndex].get()};
-		submitDesc.WaitSemaphores   = {m_AcquireSemaphores[m_FrameIndex].get()};
 		submitDesc.SignalSyncPoints = {{m_FrameSyncPoint.get(), ++m_FrameSyncValue}};
 		p_SwapchainDesc.pQueue->Submit(submitDesc);
 

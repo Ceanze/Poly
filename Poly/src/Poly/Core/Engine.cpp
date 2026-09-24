@@ -2,9 +2,12 @@
 
 #include "Application.h"
 #include "Poly/Core/Input/InputManager.h"
+#include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetLoader.h"
 #include "Poly/Resources/AssetManager.h"
 #include "Poly/Resources/GeometryPool.h"
+#include "Poly/Resources/Importers/SceneAssetImporter.h"
+#include "Poly/Resources/Importers/TextureAssetImporter.h"
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "Poly/Resources/VFS/FileDirectoryBackend.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
@@ -30,9 +33,16 @@ namespace Poly
 			return;
 		}
 
+		// TODO: Move static classes to a locator pattern
+
 		ThreadPool::Init();
 		VirtualFileSystem::Mount("assets/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR "/assets"), EMountMode::ReadWrite, 0);
-		VirtualFileSystem::Mount("compat/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR), EMountMode::ReadWrite, 0); // TODO: Remove when the project.polyres file is gone from the asset importer
+		// VirtualFileSystem::Mount("compat/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR), EMountMode::ReadWrite, 0); // TODO: Remove when the project.polyres file is gone from the asset importer
+
+		AssetHandler::Init();
+		AssetHandler::RegisterImporter(CreateUnique<TextureAssetImporter>());
+		AssetHandler::RegisterImporter(CreateUnique<SceneAssetImporter>());
+		AssetHandler::ScanAssets();
 
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
@@ -80,6 +90,7 @@ namespace Poly
 		AssetManager::Release();
 		GeometryPool::Release();
 		RenderAPI::Release();
+		AssetHandler::Release();
 		glfwTerminate();
 	}
 } // namespace Poly

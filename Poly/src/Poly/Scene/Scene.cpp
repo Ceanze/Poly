@@ -1,9 +1,12 @@
 #include "Scene.h"
 
 #include "Components.h"
-#include "Entity.h"
-#include "Poly/RenderGraph/SceneRenderBridge.h"
+#include "Components/MaterialComponent.h"
+#include "Components/MeshAssetComponent.h"
 #include "Poly/Rendering/RenderScene.h"
+#include "Poly/Resources/AssetHandler.h"
+#include "Poly/Resources/AssetTypes/SceneAsset.h"
+#include "Poly/Scene/Entity.h"
 
 namespace Poly
 {
@@ -20,6 +23,8 @@ namespace Poly
 		m_ResourceGroup.AddResource(METALLIC_TEX_RESOURCE_NAME, false);
 		m_ResourceGroup.AddResource(ROUGHNESS_TEX_RESOURCE_NAME, false);
 		m_ResourceGroup.AddResource(AO_TEX_RESOURCE_NAME, false);
+
+		m_Registry.ctx().emplace<Scene*>(this);
 	}
 
 	Entity Scene::CreateEntity()
@@ -36,7 +41,7 @@ namespace Poly
 		m_Registry.emplace<IDComponent>(entity, id);
 		m_Registry.emplace<DirtyTag>(entity);
 
-		return Entity(this, entity);
+		return Entity({m_Registry, entity});
 	}
 
 	Entity Scene::GetOrCreateEntityWithID(PolyID id)
@@ -56,12 +61,58 @@ namespace Poly
 		if (enttEntity == entt::null)
 			return CreateEntityWithID(id);
 
-		return Entity(this, enttEntity);
+		return Entity({m_Registry, enttEntity});
 	}
 
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+	}
+
+	Entity Scene::InstantiateSceneAsset(AssetHandle<SceneAsset> sceneAssetHandle, Entity parent)
+	{
+		SceneAsset* pSceneAsset = AssetHandler::Resolve(sceneAssetHandle);
+		if (!pSceneAsset)
+		{
+			POLY_CORE_WARN("Cannot instantiate scene asset - handle {} is invalid", sceneAssetHandle.Get());
+			return Entity::None();
+		}
+
+		return InstantiateNode(pSceneAsset, pSceneAsset->GetRootNodeIndex(), parent);
+	}
+
+	Entity Scene::InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent)
+	{
+		const SceneAsset::Node& node = pSceneAsset->GetNode(nodeIndex);
+
+		Entity entity                             = CreateEntity();
+		entity.GetComponent<TransformComponent>() = TransformComponent{
+		    .Translation = node.Translation,
+		    .Scale       = node.Scale,
+		    .Orientation = node.Orientation};
+
+		if (parent != Entity::None())
+			entity.SetParent(parent);
+
+		// The node entity itself only carries a renderable when there's exactly one - extra
+		// renderables on the same node (multi-primitive meshes) get their own identity-transform
+		// child entity, since MeshAssetComponent/MaterialComponent are one-per-entity.
+		for (size_t i = 0; i < node.Renderables.size(); i++)
+		{
+			const SceneAsset::Renderable& renderable = node.Renderables[i];
+			Entity                        target     = (i == 0) ? entity : CreateEntity();
+
+			if (i != 0)
+				target.SetParent(entity);
+
+			target.AddComponent<MeshAssetComponent>(pSceneAsset->GetMeshAsset(renderable.MeshIndex));
+			target.AddComponent<MaterialComponent>(pSceneAsset->GetMaterialAsset(renderable.MaterialIndex));
+		}
+
+		for (uint32 childIndex : node.ChildrenIndices)
+			InstantiateNode(pSceneAsset, childIndex, entity);
+
+		return entity;
 	}
 
 	void Scene::Update()
@@ -72,20 +123,12 @@ namespace Poly
 		if (m_pRenderScene)
 			m_pRenderScene->Update();
 
-		if (m_pSceneRenderBridge)
-			m_pSceneRenderBridge->Update();
-
 		m_Registry.clear<DirtyTag>();
 	}
 
 	void Scene::CreateRenderScene(RenderGraphProgram& program)
 	{
 		m_pRenderScene = CreateRef<RenderScene>(*this, program);
-	}
-
-	void Scene::CreateSceneRenderBridge(Ref<RenderProgramInstance> pProgramInstance)
-	{
-		m_pSceneRenderBridge = CreateRef<SceneRenderBridge>(*this, std::move(pProgramInstance));
 	}
 
 	PolyID Scene::GetIdOfEntity(entt::entity entity)

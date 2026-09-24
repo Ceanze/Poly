@@ -16,6 +16,8 @@ namespace Poly
 		bool                     IsDirectory(std::string_view relativePath) const override;
 		std::vector<std::string> ListFiles(std::string_view relativePath) const override;
 
+		void EnumerateFiles(std::string_view relativePath, const std::function<void(const FileSystemEntry&)>& callback) const override;
+
 		std::vector<byte> Read(std::string_view relativePath) const override;
 		bool              Write(std::string_view relativePath, const std::vector<byte>& data) override;
 

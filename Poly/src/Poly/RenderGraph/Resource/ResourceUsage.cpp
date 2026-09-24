@@ -56,7 +56,12 @@ namespace Poly
 			return {ETextureLayout::COLOR_ATTACHMENT_OPTIMAL, FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE,
 			        FPipelineStage::COLOR_ATTACHMENT_OUTPUT, FImageViewFlag::COLOR};
 
-		if (resolvedName == ToSemanticName(EFeaturePort::Depth) || resolvedName == ToSemanticName(EFeaturePort::Stencil))
+		if (resolvedName == ToSemanticName(EFeaturePort::Depth))
+			return {ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+			        FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE,
+			        FPipelineStage::EARLY_FRAGMENT_TEST | FPipelineStage::LATE_FRAGMENT_TEST, FImageViewFlag::DEPTH};
+
+		if (resolvedName == ToSemanticName(EFeaturePort::Stencil))
 			return {ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			        FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE,
 			        FPipelineStage::EARLY_FRAGMENT_TEST | FPipelineStage::LATE_FRAGMENT_TEST, FImageViewFlag::DEPTH_STENCIL};
@@ -129,6 +134,15 @@ namespace Poly
 
 		case FResourceState::ConstantBuffer:
 			return {ETextureLayout::UNDEFINED, FAccessFlag::UNIFORM_READ, FPipelineStage::ALL_COMMANDS, FImageViewFlag::NONE};
+
+		case FResourceState::VertexBuffer:
+			return {ETextureLayout::UNDEFINED, FAccessFlag::VERTEX_ATTRIBUTE_READ, FPipelineStage::VERTEX_INPUT, FImageViewFlag::NONE};
+
+		case FResourceState::IndexBuffer:
+			return {ETextureLayout::UNDEFINED, FAccessFlag::INDEX_READ, FPipelineStage::VERTEX_INPUT, FImageViewFlag::NONE};
+
+		case FResourceState::IndirectArgument:
+			return {ETextureLayout::UNDEFINED, FAccessFlag::INDIRECT_COMMAND_READ, FPipelineStage::DRAW_INDIRECT, FImageViewFlag::NONE};
 
 		default:
 			POLY_CORE_WARN("Unhandled resource state ({}), falling back to a conservative barrier.", (int)state);

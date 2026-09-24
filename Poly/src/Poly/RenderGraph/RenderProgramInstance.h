@@ -12,12 +12,14 @@
 namespace Poly
 {
 	struct RenderView;
+	class RenderResourceTable;
 	class Buffer;
 	class Texture;
 	class Sampler;
 	class SyncPoint;
 	class CommandPool;
 	class CommandBuffer;
+	class BinarySemaphore;
 	class TextureView;
 	class PipelineLayout;
 	class GraphicsPipeline;
@@ -42,29 +44,20 @@ namespace Poly
 		~RenderProgramInstance() = default;
 		CLASS_REMOVE_COPY(RenderProgramInstance);
 
-		void Execute(const RenderView& view);
-
-		// Supplies (or replaces) an externally-owned resource for a port whose ResolvedPort::IsExternal
-		// is true - i.e. anything not registered with an explicit size on the RenderGraph. Looked up by
-		// ResolvedPort::ResolvedName ("passName#N.resName" for a feature-scoped import/export, or a bare
-		// global/semantic name). Safe to call once at setup for a resource that never changes, or every
-		// frame for one that does (e.g. re-pointing at a new frame's data). A buffer supplied here that
-		// will be accessed via BDA in a shader must have been created with FBufferUsage::SHADER_DEVICE_ADDRESS.
-		void UpdateResource(std::string_view resolvedName, BufferHandle handle);
-		void UpdateResource(std::string_view resolvedName, TextureHandle handle, SamplerHandle sampler = {});
+		void Execute(const RenderView& view, BinarySemaphore* pAcquireSemaphore = nullptr);
 
 		const RenderProgram& GetProgram() const { return *m_pRenderProgram; }
 
 	private:
-		// A resolved-name's backing GPU resource - either supplied externally via UpdateResource(), or
-		// allocated internally on first touch (texture-shaped only - see RenderProgramInstance.cpp for
-		// why graph-owned buffers aren't reachable yet). Exactly one of BufHandle/TexHandle is valid.
+		// A resolved-name's backing GPU resource - either supplied externally through one of the view's
+		// RenderResourceTables (see ApplyExternalResources()), or allocated internally. Exactly one of BufHandle/TexHandle is valid.
 		struct RuntimeResource
 		{
 			BufferHandle  BufHandle;
 			TextureHandle TexHandle;
 			SamplerHandle SamplerHnd;
 			bool          IsSizedToTarget = false;
+			bool          IsExternal      = false;
 
 			bool IsBuffer() const { return BufHandle.IsValid(); }
 			bool IsTexture() const { return TexHandle.IsValid(); }
@@ -82,6 +75,8 @@ namespace Poly
 
 		void EnsurePerPassResources();
 		void WaitForFrameSlotReuse(uint32 frameIndex);
+		void ApplyExternalResources(const RenderView& view);
+		void ApplyResourceTable(const RenderResourceTable& table);
 		void ResizeSizedToTargetResources(const RenderView& view);
 
 		CommandBuffer*    GetCommandBuffer(size_t passIndex) const { return m_PassResources[passIndex].CommandBuffers[m_FrameIndex]; }

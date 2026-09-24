@@ -3,6 +3,7 @@
 ## No Scene→GPU bridge for the new system
 
 > Resolved by SceneRenderBridge (Poly/RenderGraph/SceneRenderBridge.h/.cpp)
+> SceneRenderBridge has since been migrated to the World-based RenderSystem (Poly/World/Systems/RenderSystem.h/.cpp), which provides its buffers via World::GetRenderResources().
 
 The old Scene::CreateRenderScene(RenderGraphProgram&) / RenderScene (RenderScene.h) batches meshes into vertex/instance/material buffers, but it's hard-coupled to the old RenderGraphProgram/ResID/PassResID types. SceneRenderBridge is the RG2 equivalent, wired via Scene::CreateSceneRenderBridge()/GetSceneRenderBridge() alongside (not replacing) the RG1 path. Unlike RenderScene it concatenates all meshes into one combined vertex/index buffer instead of binding each mesh's own buffer per draw - per-draw variation is expressed through DrawIndexedInstanced's baseVertex/firstIndex/firstInstance instead. Still open: no PBR pass is actually registered against RG2 yet (SandboxApp is still fully RG1) - that's blocked on the Renderer accessor below.
 

@@ -12,8 +12,8 @@
 //   bufferAddresses[2] = pbr_bindless.Instances
 //   bufferAddresses[3.. ] = used by pbr_bindless.frag only, see there
 //
-// Vertices/Instances are combined, scene-wide buffers built by SceneRenderBridge (see
-// Poly/RenderGraph/SceneRenderBridge.h) - which mesh/instances a draw call touches comes from
+// Vertices/Instances are combined, scene-wide buffers built by RenderSystem (see
+// Poly/World/Systems/RenderSystem.h) - which mesh/instances a draw call touches comes from
 // DrawIndexedInstanced's own baseVertex/firstInstance parameters, not from anything in this push
 // constant, so the buffer addresses here never need to change between draw calls in the pass.
 

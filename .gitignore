@@ -387,3 +387,4 @@ compile_commands.json
 *.xcworkspacedata
 *.plist
 *.pbxproj
+*.xcworkspace/

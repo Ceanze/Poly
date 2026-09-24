@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
+#include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 #include <functional>
@@ -87,5 +88,24 @@ namespace Poly
 		 * @return A reference to this for chaining
 		 */
 		virtual PassDeclaration& ExportResource(std::string_view resourceName, std::string_view shaderResourceName) = 0;
+
+		/*
+		 * Declares that the pass reads a resource without binding it to a shader variable (e.g. an indirect argument
+		 * buffer). This gives the graph the dependency and the barrier information. Use MapGlobal for resources the shader reads.
+		 * The resource must be registered on the render graph. Resolve it in the execute function with ExecuteContext::GetBuffer.
+		 * @param resourceName The global name of the resource, as registered on the render graph.
+		 * @param state The state the resource must be in while the pass reads it, e.g. FResourceState::IndirectArgument.
+		 * @return A reference to this for chaining
+		 */
+		virtual PassDeclaration& ReadResource(std::string_view resourceName, FResourceState state) = 0;
+
+		/*
+		 * Declares that the pass writes a resource without binding it to a shader variable (e.g. a copy destination).
+		 * The resource must be registered on the render graph. See ReadResource.
+		 * @param resourceName The global name of the resource, as registered on the render graph.
+		 * @param state The state the resource must be in while the pass writes it, e.g. FResourceState::CopyDest.
+		 * @return A reference to this for chaining
+		 */
+		virtual PassDeclaration& WriteResource(std::string_view resourceName, FResourceState state) = 0;
 	};
 } // namespace Poly

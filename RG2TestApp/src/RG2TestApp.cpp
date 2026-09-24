@@ -12,14 +12,16 @@
 #include "Poly/Events/WindowEvent.h"
 #include "Poly/RenderGraph/ExecuteContext.h"
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
+#include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/RenderGraph.h"
-#include "Poly/RenderGraph/RenderProgramInstance.h"
+#include "Poly/RenderGraph/RenderResourceTable.h"
 #include "Poly/RenderGraph/ResourceManager.h"
-#include "Poly/RenderGraph/SceneRenderBridge.h"
 #include "Poly/Rendering/Renderer.h"
-#include "Poly/Resources/AssetManager.h"
+#include "Poly/Resources/AssetHandler.h"
+#include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Scene/Entity.h"
-#include "Poly/Scene/Scene.h"
+#include "Poly/World/Systems/RenderSystem.h"
+#include "Poly/World/World.h"
 
 #include <imgui/imgui.h>
 
@@ -33,7 +35,7 @@ namespace
 
 	struct PointLight
 	{
-		glm::vec4 Color    = {1.0f, 1.0f, 1.0f, 1.0f};
+		glm::vec4 Color    = {100.0f, 100.0f, 100.0f, 1.0f};
 		glm::vec4 Position = {0.0f, 1.0f, -1.0f, 1.0f};
 	};
 
@@ -71,11 +73,11 @@ public:
 		m_pCamera->SetMovementSpeed(1.f);
 		m_pCamera->SetSprintSpeed(5.f);
 
-		m_pScene = Poly::Scene::Create("RG2TestScene");
+		// Registers the scene resources in the catalog, so it has to be added before the render program is built
+		m_World.AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
 
-		Poly::Entity cubeEntity = m_pScene->CreateEntity();
-		// Poly::AssetManager::ImportAndLoadModel("models/Cube/Cube.gltf", cubeEntity);
-		Poly::AssetManager::ImportAndLoadModel("assets/models/sponza/gltf/sponza.gltf", cubeEntity);
+		auto sponzaHandle = Poly::AssetHandler::Load<Poly::SceneAsset>("assets/models/sponza/gltf/sponza.gltf");
+		m_World.Instantiate(sponzaHandle);
 
 		RegisterGeometryFeature();
 		RegisterUIFeature();
@@ -86,9 +88,7 @@ public:
 		                                              .WithFinalState(Poly::ToSemanticName(Poly::EFeaturePort::Color), Poly::FResourceState::Present)
 		                                              .Build();
 
-		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
-		pRenderer->SetScene(m_pScene);
-		pRenderer->SetRenderProgram(pProgram);
+		Poly::Application::Get().GetRenderer()->SetRenderProgram(pProgram);
 
 		m_CameraBufferHandle = Poly::ResourceManager::CreateUniformBuffer(sizeof(CameraBuffer), "Camera");
 		m_LightsBufferHandle = Poly::ResourceManager::CreateStorageBuffer(sizeof(LightBuffer), Poly::EMemoryUsage::CPU_VISIBLE, "Lights");
@@ -96,32 +96,17 @@ public:
 		LightBuffer lights = {};
 		Poly::ResourceManager::UploadBufferData(m_LightsBufferHandle, &lights, sizeof(LightBuffer));
 
-		// TODO: Temporary solution to update the camera and lights buffers in the render program instance
-		Poly::RenderProgramInstance* pInstance = Poly::Application::Get().GetRenderer()->GetRenderProgramInstance();
-		if (!pInstance)
-			return;
+		m_ViewResources.Set("Camera", m_CameraBufferHandle);
+		m_ViewResources.Set("Lights", m_LightsBufferHandle);
 
-		pInstance->UpdateResource("Camera", m_CameraBufferHandle);
-		pInstance->UpdateResource("Lights", m_LightsBufferHandle);
-
-		SetupUIResources(pInstance);
+		SetupUIResources();
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
 	{
-		Poly::RenderProgramInstance* pInstance = Poly::Application::Get().GetRenderer()->GetRenderProgramInstance();
-		if (!pInstance)
-			return;
-
-		if (!m_pScene->GetSceneRenderBridge())
-		{
-			// TODO: This is a temporary workaround. The scene render bridge (later RenderScene) should be created by the renderer pipeline automatically
-			// however, currently it does not handle proper window management.
-			Poly::Ref<Poly::RenderProgramInstance> nonOwningInstance(pInstance, [](Poly::RenderProgramInstance*) {});
-			m_pScene->CreateSceneRenderBridge(nonOwningInstance);
-		}
-
-		m_pScene->Update();
+		m_World.Update();
+		Poly::Application::Get().GetRenderer()->Submit({.pWorld         = &m_World,
+		                                                .pViewResources = &m_ViewResources});
 
 		m_pCamera->Update(dt);
 		CameraBuffer cameraData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
@@ -141,15 +126,13 @@ public:
 	}
 
 private:
-	// Current shader restriction means the order resources are registered must match the order they are bound in the shader. Until slang, this is the case
-	// the order below is load bearing: Camera(0), scene.vertices(1), scene.instances(2), Lights(3), scene.materials(4).
+	// Scene resources (scene.*) are registered by the RenderSystem.
+	// Until slang, the shader's bufferAddresses[] slots are assigned in MapGlobal() call order, so the order of the
+	// MapGlobal() calls below is load bearing: Camera(0), scene.vertices(1), scene.instances(2), Lights(3), scene.materials(4).
 	void RegisterGeometryFeature()
 	{
 		m_Graph.RegisterResource("Camera").WithType(Poly::EResourceType::UniformBuffer);
 		m_Graph.RegisterResource("Lights").WithType(Poly::EResourceType::StorageBuffer);
-		m_Graph.RegisterResource(Poly::Scene::VERTICES_RESOURCE_NAME_2).WithType(Poly::EResourceType::StorageBuffer);
-		m_Graph.RegisterResource(Poly::Scene::INSTANCE_RESOURCE_NAME_2).WithType(Poly::EResourceType::StorageBuffer);
-		m_Graph.RegisterResource(Poly::Scene::MATERIAL_RESOURCE_NAME_2).WithType(Poly::EResourceType::StorageBuffer);
 
 		m_Graph.RegisterPass("pbr")
 		    .WithShader("assets/shaders/pbr_bindless.vert", Poly::FShaderStage::VERTEX)
@@ -157,10 +140,10 @@ private:
 		    .MapResource(Poly::EFeaturePort::Color, "out_Color")
 		    .MapResource(Poly::EFeaturePort::Depth, "depth")
 		    .MapGlobal("Camera", "camera")
-		    .MapGlobal(Poly::Scene::VERTICES_RESOURCE_NAME_2, "vertices")
-		    .MapGlobal(Poly::Scene::INSTANCE_RESOURCE_NAME_2, "instances")
+		    .MapGlobal(Poly::RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
+		    .MapGlobal(Poly::RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
 		    .MapGlobal("Lights", "lights")
-		    .MapGlobal(Poly::Scene::MATERIAL_RESOURCE_NAME_2, "materialProps")
+		    .MapGlobal(Poly::RenderSystem::MATERIAL_RESOURCE_NAME, "materialProps")
 		    .WithGraphicsPipeline() // TODO: add a default pipeline to the graph so this can be omitted and the default used
 		    .Topology(Poly::ETopology::TRIANGLE_LIST)
 		    .PolygonMode(Poly::EPolygonMode::FILL)
@@ -172,17 +155,18 @@ private:
 		    .AddColorBlendAttachment()
 		    .BlendEnable(false)
 		    .ColorWriteMask(Poly::FColorComponentFlag::RED | Poly::FColorComponentFlag::GREEN | Poly::FColorComponentFlag::BLUE |
-		                    Poly::FColorComponentFlag::ALPHA)
+			                Poly::FColorComponentFlag::ALPHA)
 		    .FinishColorBlendAttachment()
 		    .FinishPipeline()
-		    .WithExecuteFn([this](Poly::ExecuteContext& ctx) {
-			    Poly::SceneRenderBridge* pBridge = m_pScene->GetSceneRenderBridge();
-			    if (!pBridge)
+		    .WithExecuteFn([](Poly::ExecuteContext& ctx) {
+			    const Poly::World*        pWorld        = ctx.GetWorld();
+			    const Poly::RenderSystem* pRenderSystem = pWorld ? pWorld->GetSystem<Poly::RenderSystem>() : nullptr;
+			    if (!pRenderSystem)
 				    return;
 
 			    Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
-			    pCmd->BindIndexBuffer(pBridge->GetIndexBuffer(), 0, Poly::EIndexType::UINT32);
-			    for (const Poly::SceneDrawBatch& batch : pBridge->GetDrawBatches())
+			    pCmd->BindIndexBuffer(pRenderSystem->GetIndexBuffer(), 0, Poly::EIndexType::UINT32);
+			    for (const Poly::DrawBatch& batch : pRenderSystem->GetDrawBatches())
 				    pCmd->DrawIndexedInstanced(batch.IndexCount, batch.InstanceCount, batch.BaseIndex, batch.BaseVertex, batch.FirstInstance);
 		    });
 
@@ -289,9 +273,9 @@ private:
 	}
 
 	// Creates the font atlas texture/sampler and the fixed-capacity vertex/index/globals buffers, and
-	// registers the font atlas + globals buffer with the render program instance once - only the
-	// buffers' contents change per frame afterwards (see UpdateUI()), same pattern as Camera/Lights.
-	void SetupUIResources(Poly::RenderProgramInstance* pInstance)
+	// provides the font atlas + globals buffer as global resources once, so they carry over to any render
+	// program instance - only the buffers' contents change per frame afterwards (see UpdateUI()).
+	void SetupUIResources()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
@@ -320,8 +304,9 @@ private:
 		    Poly::ResourceManager::CreateVertexBuffer(MAX_UI_VERTICES * sizeof(ImDrawVert), Poly::EMemoryUsage::CPU_VISIBLE, "UI Vertices");
 		m_UIIndexBufferHandle = Poly::ResourceManager::CreateIndexBuffer(MAX_UI_INDICES * sizeof(ImDrawIdx), Poly::EMemoryUsage::CPU_VISIBLE, "UI Indices");
 
-		pInstance->UpdateResource("FontTexture", m_FontTextureHandle, m_FontSamplerHandle);
-		pInstance->UpdateResource("UIGlobals", m_UIGlobalsBufferHandle);
+		Poly::RenderResourceTable& globalResources = Poly::Application::Get().GetRenderer()->GetGlobalResources();
+		globalResources.Set("FontTexture", m_FontTextureHandle, m_FontSamplerHandle);
+		globalResources.Set("UIGlobals", m_UIGlobalsBufferHandle);
 	}
 
 	// Builds this frame's ImGui draw data and uploads it - called once per frame from OnUpdate(),
@@ -405,9 +390,11 @@ private:
 		return true;
 	}
 
-	Poly::Camera*          m_pCamera = nullptr;
-	Poly::Ref<Poly::Scene> m_pScene  = nullptr;
-	Poly::RenderGraph      m_Graph;
+	Poly::Camera*                  m_pCamera  = nullptr;
+	Poly::Ref<Poly::RenderCatalog> m_pCatalog = Poly::CreateRef<Poly::RenderCatalog>();
+	Poly::RenderGraph              m_Graph{m_pCatalog};
+	Poly::World                    m_World{"RG2TestWorld"};
+	Poly::RenderResourceTable      m_ViewResources;
 
 	Poly::BufferHandle m_CameraBufferHandle;
 	Poly::BufferHandle m_LightsBufferHandle;

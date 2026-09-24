@@ -35,6 +35,7 @@ namespace Poly
 		VkSwapchainKHR           GetNativeVK() const { return m_SwapChain; }
 		VkFormat                 GetFormatVK() const { return m_FormatVK; }
 		VkExtent2D               GetExtentVK() const { return m_Extent; }
+		virtual BinarySemaphore* GetAcquireSemaphore() const override final;
 		virtual uint32           GetBackbufferIndex() const override final { return m_ImageIndex; }
 		virtual uint32           GetBackbufferCount() const override final { return p_SwapchainDesc.BufferCount; }
 		virtual Ref<Texture>     GetTexture(uint32 bufferIndex) const override final { return m_Textures[bufferIndex]; }

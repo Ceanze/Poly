@@ -15,6 +15,7 @@
 #include "Poly/Resources/GeometryPool.h"
 #include "Poly/Resources/PathUtils.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
+#include "Poly/Scene/Scene.h"
 #include "polypch.h"
 #include "Shader/ShaderCompiler.h"
 
@@ -28,7 +29,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
+// Removed since TextureAssetImporter has it now
+// #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 namespace

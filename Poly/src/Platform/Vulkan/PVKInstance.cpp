@@ -271,6 +271,20 @@ namespace Poly
 		    s_PhysicalDevice);
 	}
 
+	VkFormat PVKInstance::FindDepthStencilFormat()
+	{
+		std::vector<VkFormat> formats;
+		formats.push_back(VK_FORMAT_D32_SFLOAT_S8_UINT);
+		formats.push_back(VK_FORMAT_D24_UNORM_S8_UINT);
+		formats.push_back(VK_FORMAT_D16_UNORM_S8_UINT);
+
+		return FindSupportedFormat(
+		    formats,
+		    VK_IMAGE_TILING_OPTIMAL,
+		    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		    s_PhysicalDevice);
+	}
+
 	void PVKInstance::SetDebugName(VkObjectType objectType, uint64_t handle, const std::string& name)
 	{
 		if (!s_SetDebugUtilsObjectNameEXT || name.empty())
@@ -622,16 +636,7 @@ namespace Poly
 		createInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
 		createInfo.pNext                   = &vulkan12Features;
 
-		// Used for older implementations of vulkan
-		if (m_EnableValidationLayers)
-		{
-			createInfo.enabledLayerCount   = static_cast<unsigned>(m_ValidationLayers.size());
-			createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
-		}
-		else
-		{
-			createInfo.enabledLayerCount = 0;
-		}
+		createInfo.enabledLayerCount = 0;
 
 		// If extensions are to be added (which they will be) then it is here it will be
 
