@@ -30,7 +30,6 @@ namespace Poly
 
 	IAssetImporter* AssetHandler::GetImporter(std::string_view vfsPath)
 	{
-		// TODO: Remove any #fragments at the end of paths for sub-assets before parsing
 		std::string extension = PathUtils::GetExtension(vfsPath);
 		if (extension.empty())
 		{
@@ -66,14 +65,29 @@ namespace Poly
 		if (m_Registry.IsLoaded<AssetType>(id))
 			return m_Registry.GetHandle<AssetType>(id);
 
-		IAssetImporter* pImporter = GetImporter(vfsPath);
+		// Sub-assets ("foo.gltf#mesh_0") only exist as a product of importing their source asset
+		const std::string_view sourcePath = PathUtils::GetSourcePath(vfsPath);
+		const bool             isSubAsset = sourcePath.size() != vfsPath.size();
+
+		// Re-importing an already imported source would duplicate all of its sub-assets
+		if (isSubAsset && m_Registry.IsLoaded(AssetID(sourcePath)))
+		{
+			POLY_CORE_WARN("Cannot load sub-asset {}, source {} is already imported but does not contain it", vfsPath, sourcePath);
+			return AssetHandle<AssetType>();
+		}
+
+		IAssetImporter* pImporter = GetImporter(sourcePath);
 		if (!pImporter)
 			return AssetHandle<AssetType>();
 
-		if (!pImporter->Import(vfsPath, m_Registry))
+		if (!pImporter->Import(sourcePath, m_Registry))
 			return AssetHandle<AssetType>();
 
-		return m_Registry.GetHandle<AssetType>(id);
+		AssetHandle<AssetType> handle = m_Registry.GetHandle<AssetType>(id);
+		if (!handle.IsValid())
+			POLY_CORE_WARN("Importing {} did not produce the requested asset {}", sourcePath, vfsPath);
+
+		return handle;
 	}
 
 	template<typename AssetType>
@@ -110,6 +124,16 @@ namespace Poly
 		m_Registry.Unload<AssetType>(handle);
 	}
 
+	template<typename AssetType>
+	std::string AssetHandler::GetPath(AssetHandle<AssetType> handle)
+	{
+		AssetType* pAsset = Resolve(handle);
+		if (!pAsset)
+			return std::string();
+
+		return m_Registry.ResolvePath(pAsset->GetID());
+	}
+
 	// Instantiate the supported types (this allows us to hide the definition from the header)
 	template AssetHandle<MeshAsset>     AssetHandler::Load<MeshAsset>(std::string_view);
 	template AssetHandle<SceneAsset>    AssetHandler::Load<SceneAsset>(std::string_view);
@@ -140,4 +164,9 @@ namespace Poly
 	template void AssetHandler::Unload<SceneAsset>(AssetHandle<SceneAsset>);
 	template void AssetHandler::Unload<TextureAsset>(AssetHandle<TextureAsset>);
 	template void AssetHandler::Unload<MaterialAsset>(AssetHandle<MaterialAsset>);
+
+	template std::string AssetHandler::GetPath<MeshAsset>(AssetHandle<MeshAsset>);
+	template std::string AssetHandler::GetPath<SceneAsset>(AssetHandle<SceneAsset>);
+	template std::string AssetHandler::GetPath<TextureAsset>(AssetHandle<TextureAsset>);
+	template std::string AssetHandler::GetPath<MaterialAsset>(AssetHandle<MaterialAsset>);
 } // namespace Poly

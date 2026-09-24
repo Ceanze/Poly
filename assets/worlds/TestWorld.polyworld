@@ -1,0 +1,1137 @@
+Version: 1
+World: TestWorld
+Entities:
+  - ID: 16539924218602337522
+    Components:
+      Name:
+        Name: nodes[0]
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [0.00800000038, 0.00800000038, 0.00800000038]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-0
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#0
+  - ID: 17942888885450274169
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-1
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 1304094076382554852
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-2
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 12346530770722085930
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-3
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#3
+  - ID: 16850635837812955076
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-4
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 586015873078754583
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-5
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 15060148537186638046
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-6
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 12259051723852190629
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-7
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#7
+  - ID: 6485641302152618251
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-8
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 1639363760098437459
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-9
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#8
+  - ID: 5810477561275310343
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-10
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 7296288140408603101
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-11
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 2338849925609318011
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-12
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#9
+  - ID: 12158314416182523638
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-13
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 11754802508110614918
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-14
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 7587596369975646674
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-15
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 17993764802784021199
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-16
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 10924123543888564144
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-17
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 13876368583850679869
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-18
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 6980751929136299706
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-19
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 2847443673014429746
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-20
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 15706552258456628825
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-21
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 8765828148882509466
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-22
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 15047414055675654073
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-23
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 11634584806260446467
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-24
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 1720275054227494969
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-25
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 3014435529681086264
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-26
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 17781752572758470473
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-27
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 6486672405291391506
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-28
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 11725895977111034511
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-29
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 4643620509730192435
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-30
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 17542889314321415
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-31
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 2052741176024257265
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-32
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 18319898262733246651
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-33
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#6
+  - ID: 6580726586378802672
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-34
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 9784735208591777356
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-35
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 14531866997150442724
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-36
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 7607373035593484816
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-37
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 18411839209197028022
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-38
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#10
+  - ID: 2106047860390566910
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-39
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 4877395110533630515
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-40
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#10
+  - ID: 16741428058114539674
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-41
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 10708345648334781726
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-42
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#10
+  - ID: 4779914873026393728
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-43
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 11881385321800392491
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-44
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#9
+  - ID: 1577781883246556932
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-45
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 11944106959265653870
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-46
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#8
+  - ID: 10393006239870756840
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-47
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#7
+  - ID: 9605947002603285904
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-48
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#5
+  - ID: 2110630414371279715
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-49
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#11
+  - ID: 4416813976434091717
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-50
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#12
+  - ID: 4905996302608660745
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-51
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 10115199646433912161
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-52
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#13
+  - ID: 12957498142443264111
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-53
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#0
+  - ID: 9653859777363034072
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-54
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#14
+  - ID: 2771040514973417018
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-55
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#15
+  - ID: 11245208016156624485
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-56
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#16
+  - ID: 3226554431405507327
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-57
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#14
+  - ID: 16909586811497015052
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-58
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#15
+  - ID: 18111466457055409179
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-59
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#14
+  - ID: 1358651425075740102
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-60
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#16
+  - ID: 1321197374645762781
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-61
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#15
+  - ID: 1191843892973216692
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-62
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#13
+  - ID: 18037745894456753877
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-63
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#17
+  - ID: 18376010178717972723
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-64
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#18
+  - ID: 3353424945069541139
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-65
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#19
+  - ID: 12240928507471813211
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-66
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#18
+  - ID: 2348684441583843218
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-67
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#19
+  - ID: 8106115651018102304
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-68
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#18
+  - ID: 12433015301110603654
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-69
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#17
+  - ID: 4732205297675028825
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-70
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#19
+  - ID: 11522660743982147419
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-71
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#18
+  - ID: 11339689196368986929
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-72
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#17
+  - ID: 16746452070210204133
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-73
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#20
+  - ID: 6445805865915904993
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-74
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#21
+  - ID: 3750402099480123613
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-75
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#20
+  - ID: 2901225224615777967
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-76
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#21
+  - ID: 12490100070213440228
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-77
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#20
+  - ID: 5285341757833498321
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-78
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#21
+  - ID: 7981577209198176682
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-79
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#20
+  - ID: 7575580360361001817
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-80
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#21
+  - ID: 8239488234693165230
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-81
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 1824741235288541740
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-82
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 10471357106102234588
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-83
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 7739603393214816192
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-84
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 5181176469038168656
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-85
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 3410685863980425796
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-86
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 2188401484294628619
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-87
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 9163606295443359357
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-88
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 11977225436737384973
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-89
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 12246751012128688545
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-90
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 6417328576593375069
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-91
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 2693781888479575909
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-92
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 437989107452719227
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-93
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#1
+  - ID: 17435177208888408705
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-94
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#2
+  - ID: 102546371054099273
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-95
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#22
+  - ID: 8584186667874616228
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-96
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#23
+  - ID: 17085003522513365190
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-97
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#3
+  - ID: 5399340903658747115
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-98
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#23
+  - ID: 13205060459581168751
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-99
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#3
+  - ID: 14948613871464670434
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-100
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4
+  - ID: 8006914494818888756
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-101
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#24
+  - ID: 5970105724048404976
+    Parent: 16539924218602337522
+    Components:
+      Transform:
+        Translation: [0, 0, 0]
+        Orientation: [0, 0, 0, 1]
+        Scale: [1, 1, 1]
+      MeshAsset:
+        Mesh: assets/models/sponza/gltf/sponza.gltf#meshes[0]-102
+      Material:
+        Material: assets/models/sponza/gltf/sponza.gltf#4

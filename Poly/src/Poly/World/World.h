@@ -53,6 +53,13 @@ namespace Poly
 		void DestroyEntity(Entity entity);
 
 		/**
+		 * Wraps a raw entity of this world, e.g. one from a View(), in an Entity
+		 * @param entity - raw entity belonging to this world
+		 * @return entity
+		 */
+		Entity GetEntity(entt::entity entity);
+
+		/**
 		 * Instantiates the node hierarchy of a scene asset into the world
 		 * @param sceneAssetHandle - handle to the scene asset to instantiate
 		 * @param parent - entity to parent the instantiated root to, Entity::None() to create it unparented

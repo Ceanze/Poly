@@ -143,7 +143,8 @@ namespace Poly
 
 	bool VirtualFileSystem::WriteText(std::string_view virtualPath, std::string_view text)
 	{
-		return false;
+		const byte* pData = reinterpret_cast<const byte*>(text.data());
+		return Write(virtualPath, std::vector<byte>(pData, pData + text.size()));
 	}
 
 	std::string VirtualFileSystem::Resolve(std::string_view virtualPath)

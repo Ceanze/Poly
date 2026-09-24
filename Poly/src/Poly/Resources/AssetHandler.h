@@ -44,6 +44,13 @@ namespace Poly
 		template<typename AssetType>
 		static void Unload(AssetHandle<AssetType> handle);
 
+		/**
+		 * @param handle - handle of a loaded asset
+		 * @return VFS path of the asset, sub-assets include their #fragment. Empty if the handle is invalid or the path is unknown
+		 */
+		template<typename AssetType>
+		static std::string GetPath(AssetHandle<AssetType> handle);
+
 		static void RegisterImporter(Unique<IAssetImporter> pImporter);
 
 	private:
