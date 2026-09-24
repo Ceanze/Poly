@@ -93,10 +93,7 @@ namespace Poly
 
 	private:
 		friend class Entity;
-		friend class SceneSerializer;
-		friend class EntitySerializer;
 
-		PolyID GetIdOfEntity(entt::entity entity);
 		Entity InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent);
 
 		std::string m_Name;

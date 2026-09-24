@@ -71,7 +71,6 @@ namespace Poly
 	private:
 		friend class Scene;
 		friend class World;
-		friend class SceneSerializer;
 
 		Entity(entt::handle handle)
 		    : m_Handle(handle)
