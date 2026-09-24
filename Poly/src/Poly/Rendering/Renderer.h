@@ -5,12 +5,9 @@
 
 namespace Poly
 {
-	class Resource;
 	class SwapChain;
-	class RenderGraphProgram;
 	class Window;
 	class Event;
-	class Scene;
 	class RenderProgram;
 	class RenderProgramInstance;
 
@@ -21,12 +18,6 @@ namespace Poly
 		~Renderer();
 
 		static Unique<Renderer> Create();
-
-		/**
-		 * Sets the scene to render (currently the same scene for all windows/render instances)
-		 * @param pScene - Scene to render
-		 */
-		void SetScene(Ref<Scene> pScene);
 
 		/**
 		 * Submits a world to be rendered during the next Render() call. Requests only live for a single
@@ -43,12 +34,6 @@ namespace Poly
 		 */
 		RenderResourceTable&       GetGlobalResources() { return m_GlobalResources; }
 		const RenderResourceTable& GetGlobalResources() const { return m_GlobalResources; }
-
-		/**
-		 * Sets the currently used render graph program
-		 * @param pRenderGraphProgram
-		 */
-		void SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram);
 
 		/**
 		 * Sets the render program to use once it is safe to swap out the currently active one.
@@ -106,10 +91,8 @@ namespace Poly
 		void SwapRenderProgramIfQueued();
 
 		bool                       m_HandleResize = false;
-		Ref<RenderGraphProgram>    m_pRenderGraphProgram;
 		std::vector<WindowContext> m_Windows;
 
-		Ref<Scene>         m_pScene;
 		Ref<RenderProgram> m_pActiveRenderProgram;
 		Ref<RenderProgram> m_pQueuedRenderProgram;
 

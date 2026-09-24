@@ -9,8 +9,6 @@
 #include "Poly/RenderGraph/RenderView.h"
 #include "Poly/RenderGraph/ResourceManager.h"
 #include "polypch.h"
-#include "RenderGraph/RenderGraphProgram.h"
-#include "RenderGraph/Resource.h"
 
 namespace Poly
 {
@@ -28,24 +26,9 @@ namespace Poly
 		return CreateUnique<Renderer>();
 	}
 
-	void Renderer::SetScene(Ref<Scene> pScene)
-	{
-		m_pScene = pScene;
-	}
-
 	void Renderer::Submit(const RenderRequest& request)
 	{
 		m_FrameRequests.push_back(request);
-	}
-
-	void Renderer::SetRenderGraph(Ref<RenderGraphProgram> pRenderGraphProgram)
-	{
-		m_pRenderGraphProgram = pRenderGraphProgram;
-
-		for (const WindowContext& windowCtx : m_Windows)
-		{
-			CreateBackbufferResources(windowCtx);
-		}
 	}
 
 	void Renderer::SetRenderProgram(Ref<RenderProgram> pRenderProgram)
@@ -94,14 +77,10 @@ namespace Poly
 
 		for (const WindowContext& windowCtx : m_Windows)
 		{
-			if (m_pRenderGraphProgram)
-				m_pRenderGraphProgram->Execute(windowCtx.pWindow->GetID(), windowCtx.pSwapChain->GetBackbufferIndex());
-
 			if (windowCtx.pRenderProgramInstance)
 			{
 				const RenderRequest* pRequest = FindRequest(windowCtx.pWindow);
-				RenderView           view{.pScene           = m_pScene.get(),
-				                          .pGlobalResources = &m_GlobalResources,
+				RenderView           view{.pGlobalResources = &m_GlobalResources,
 				                          .pWorld           = pRequest ? pRequest->pWorld : nullptr,
 				                          .pViewResources   = pRequest ? pRequest->pViewResources : nullptr,
 				                          .pTarget          = windowCtx.pSwapChain.get()->GetTextureView(windowCtx.pSwapChain->GetBackbufferIndex()).get()};
@@ -109,9 +88,7 @@ namespace Poly
 			}
 
 			std::vector<CommandBuffer*> emptyCommandbuffers;
-			PresentResult               res = windowCtx.pSwapChain->Present(emptyCommandbuffers);
-			if (res == PresentResult::RECREATED_SWAPCHAIN)
-				CreateBackbufferResources(windowCtx);
+			windowCtx.pSwapChain->Present(emptyCommandbuffers);
 		}
 
 		m_FrameRequests.clear();
@@ -128,22 +105,6 @@ namespace Poly
 
 			return false;
 		});
-	}
-
-	void Renderer::CreateBackbufferResources(const WindowContext& windowCtx)
-	{
-		// The old (RG1) render graph program is optional - an app using only the new RenderProgram
-		// pipeline (see RenderProgram/RenderProgramInstance) never calls SetRenderGraph().
-		if (!m_pRenderGraphProgram)
-			return;
-
-		for (uint32 i = 0; i < BUFFER_COUNT; i++)
-		{
-			std::string name = "Backbuffer " + std::to_string(i);
-			m_pRenderGraphProgram->SetBackbuffer(windowCtx.pWindow->GetID(), i, Resource::Create(windowCtx.pSwapChain->GetTexture(i), windowCtx.pSwapChain->GetTextureView(i), name));
-		}
-
-		m_pRenderGraphProgram->RecreateResources(windowCtx.pWindow->GetWidth(), windowCtx.pWindow->GetHeight());
 	}
 
 	const RenderRequest* Renderer::FindRequest(const Window* pWindow) const

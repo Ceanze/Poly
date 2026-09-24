@@ -11,7 +11,6 @@ namespace Poly
 	// Provided to RenderProgramInstance::Execute() once per call
 	struct RenderView
 	{
-		Scene*                     pScene           = nullptr;
 		const RenderResourceTable* pGlobalResources = nullptr;
 		const World*               pWorld           = nullptr;
 		const RenderResourceTable* pViewResources   = nullptr;
