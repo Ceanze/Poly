@@ -20,6 +20,7 @@
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Scene/Entity.h"
+#include "Poly/World/Serialization/WorldSerializer.h"
 #include "Poly/World/Systems/RenderSystem.h"
 #include "Poly/World/World.h"
 
@@ -76,8 +77,12 @@ public:
 		// Registers the scene resources in the catalog, so it has to be added before the render program is built
 		m_World.AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
 
-		auto sponzaHandle = Poly::AssetHandler::Load<Poly::SceneAsset>("assets/models/sponza/gltf/sponza.gltf");
-		m_World.Instantiate(sponzaHandle);
+		// auto sponzaHandle = Poly::AssetHandler::Load<Poly::SceneAsset>("assets/models/sponza/gltf/sponza.gltf");
+		// m_World.Instantiate(sponzaHandle);
+
+		Poly::WorldSerializer serializer;
+		// serializer.Save(m_World, "assets/worlds/TestWorld.polyworld");
+		serializer.Load(m_World, "assets/worlds/TestWorld.polyworld");
 
 		RegisterGeometryFeature();
 		RegisterUIFeature();

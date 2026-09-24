@@ -33,9 +33,15 @@ namespace Poly
 		if (itr == m_IDToPath.end())
 		{
 			POLY_CORE_WARN("Asset ID {} could not be found in registry", assetID);
-			return "";
+			static const std::string s_EmptyPath;
+			return s_EmptyPath;
 		}
 
 		return itr->second;
+	}
+
+	void AssetRegistry::RegisterPath(AssetID assetID, std::string_view vfsPath)
+	{
+		m_IDToPath.try_emplace(assetID, vfsPath);
 	}
 } // namespace Poly

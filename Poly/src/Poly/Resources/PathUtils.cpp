@@ -18,4 +18,9 @@ namespace Poly::PathUtils
 	{
 		return std::filesystem::path(path).extension().string();
 	}
+
+	std::string_view GetSourcePath(std::string_view path)
+	{
+		return path.substr(0, path.find('#'));
+	}
 } // namespace Poly::PathUtils

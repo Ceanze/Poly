@@ -19,6 +19,13 @@ namespace Poly
 
 		const std::string& ResolvePath(AssetID assetID) const;
 
+		/**
+		 * Registers the VFS path of an asset, e.g. a sub-asset created during import.
+		 * @param assetID - ID of the asset
+		 * @param vfsPath - VFS path the asset ID was derived from
+		 */
+		void RegisterPath(AssetID assetID, std::string_view vfsPath);
+
 		template<typename AssetType>
 		AssetHandle<AssetType> GetHandle(AssetID id) const
 		{

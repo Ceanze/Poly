@@ -67,7 +67,12 @@ namespace Poly
 
 	bool FileDirectoryBackend::Write(std::string_view relativePath, const std::vector<byte>& data)
 	{
-		std::ofstream file(m_PhysicalPath / relativePath, std::ios::binary);
+		const std::filesystem::path path = m_PhysicalPath / relativePath;
+
+		std::error_code error;
+		std::filesystem::create_directories(path.parent_path(), error);
+
+		std::ofstream file(path, std::ios::binary);
 		if (!file)
 			return false;
 

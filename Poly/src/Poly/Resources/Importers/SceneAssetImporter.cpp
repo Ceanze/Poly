@@ -116,14 +116,22 @@ namespace Poly
 		for (unsigned i = 0u; i < pScene->mNumMeshes; i++)
 		{
 			aiMesh* pMesh = pScene->mMeshes[i];
-			AssetID assetID(Poly::Format("{}#{}", vfsPath, pMesh->mName.length > 0 ? pMesh->mName.C_Str() : std::to_string(i)));
+			std::string path = Poly::Format("{}#{}", vfsPath, pMesh->mName.length > 0 ? pMesh->mName.C_Str() : std::to_string(i));
+			AssetID     assetID(path);
+			if (registry.IsLoaded<MeshAsset>(assetID))
+				POLY_CORE_WARN("Mesh '{}' in {} shares its sub-asset path with another mesh, references to it by path will be ambiguous", pMesh->mName.C_Str(), vfsPath);
+			registry.RegisterPath(assetID, path);
 			sceneAsset.AddMeshAsset(registry.Emplace<MeshAsset>(assetID, LoadMesh(assetID, pMesh)));
 		}
 
 		for (unsigned i = 0u; i < pScene->mNumMaterials; i++)
 		{
 			aiMaterial* pMaterial = pScene->mMaterials[i];
-			AssetID     assetID(Poly::Format("{}#{}", vfsPath, pMaterial->GetName().length > 0 ? pMaterial->GetName().C_Str() : std::to_string(i)));
+			std::string path = Poly::Format("{}#{}", vfsPath, pMaterial->GetName().length > 0 ? pMaterial->GetName().C_Str() : std::to_string(i));
+			AssetID     assetID(path);
+			if (registry.IsLoaded<MaterialAsset>(assetID))
+				POLY_CORE_WARN("Material '{}' in {} shares its sub-asset path with another material, references to it by path will be ambiguous", pMaterial->GetName().C_Str(), vfsPath);
+			registry.RegisterPath(assetID, path);
 			sceneAsset.AddMaterialAsset(registry.Emplace<MaterialAsset>(assetID, LoadMaterial(assetID, pMaterial, vfsPath)));
 		}
 

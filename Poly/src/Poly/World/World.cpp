@@ -4,6 +4,7 @@
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
 #include "Poly/Scene/Components/MaterialComponent.h"
 #include "Poly/Scene/Components/MeshAssetComponent.h"
+#include "Poly/Scene/Components/NameComponent.h"
 #include "Poly/World/Systems/TransformSystem.h"
 
 namespace Poly
@@ -48,6 +49,11 @@ namespace Poly
 	void World::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+	}
+
+	Entity World::GetEntity(entt::entity entity)
+	{
+		return Entity({m_Registry, entity});
 	}
 
 	Entity World::Instantiate(AssetHandle<SceneAsset> sceneAssetHandle, Entity parent)
@@ -97,6 +103,9 @@ namespace Poly
 		    .Translation = node.Translation,
 		    .Scale       = node.Scale,
 		    .Orientation = node.Orientation};
+
+		if (!node.Name.empty())
+			entity.AddComponent<NameComponent>(node.Name);
 
 		if (parent != Entity::None())
 			entity.SetParent(parent);
