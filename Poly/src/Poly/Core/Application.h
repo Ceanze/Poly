@@ -30,8 +30,9 @@ namespace Poly
 
 		bool IsRunning();
 
-		Window*   GetWindow() const;
-		Renderer* GetRenderer() const;
+		Window*     GetWindow() const;
+		Renderer*   GetRenderer() const;
+		ImGuiLayer* GetImGuiLayer() const;
 
 	protected:
 		virtual void OnInit() = 0;

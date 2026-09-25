@@ -58,6 +58,9 @@ namespace Poly
 		for (auto layer : m_LayerStack)
 			layer->OnUpdate(dt);
 
+		if (m_pImGuiLayer)
+			m_pImGuiLayer->EndFrame();
+
 		if (m_pRenderer)
 			m_pRenderer->Render();
 	}
@@ -91,6 +94,11 @@ namespace Poly
 	Renderer* Application::GetRenderer() const
 	{
 		return m_pRenderer.get();
+	}
+
+	ImGuiLayer* Application::GetImGuiLayer() const
+	{
+		return m_pImGuiLayer;
 	}
 
 	void Application::OnEvent(Event& event)
