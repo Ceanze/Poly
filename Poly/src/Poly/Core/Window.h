@@ -49,6 +49,9 @@ namespace Poly
 		unsigned GetWidth() const;
 		unsigned GetHeight() const;
 
+		float GetContentScaleX() const;
+		float GetContentScaleY() const;
+
 		PolyID GetID() const;
 
 		GLFWwindow* GetNative() const;

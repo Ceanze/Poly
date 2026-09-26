@@ -105,6 +105,20 @@ namespace Poly
 		return m_CurrentProperties.Height;
 	}
 
+	float Window::GetContentScaleX() const
+	{
+		float scaleX = 1.0f, scaleY = 1.0f;
+		glfwGetWindowContentScale(m_pWindow, &scaleX, &scaleY);
+		return scaleX;
+	}
+
+	float Window::GetContentScaleY() const
+	{
+		float scaleX = 1.0f, scaleY = 1.0f;
+		glfwGetWindowContentScale(m_pWindow, &scaleX, &scaleY);
+		return scaleY;
+	}
+
 	PolyID Window::GetID() const
 	{
 		return m_ID;

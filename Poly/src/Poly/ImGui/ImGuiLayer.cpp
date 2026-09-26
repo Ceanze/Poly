@@ -40,8 +40,10 @@ namespace Poly
 		ImGui::CreateContext();
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		Window* pWindow            = Application::Get().GetWindow();
-		ImGui::GetIO().DisplaySize = ImVec2(pWindow->GetWidth(), pWindow->GetHeight());
+		Window*  pWindow = Application::Get().GetWindow();
+		ImGuiIO& io      = ImGui::GetIO();
+		io.DisplaySize   = ImVec2(pWindow->GetWidth(), pWindow->GetHeight());
+		io.DisplayFramebufferScale = ImVec2(pWindow->GetContentScaleX(), pWindow->GetContentScaleY());
 	}
 
 	ImGuiLayer::~ImGuiLayer()
@@ -237,8 +239,9 @@ namespace Poly
 
 	bool ImGuiLayer::OnMouseMoved(Events::MouseMoved& event)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(static_cast<float>(event.GetX()), static_cast<float>(event.GetY()));
+		ImGuiIO& io    = ImGui::GetIO();
+		io.MousePos    = ImVec2(static_cast<float>(event.GetX()) * io.DisplayFramebufferScale.x,
+		                        static_cast<float>(event.GetY()) * io.DisplayFramebufferScale.y);
 
 		return false;
 	}
@@ -312,7 +315,10 @@ namespace Poly
 
 	bool ImGuiLayer::OnWindowResized(Events::WindowResized& event)
 	{
-		ImGui::GetIO().DisplaySize = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight()));
+		Window*  pWindow = Application::Get().GetWindow();
+		ImGuiIO& io      = ImGui::GetIO();
+		io.DisplaySize             = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight()));
+		io.DisplayFramebufferScale = ImVec2(pWindow->GetContentScaleX(), pWindow->GetContentScaleY());
 
 		return false;
 	}
