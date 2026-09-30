@@ -53,7 +53,7 @@ workspace "Poly"
 	architecture "x64"
 	startproject "Sandbox"
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++23"
 
 	configurations
 	{
@@ -122,7 +122,7 @@ end
 project "Poly"
 	location "Poly"
 	kind "StaticLib"
-	cppdialect "C++20"
+	cppdialect "C++23"
 
 	filter "system:macosx"
 	    links
@@ -202,7 +202,7 @@ project "Poly"
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
-	cppdialect "c++20"
+	cppdialect "c++23"
 
 	setDirs()
 	srcFiles()
