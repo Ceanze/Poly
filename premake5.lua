@@ -117,6 +117,21 @@ function setDirs()
 	objdir ("bin-int/" .. OUTPUT_DIR .. "/%{prj.name}")
 end
 
+function useGlaze()
+	externalincludedirs
+	{
+		"Poly/libs/glaze/include"
+	}
+
+	filter "system:windows"
+		buildoptions { "/Zc:preprocessor", "/permissive-", "/Zc:lambda" }
+
+	filter "system:not windows"
+		buildoptions { "-Wno-missing-braces" }
+
+	filter {}
+end
+
 
 -- Projects
 project "Poly"
@@ -167,6 +182,7 @@ project "Poly"
 
 	setDirs()
 	srcFiles()
+	useGlaze()
 
 	forceincludes
 	{
@@ -206,6 +222,7 @@ project "Sandbox"
 
 	setDirs()
 	srcFiles()
+	useGlaze()
 
 	externalincludedirs
 	{
