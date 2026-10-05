@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Poly/API/Command.h"
 #include "Poly/Core/Result.h"
 
 namespace Poly::API
 {
 	class EngineContext;
-	class ICommand;
 
 	/*
 	 * Runs commands and keeps them for undo and redo.

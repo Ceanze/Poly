@@ -1,6 +1,5 @@
 #include "CommandHistory.h"
 
-#include "Poly/API/Command.h"
 #include "Poly/API/EngineContext.h"
 
 namespace Poly::API
