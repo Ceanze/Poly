@@ -263,3 +263,63 @@ project "Sandbox"
 	filter "system:windows"
 		systemversion "latest"
 		buildoptions { "/utf-8" }
+
+project "ImGuiEditor"
+	location "ImGuiEditor"
+	kind "ConsoleApp"
+	cppdialect "c++23"
+
+	setDirs()
+	srcFiles()
+	useGlaze()
+
+	-- Engine headers are not self-contained; they rely on the engine's pch
+	forceincludes
+	{
+		"polypch.h"
+	}
+
+	includedirs
+	{
+		"%{prj.name}/src"
+	}
+
+	externalincludedirs
+	{
+		get_vulkan_include_dir(vkPath),
+		"Poly/libs/glm",
+		"Poly/src",
+		"Poly/libs",
+		"Poly/libs/entt/src",
+		"Poly/libs/spdlog/include",
+		"Poly/libs/VMA/include"
+	}
+
+	links
+	{
+		"Poly"
+	}
+
+	filter "system:macosx"
+		links
+		{
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreFoundation.framework",
+			"Metal.framework",
+			"IOSurface.framework",
+			"QuartzCore.framework",
+			"vulkan"
+		}
+		libdirs
+		{
+			vkPath .. "/lib",
+		}
+		runpathdirs
+		{
+			vkPath .. "/lib",
+		}
+
+	filter "system:windows"
+		systemversion "latest"
+		buildoptions { "/utf-8" }

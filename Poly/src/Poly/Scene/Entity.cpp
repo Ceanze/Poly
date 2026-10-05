@@ -41,6 +41,44 @@ namespace Poly
 		PlaceInParent(parent, index);
 	}
 
+	std::vector<Entity> Entity::GetChildren() const
+	{
+		std::vector<Entity> children;
+
+		entt::registry&           registry   = *m_Handle.registry();
+		const HierarchyComponent* pHierarchy = m_Handle.try_get<HierarchyComponent>();
+		if (!pHierarchy)
+			return children;
+
+		// Children form a circular list starting at First
+		children.reserve(pHierarchy->ChildrenCount);
+		const entt::entity first = pHierarchy->First;
+		for (entt::entity child = first; child != entt::null;)
+		{
+			children.push_back(Entity({registry, child}));
+
+			child = registry.get<HierarchyComponent>(child).Next;
+			if (child == first)
+				break;
+		}
+
+		return children;
+	}
+
+	uint32 Entity::GetSiblingIndex() const
+	{
+		entt::registry&           registry   = *m_Handle.registry();
+		const HierarchyComponent* pHierarchy = m_Handle.try_get<HierarchyComponent>();
+		if (!pHierarchy || pHierarchy->Parent == entt::null)
+			return 0;
+
+		uint32 index = 0;
+		for (entt::entity sibling = registry.get<HierarchyComponent>(pHierarchy->Parent).First; sibling != m_Handle.entity(); index++)
+			sibling = registry.get<HierarchyComponent>(sibling).Next;
+
+		return index;
+	}
+
 	void Entity::RemoveFromParent()
 	{
 		entt::registry&     registry      = *m_Handle.registry();

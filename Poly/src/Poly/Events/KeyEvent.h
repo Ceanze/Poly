@@ -46,19 +46,24 @@ namespace Poly::Events
 		const FKeyModifier m_KeyMod;
 	};
 
+	/*
+	 * A character produced by the keyboard, after layout/modifiers/IME have been applied - use this for
+	 * text input and KeyPressed for everything else.
+	 */
 	class KeyTyped : public Event
 	{
 	public:
-		KeyTyped(EKey key)
-		    : m_Key(key)
+		KeyTyped(uint32 codepoint)
+		    : m_Codepoint(codepoint)
 		{}
 
-		EKey GetKey() const { return m_Key; }
+		// Unicode codepoint (UTF-32) of the typed character
+		uint32 GetCodepoint() const { return m_Codepoint; }
 
 		DEFINE_EVENT(KeyTyped, EventType::KeyTyped)
 		DEFINE_EVENT_CATEGORY(KeyTyped, EventCategory::Key)
 
 	private:
-		const EKey m_Key;
+		const uint32 m_Codepoint;
 	};
 } // namespace Poly::Events

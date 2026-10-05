@@ -31,6 +31,26 @@ namespace Poly
 			return GetParent().m_Handle.entity() != entt::null;
 		}
 
+		/**
+		 * @return the children of the entity in sibling order
+		 */
+		std::vector<Entity> GetChildren() const;
+
+		/**
+		 * @return index of the entity among its siblings, 0 if it has no parent
+		 */
+		uint32 GetSiblingIndex() const;
+
+		/**
+		 * @return true if the entity refers to a live entity, false for Entity::None() and destroyed entities
+		 */
+		bool IsValid() const { return static_cast<bool>(m_Handle); }
+
+		/**
+		 * Tags the entity as changed, so the systems of the world pick it up during the next update
+		 */
+		void MarkDirty() { m_Handle.emplace_or_replace<DirtyTag>(); }
+
 		// TODO: Consider removal
 		Scene* GetScene() const { return m_Handle.registry()->ctx().get<Scene*>(); }
 

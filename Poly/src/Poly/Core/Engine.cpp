@@ -2,6 +2,7 @@
 
 #include "Application.h"
 #include "Poly/Core/Input/InputManager.h"
+#include "Poly/Reflection/ComponentRegistry.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetLoader.h"
 #include "Poly/Resources/AssetManager.h"
@@ -43,6 +44,8 @@ namespace Poly
 		AssetHandler::RegisterImporter(CreateUnique<TextureAssetImporter>());
 		AssetHandler::RegisterImporter(CreateUnique<SceneAssetImporter>());
 		AssetHandler::ScanAssets();
+
+		ComponentRegistry::RegisterBuiltInComponents();
 
 		RenderAPI::Init(RenderAPI::BackendAPI::VULKAN);
 
