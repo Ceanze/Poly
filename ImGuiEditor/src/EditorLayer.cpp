@@ -119,8 +119,8 @@ namespace Editor
 		m_Graph.RegisterResource("Lights").WithType(Poly::EResourceType::StorageBuffer);
 
 		m_Graph.RegisterPass("pbr")
-		    .WithShader("assets/shaders/pbr_bindless.vert", Poly::FShaderStage::VERTEX)
-		    .WithShader("assets/shaders/pbr_bindless.frag", Poly::FShaderStage::FRAGMENT)
+		    .WithShader("assets/shaders/pbr_bindless.vert")
+		    .WithShader("assets/shaders/pbr_bindless.frag")
 		    .MapResource(Poly::EFeaturePort::Color, "out_Color")
 		    .MapResource(Poly::EFeaturePort::Depth, "depth")
 		    .MapGlobal("Camera", "camera")
@@ -128,20 +128,6 @@ namespace Editor
 		    .MapGlobal(Poly::RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
 		    .MapGlobal("Lights", "lights")
 		    .MapGlobal(Poly::RenderSystem::MATERIAL_RESOURCE_NAME, "materialProps")
-		    .WithGraphicsPipeline()
-		    .Topology(Poly::ETopology::TRIANGLE_LIST)
-		    .PolygonMode(Poly::EPolygonMode::FILL)
-		    .CullMode(Poly::ECullMode::BACK)
-		    .ClockwiseFrontFace(false)
-		    .DepthTestEnable(true)
-		    .DepthWriteEnable(true)
-		    .DepthCompareOp(Poly::ECompareOp::LESS_OR_EQUAL)
-		    .AddColorBlendAttachment()
-		    .BlendEnable(false)
-		    .ColorWriteMask(Poly::FColorComponentFlag::RED | Poly::FColorComponentFlag::GREEN | Poly::FColorComponentFlag::BLUE |
-			                Poly::FColorComponentFlag::ALPHA)
-		    .FinishColorBlendAttachment()
-		    .FinishPipeline()
 		    .WithExecuteFn([](Poly::ExecuteContext& ctx) {
 			    const Poly::World*        pWorld        = ctx.GetWorld();
 			    const Poly::RenderSystem* pRenderSystem = pWorld ? pWorld->GetSystem<Poly::RenderSystem>() : nullptr;

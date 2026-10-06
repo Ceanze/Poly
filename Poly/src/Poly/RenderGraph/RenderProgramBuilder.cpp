@@ -87,7 +87,7 @@ namespace Poly
 				ResolvedPass resolved;
 				resolved.Name         = passName;
 				resolved.Shaders      = pass->GetShaders();
-				resolved.PipelineDesc = pass->GetGraphicsPipeline().GetDesc();
+				resolved.PipelineDesc = pass->BuildPipelineDesc();
 				resolved.ExecuteFn    = pass->GetExecuteFn();
 				resolved.Queue        = pass->GetQueue();
 
