@@ -205,9 +205,7 @@ namespace Poly
 	{
 		Window* pWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(pGLFWWindow));
 
-		EKey polyKey = ConvertToPolyKey(static_cast<int>(key));
-
-		Events::KeyTyped keyTypedEvent(polyKey);
+		Events::KeyTyped keyTypedEvent(key);
 		pWindow->m_EventCallback(keyTypedEvent);
 	}
 

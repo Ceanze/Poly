@@ -31,6 +31,88 @@ namespace
 	// resizing them mid-session, which would need frame-in-flight-aware deferred destruction.
 	constexpr uint32 MAX_UI_VERTICES = 64 * 1024;
 	constexpr uint32 MAX_UI_INDICES  = 128 * 1024;
+
+	ImGuiKey ToImGuiKey(Poly::EKey key)
+	{
+		using Poly::EKey;
+
+		if (key >= EKey::F1 && key <= EKey::F12)
+			return static_cast<ImGuiKey>(ImGuiKey_F1 + (static_cast<int>(key) - static_cast<int>(EKey::F1)));
+		if (key >= EKey::KEYPAD_0 && key <= EKey::KEYPAD_9)
+			return static_cast<ImGuiKey>(ImGuiKey_Keypad0 + (static_cast<int>(key) - static_cast<int>(EKey::KEYPAD_0)));
+		if (key >= EKey::A && key <= EKey::Z)
+			return static_cast<ImGuiKey>(ImGuiKey_A + (static_cast<int>(key) - static_cast<int>(EKey::A)));
+
+		// clang-format off
+		switch (key)
+		{
+		case EKey::KEYPAD_DECIMAL:  return ImGuiKey_KeypadDecimal;
+		case EKey::KEYPAD_DIVIDE:   return ImGuiKey_KeypadDivide;
+		case EKey::KEYPAD_MULTIPLY: return ImGuiKey_KeypadMultiply;
+		case EKey::KEYPAD_SUBTRACT: return ImGuiKey_KeypadSubtract;
+		case EKey::KEYPAD_ADD:      return ImGuiKey_KeypadAdd;
+		case EKey::KEYPAD_ENTER:    return ImGuiKey_KeypadEnter;
+		case EKey::KEYPAD_EQUAL:    return ImGuiKey_KeypadEqual;
+		case EKey::ESC:             return ImGuiKey_Escape;
+		case EKey::TAB:             return ImGuiKey_Tab;
+		case EKey::LSHIFT:          return ImGuiKey_LeftShift;
+		case EKey::RSHIFT:          return ImGuiKey_RightShift;
+		case EKey::LCTRL:           return ImGuiKey_LeftCtrl;
+		case EKey::RCTRL:           return ImGuiKey_RightCtrl;
+		case EKey::LALT:            return ImGuiKey_LeftAlt;
+		case EKey::RALT:            return ImGuiKey_RightAlt;
+		case EKey::SPACE:           return ImGuiKey_Space;
+		case EKey::CAPS_LOCK:       return ImGuiKey_CapsLock;
+		case EKey::SCROLL_LOCK:     return ImGuiKey_ScrollLock;
+		case EKey::NUM_LOCK:        return ImGuiKey_NumLock;
+		case EKey::BACKSPACE:       return ImGuiKey_Backspace;
+		case EKey::ENTER:           return ImGuiKey_Enter;
+		case EKey::DEL:             return ImGuiKey_Delete;
+		case EKey::LEFT:            return ImGuiKey_LeftArrow;
+		case EKey::RIGHT:           return ImGuiKey_RightArrow;
+		case EKey::UP:              return ImGuiKey_UpArrow;
+		case EKey::DOWN:            return ImGuiKey_DownArrow;
+		case EKey::PAGE_UP:         return ImGuiKey_PageUp;
+		case EKey::PAGE_DOWN:       return ImGuiKey_PageDown;
+		case EKey::HOME:            return ImGuiKey_Home;
+		case EKey::END:             return ImGuiKey_End;
+		case EKey::INSERT:          return ImGuiKey_Insert;
+		case EKey::PRINT_SCREEN:    return ImGuiKey_PrintScreen;
+		case EKey::PAUSE:           return ImGuiKey_Pause;
+		case EKey::MENU:            return ImGuiKey_Menu;
+		case EKey::APOSTROPHE:      return ImGuiKey_Apostrophe;
+		case EKey::COMMA:           return ImGuiKey_Comma;
+		case EKey::PERIOD:          return ImGuiKey_Period;
+		case EKey::MINUS:           return ImGuiKey_Minus;
+		case EKey::SLASH:           return ImGuiKey_Slash;
+		case EKey::SEMICOLON:       return ImGuiKey_Semicolon;
+		case EKey::EQUAL:           return ImGuiKey_Equal;
+		case EKey::LBRACKET:        return ImGuiKey_LeftBracket;
+		case EKey::RBRACKET:        return ImGuiKey_RightBracket;
+		case EKey::BACKSLASH:       return ImGuiKey_Backslash;
+		default:                    return ImGuiKey_None;
+		}
+		// clang-format on
+	}
+
+	void AddKeyEvent(Poly::EKey key, Poly::FKeyModifier modifiers, bool down)
+	{
+		using Poly::EKey;
+		using Poly::FKeyModifier;
+
+		const bool ctrl  = (key == EKey::LCTRL || key == EKey::RCTRL) ? down : BitsSet(modifiers, FKeyModifier::CTRL);
+		const bool shift = (key == EKey::LSHIFT || key == EKey::RSHIFT) ? down : BitsSet(modifiers, FKeyModifier::SHIFT);
+		const bool alt   = (key == EKey::LALT || key == EKey::RALT) ? down : BitsSet(modifiers, FKeyModifier::ALT);
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.AddKeyEvent(ImGuiMod_Ctrl, ctrl);
+		io.AddKeyEvent(ImGuiMod_Shift, shift);
+		io.AddKeyEvent(ImGuiMod_Alt, alt);
+
+		const ImGuiKey imguiKey = ToImGuiKey(key);
+		if (imguiKey != ImGuiKey_None)
+			io.AddKeyEvent(imguiKey, down);
+	}
 } // namespace
 
 namespace Poly
@@ -40,9 +122,9 @@ namespace Poly
 		ImGui::CreateContext();
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		Window*  pWindow = Application::Get().GetWindow();
-		ImGuiIO& io      = ImGui::GetIO();
-		io.DisplaySize   = ImVec2(pWindow->GetWidth(), pWindow->GetHeight());
+		Window*  pWindow           = Application::Get().GetWindow();
+		ImGuiIO& io                = ImGui::GetIO();
+		io.DisplaySize             = ImVec2(pWindow->GetWidth(), pWindow->GetHeight());
 		io.DisplayFramebufferScale = ImVec2(pWindow->GetContentScaleX(), pWindow->GetContentScaleY());
 	}
 
@@ -234,14 +316,15 @@ namespace Poly
 		eventDispatcher.Dispatch<Events::MouseScrolled>([this](auto& event) { return OnMouseScrolled(event); });
 		eventDispatcher.Dispatch<Events::KeyPressed>([this](auto& event) { return OnKeyPressed(event); });
 		eventDispatcher.Dispatch<Events::KeyReleased>([this](auto& event) { return OnKeyReleased(event); });
+		eventDispatcher.Dispatch<Events::KeyTyped>([this](auto& event) { return OnKeyTyped(event); });
 		eventDispatcher.Dispatch<Events::WindowResized>([this](auto& event) { return OnWindowResized(event); });
 	}
 
 	bool ImGuiLayer::OnMouseMoved(Events::MouseMoved& event)
 	{
-		ImGuiIO& io    = ImGui::GetIO();
-		io.MousePos    = ImVec2(static_cast<float>(event.GetX()) * io.DisplayFramebufferScale.x,
-		                        static_cast<float>(event.GetY()) * io.DisplayFramebufferScale.y);
+		ImGuiIO& io = ImGui::GetIO();
+		io.MousePos = ImVec2(static_cast<float>(event.GetX()) * io.DisplayFramebufferScale.x,
+		                     static_cast<float>(event.GetY()) * io.DisplayFramebufferScale.y);
 
 		return false;
 	}
@@ -291,32 +374,31 @@ namespace Poly
 
 	bool ImGuiLayer::OnKeyPressed(Events::KeyPressed& event)
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		AddKeyEvent(event.GetKey(), event.GetKeyModifier(), true);
 
-		if (!io.WantCaptureKeyboard)
-			return false;
-
-		// Not implemented yet
-
-		return false;
+		return ImGui::GetIO().WantCaptureKeyboard;
 	}
 
 	bool ImGuiLayer::OnKeyReleased(Events::KeyReleased& event)
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		AddKeyEvent(event.GetKey(), event.GetKeyModifier(), false);
 
-		if (!io.WantCaptureKeyboard)
-			return false;
-
-		// Not implemented yet
-
+		// Never consumed, a layer that saw the press must also see the release
 		return false;
+	}
+
+	bool ImGuiLayer::OnKeyTyped(Events::KeyTyped& event)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		io.AddInputCharacter(event.GetCodepoint());
+
+		return io.WantTextInput;
 	}
 
 	bool ImGuiLayer::OnWindowResized(Events::WindowResized& event)
 	{
-		Window*  pWindow = Application::Get().GetWindow();
-		ImGuiIO& io      = ImGui::GetIO();
+		Window*  pWindow           = Application::Get().GetWindow();
+		ImGuiIO& io                = ImGui::GetIO();
 		io.DisplaySize             = ImVec2(static_cast<float>(event.GetWidth()), static_cast<float>(event.GetHeight()));
 		io.DisplayFramebufferScale = ImVec2(pWindow->GetContentScaleX(), pWindow->GetContentScaleY());
 

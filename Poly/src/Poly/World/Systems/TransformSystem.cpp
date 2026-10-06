@@ -11,7 +11,7 @@ namespace Poly
 	void TransformSystem::Update(World& world)
 	{
 		// TODO: Only resolve the subtrees of dirty entities instead of the whole world
-		if (world.View<DirtyTag>().empty())
+		if (!world.HasPendingChanges())
 			return;
 
 		auto hierarchies = world.View<HierarchyComponent>();

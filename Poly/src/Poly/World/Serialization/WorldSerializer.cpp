@@ -1,58 +1,105 @@
 #include "WorldSerializer.h"
 
-#include "Poly/Core/Serialization/YamlConversions.h"
-#include "Poly/Resources/AssetHandler.h"
-#include "Poly/Resources/AssetTypes/MaterialAsset.h"
-#include "Poly/Resources/AssetTypes/MeshAsset.h"
+#include "Poly/Poly/Format.h"
+#include "Poly/Reflection/ComponentRegistry.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "Poly/Scene/Components.h"
-#include "Poly/Scene/Components/MaterialComponent.h"
-#include "Poly/Scene/Components/MeshAssetComponent.h"
-#include "Poly/Scene/Components/NameComponent.h"
 
-#include <yaml-cpp/yaml.h>
-
-#include <unordered_map>
+#include <glaze/glaze.hpp>
+#include <glaze/yaml.hpp>
 #include <unordered_set>
+
+// Glaze cannot reflect types of an anonymous namespace
+namespace Poly::WorldSerializerDetail
+{
+	// Layout of a .polyworld file. The components of an entity are a map of component name to its fields
+	struct EntityFile
+	{
+		uint64       ID     = 0;
+		uint64       Parent = 0;
+		glz::generic Components;
+	};
+
+	struct WorldFile
+	{
+		uint32                  Version = 0;
+		std::string             World;
+		std::vector<EntityFile> Entities;
+	};
+} // namespace Poly::WorldSerializerDetail
 
 namespace
 {
-	template<typename AssetType>
-	void SerializeAssetPath(YAML::Emitter& out, const char* key, Poly::AssetHandle<AssetType> handle)
-	{
-		std::string path = Poly::AssetHandler::GetPath(handle);
-		if (path.empty())
-			POLY_CORE_WARN("Cannot serialize '{}', asset handle {} has no known path", key, handle.Get());
+	using Poly::WorldSerializerDetail::EntityFile;
+	using Poly::WorldSerializerDetail::WorldFile;
 
-		out << YAML::Key << key << YAML::Value << path;
+	void AppendIndented(std::string& out, std::string_view text, std::string_view indent)
+	{
+		while (!text.empty())
+		{
+			const size_t           lineEnd = text.find('\n');
+			const std::string_view line    = text.substr(0, lineEnd);
+			if (!line.empty())
+			{
+				out += indent;
+				out += line;
+				out += '\n';
+			}
+
+			if (lineEnd == std::string_view::npos)
+				break;
+			text.remove_prefix(lineEnd + 1);
+		}
 	}
 
-	template<typename AssetType>
-	bool DeserializeAssetPath(const YAML::Node& node, const char* key, Poly::AssetHandle<AssetType>& handle)
+	// Entities are written by hand rather than through EntityFile, the fields of a component are written by the
+	// component itself (ComponentDesc::ToYaml) and only need to be placed at the right indentation
+	// This is done to better format the file and to properly handle PolyID string to uint64 logic
+	void SerializeEntity(std::string& out, const Poly::World& world, entt::entity entity)
 	{
-		const std::string path = node[key].as<std::string>("");
-		if (path.empty())
-			return false;
+		auto hierarchies = world.View<Poly::IDComponent, Poly::HierarchyComponent>();
 
-		handle = Poly::AssetHandler::Load<AssetType>(path);
-		return handle.IsValid();
+		out += Poly::Format("  - ID: {}\n", static_cast<uint64>(hierarchies.get<Poly::IDComponent>(entity).ID));
+
+		const entt::entity parent = hierarchies.get<Poly::HierarchyComponent>(entity).Parent;
+		if (parent != entt::null)
+			out += Poly::Format("    Parent: {}\n", static_cast<uint64>(hierarchies.get<Poly::IDComponent>(parent).ID));
+
+		std::string components;
+		for (const Poly::Unique<Poly::ComponentDesc>& pComponent : Poly::ComponentRegistry::GetAll())
+		{
+			if (!pComponent->Has(world.GetEntity(entity)))
+				continue;
+
+			const std::string fields = pComponent->ToYaml(world.GetEntity(entity));
+			if (pComponent->TypeInfo.Fields.empty() || fields.empty())
+			{
+				components += Poly::Format("      {}: {{}}\n", pComponent->TypeInfo.Name);
+				continue;
+			}
+
+			components += Poly::Format("      {}:\n", pComponent->TypeInfo.Name);
+			AppendIndented(components, fields, "        ");
+		}
+
+		if (components.empty())
+		{
+			out += "    Components: {}\n";
+			return;
+		}
+
+		out += "    Components:\n";
+		out += components;
 	}
 } // namespace
 
 namespace Poly
 {
-	WorldSerializer::WorldSerializer()
+	bool WorldSerializer::Save(const World& world, std::string_view vfsPath)
 	{
-		RegisterBuiltInComponents();
-	}
-
-	bool WorldSerializer::Save(const World& world, std::string_view vfsPath) const
-	{
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "Version" << YAML::Value << FORMAT_VERSION;
-		out << YAML::Key << "World" << YAML::Value << world.GetName();
-		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+		std::string out;
+		out += Poly::Format("Version: {}\n", FORMAT_VERSION);
+		out += Poly::Format("World: {}\n", glz::write_yaml(world.GetName()).value_or("\"\""));
 
 		auto hierarchies = world.View<IDComponent, HierarchyComponent>();
 
@@ -66,7 +113,8 @@ namespace Poly
 		}
 		std::reverse(stack.begin(), stack.end());
 
-		std::vector<entt::entity> children;
+		out += stack.empty() ? "Entities: []\n" : "Entities:\n";
+
 		while (!stack.empty())
 		{
 			const entt::entity entity = stack.back();
@@ -74,30 +122,12 @@ namespace Poly
 
 			SerializeEntity(out, world, entity);
 
-			// Children form a circular list starting at First
-			children.clear();
-			const entt::entity first = hierarchies.get<HierarchyComponent>(entity).First;
-			for (entt::entity child = first; child != entt::null;)
-			{
-				children.push_back(child);
-
-				child = hierarchies.get<HierarchyComponent>(child).Next;
-				if (child == first)
-					break;
-			}
-			stack.insert(stack.end(), children.rbegin(), children.rend());
+			const std::vector<Entity> children = world.GetEntity(entity).GetChildren();
+			for (auto it = children.rbegin(); it != children.rend(); ++it)
+				stack.push_back(*it);
 		}
 
-		out << YAML::EndSeq;
-		out << YAML::EndMap;
-
-		if (!out.good())
-		{
-			POLY_CORE_WARN("Cannot save world '{}' to {}, yaml emitter failed: {}", world.GetName(), vfsPath, out.GetLastError());
-			return false;
-		}
-
-		if (!VirtualFileSystem::WriteText(vfsPath, out.c_str()))
+		if (!VirtualFileSystem::WriteText(vfsPath, out))
 		{
 			POLY_CORE_WARN("Cannot save world '{}', failed to write {}", world.GetName(), vfsPath);
 			return false;
@@ -106,7 +136,7 @@ namespace Poly
 		return true;
 	}
 
-	bool WorldSerializer::Load(World& world, std::string_view vfsPath) const
+	bool WorldSerializer::Load(World& world, std::string_view vfsPath)
 	{
 		if (!world.IsEmpty())
 		{
@@ -114,204 +144,128 @@ namespace Poly
 			return false;
 		}
 
-		if (!VirtualFileSystem::Exists(vfsPath))
+		const Result<WorldData> data = Read(vfsPath);
+		if (!data)
 		{
-			POLY_CORE_WARN("Cannot load world from {}, file cannot be found", vfsPath);
+			POLY_CORE_WARN("{}", data.error().Message);
 			return false;
 		}
 
-		struct EntityEntry
-		{
-			uint64     ID     = 0;
-			uint64     Parent = 0;
-			YAML::Node Components;
-		};
-
-		std::string              worldName;
-		std::vector<EntityEntry> entries;
-
-		// Read and validate everything before touching the world, so an invalid file leaves it untouched
-		try
-		{
-			const YAML::Node root = YAML::Load(VirtualFileSystem::ReadText(vfsPath));
-
-			const uint32 version = root["Version"].as<uint32>(0);
-			if (version != FORMAT_VERSION)
-			{
-				POLY_CORE_WARN("Cannot load world from {}, format version {} is not supported (expected {})", vfsPath, version, FORMAT_VERSION);
-				return false;
-			}
-
-			worldName = root["World"].as<std::string>(world.GetName());
-
-			const YAML::Node entitiesNode = root["Entities"];
-			if (entitiesNode && !entitiesNode.IsSequence())
-			{
-				POLY_CORE_WARN("Cannot load world from {}, 'Entities' is not a sequence", vfsPath);
-				return false;
-			}
-
-			std::unordered_set<uint64> ids;
-			for (const YAML::Node& entityNode : entitiesNode)
-			{
-				EntityEntry entry;
-				entry.ID         = entityNode["ID"].as<uint64>(0);
-				entry.Parent     = entityNode["Parent"].as<uint64>(0);
-				entry.Components = entityNode["Components"];
-
-				if (entry.ID == 0 || !ids.insert(entry.ID).second)
-				{
-					POLY_CORE_WARN("Cannot load world from {}, entity ID {} is missing or duplicated", vfsPath, entry.ID);
-					return false;
-				}
-
-				if (entry.Components && !entry.Components.IsMap())
-				{
-					POLY_CORE_WARN("Cannot load world from {}, 'Components' of entity {} is not a map", vfsPath, entry.ID);
-					return false;
-				}
-
-				entries.push_back(std::move(entry));
-			}
-
-			for (const EntityEntry& entry : entries)
-			{
-				if (entry.Parent != 0 && !ids.contains(entry.Parent))
-				{
-					POLY_CORE_WARN("Cannot load world from {}, parent {} of entity {} does not exist", vfsPath, entry.Parent, entry.ID);
-					return false;
-				}
-			}
-		}
-		catch (const YAML::Exception& e)
-		{
-			POLY_CORE_WARN("Cannot load world from {}, file is not valid yaml: {}", vfsPath, e.what());
-			return false;
-		}
-
-		world.SetName(worldName);
-
-		// Create all entities first, so parents can be resolved regardless of their order in the file
-		std::unordered_map<uint64, Entity> idToEntity;
-		idToEntity.reserve(entries.size());
-		for (const EntityEntry& entry : entries)
-			idToEntity.emplace(entry.ID, world.CreateEntity(PolyID(entry.ID)));
-
-		for (const EntityEntry& entry : entries)
-		{
-			Entity& entity = idToEntity.at(entry.ID);
-
-			// Appending in file order restores the sibling order
-			if (entry.Parent != 0)
-				entity.SetParent(idToEntity.at(entry.Parent));
-
-			for (const auto& componentNode : entry.Components)
-			{
-				const std::string     name       = componentNode.first.as<std::string>();
-				const ComponentEntry* pComponent = FindComponent(name);
-				if (!pComponent)
-				{
-					POLY_CORE_WARN("Skipping unknown component '{}' on entity {} in {}", name, entry.ID, vfsPath);
-					continue;
-				}
-
-				bool deserialized = false;
-				try
-				{
-					deserialized = pComponent->Deserialize(componentNode.second, entity);
-				}
-				catch (const YAML::Exception& e)
-				{
-					POLY_CORE_WARN("Component '{}' on entity {} in {} is not valid yaml: {}", name, entry.ID, vfsPath, e.what());
-				}
-
-				if (!deserialized)
-					POLY_CORE_WARN("Skipping component '{}' on entity {} in {}, it could not be deserialized", name, entry.ID, vfsPath);
-			}
-		}
-
+		Apply(world, *data);
 		return true;
 	}
 
-	void WorldSerializer::RegisterBuiltInComponents()
+	Result<WorldData> WorldSerializer::Read(std::string_view vfsPath)
 	{
-		RegisterComponent<NameComponent>(
-		    "Name",
-		    [](YAML::Emitter& out, const NameComponent& name) {
-			    out << YAML::Key << "Name" << YAML::Value << name.Name;
-		    },
-		    [](const YAML::Node& node, NameComponent& name) {
-			    name.Name = node["Name"].as<std::string>(name.Name);
-			    return true;
-		    });
+		if (!VirtualFileSystem::Exists(vfsPath))
+			return MakeError(ErrorCode::IOError, std::format("Cannot load world from {}, file cannot be found", vfsPath));
 
-		RegisterComponent<TransformComponent>(
-		    "Transform",
-		    [](YAML::Emitter& out, const TransformComponent& transform) {
-			    out << YAML::Key << "Translation" << YAML::Value << transform.Translation;
-			    out << YAML::Key << "Orientation" << YAML::Value << transform.Orientation;
-			    out << YAML::Key << "Scale" << YAML::Value << transform.Scale;
-		    },
-		    [](const YAML::Node& node, TransformComponent& transform) {
-			    transform.Translation = node["Translation"].as<glm::vec3>(transform.Translation);
-			    transform.Orientation = node["Orientation"].as<glm::quat>(transform.Orientation);
-			    transform.Scale       = node["Scale"].as<glm::vec3>(transform.Scale);
-			    return true;
-		    });
+		const std::string text = VirtualFileSystem::ReadText(vfsPath);
 
-		RegisterComponent<MeshAssetComponent>(
-		    "MeshAsset",
-		    [](YAML::Emitter& out, const MeshAssetComponent& mesh) {
-			    SerializeAssetPath(out, "Mesh", mesh.MeshHandle);
-		    },
-		    [](const YAML::Node& node, MeshAssetComponent& mesh) {
-			    return DeserializeAssetPath(node, "Mesh", mesh.MeshHandle);
-		    });
+		WorldFile file;
+		if (const glz::error_ctx error = glz::read_yaml(file, text))
+			return MakeError(ErrorCode::InvalidValue, std::format("Cannot load world from {}, file is not a valid world:\n{}", vfsPath, glz::format_error(error, text)));
 
-		RegisterComponent<MaterialComponent>(
-		    "Material",
-		    [](YAML::Emitter& out, const MaterialComponent& material) {
-			    SerializeAssetPath(out, "Material", material.MaterialHandle);
-		    },
-		    [](const YAML::Node& node, MaterialComponent& material) {
-			    return DeserializeAssetPath(node, "Material", material.MaterialHandle);
-		    });
-	}
+		if (file.Version != FORMAT_VERSION)
+			return MakeError(ErrorCode::InvalidValue, std::format("Cannot load world from {}, format version {} is not supported (expected {})", vfsPath, file.Version, FORMAT_VERSION));
 
-	const WorldSerializer::ComponentEntry* WorldSerializer::FindComponent(std::string_view name) const
-	{
-		for (const ComponentEntry& component : m_Components)
+		// Validate everything up front, so an invalid file never ends up half applied to a world
+		std::unordered_set<uint64> ids;
+		for (const EntityFile& entity : file.Entities)
 		{
-			if (component.Name == name)
-				return &component;
+			if (entity.ID == 0 || !ids.insert(entity.ID).second)
+				return MakeError(ErrorCode::InvalidValue, std::format("Cannot load world from {}, entity ID {} is missing or duplicated", vfsPath, entity.ID));
+
+			if (!entity.Components.is_null() && !entity.Components.is_object())
+				return MakeError(ErrorCode::InvalidValue, std::format("Cannot load world from {}, 'Components' of entity {} is not a map", vfsPath, entity.ID));
 		}
 
-		return nullptr;
+		WorldData data;
+		data.Name = std::move(file.World);
+		data.Entities.reserve(file.Entities.size());
+
+		for (const EntityFile& entity : file.Entities)
+		{
+			if (entity.Parent != 0 && !ids.contains(entity.Parent))
+				return MakeError(ErrorCode::InvalidValue, std::format("Cannot load world from {}, parent {} of entity {} does not exist", vfsPath, entity.Parent, entity.ID));
+
+			EntityData entityData;
+			entityData.ID     = PolyID(entity.ID);
+			entityData.Parent = PolyID(entity.Parent);
+
+			if (entity.Components.is_object())
+			{
+				for (const auto& [name, fields] : entity.Components.get_object())
+					entityData.Components.emplace_back(name, fields.is_null() ? "{}" : fields.dump().value_or("{}"));
+			}
+
+			data.Entities.push_back(std::move(entityData));
+		}
+
+		return data;
 	}
 
-	void WorldSerializer::SerializeEntity(YAML::Emitter& out, const World& world, entt::entity entity) const
+	void WorldSerializer::Apply(World& world, const WorldData& data)
 	{
-		auto hierarchies = world.View<IDComponent, HierarchyComponent>();
+		world.SetName(data.Name);
 
-		out << YAML::BeginMap;
-		out << YAML::Key << "ID" << YAML::Value << static_cast<uint64>(hierarchies.get<IDComponent>(entity).ID);
+		// Create all entities first, so parents can be resolved regardless of their order in the data
+		std::vector<Entity> entities;
+		entities.reserve(data.Entities.size());
+		for (const EntityData& entityData : data.Entities)
+			entities.push_back(world.CreateEntity(entityData.ID));
 
-		const entt::entity parent = hierarchies.get<HierarchyComponent>(entity).Parent;
-		if (parent != entt::null)
-			out << YAML::Key << "Parent" << YAML::Value << static_cast<uint64>(hierarchies.get<IDComponent>(parent).ID);
-
-		out << YAML::Key << "Components" << YAML::Value << YAML::BeginMap;
-		for (const ComponentEntry& component : m_Components)
+		for (size_t i = 0; i < data.Entities.size(); i++)
 		{
-			if (!component.Has(world, entity))
+			const EntityData& entityData = data.Entities[i];
+			Entity            entity     = entities[i];
+
+			// Appending in data order restores the sibling order
+			if (entityData.Parent != PolyID::None())
+				entity.SetParent(world.FindEntity(entityData.Parent));
+
+			ApplyComponents(entity, entityData);
+		}
+	}
+
+	EntityData WorldSerializer::CaptureEntity(Entity entity)
+	{
+		EntityData data;
+		data.ID = entity.GetPolyID();
+
+		if (Entity parent = entity.GetParent(); parent.IsValid())
+			data.Parent = parent.GetPolyID();
+
+		for (const Unique<ComponentDesc>& pComponent : ComponentRegistry::GetAll())
+		{
+			if (pComponent->Has(entity))
+				data.Components.emplace_back(pComponent->TypeInfo.Name, pComponent->ToJson(entity));
+		}
+
+		return data;
+	}
+
+	void WorldSerializer::ApplyComponents(Entity entity, const EntityData& data)
+	{
+		for (const auto& [name, json] : data.Components)
+		{
+			const ComponentDesc* pComponent = ComponentRegistry::Find(name);
+			if (!pComponent)
+			{
+				POLY_CORE_WARN("Skipping unknown component '{}' on entity {}", name, data.ID);
 				continue;
+			}
 
-			out << YAML::Key << component.Name << YAML::Value << YAML::BeginMap;
-			component.Serialize(out, world, entity);
-			out << YAML::EndMap;
+			const bool hadComponent = pComponent->Has(entity);
+			if (!hadComponent)
+				pComponent->Add(entity);
+
+			if (const Result<void> result = pComponent->FromJson(entity, json); !result)
+			{
+				POLY_CORE_WARN("Skipping component '{}' on entity {}, it could not be read:\n{}", name, data.ID, result.error().Message);
+				if (!hadComponent)
+					pComponent->Remove(entity);
+			}
 		}
-		out << YAML::EndMap;
-
-		out << YAML::EndMap;
 	}
 } // namespace Poly

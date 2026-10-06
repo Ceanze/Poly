@@ -23,6 +23,18 @@ namespace
 
 	// TODO: Point this at a real default texture (white/flat-normal) once ResourceManager has one.
 	constexpr uint32 kInvalidTextureIndex = ~0u;
+
+	void UploadWholeBuffer(Poly::BufferHandle& handle, const void* pData, uint64 size, const char* pDebugName)
+	{
+		const Poly::Buffer* pBuffer = Poly::ResourceManager::Resolve(handle);
+		if (!pBuffer || pBuffer->GetDesc().Size < size)
+		{
+			Poly::ResourceManager::Destroy(handle);
+			handle = Poly::ResourceManager::CreateStorageBuffer(size, Poly::EMemoryUsage::CPU_VISIBLE, pDebugName);
+		}
+
+		Poly::ResourceManager::UploadBufferData(handle, pData, size);
+	}
 } // namespace
 
 namespace Poly
@@ -40,7 +52,7 @@ namespace Poly
 
 	void RenderSystem::Update(World& world)
 	{
-		if (!m_NeedsRebuild && world.View<DirtyTag>().empty())
+		if (!m_NeedsRebuild && !world.HasPendingChanges())
 			return;
 
 		m_NeedsRebuild = false;
@@ -188,18 +200,7 @@ namespace Poly
 
 	void RenderSystem::UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials)
 	{
-		const uint64 instanceSize = sizeof(GPUInstanceData) * instances.size();
-		if (!m_InstanceBufferHandle.IsValid())
-			m_InstanceBufferHandle = ResourceManager::CreateStorageBuffer(instanceSize, EMemoryUsage::CPU_VISIBLE, "RenderSystem.Instances");
-		else
-			m_InstanceBufferHandle = ResourceManager::ResizeBuffer(m_InstanceBufferHandle, instanceSize);
-		ResourceManager::UploadBufferData(m_InstanceBufferHandle, instances.data(), instanceSize);
-
-		const uint64 materialSize = sizeof(GPUMaterialData) * materials.size();
-		if (!m_MaterialBufferHandle.IsValid())
-			m_MaterialBufferHandle = ResourceManager::CreateStorageBuffer(materialSize, EMemoryUsage::CPU_VISIBLE, "RenderSystem.Materials");
-		else
-			m_MaterialBufferHandle = ResourceManager::ResizeBuffer(m_MaterialBufferHandle, materialSize);
-		ResourceManager::UploadBufferData(m_MaterialBufferHandle, materials.data(), materialSize);
+		UploadWholeBuffer(m_InstanceBufferHandle, instances.data(), sizeof(GPUInstanceData) * instances.size(), "RenderSystem.Instances");
+		UploadWholeBuffer(m_MaterialBufferHandle, materials.data(), sizeof(GPUMaterialData) * materials.size(), "RenderSystem.Materials");
 	}
 } // namespace Poly

@@ -43,17 +43,42 @@ namespace Poly
 		m_Registry.emplace<IDComponent>(entity, id);
 		m_Registry.emplace<DirtyTag>(entity);
 
+		m_IDToEntity[id] = entity;
+
 		return Entity({m_Registry, entity});
 	}
 
 	void World::DestroyEntity(Entity entity)
 	{
-		m_Registry.destroy(entity);
+		if (!entity.IsValid())
+			return;
+
+		entity.RemoveFromParent();
+		DestroySubtree(entity);
 	}
 
-	Entity World::GetEntity(entt::entity entity)
+	void World::Clear()
 	{
-		return Entity({m_Registry, entity});
+		m_Registry.clear();
+		m_IDToEntity.clear();
+		m_EntitiesDestroyed = true;
+	}
+
+	Entity World::GetEntity(entt::entity entity) const
+	{
+		// Entity is a handle, it needs the mutable registry even when only used for reading
+		return Entity({const_cast<entt::registry&>(m_Registry), entity});
+	}
+
+	Entity World::FindEntity(PolyID id) const
+	{
+		auto it = m_IDToEntity.find(id);
+		return it != m_IDToEntity.end() ? GetEntity(it->second) : Entity::None();
+	}
+
+	bool World::HasPendingChanges() const
+	{
+		return m_EntitiesDestroyed || !View<DirtyTag>().empty();
 	}
 
 	Entity World::Instantiate(AssetHandle<SceneAsset> sceneAssetHandle, Entity parent)
@@ -92,6 +117,18 @@ namespace Poly
 		}
 
 		m_Registry.clear<DirtyTag>();
+		m_EntitiesDestroyed = false;
+	}
+
+	void World::DestroySubtree(entt::entity entity)
+	{
+		// The links of the children are not maintained while destroying, the whole subtree goes away
+		for (Entity child : GetEntity(entity).GetChildren())
+			DestroySubtree(child);
+
+		m_IDToEntity.erase(m_Registry.get<IDComponent>(entity).ID);
+		m_Registry.destroy(entity);
+		m_EntitiesDestroyed = true;
 	}
 
 	Entity World::InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent)

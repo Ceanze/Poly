@@ -47,17 +47,34 @@ namespace Poly
 		Entity CreateEntity(PolyID id);
 
 		/**
-		 * Destroys a previously created entity
+		 * Destroys a previously created entity together with all of its children, and unlinks it from its parent
 		 * @param entity - entity to destroy
 		 */
 		void DestroyEntity(Entity entity);
+
+		/**
+		 * Destroys all entities of the world. Systems are kept
+		 */
+		void Clear();
 
 		/**
 		 * Wraps a raw entity of this world, e.g. one from a View(), in an Entity
 		 * @param entity - raw entity belonging to this world
 		 * @return entity
 		 */
-		Entity GetEntity(entt::entity entity);
+		Entity GetEntity(entt::entity entity) const;
+
+		/**
+		 * Finds the entity with the given ID
+		 * @param id - ID of the entity
+		 * @return the entity, or Entity::None() if the world has no entity with that ID
+		 */
+		Entity FindEntity(PolyID id) const;
+
+		/**
+		 * @return true if any entity was tagged dirty or destroyed since the last Update()
+		 */
+		bool HasPendingChanges() const;
 
 		/**
 		 * Instantiates the node hierarchy of a scene asset into the world
@@ -244,8 +261,13 @@ namespace Poly
 
 		Entity InstantiateNode(SceneAsset* pSceneAsset, uint32 nodeIndex, Entity parent);
 
+		void DestroySubtree(entt::entity entity);
+
 		entt::registry m_Registry;
 		std::string    m_Name;
+
+		std::unordered_map<PolyID, entt::entity> m_IDToEntity;
+		bool                                     m_EntitiesDestroyed = false;
 
 		std::array<std::vector<SystemEntry>, static_cast<size_t>(Phase::Count)> m_Systems;
 		std::unordered_map<std::type_index, Ref<void>>                          m_SystemLookup;

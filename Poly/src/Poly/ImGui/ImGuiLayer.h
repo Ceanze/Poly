@@ -15,6 +15,7 @@ namespace Poly
 		class MouseScrolled;
 		class KeyPressed;
 		class KeyReleased;
+		class KeyTyped;
 		class WindowResized;
 	} // namespace Events
 
@@ -63,6 +64,7 @@ namespace Poly
 		bool OnMouseScrolled(Events::MouseScrolled& event);
 		bool OnKeyPressed(Events::KeyPressed& event);
 		bool OnKeyReleased(Events::KeyReleased& event);
+		bool OnKeyTyped(Events::KeyTyped& event);
 		bool OnWindowResized(Events::WindowResized& event);
 
 		TextureHandle m_FontTextureHandle;
