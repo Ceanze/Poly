@@ -33,7 +33,6 @@ namespace Editor
 		void OnEvent(Poly::Event& event) override;
 
 	private:
-		void RegisterGeometryFeature();
 		void DrawMenuBar();
 		void DrawPathPopup();
 		void HandleShortcuts();

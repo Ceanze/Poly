@@ -1,12 +1,11 @@
 #include "EditorLayer.h"
 
-#include <Platform/API/CommandBuffer.h>
 #include <Poly/Core/Application.h>
 #include <Poly/Core/Window.h>
 #include <Poly/ImGui/ImGuiLayer.h>
-#include <Poly/RenderGraph/ExecuteContext.h>
 #include <Poly/RenderGraph/Feature/FeaturePort.h>
 #include <Poly/RenderGraph/RenderCatalog.h>
+#include <Poly/Rendering/Features/GeometryFeature.h>
 #include <Poly/Rendering/Renderer.h>
 #include <Poly/World/Systems/RenderSystem.h>
 
@@ -52,11 +51,11 @@ namespace Editor
 		// Registers the scene resources in the catalog, so it has to be added before the render program is built
 		m_Context.GetWorld().AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
 
-		RegisterGeometryFeature();
+		Poly::GeometryFeature::Register(*m_pCatalog);
 		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
 
 		Poly::Ref<Poly::RenderProgram> pProgram = m_Graph.Begin()
-		                                              .AddFeature("geometry")
+		                                              .AddFeature(Poly::GeometryFeature::FEATURE_NAME)
 		                                              .AddFeature(Poly::ImGuiLayer::FEATURE_NAME)
 		                                              .WithFinalState(Poly::ToSemanticName(Poly::EFeaturePort::Color), Poly::FResourceState::Present)
 		                                              .Build();
@@ -69,8 +68,8 @@ namespace Editor
 		LightBuffer lights = {};
 		Poly::ResourceManager::UploadBufferData(m_LightsBufferHandle, &lights, sizeof(LightBuffer));
 
-		m_ViewResources.Set("Camera", m_CameraBufferHandle);
-		m_ViewResources.Set("Lights", m_LightsBufferHandle);
+		m_ViewResources.Set(Poly::GeometryFeature::CAMERA_RESOURCE_NAME, m_CameraBufferHandle);
+		m_ViewResources.Set(Poly::GeometryFeature::LIGHTS_RESOURCE_NAME, m_LightsBufferHandle);
 
 		m_EventSubscription = m_Context.Events().Subscribe([this](const Poly::API::ApiEvent& event) { OnApiEvent(event); });
 
@@ -110,38 +109,6 @@ namespace Editor
 		eventDispatcher.Dispatch<Poly::Events::WindowResized>([this](Poly::Events::WindowResized& event) { return OnWindowResized(event); });
 		eventDispatcher.Dispatch<Poly::Events::MouseButtonPressed>([this](Poly::Events::MouseButtonPressed& event) { return OnMouseButton(event.GetButton(), true); });
 		eventDispatcher.Dispatch<Poly::Events::MouseButtonReleased>([this](Poly::Events::MouseButtonReleased& event) { return OnMouseButton(event.GetButton(), false); });
-	}
-
-	// Same geometry pass as the Sandbox, see the notes there about the order of the MapGlobal() calls
-	void EditorLayer::RegisterGeometryFeature()
-	{
-		m_Graph.RegisterResource("Camera").WithType(Poly::EResourceType::UniformBuffer);
-		m_Graph.RegisterResource("Lights").WithType(Poly::EResourceType::StorageBuffer);
-
-		m_Graph.RegisterPass("pbr")
-		    .WithShader("assets/shaders/pbr_bindless.vert")
-		    .WithShader("assets/shaders/pbr_bindless.frag")
-		    .MapResource(Poly::EFeaturePort::Color, "out_Color")
-		    .MapResource(Poly::EFeaturePort::Depth, "depth")
-		    .MapGlobal("Camera", "camera")
-		    .MapGlobal(Poly::RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
-		    .MapGlobal(Poly::RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
-		    .MapGlobal("Lights", "lights")
-		    .MapGlobal(Poly::RenderSystem::MATERIAL_RESOURCE_NAME, "materialProps")
-		    .WithExecuteFn([](Poly::ExecuteContext& ctx) {
-			    const Poly::World*        pWorld        = ctx.GetWorld();
-			    const Poly::RenderSystem* pRenderSystem = pWorld ? pWorld->GetSystem<Poly::RenderSystem>() : nullptr;
-			    // An empty world has nothing to draw, and no geometry might have been loaded yet for the index buffer to exist
-			    if (!pRenderSystem || pRenderSystem->GetDrawBatches().empty())
-				    return;
-
-			    Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
-			    pCmd->BindIndexBuffer(pRenderSystem->GetIndexBuffer(), 0, Poly::EIndexType::UINT32);
-			    for (const Poly::DrawBatch& batch : pRenderSystem->GetDrawBatches())
-				    pCmd->DrawIndexedInstanced(batch.IndexCount, batch.InstanceCount, batch.BaseIndex, batch.BaseVertex, batch.FirstInstance);
-		    });
-
-		m_Graph.RegisterFeature("geometry").WithPass("pbr");
 	}
 
 	void EditorLayer::DrawMenuBar()

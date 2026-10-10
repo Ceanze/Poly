@@ -18,11 +18,11 @@ namespace Poly
 	{
 		const std::string extension = PathUtils::GetExtension(shaderPath);
 
-		if (extension == "vert")
+		if (extension == ".vert")
 			return WithShader(shaderPath, FShaderStage::VERTEX);
-		if (extension == "frag")
+		if (extension == ".frag")
 			return WithShader(shaderPath, FShaderStage::FRAGMENT);
-		if (extension == "comp")
+		if (extension == ".comp")
 			return WithShader(shaderPath, FShaderStage::COMPUTE);
 
 		POLY_CORE_ERROR("Pass '{}': cannot tell the stage of shader '{}' from its extension, pass the stage explicitly; skipping.", m_Name, shaderPath);

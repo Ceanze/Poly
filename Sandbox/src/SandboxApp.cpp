@@ -1,4 +1,3 @@
-#include "Platform/API/CommandBuffer.h"
 #include "Poly.h"
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Core/Logger.h"
@@ -7,12 +6,12 @@
 #include "Poly/Events/MouseEvent.h"
 #include "Poly/Events/WindowEvent.h"
 #include "Poly/ImGui/ImGuiLayer.h"
-#include "Poly/RenderGraph/ExecuteContext.h"
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/RenderGraph.h"
 #include "Poly/RenderGraph/RenderResourceTable.h"
 #include "Poly/RenderGraph/ResourceManager.h"
+#include "Poly/Rendering/Features/GeometryFeature.h"
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
@@ -67,11 +66,11 @@ public:
 		// serializer.Save(m_World, "assets/worlds/TestWorld.polyworld");
 		serializer.Load(m_World, "assets/worlds/TestWorld.polyworld");
 
-		RegisterGeometryFeature();
+		Poly::GeometryFeature::Register(*m_pCatalog);
 		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
 
 		Poly::Ref<Poly::RenderProgram> pProgram = m_Graph.Begin()
-		                                              .AddFeature("geometry")
+		                                              .AddFeature(Poly::GeometryFeature::FEATURE_NAME)
 		                                              .AddFeature(Poly::ImGuiLayer::FEATURE_NAME)
 		                                              .WithFinalState(Poly::ToSemanticName(Poly::EFeaturePort::Color), Poly::FResourceState::Present)
 		                                              .Build();
@@ -84,8 +83,8 @@ public:
 		LightBuffer lights = {};
 		Poly::ResourceManager::UploadBufferData(m_LightsBufferHandle, &lights, sizeof(LightBuffer));
 
-		m_ViewResources.Set("Camera", m_CameraBufferHandle);
-		m_ViewResources.Set("Lights", m_LightsBufferHandle);
+		m_ViewResources.Set(Poly::GeometryFeature::CAMERA_RESOURCE_NAME, m_CameraBufferHandle);
+		m_ViewResources.Set(Poly::GeometryFeature::LIGHTS_RESOURCE_NAME, m_LightsBufferHandle);
 	}
 
 	void OnUpdate(Poly::Timestamp dt) override
@@ -112,39 +111,6 @@ public:
 	}
 
 private:
-	// Scene resources (scene.*) are registered by the RenderSystem.
-	// Until slang, the shader's bufferAddresses[] slots are assigned in MapGlobal() call order, so the order of the
-	// MapGlobal() calls below is load bearing: Camera(0), scene.vertices(1), scene.instances(2), Lights(3), scene.materials(4).
-	void RegisterGeometryFeature()
-	{
-		m_Graph.RegisterResource("Camera").WithType(Poly::EResourceType::UniformBuffer);
-		m_Graph.RegisterResource("Lights").WithType(Poly::EResourceType::StorageBuffer);
-
-		m_Graph.RegisterPass("pbr")
-		    .WithShader("assets/shaders/pbr_bindless.vert")
-		    .WithShader("assets/shaders/pbr_bindless.frag")
-		    .MapResource(Poly::EFeaturePort::Color, "out_Color")
-		    .MapResource(Poly::EFeaturePort::Depth, "depth")
-		    .MapGlobal("Camera", "camera")
-		    .MapGlobal(Poly::RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
-		    .MapGlobal(Poly::RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
-		    .MapGlobal("Lights", "lights")
-		    .MapGlobal(Poly::RenderSystem::MATERIAL_RESOURCE_NAME, "materialProps")
-		    .WithExecuteFn([](Poly::ExecuteContext& ctx) {
-			    const Poly::World*        pWorld        = ctx.GetWorld();
-			    const Poly::RenderSystem* pRenderSystem = pWorld ? pWorld->GetSystem<Poly::RenderSystem>() : nullptr;
-			    if (!pRenderSystem)
-				    return;
-
-			    Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
-			    pCmd->BindIndexBuffer(pRenderSystem->GetIndexBuffer(), 0, Poly::EIndexType::UINT32);
-			    for (const Poly::DrawBatch& batch : pRenderSystem->GetDrawBatches())
-				    pCmd->DrawIndexedInstanced(batch.IndexCount, batch.InstanceCount, batch.BaseIndex, batch.BaseVertex, batch.FirstInstance);
-		    });
-
-		m_Graph.RegisterFeature("geometry").WithPass("pbr");
-	}
-
 	void DrawUI()
 	{
 		// TODO: replace with real UI content; demo window only proves font-only text/widget rendering works.
