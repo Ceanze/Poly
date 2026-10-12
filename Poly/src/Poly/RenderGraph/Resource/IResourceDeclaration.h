@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ResourceScope.h"
 #include "ResourceState.h"
 #include "ResourceType.h"
 
@@ -34,8 +35,19 @@ namespace Poly
 		 */
 		virtual IResourceDeclaration& WithSize(uint32 width, uint32 height) = 0;
 
+		/*
+		 * Sets the scope of the resource, which decides who provides it and whether views or worlds rendered
+		 * by the same render program share it. Defaults to EResourceScope::Global.
+		 * A resource read by the passes of a view stage as EResourceScope::View can be bound to the target of
+		 * another view through RenderView::GetResources(), the reading view is then rendered after that view.
+		 * @param scope The scope of the resource.
+		 * @return Reference to the resource declaration for chaining.
+		 */
+		virtual IResourceDeclaration& WithScope(EResourceScope scope) = 0;
+
 		virtual EResourceType  GetResourceType() const = 0;
 		virtual FResourceState GetInitialState() const = 0;
+		virtual EResourceScope GetScope() const        = 0;
 		virtual uint32         GetWidth() const        = 0;
 		virtual uint32         GetHeight() const       = 0;
 		virtual bool           HasSize() const         = 0;

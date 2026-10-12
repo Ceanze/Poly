@@ -2,9 +2,11 @@
 #include "Poly/Resources/AssetTypes/MaterialAsset.h"
 #include "Poly/Resources/AssetTypes/MeshAsset.h"
 #include "Poly/Scene/Components.h"
+#include "Poly/Scene/Components/CameraComponent.h"
 #include "Poly/Scene/Components/MaterialComponent.h"
 #include "Poly/Scene/Components/MeshAssetComponent.h"
 #include "Poly/Scene/Components/NameComponent.h"
+#include "Poly/Scene/Components/PointLightComponent.h"
 
 template<>
 struct glz::meta<Poly::MeshAssetComponent>
@@ -33,5 +35,7 @@ namespace Poly
 		RegisterComponent<TransformComponent>("Transform", {.Addable = false, .Removable = false}); // Every entity has one
 		RegisterComponent<MeshAssetComponent>("MeshAsset");
 		RegisterComponent<MaterialComponent>("Material");
+		RegisterComponent<CameraComponent>("Camera");
+		RegisterComponent<PointLightComponent>("PointLight");
 	}
 } // namespace Poly

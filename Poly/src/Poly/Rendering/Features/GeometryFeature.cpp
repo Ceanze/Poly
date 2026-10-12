@@ -4,28 +4,29 @@
 #include "Poly/RenderGraph/ExecuteContext.h"
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/RenderGraph/RenderCatalog.h"
+#include "Poly/Rendering/Renderer.h"
+#include "Poly/World/Systems/LightSystem.h"
 #include "Poly/World/Systems/RenderSystem.h"
 #include "Poly/World/World.h"
 
 namespace Poly
 {
-	// Scene resources (scene.*) are registered by the RenderSystem.
+	// Scene resources (scene.*) are registered by the RenderSystem and the LightSystem.
 	// Until slang, the shader's bufferAddresses[] slots are assigned in MapGlobal() call order, so the order of the
-	// MapGlobal() calls below is load bearing: Camera(0), scene.vertices(1), scene.instances(2), Lights(3), scene.materials(4).
+	// MapGlobal() calls below is load bearing: view.camera(0), scene.vertices(1), scene.instances(2), scene.lights(3), scene.materials(4).
 	void GeometryFeature::Register(RenderCatalog& catalog)
 	{
-		catalog.RegisterResource(CAMERA_RESOURCE_NAME).WithType(EResourceType::UniformBuffer);
-		catalog.RegisterResource(LIGHTS_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
+		catalog.RegisterResource(Renderer::CAMERA_RESOURCE_NAME).WithType(EResourceType::UniformBuffer).WithScope(EResourceScope::View);
 
 		catalog.RegisterPass("pbr")
 		    .WithShader("assets/shaders/pbr_bindless.vert")
 		    .WithShader("assets/shaders/pbr_bindless.frag")
 		    .MapResource(EFeaturePort::Color, "out_Color")
 		    .MapResource(EFeaturePort::Depth, "depth")
-		    .MapGlobal(CAMERA_RESOURCE_NAME, "camera")
+		    .MapGlobal(Renderer::CAMERA_RESOURCE_NAME, "camera")
 		    .MapGlobal(RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
 		    .MapGlobal(RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
-		    .MapGlobal(LIGHTS_RESOURCE_NAME, "lights")
+		    .MapGlobal(LightSystem::LIGHTS_RESOURCE_NAME, "lights")
 		    .MapGlobal(RenderSystem::MATERIAL_RESOURCE_NAME, "materialProps")
 		    .WithExecuteFn([](ExecuteContext& ctx) {
 			    const World*        pWorld        = ctx.GetWorld();

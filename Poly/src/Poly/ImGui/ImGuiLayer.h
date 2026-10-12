@@ -25,9 +25,9 @@ namespace Poly
 	 *
 	 * Usage:
 	 *
-	 *   // Before building the render program
+	 *   // Before building the render plan
 	 *   Application::Get().GetImGuiLayer()->RegisterRenderFeature(catalog);
-	 *   graph.Begin().AddFeature(ImGuiLayer::FEATURE_NAME)...Build();
+	 *   graph.BeginRenderPlan()...AddFrameFeature(ImGuiLayer::FEATURE_NAME).Build();
 	 */
 	class ImGuiLayer : public Layer
 	{
@@ -53,7 +53,7 @@ namespace Poly
 
 		/*
 		 * Registers the UI resources, the "ui" pass and the FEATURE_NAME feature in the catalog.
-		 * @param catalog - catalog the render program will be built from
+		 * @param catalog - catalog the render plan will be built from
 		 */
 		void RegisterRenderFeature(RenderCatalog& catalog);
 

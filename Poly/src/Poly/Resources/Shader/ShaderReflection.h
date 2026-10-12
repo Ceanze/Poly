@@ -27,7 +27,7 @@ namespace Poly
 	// Describes where the shared BINDLESS_PUSH_CONSTANTS macro's textureIndices[]/bufferAddresses[]
 	// arrays sit within this shader's push-constant block, if present (see plans/bindless.md).
 	// Reflection only confirms the fixed layout is there and reports the offsets/counts - it does not
-	// know which render-graph resource maps to which array slot (that's RenderProgramBuilder's job).
+	// know which render-graph resource maps to which array slot (that's RenderPlanBuilder's job).
 	struct ShaderBindlessLayout
 	{
 		bool   HasTextureSlots    = false;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Poly/Core/Handle.h"
-#include "RenderView.h"
+#include "RenderViewContext.h"
 
 #include <string>
 #include <string_view>
@@ -27,7 +27,7 @@ namespace Poly
 	{
 	public:
 		ExecuteContext(CommandBuffer*              pCmdBuffer,
-		               const RenderView&           view,
+		               const RenderViewContext&    view,
 		               PipelineLayout*             pPipelineLayout,
 		               uint32                      textureSlotOffset,
 		               std::vector<DeclaredBuffer> declaredBuffers = {})
@@ -47,20 +47,24 @@ namespace Poly
 		 */
 		Buffer* GetBuffer(std::string_view resourceName) const;
 
-		CommandBuffer*    GetCommandBuffer() const { return m_pCmdBuffer; }
-		const RenderView& GetView() const { return m_View; }
+		CommandBuffer* GetCommandBuffer() const { return m_pCmdBuffer; }
 
 		/*
-		 * Gets the world submitted for this frame. Read-only, as passes may be recorded concurrently.
-		 * @return The world, or nullptr if no world was submitted for the window being rendered this frame.
+		 * Gets the view the pass is recorded for. Passes of a frame feature get the window as their view.
+		 */
+		const RenderViewContext& GetView() const { return m_View; }
+
+		/*
+		 * Gets the world of the view the pass is recorded for. Read-only, as passes may be recorded concurrently.
+		 * @return The world, or nullptr for the passes of a frame feature.
 		 */
 		const World* GetWorld() const { return m_View.pWorld; }
 
 	private:
-		CommandBuffer*    m_pCmdBuffer;
-		const RenderView& m_View;
-		PipelineLayout*   m_pPipelineLayout;
-		uint32            m_TextureSlotOffset;
+		CommandBuffer*           m_pCmdBuffer;
+		const RenderViewContext& m_View;
+		PipelineLayout*          m_pPipelineLayout;
+		uint32                   m_TextureSlotOffset;
 
 		std::vector<DeclaredBuffer> m_DeclaredBuffers;
 	};

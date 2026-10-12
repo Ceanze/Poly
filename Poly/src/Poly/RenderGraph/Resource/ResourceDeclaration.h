@@ -13,11 +13,13 @@ namespace Poly
 		ResourceDeclaration& WithType(EResourceType type) override;
 		ResourceDeclaration& WithInitialState(FResourceState state) override;
 		ResourceDeclaration& WithSize(uint32 width, uint32 height) override;
+		ResourceDeclaration& WithScope(EResourceScope scope) override;
 
 		std::string_view GetName() const { return m_Name; }
 
 		EResourceType  GetResourceType() const override { return m_ResourceType; }
 		FResourceState GetInitialState() const override { return m_InitialState; }
+		EResourceScope GetScope() const override { return m_Scope; }
 		uint32         GetWidth() const override { return m_Width; }
 		uint32         GetHeight() const override { return m_Height; }
 		bool           HasSize() const override { return m_Width != 0 && m_Height != 0; }
@@ -27,6 +29,7 @@ namespace Poly
 
 		EResourceType  m_ResourceType{EResourceType::None};
 		FResourceState m_InitialState{FResourceState::Unknown};
+		EResourceScope m_Scope{EResourceScope::Global};
 		uint32         m_Width  = 0;
 		uint32         m_Height = 0;
 	};

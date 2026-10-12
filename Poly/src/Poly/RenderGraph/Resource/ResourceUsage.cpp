@@ -27,10 +27,9 @@ namespace Poly
 		}
 	}
 
-	bool IsAttachmentSemanticPort(const std::string& resolvedName)
+	bool IsAttachmentSemanticPort(EFeaturePort semantic)
 	{
-		return resolvedName == ToSemanticName(EFeaturePort::Color) || resolvedName == ToSemanticName(EFeaturePort::Depth) ||
-		       resolvedName == ToSemanticName(EFeaturePort::Stencil);
+		return semantic == EFeaturePort::Color || semantic == EFeaturePort::Depth || semantic == EFeaturePort::Stencil;
 	}
 
 	FPipelineStage DerivePassShaderStages(const std::vector<std::pair<std::string, FShaderStage>>& shaders)
@@ -49,19 +48,18 @@ namespace Poly
 		return stages == FPipelineStage::NONE ? FPipelineStage::ALL_COMMANDS : stages;
 	}
 
-	ResourceUsage DeriveResourceUsage(EResourceType type, bool isWrite, const std::string& resolvedName,
-	                                  FPipelineStage passShaderStages)
+	ResourceUsage DeriveResourceUsage(EResourceType type, bool isWrite, EFeaturePort semantic, FPipelineStage passShaderStages)
 	{
-		if (resolvedName == ToSemanticName(EFeaturePort::Color))
+		if (semantic == EFeaturePort::Color)
 			return {ETextureLayout::COLOR_ATTACHMENT_OPTIMAL, FAccessFlag::COLOR_ATTACHMENT_READ | FAccessFlag::COLOR_ATTACHMENT_WRITE,
 			        FPipelineStage::COLOR_ATTACHMENT_OUTPUT, FImageViewFlag::COLOR};
 
-		if (resolvedName == ToSemanticName(EFeaturePort::Depth))
+		if (semantic == EFeaturePort::Depth)
 			return {ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			        FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE,
 			        FPipelineStage::EARLY_FRAGMENT_TEST | FPipelineStage::LATE_FRAGMENT_TEST, FImageViewFlag::DEPTH};
 
-		if (resolvedName == ToSemanticName(EFeaturePort::Stencil))
+		if (semantic == EFeaturePort::Stencil)
 			return {ETextureLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			        FAccessFlag::DEPTH_STENCIL_ATTACHMENT_READ | FAccessFlag::DEPTH_STENCIL_ATTACHMENT_WRITE,
 			        FPipelineStage::EARLY_FRAGMENT_TEST | FPipelineStage::LATE_FRAGMENT_TEST, FImageViewFlag::DEPTH_STENCIL};

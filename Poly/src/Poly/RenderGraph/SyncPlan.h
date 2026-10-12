@@ -71,7 +71,7 @@ namespace Poly
 		                                                        // last user, even though the consumer needing the
 		                                                        // transfer is later in the schedule
 		BarrierGroup PostBarriers;                              // same-queue transitions to run right after this pass,
-		                                                        // for resources with a declared WithFinalState()
+		                                                        // for render targets, which are left presentable or readable
 		std::unordered_map<FQueueType, uint64_t> RequiredWaits; // per source-queue (in QueueAcquirePlan), minimum SyncPoint value to wait
 		                                                        // for before this pass runs; absent = no wait needed
 		uint64_t SubmissionIndex = 0;                           // 1-based position within this pass's own queue's submission order; doubles as

@@ -8,16 +8,16 @@
 #include <Poly/Core/Camera.h>
 #include <Poly/Core/Layer.h>
 #include <Poly/Events/MouseEvent.h>
-#include <Poly/Events/WindowEvent.h>
 #include <Poly/RenderGraph/RenderGraph.h>
-#include <Poly/RenderGraph/RenderResourceTable.h>
 #include <Poly/RenderGraph/ResourceManager.h>
+#include <Poly/Rendering/RenderView.h>
 
 namespace Editor
 {
 	/*
 	 * The editor: owns the API context holding the world, renders the world and draws the editor UI.
 	 * The UI only ever goes through the API, the world itself is only touched here to render it.
+	 * The world is rendered to a texture, which is shown in the viewport panel.
 	 */
 	class EditorLayer : public Poly::Layer
 	{
@@ -35,12 +35,13 @@ namespace Editor
 	private:
 		void DrawMenuBar();
 		void DrawPathPopup();
+		void DrawViewport();
+		void ResizeViewport(uint32 width, uint32 height);
 		void HandleShortcuts();
 		void Save();
 
 		void OnApiEvent(const Poly::API::ApiEvent& event);
 
-		bool OnWindowResized(Poly::Events::WindowResized& event);
 		bool OnMouseButton(Poly::EKey button, bool pressed);
 
 		Poly::API::EngineContext          m_Context{"Untitled"};
@@ -66,9 +67,12 @@ namespace Editor
 		Poly::Camera*                  m_pCamera  = nullptr;
 		Poly::Ref<Poly::RenderCatalog> m_pCatalog = Poly::CreateRef<Poly::RenderCatalog>();
 		Poly::RenderGraph              m_Graph{m_pCatalog};
-		Poly::RenderResourceTable      m_ViewResources;
 
-		Poly::BufferHandle m_CameraBufferHandle;
-		Poly::BufferHandle m_LightsBufferHandle;
+		// The view rendering the world and the texture it renders to, which follows the size of the viewport panel
+		Poly::Ref<Poly::RenderView> m_pView;
+		Poly::TextureHandle         m_ViewportTexture;
+		uint32                      m_ViewportWidth   = 0;
+		uint32                      m_ViewportHeight  = 0;
+		bool                        m_ViewportVisible = false;
 	};
 } // namespace Editor

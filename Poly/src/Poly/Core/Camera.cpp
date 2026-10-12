@@ -59,6 +59,11 @@ namespace Poly
 		return m_Proj * m_View;
 	}
 
+	RenderCamera Camera::GetRenderCamera() const
+	{
+		return {.View = m_View, .Position = m_Pos, .FieldOfView = m_FOV, .NearPlane = m_ZNear, .FarPlane = m_ZFar};
+	}
+
 	void Camera::UpdateView()
 	{
 		glm::quat qYaw       = glm::angleAxis(-m_Yaw, m_GlobalUp);

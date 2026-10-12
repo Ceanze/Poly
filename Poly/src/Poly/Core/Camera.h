@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Poly/Rendering/RenderCamera.h"
 #include "polypch.h"
 #include "Timestamp.h"
 
@@ -41,6 +42,8 @@ namespace Poly
 
 		glm::mat4 GetMatrix();
 		glm::vec4 GetPosition() { return glm::vec4(m_Pos, 1.0); }
+
+		RenderCamera GetRenderCamera() const;
 
 	private:
 		void UpdateView();

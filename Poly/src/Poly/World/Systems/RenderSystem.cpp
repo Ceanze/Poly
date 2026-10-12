@@ -45,9 +45,9 @@ namespace Poly
 
 	void RenderSystem::OnInit(World& world)
 	{
-		m_Catalog.RegisterResource(VERTICES_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
-		m_Catalog.RegisterResource(INSTANCE_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
-		m_Catalog.RegisterResource(MATERIAL_RESOURCE_NAME).WithType(EResourceType::StorageBuffer);
+		m_Catalog.RegisterResource(VERTICES_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
+		m_Catalog.RegisterResource(INSTANCE_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
+		m_Catalog.RegisterResource(MATERIAL_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
 	}
 
 	void RenderSystem::Update(World& world)
