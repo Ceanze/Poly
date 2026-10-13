@@ -1,6 +1,6 @@
 #include "SlangCompiler.h"
 
-#include "Poly/Resources/Shader/ShaderReflector.h"
+#include "Poly/Resources/Shader/SlangReflector.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "polypch.h"
 
@@ -240,7 +240,7 @@ namespace Poly
 		const byte*    pData = static_cast<const byte*>(pCode->getBufferPointer());
 		CompiledShader compiled;
 		compiled.Code       = std::vector<byte>(pData, pData + pCode->getBufferSize());
-		compiled.Reflection = ShaderReflector(compiled.Code).Reflect();
+		compiled.Reflection = SlangReflector::Reflect(pLinked->getLayout());
 		return compiled;
 	}
 
