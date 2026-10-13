@@ -89,7 +89,8 @@ namespace Poly
 
 		// Expands the features of an entry into passes with unscoped port names. Returns false if the entry is invalid
 		bool FlattenFeatures(const Entry& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const;
-		void AssignBindlessSlots(std::vector<ResolvedPass>& passes) const;
+		// Binds the ports of each pass to the push constant fields of its shaders with the same name
+		void ResolveBindlessBindings(std::vector<ResolvedPass>& passes) const;
 
 		Ref<RenderCatalog> m_Catalog;
 		std::vector<Entry> m_Entries;

@@ -76,7 +76,7 @@ namespace Poly
 				}
 			}
 
-			AssignBindlessSlots(planEntry.Passes);
+			ResolveBindlessBindings(planEntry.Passes);
 			entries.push_back(std::move(planEntry));
 		}
 
@@ -209,94 +209,79 @@ namespace Poly
 		return true;
 	}
 
-	void RenderPlanBuilder::AssignBindlessSlots(std::vector<ResolvedPass>& passes) const
+	void RenderPlanBuilder::ResolveBindlessBindings(std::vector<ResolvedPass>& passes) const
 	{
 		for (ResolvedPass& pass : passes)
 		{
 			if (pass.Shaders.empty())
 				continue;
 
-			ShaderBindlessLayout layout;
+			// The stages of a pass share one push constant block, so a field must sit at the same place in all of them
+			std::vector<ShaderBindlessField> fields;
 			for (const auto& [shaderPath, shaderStage] : pass.Shaders)
 			{
-				const PolyID                shaderID    = ShaderManager::CreateShader(shaderPath, shaderStage);
-				const ShaderData&           shaderData  = ShaderManager::GetShader(shaderID);
-				const ShaderBindlessLayout& stageLayout = shaderData.Reflection.BindlessLayout;
+				const PolyID      shaderID   = ShaderManager::CreateShader(shaderPath, shaderStage);
+				const ShaderData& shaderData = ShaderManager::GetShader(shaderID);
 
-				if (stageLayout.HasTextureSlots)
+				for (const ShaderBindlessField& stageField : shaderData.Reflection.BindlessFields)
 				{
-					if (layout.HasTextureSlots && (layout.TextureSlotsOffset != stageLayout.TextureSlotsOffset ||
-					                               layout.TextureSlotCount != stageLayout.TextureSlotCount))
-						POLY_CORE_ERROR("Pass '{}' shader stages disagree on textureIndices[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
-						                pass.Name, layout.TextureSlotCount, layout.TextureSlotsOffset,
-						                stageLayout.TextureSlotCount, stageLayout.TextureSlotsOffset);
-
-					layout.HasTextureSlots    = true;
-					layout.TextureSlotsOffset = stageLayout.TextureSlotsOffset;
-					layout.TextureSlotCount   = stageLayout.TextureSlotCount;
-				}
-
-				if (stageLayout.HasBufferSlots)
-				{
-					if (layout.HasBufferSlots && (layout.BufferSlotsOffset != stageLayout.BufferSlotsOffset ||
-					                              layout.BufferSlotCount != stageLayout.BufferSlotCount))
-						POLY_CORE_ERROR("Pass '{}' shader stages disagree on bufferAddresses[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
-						                pass.Name, layout.BufferSlotCount, layout.BufferSlotsOffset,
-						                stageLayout.BufferSlotCount, stageLayout.BufferSlotsOffset);
-
-					layout.HasBufferSlots    = true;
-					layout.BufferSlotsOffset = stageLayout.BufferSlotsOffset;
-					layout.BufferSlotCount   = stageLayout.BufferSlotCount;
+					auto it = std::ranges::find(fields, stageField.Name, &ShaderBindlessField::Name);
+					if (it == fields.end())
+						fields.push_back(stageField);
+					else if (it->Offset != stageField.Offset || it->Type != stageField.Type)
+						POLY_CORE_ERROR("Pass '{}' shader stages disagree on the push constant field '{}' (offset {} vs {}).",
+						                pass.Name, stageField.Name, it->Offset, stageField.Offset);
 				}
 
 				for (const auto& pushConstant : shaderData.Reflection.PushConstants)
 					pass.PushConstantSize = std::max(pass.PushConstantSize, pushConstant.Offset + pushConstant.Size);
 			}
 
-			if (!layout.HasTextureSlots && !layout.HasBufferSlots)
+			if (fields.empty())
 				continue;
 
-			pass.BufferSlotsOffset  = layout.BufferSlotsOffset;
-			pass.TextureSlotsOffset = layout.TextureSlotsOffset;
+			std::vector<bool> isBound(fields.size(), false);
 
 			for (uint32 portIndex = 0; portIndex < pass.Ports.size(); portIndex++)
 			{
-				const ResolvedPort& port = pass.Ports[portIndex];
+				const ResolvedPort& port      = pass.Ports[portIndex];
+				const bool          isTexture = IsTextureResourceType(port.ResourceType);
 
-				// Read/WriteResource ports have no shader variable, so they don't occupy a bindless slot.
-				if (port.ShaderName.empty() && port.UsageState != FResourceState::Unknown)
+				// Read/WriteResource ports have no shader variable, and attachments are not read through the push constants
+				if (port.ShaderName.empty() || (!isTexture && !IsBufferResourceType(port.ResourceType)))
 					continue;
 
-				if (IsTextureResourceType(port.ResourceType))
+				auto it = std::ranges::find(fields, port.ShaderName, &ShaderBindlessField::Name);
+				if (it == fields.end())
 				{
-					if (!layout.HasTextureSlots)
-						continue;
-
-					const uint32 slot = static_cast<uint32>(pass.TextureSlots.size());
-					if (slot >= layout.TextureSlotCount)
-					{
-						POLY_CORE_ERROR("Pass '{}' has more texture resources ({}) than its shader's textureIndices[] array supports ({}); '{}' was not assigned a slot.",
-						                pass.Name, slot + 1, layout.TextureSlotCount, port.Name);
-						continue;
-					}
-
-					pass.TextureSlots.push_back({slot, portIndex});
+					POLY_CORE_ERROR("Pass '{}' maps '{}' to the shader name '{}', but its shaders have no push constant field with that name; it is not bound.",
+					                pass.Name, port.Name, port.ShaderName);
+					continue;
 				}
-				else if (IsBufferResourceType(port.ResourceType))
+
+				if (isTexture != (it->Type == EBindlessFieldType::Texture))
 				{
-					if (!layout.HasBufferSlots)
-						continue;
-
-					const uint32 slot = static_cast<uint32>(pass.BufferSlots.size());
-					if (slot >= layout.BufferSlotCount)
-					{
-						POLY_CORE_ERROR("Pass '{}' has more buffer resources ({}) than its shader's bufferAddresses[] array supports ({}); '{}' was not assigned a slot.",
-						                pass.Name, slot + 1, layout.BufferSlotCount, port.Name);
-						continue;
-					}
-
-					pass.BufferSlots.push_back({slot, portIndex});
+					POLY_CORE_ERROR("Pass '{}' maps the {} '{}' to the push constant field '{}', which is a {}; it is not bound.",
+					                pass.Name, isTexture ? "texture" : "buffer", port.Name, port.ShaderName, isTexture ? "buffer pointer" : "TextureHandle");
+					continue;
 				}
+
+				isBound[it - fields.begin()] = true;
+
+				if (isTexture)
+					pass.TextureBindings.push_back({it->Offset, portIndex});
+				else
+					pass.BufferBindings.push_back({it->Offset, portIndex});
+			}
+
+			for (size_t i = 0; i < fields.size(); i++)
+			{
+				// A texture may be left to the execute function (ExecuteContext::SetTexture), a buffer pointer may not
+				if (fields[i].Type == EBindlessFieldType::Texture)
+					pass.TextureFields.push_back({fields[i].Name, fields[i].Offset});
+				else if (!isBound[i])
+					POLY_CORE_ERROR("Pass '{}' has the buffer pointer '{}' in its push constants, but no resource is mapped to that shader name; it is left as null.",
+					                pass.Name, fields[i].Name);
 			}
 		}
 	}

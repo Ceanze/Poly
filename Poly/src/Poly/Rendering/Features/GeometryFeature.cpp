@@ -12,8 +12,7 @@
 namespace Poly
 {
 	// Scene resources (scene.*) are registered by the RenderSystem and the LightSystem.
-	// Until slang, the shader's bufferAddresses[] slots are assigned in MapGlobal() call order, so the order of the
-	// MapGlobal() calls below is load bearing: view.camera(0), scene.vertices(1), scene.instances(2), scene.lights(3), scene.materials(4).
+	// The shader names passed to MapGlobal() are the names of the pointers in the push constants of pbr_bindless.slang.
 	void GeometryFeature::Register(RenderCatalog& catalog)
 	{
 		catalog.RegisterResource(Renderer::CAMERA_RESOURCE_NAME).WithType(EResourceType::UniformBuffer).WithScope(EResourceScope::View);

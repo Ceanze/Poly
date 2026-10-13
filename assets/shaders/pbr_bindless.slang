@@ -2,19 +2,10 @@ import common.bindless;
 
 static const float PI = 3.14159265359f;
 
-// Bindless slot order - must match this pass's MapGlobal() call order (see plans/bindless.md,
-// "the two sides stay in sync only by matching declaration order"). Both stages read the same
-// push-constant block:
-//   bufferAddresses[0] = view.camera
-//   bufferAddresses[1] = scene.vertices    (vertex only)
-//   bufferAddresses[2] = scene.instances   (vertex only)
-//   bufferAddresses[3] = scene.lights      (fragment only)
-//   bufferAddresses[4] = scene.materials   (fragment only)
-//
 // Vertices/Instances are combined, scene-wide buffers built by RenderSystem (see
 // Poly/World/Systems/RenderSystem.h) - which mesh/instances a draw call touches comes from
-// DrawIndexedInstanced's own baseVertex/firstInstance parameters, not from anything in this push
-// constant, so the buffer addresses here never need to change between draw calls in the pass.
+// DrawIndexedInstanced's own baseVertex/firstInstance parameters, not from anything in the push
+// constants, so the buffer addresses there never need to change between draw calls in the pass.
 //
 // Per-material texture indices live inside each MaterialValues row, indexed per-draw via the
 // material index of the instance - push constants only get built once per pass, before the draw
@@ -49,7 +40,17 @@ struct LightsHeader
 	float4 lightsCount;
 }
 
-[[vk::push_constant]] ConstantBuffer<BindlessPushConstants> pc;
+// The fields are bound by name by the "pbr" pass (see GeometryFeature::Register), both stages read the same block
+struct PushConstants
+{
+	Camera*         camera;
+	Vertex*         vertices;
+	InstanceData*   instances;
+	LightsHeader*   lights;
+	MaterialValues* materialProps;
+}
+
+[[vk::push_constant]] ConstantBuffer<PushConstants> pc;
 
 struct VertexOutput
 {
@@ -72,12 +73,8 @@ struct FragmentOutput
 [shader("vertex")]
 VertexOutput vertexMain(uint vertexIndex : SV_VulkanVertexID, uint instanceIndex : SV_VulkanInstanceID)
 {
-	Camera*       pCamera    = (Camera*)pc.bufferAddresses[0];
-	Vertex*       pVertices  = (Vertex*)pc.bufferAddresses[1];
-	InstanceData* pInstances = (InstanceData*)pc.bufferAddresses[2];
-
-	InstanceData instanceData = pInstances[instanceIndex];
-	Vertex       vertex       = pVertices[vertexIndex];
+	InstanceData instanceData = pc.instances[instanceIndex];
+	Vertex       vertex       = pc.vertices[vertexIndex];
 
 	float4 worldPosition = mul(instanceData.Transform, float4(vertex.Position.xyz, 1.0f));
 
@@ -93,7 +90,7 @@ VertexOutput vertexMain(uint vertexIndex : SV_VulkanVertexID, uint instanceIndex
 	output.tangent       = tangent;
 	output.bitangent     = bitangent;
 	output.tbnNormal     = normal;
-	output.position      = mul(pCamera.mat, worldPosition);
+	output.position      = mul(pc.camera.mat, worldPosition);
 	return output;
 }
 
@@ -148,15 +145,13 @@ float GeometrySmith(float3 normal, float3 viewDir, float3 lightDir, float roughn
 [shader("fragment")]
 FragmentOutput fragmentMain(VertexOutput input)
 {
-	Camera*         pCamera       = (Camera*)pc.bufferAddresses[0];
-	LightsHeader*   pLightsHeader = (LightsHeader*)pc.bufferAddresses[3];
-	PointLight*     pPointLights  = (PointLight*)(pc.bufferAddresses[3] + sizeof(LightsHeader));
-	MaterialValues* pMaterials    = (MaterialValues*)pc.bufferAddresses[4];
+	// The point lights follow right after the header
+	PointLight* pPointLights = (PointLight*)(pc.lights + 1);
 
-	MaterialValues mat     = pMaterials[input.materialIndex];
+	MaterialValues mat     = pc.materialProps[input.materialIndex];
 	float3         albedo  = (mat.Albedo * SampleBindless(mat.TextureAlbedoIndex, input.texCoord)).rgb;
 	float3         normal  = GenerateNormal(input, mat.TextureNormalIndex);
-	float3         viewDir = normalize(pCamera.camPos.xyz - input.worldPos);
+	float3         viewDir = normalize(pc.camera.camPos.xyz - input.worldPos);
 
 	float metallic  = 0.0f;
 	float roughness = 0.0f;
@@ -180,7 +175,7 @@ FragmentOutput fragmentMain(VertexOutput input)
 	float3 Lo = float3(0.0f);
 	float3 F0 = float3(0.04f);
 	F0        = lerp(F0, albedo, metallic);
-	for (uint i = 0; i < pLightsHeader.lightsCount.x; i++)
+	for (uint i = 0; i < pc.lights.lightsCount.x; i++)
 	{
 		PointLight light = pPointLights[i];
 

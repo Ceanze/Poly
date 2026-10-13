@@ -35,7 +35,7 @@ namespace Poly
 		static constexpr uint32 MAX_SAMPLERS     = 256;
 		static constexpr uint32 FRAMES_IN_FLIGHT = 2;
 
-		// Bit layout of the packed uint32 used in a pass's textureIndices[] push-constant slot: texture
+		// Bit layout of the packed uint32 of a TextureHandle in the push constants of a pass: texture
 		// index in the low TEXTURE_INDEX_BITS bits, sampler index directly above it (mirrors bindless.slang).
 		static constexpr uint32 TEXTURE_INDEX_BITS  = 12; // log2(MAX_TEXTURES)
 		static constexpr uint32 SAMPLER_INDEX_SHIFT = TEXTURE_INDEX_BITS;

@@ -1,14 +1,5 @@
 import common.bindless;
 
-// Bindless slot order - must match the "ui" pass's MapGlobal() call order:
-//   bufferAddresses[0] = $.UIGlobals (scale/translate)
-//   textureIndices[0]  = $.FontTexture
-//
-// Font-only: every draw in the pass samples the same texture, so a single push-constant slot
-// resolved once per frame is enough - unlike arbitrary ImGui::Image() textures, which would need
-// a per-draw-call texture index that nothing in RG2 can currently deliver (push constants are only
-// (re)built once per pass per frame, before the pass's WithExecuteFn draw loop runs).
-
 // Mirrors UIGlobalsBuffer in Poly/ImGui/ImGuiLayer.cpp byte-for-byte.
 struct UIGlobals
 {
@@ -16,7 +7,15 @@ struct UIGlobals
 	float2 translate;
 }
 
-[[vk::push_constant]] ConstantBuffer<BindlessPushConstants> pc;
+// The fields are bound by name by the "ui" pass (see ImGuiLayer::RegisterRenderFeature). sTexture is the
+// font texture by default, the pass sets it per draw call for ImGui::Image() textures.
+struct PushConstants
+{
+	UIGlobals*    globals;
+	TextureHandle sTexture;
+}
+
+[[vk::push_constant]] ConstantBuffer<PushConstants> pc;
 
 struct VertexInput
 {
@@ -40,12 +39,10 @@ struct FragmentOutput
 [shader("vertex")]
 VertexOutput vertexMain(VertexInput input)
 {
-	UIGlobals* pGlobals = (UIGlobals*)pc.bufferAddresses[0];
-
 	VertexOutput output;
 	output.texCoord = input.in_TexCoord;
 	output.color    = input.in_Color;
-	output.position = float4(input.in_Position * pGlobals.scale + pGlobals.translate, 0.0f, 1.0f);
+	output.position = float4(input.in_Position * pc.globals.scale + pc.globals.translate, 0.0f, 1.0f);
 	return output;
 }
 
@@ -53,6 +50,6 @@ VertexOutput vertexMain(VertexInput input)
 FragmentOutput fragmentMain(VertexOutput input)
 {
 	FragmentOutput output;
-	output.out_Color = input.color * SampleBindless(pc.textureIndices[0], input.texCoord);
+	output.out_Color = input.color * pc.sTexture.Sample(input.texCoord);
 	return output;
 }

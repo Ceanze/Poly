@@ -5,13 +5,19 @@
 
 namespace Poly
 {
-	void ExecuteContext::SetTextureSlot(uint32 slot, const TextureHandle& textureHandle, const SamplerHandle& samplerHandle)
+	void ExecuteContext::SetTexture(std::string_view shaderName, const TextureHandle& textureHandle, const SamplerHandle& samplerHandle)
 	{
+		auto it = std::ranges::find(m_TextureFields, shaderName, &TextureField::ShaderName);
+		if (it == m_TextureFields.end())
+		{
+			POLY_CORE_ERROR("The shaders of this pass have no TextureHandle named '{}' in their push constants", shaderName);
+			return;
+		}
+
 		const SamplerHandle sampler   = samplerHandle.IsValid() ? samplerHandle : ResourceManager::GetDefaultLinearSampler();
 		uint32              heapIndex = textureHandle.GetIndex() | (sampler.GetIndex() << ResourceManager::SAMPLER_INDEX_SHIFT);
-		uint32              offset    = m_TextureSlotOffset + slot * static_cast<uint32>(sizeof(uint32));
 
-		m_pCmdBuffer->UpdatePushConstants(m_pPipelineLayout, FShaderStage::VERTEX | FShaderStage::FRAGMENT, offset, sizeof(uint32), &heapIndex);
+		m_pCmdBuffer->UpdatePushConstants(m_pPipelineLayout, FShaderStage::VERTEX | FShaderStage::FRAGMENT, it->Offset, sizeof(uint32), &heapIndex);
 	}
 
 	Buffer* ExecuteContext::GetBuffer(std::string_view resourceName) const

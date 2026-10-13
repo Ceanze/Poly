@@ -255,7 +255,7 @@ namespace Poly
 
 					    ImTextureID   texID = pImCmd->TexRef.GetTexID();
 					    TextureHandle textureHandle(static_cast<uint32>(texID));
-					    ctx.SetTextureSlot(0, textureHandle, m_FontSamplerHandle);
+					    ctx.SetTexture("sTexture", textureHandle, m_FontSamplerHandle);
 
 					    pCmd->DrawIndexedInstanced(pImCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
 					    indexOffset += pImCmd->ElemCount;

@@ -6,6 +6,7 @@
 #include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/RenderGraph/Resource/ResourceType.h"
 #include "Poly/RenderGraph/SyncPlan.h"
+#include "Poly/RenderGraph/TextureField.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
 
 #include <functional>
@@ -69,11 +70,11 @@ namespace Poly
 		uint32 Height = 0;
 	};
 
-	// Used to resolve bindless slot
-	struct ResolvedSlot
+	// A port bound to a field of the pass's push constants, matched by the shader name of the port
+	struct ResolvedBinding
 	{
-		uint32 Slot      = 0;
-		uint32 PortIndex = 0; // index into ResolvedPass::Ports of the port bound to the slot
+		uint32 Offset    = 0; // byte offset of the field within the push constant block
+		uint32 PortIndex = 0; // index into ResolvedPass::Ports of the port bound to the field
 	};
 
 	struct ResolvedPass
@@ -91,11 +92,12 @@ namespace Poly
 
 		FQueueType Queue = FQueueType::GRAPHICS;
 
-		std::vector<ResolvedSlot> BufferSlots;
-		std::vector<ResolvedSlot> TextureSlots;
-		uint32                    BufferSlotsOffset  = 0;
-		uint32                    TextureSlotsOffset = 0;
-		uint32                    PushConstantSize   = 0;
+		std::vector<ResolvedBinding> BufferBindings;
+		std::vector<ResolvedBinding> TextureBindings;
+		uint32                       PushConstantSize = 0;
+
+		// Every texture field of the push constants, bound to a port or not, for ExecuteContext::SetTexture
+		std::vector<TextureField> TextureFields;
 	};
 
 	class RenderProgram

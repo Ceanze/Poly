@@ -24,27 +24,27 @@ namespace Poly
 		uint32      Offset;
 	};
 
-	// Describes where the shared BINDLESS_PUSH_CONSTANTS macro's textureIndices[]/bufferAddresses[]
-	// arrays sit within this shader's push-constant block, if present (see plans/bindless.md).
-	// Reflection only confirms the fixed layout is there and reports the offsets/counts - it does not
-	// know which render-graph resource maps to which array slot (that's RenderPlanBuilder's job).
-	struct ShaderBindlessLayout
+	enum class EBindlessFieldType
 	{
-		bool   HasTextureSlots    = false;
-		uint32 TextureSlotsOffset = 0; // byte offset of textureIndices[0] within the push constant block
-		uint32 TextureSlotCount   = 0; // BINDLESS_MAX_SLOTS, read off the array's reflected element count
+		Buffer, // a pointer, filled in with the device address of a buffer (8 bytes)
+		Texture // a TextureHandle (see common/bindless.slang), filled in with a packed texture/sampler heap index (4 bytes)
+	};
 
-		bool   HasBufferSlots    = false;
-		uint32 BufferSlotsOffset = 0; // byte offset of bufferAddresses[0] within the push constant block
-		uint32 BufferSlotCount   = 0;
+	// A field of the shader's push-constant block that refers to a resource. Reflection only reports where
+	// the field sits - which render-graph resource it gets is decided by name
+	struct ShaderBindlessField
+	{
+		std::string        Name;
+		uint32             Offset; // byte offset within the push constant block
+		EBindlessFieldType Type;
 	};
 
 	struct ShaderReflection
 	{
-		std::vector<ShaderInputOutput>  Inputs;
-		std::vector<ShaderInputOutput>  Outputs;
-		std::vector<ShaderBinding>      Bindings;
-		std::vector<ShaderPushConstant> PushConstants;
-		ShaderBindlessLayout            BindlessLayout;
+		std::vector<ShaderInputOutput>   Inputs;
+		std::vector<ShaderInputOutput>   Outputs;
+		std::vector<ShaderBinding>       Bindings;
+		std::vector<ShaderPushConstant>  PushConstants;
+		std::vector<ShaderBindlessField> BindlessFields;
 	};
 } // namespace Poly

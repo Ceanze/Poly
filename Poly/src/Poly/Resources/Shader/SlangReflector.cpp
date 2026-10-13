@@ -70,33 +70,26 @@ namespace
 		outVaryings.push_back({pName ? pName : "", location});
 	}
 
-	// Confirm the shared bindless slot arrays (see plans/bindless.md) - just reports where
-	// textureIndices[]/bufferAddresses[] sit, doesn't map them to resources. They may be nested in a struct
-	void FindBindlessSlots(slang::TypeLayoutReflection* pStructLayout, uint32 baseOffset, Poly::ShaderBindlessLayout& outLayout)
+	// Collects the push constant fields that refer to a resource: pointers (buffers) and TextureHandles (see
+	// common/bindless.slang). Fields of nested structs are reported by their own name, without the path to them
+	void CollectBindlessFields(slang::TypeLayoutReflection* pStructLayout, uint32 baseOffset, std::vector<Poly::ShaderBindlessField>& outFields)
 	{
 		for (unsigned int i = 0; i < pStructLayout->getFieldCount(); i++)
 		{
 			slang::VariableLayoutReflection* pField       = pStructLayout->getFieldByIndex(i);
 			slang::TypeLayoutReflection*     pFieldLayout = pField->getTypeLayout();
 			const uint32                     offset       = baseOffset + static_cast<uint32>(pField->getOffset());
-			const std::string_view           name         = pField->getName() ? pField->getName() : "";
+			const char*                      pName        = pField->getName() ? pField->getName() : "";
+			const std::string_view           typeName     = pFieldLayout->getName() ? pFieldLayout->getName() : "";
 
-			if (name == "textureIndices")
-			{
-				outLayout.HasTextureSlots    = true;
-				outLayout.TextureSlotsOffset = offset;
-				outLayout.TextureSlotCount   = pFieldLayout->isArray() ? static_cast<uint32>(pFieldLayout->getElementCount()) : 0;
-			}
-			else if (name == "bufferAddresses")
-			{
-				outLayout.HasBufferSlots    = true;
-				outLayout.BufferSlotsOffset = offset;
-				outLayout.BufferSlotCount   = pFieldLayout->isArray() ? static_cast<uint32>(pFieldLayout->getElementCount()) : 0;
-			}
-			else if (pFieldLayout->getKind() == slang::TypeReflection::Kind::Struct)
-			{
-				FindBindlessSlots(pFieldLayout, offset, outLayout);
-			}
+			if (pFieldLayout->getKind() == slang::TypeReflection::Kind::Pointer)
+				outFields.push_back({pName, offset, Poly::EBindlessFieldType::Buffer});
+			else if (pFieldLayout->getKind() != slang::TypeReflection::Kind::Struct)
+				continue;
+			else if (typeName == "TextureHandle")
+				outFields.push_back({pName, offset, Poly::EBindlessFieldType::Texture});
+			else
+				CollectBindlessFields(pFieldLayout, offset, outFields);
 		}
 	}
 } // namespace
@@ -140,7 +133,7 @@ namespace Poly
 				result.PushConstants.push_back({pName, static_cast<uint32>(pBlockLayout->getSize()), 0});
 
 				if (pBlockLayout->getKind() == slang::TypeReflection::Kind::Struct)
-					FindBindlessSlots(pBlockLayout, 0, result.BindlessLayout);
+					CollectBindlessFields(pBlockLayout, 0, result.BindlessFields);
 
 				continue;
 			}
