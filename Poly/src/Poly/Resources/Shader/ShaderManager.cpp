@@ -3,6 +3,7 @@
 #include "Platform/API/Shader.h"
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Resources/AssetLoader.h"
+#include "Poly/Resources/PathUtils.h"
 #include "Poly/Resources/Shader/ShaderReflector.h"
 #include "Poly/Resources/Shader/SlangCompiler.h"
 
@@ -31,7 +32,8 @@ namespace Poly
 		if (s_Shaders.contains(hash))
 			return hash;
 
-		const std::vector<byte> shaderCode = AssetLoader::LoadShader(path, shaderStage);
+		const bool              isSlang    = PathUtils::GetExtension(path) == ".slang";
+		const std::vector<byte> shaderCode = isSlang ? s_pSlangCompiler->Compile(path, shaderStage) : AssetLoader::LoadShader(path, shaderStage);
 
 		ShaderDesc desc    = {};
 		desc.EntryPoint    = "main"; // TODO: Make customizable
