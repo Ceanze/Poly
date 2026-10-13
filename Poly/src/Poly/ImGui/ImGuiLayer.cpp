@@ -20,7 +20,7 @@ namespace
 	constexpr const char* GLOBALS_RESOURCE_NAME      = "UIGlobals";
 	constexpr const char* FONT_TEXTURE_RESOURCE_NAME = "FontTexture";
 
-	// Mirrors UIGlobalsBuffer in shaders/ui_bindless.vert byte-for-byte.
+	// Mirrors UIGlobalsBuffer in shaders/ui_bindless.slang byte-for-byte.
 	struct UIGlobalsBuffer
 	{
 		glm::vec2 Scale;
@@ -217,8 +217,8 @@ namespace Poly
 
 		// clang-format off
 		catalog.RegisterPass("ui")
-		    .WithShader("assets/shaders/ui_bindless.vert")
-		    .WithShader("assets/shaders/ui_bindless.frag")
+		    .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::VERTEX)
+		    .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::FRAGMENT)
 		    .MapResource(EFeaturePort::Color, "out_Color") // auto-inferred LOAD op: an earlier feature already wrote $Color first
 		    .MapGlobal(GLOBALS_RESOURCE_NAME, "globals")
 		    .MapGlobal(FONT_TEXTURE_RESOURCE_NAME, "sTexture")

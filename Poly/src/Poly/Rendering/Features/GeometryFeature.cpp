@@ -19,8 +19,8 @@ namespace Poly
 		catalog.RegisterResource(Renderer::CAMERA_RESOURCE_NAME).WithType(EResourceType::UniformBuffer).WithScope(EResourceScope::View);
 
 		catalog.RegisterPass("pbr")
-		    .WithShader("assets/shaders/pbr_bindless.vert")
-		    .WithShader("assets/shaders/pbr_bindless.frag")
+		    .WithShader("assets/shaders/pbr_bindless.slang", FShaderStage::VERTEX)
+		    .WithShader("assets/shaders/pbr_bindless.slang", FShaderStage::FRAGMENT)
 		    .MapResource(EFeaturePort::Color, "out_Color")
 		    .MapResource(EFeaturePort::Depth, "depth")
 		    .MapGlobal(Renderer::CAMERA_RESOURCE_NAME, "camera")
