@@ -18,10 +18,6 @@ function get_vulkan_include_dir(vkPath)
 	return vkPath .. "/include"
 end
 
-function generate_glslang()
-	include("premake/glslang.lua")
-end
-
 function generate_glfw()
 	include("premake/glfw.lua")
 end
@@ -36,10 +32,6 @@ end
 
 function generate_yamlcpp()
 	include("premake/yaml-cpp.lua")
-end
-
-function generate_spirv_reflect()
-	include("premake/spirv-reflect.lua")
 end
 
 vkPath = get_vk_sdk_path()
@@ -96,11 +88,9 @@ OUTPUT_DIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 -- Functions for repeating project info
 -- Generate submodule projects
 generate_glfw()
-generate_glslang()
 generate_assimp()
 generate_imgui()
 generate_yamlcpp()
-generate_spirv_reflect()
 
 -- Include all src files in the project
 function srcFiles()
@@ -132,6 +122,18 @@ function useGlaze()
 	filter {}
 end
 
+-- Slang is only shipped as a shared library in the Vulkan SDK, the executables need it next to them
+function copySlangBinaries()
+	filter "system:windows"
+		postbuildcommands
+		{
+			'copy /Y "' .. path.translate(vkPath .. "/Bin/slang.dll", "\\") .. '" "%{cfg.buildtarget.directory}"',
+			'copy /Y "' .. path.translate(vkPath .. "/Bin/slang-glslang.dll", "\\") .. '" "%{cfg.buildtarget.directory}"'
+		}
+
+	filter {}
+end
+
 
 -- Projects
 project "Poly"
@@ -142,13 +144,15 @@ project "Poly"
 	filter "system:macosx"
 	    links
 	    {
-	        "libvulkan"
+	        "libvulkan",
+	        "libslang"
 	    }
 
 	filter "system:windows"
 	    links
 	    {
-	        "vulkan-1"
+	        "vulkan-1",
+	        "slang"
 	    }
     filter {}
 
@@ -156,11 +160,8 @@ project "Poly"
 	{
 		"assimp",
 		"glfw",
-		"glslang",
-		"SPIRV",
 		"imgui",
-		"yaml-cpp",
-		"SPIRV-Reflect"
+		"yaml-cpp"
 	}
 
 	includedirs
@@ -203,12 +204,10 @@ project "Poly"
 		"%{prj.name}/libs/glm",
 		"%{prj.name}/libs/VMA/include",
 		"%{prj.name}/libs/stb_image",
-		"%{prj.name}/libs/glslang",
 		"%{prj.name}/libs/assimp/include",
 		"%{prj.name}/libs/imgui",
 		"%{prj.name}/libs/entt/src",
-		"%{prj.name}/libs/yaml-cpp/include",
-		"%{prj.name}/libs/SPIRV-Reflect"
+		"%{prj.name}/libs/yaml-cpp/include"
 	}
 
 	filter "system:windows"
@@ -223,6 +222,7 @@ project "Sandbox"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	copySlangBinaries()
 
 	forceincludes
 	{
@@ -254,7 +254,8 @@ project "Sandbox"
 			"Metal.framework",
 			"IOSurface.framework",
 			"QuartzCore.framework",
-			"vulkan"
+			"vulkan",
+			"slang"
 		}
 		libdirs
 		{
@@ -277,6 +278,7 @@ project "ImGuiEditor"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	copySlangBinaries()
 
 	-- Engine headers are not self-contained; they rely on the engine's pch
 	forceincludes
@@ -314,7 +316,8 @@ project "ImGuiEditor"
 			"Metal.framework",
 			"IOSurface.framework",
 			"QuartzCore.framework",
-			"vulkan"
+			"vulkan",
+			"slang"
 		}
 		libdirs
 		{

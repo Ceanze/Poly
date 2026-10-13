@@ -331,38 +331,36 @@ namespace Poly
 		const ResolvedPass& pass = m_pRenderProgram->GetPasses()[passIndex];
 		outData.assign(pass.PushConstantSize, byte{0});
 
-		for (const ResolvedSlot& slot : pass.BufferSlots)
+		for (const ResolvedBinding& binding : pass.BufferBindings)
 		{
-			const std::string&     resolvedName = pass.Ports[slot.PortIndex].ResolvedName;
+			const std::string&     resolvedName = pass.Ports[binding.PortIndex].ResolvedName;
 			const RuntimeResource* pRes         = FindResource(resolvedName);
 			if (!pRes || !pRes->IsBuffer())
 			{
-				POLY_CORE_WARN("Pass '{}': buffer slot '{}' has no resource bound yet, leaving its bufferAddresses[] slot as 0",
+				POLY_CORE_WARN("Pass '{}': buffer '{}' has no resource bound yet, leaving its push constant pointer as null",
 				               pass.Name, resolvedName);
 				continue;
 			}
 
 			const uint64 address = ResourceManager::Resolve(pRes->BufHandle)->GetDeviceAddress();
-			const uint32 offset  = pass.BufferSlotsOffset + slot.Slot * static_cast<uint32>(sizeof(uint64));
-			if (offset + sizeof(uint64) <= outData.size())
-				std::memcpy(outData.data() + offset, &address, sizeof(uint64));
+			if (binding.Offset + sizeof(uint64) <= outData.size())
+				std::memcpy(outData.data() + binding.Offset, &address, sizeof(uint64));
 		}
 
-		for (const ResolvedSlot& slot : pass.TextureSlots)
+		for (const ResolvedBinding& binding : pass.TextureBindings)
 		{
-			const std::string&     resolvedName = pass.Ports[slot.PortIndex].ResolvedName;
+			const std::string&     resolvedName = pass.Ports[binding.PortIndex].ResolvedName;
 			const RuntimeResource* pRes         = FindResource(resolvedName);
 			if (!pRes || !pRes->TexHandle.IsValid())
 			{
-				POLY_CORE_WARN("Pass '{}': texture slot '{}' has no resource bound yet, leaving its textureIndices[] slot as 0",
+				POLY_CORE_WARN("Pass '{}': texture '{}' has no resource bound yet, leaving its push constant handle as 0",
 				               pass.Name, resolvedName);
 				continue;
 			}
 
 			const uint32 heapIndex = GetBindlessIndex(*pRes);
-			const uint32 offset    = pass.TextureSlotsOffset + slot.Slot * static_cast<uint32>(sizeof(uint32));
-			if (offset + sizeof(uint32) <= outData.size())
-				std::memcpy(outData.data() + offset, &heapIndex, sizeof(uint32));
+			if (binding.Offset + sizeof(uint32) <= outData.size())
+				std::memcpy(outData.data() + binding.Offset, &heapIndex, sizeof(uint32));
 		}
 	}
 
@@ -615,7 +613,7 @@ namespace Poly
 					declaredBuffers.push_back({port.Name, ResourceManager::Resolve(pRes->BufHandle)});
 			}
 
-			ExecuteContext ctx(pCmd, view, pipeline.pLayout, pass.TextureSlotsOffset, std::move(declaredBuffers));
+			ExecuteContext ctx(pCmd, view, pipeline.pLayout, pass.TextureFields, std::move(declaredBuffers));
 			if (pass.ExecuteFn)
 				pass.ExecuteFn(ctx);
 

@@ -30,7 +30,7 @@ namespace Poly
 
 	/*
 	 * Determines if a resource type is buffer-like and accessed via buffer device address (BDA) -
-	 * i.e. it's eligible for a bindless bufferAddresses[] slot (see plans/bindless.md).
+	 * i.e. it can be bound to a pointer in the push constants of a pass.
 	 * @param type The resource type to check.
 	 * @return True if the resource type is buffer-like and BDA-eligible; false otherwise.
 	 */

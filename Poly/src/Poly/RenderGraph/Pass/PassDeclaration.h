@@ -10,8 +10,8 @@
 /*
 Example:
 RenderGraph.RegisterPass("imgui")
-    .WithShader("shaders/imgui/ui.vert")
-    .WithShader("shaders/imgui/ui.frag")
+    .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::VERTEX)
+    .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::FRAGMENT)
     .MapResource(EFeaturePort::Color, "out_Color")
     .WithVertexLayout(sizeof(ImDrawVert))
     .WithVertexAttribute(0, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, pos))
@@ -52,7 +52,6 @@ namespace Poly
 		~PassDeclaration() = default;
 
 		PassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) override;
-		PassDeclaration& WithShader(std::string_view shaderPath) override;
 		PassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) override;
 		PassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) override;
 		PassDeclaration& OnQueue(FQueueType queue) override;

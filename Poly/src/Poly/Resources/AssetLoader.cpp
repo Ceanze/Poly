@@ -1,7 +1,6 @@
 #include "AssetLoader.h"
 
 #include "AssetManager.h"
-#include "GLSLang.h"
 #include "Platform/API/BinarySemaphore.h"
 #include "Platform/API/Buffer.h"
 #include "Platform/API/CommandBuffer.h"
@@ -17,7 +16,6 @@
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "Poly/Scene/Scene.h"
 #include "polypch.h"
-#include "Shader/ShaderCompiler.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/material.h>
@@ -98,11 +96,6 @@ namespace Poly
 {
 	void AssetLoader::Init()
 	{
-		// GLSL
-		s_GLSLInit = glslang::InitializeProcess();
-		if (!s_GLSLInit)
-			POLY_CORE_ERROR("[AssetLoader]: Failed to initialize glslang! No shaders will be loaded!");
-
 		// Command pools and buffers
 		s_TransferCommandPool   = RenderAPI::CreateCommandPool(FQueueType::TRANSFER, FCommandPoolFlags::NONE);
 		s_TransferCommandBuffer = s_TransferCommandPool->AllocateCommandBuffer(ECommandBufferLevel::PRIMARY);
@@ -116,9 +109,6 @@ namespace Poly
 
 	void AssetLoader::Release()
 	{
-		if (s_GLSLInit)
-			glslang::FinalizeProcess();
-
 		// Wait for device to be done before calling the destructor for commandpool and buffer
 		RenderAPI::GetCommandQueue(FQueueType::TRANSFER)->Wait();
 		RenderAPI::GetCommandQueue(FQueueType::GRAPHICS)->Wait();
@@ -128,19 +118,6 @@ namespace Poly
 		s_TransferCommandPool.reset();
 		s_GraphicsCommandPool.reset();
 		s_Semaphore.reset();
-	}
-
-	std::vector<byte> AssetLoader::LoadShader(std::string_view path, FShaderStage shaderStage)
-	{
-		if (!s_GLSLInit)
-		{
-			POLY_CORE_ERROR("[AssetLoader]: Failed to load shader, GLSL is not correctly initilized!");
-			return {};
-		}
-
-		const std::vector<byte> data = ShaderCompiler::CompileGLSL(path, shaderStage);
-
-		return data;
 	}
 
 	std::vector<byte> AssetLoader::LoadRawImage(const std::string& path)

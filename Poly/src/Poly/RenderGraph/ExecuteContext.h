@@ -2,6 +2,7 @@
 
 #include "Poly/Core/Handle.h"
 #include "RenderViewContext.h"
+#include "TextureField.h"
 
 #include <string>
 #include <string_view>
@@ -26,19 +27,25 @@ namespace Poly
 	class ExecuteContext
 	{
 	public:
-		ExecuteContext(CommandBuffer*              pCmdBuffer,
-		               const RenderViewContext&    view,
-		               PipelineLayout*             pPipelineLayout,
-		               uint32                      textureSlotOffset,
-		               std::vector<DeclaredBuffer> declaredBuffers = {})
+		ExecuteContext(CommandBuffer*                   pCmdBuffer,
+		               const RenderViewContext&         view,
+		               PipelineLayout*                  pPipelineLayout,
+		               const std::vector<TextureField>& textureFields,
+		               std::vector<DeclaredBuffer>      declaredBuffers = {})
 		    : m_pCmdBuffer(pCmdBuffer)
 		    , m_View(view)
 		    , m_pPipelineLayout(pPipelineLayout)
-		    , m_TextureSlotOffset(textureSlotOffset)
+		    , m_TextureFields(textureFields)
 		    , m_DeclaredBuffers(std::move(declaredBuffers))
 		{}
 
-		void SetTextureSlot(uint32 slot, const TextureHandle& textureHandle, const SamplerHandle& samplerHandle);
+		/*
+		 * Sets a texture of the pass for the draw calls that follow, for textures that change between the draw calls of the pass.
+		 * @param shaderName The name of the TextureHandle field in the push constants of the shaders of the pass.
+		 * @param textureHandle The texture to sample.
+		 * @param samplerHandle The sampler to sample it with, the default linear sampler if invalid.
+		 */
+		void SetTexture(std::string_view shaderName, const TextureHandle& textureHandle, const SamplerHandle& samplerHandle);
 
 		/*
 		 * Gets a buffer the pass declared with ReadResource/WriteResource, e.g. an indirect argument buffer.
@@ -64,7 +71,9 @@ namespace Poly
 		CommandBuffer*           m_pCmdBuffer;
 		const RenderViewContext& m_View;
 		PipelineLayout*          m_pPipelineLayout;
-		uint32                   m_TextureSlotOffset;
+
+		// Owned by the ResolvedPass
+		const std::vector<TextureField>& m_TextureFields;
 
 		std::vector<DeclaredBuffer> m_DeclaredBuffers;
 	};

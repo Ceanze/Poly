@@ -2,41 +2,45 @@
 
 #include "Platform/API/Shader.h"
 #include "Poly/Core/RenderAPI.h"
-#include "Poly/Resources/AssetLoader.h"
-#include "Poly/Resources/Shader/ShaderReflector.h"
+#include "Poly/Resources/Shader/SlangCompiler.h"
 
 namespace Poly
 {
 	std::mutex                   ShaderManager::s_Mutex   = {};
 	std::map<PolyID, ShaderData> ShaderManager::s_Shaders = {};
+	Unique<SlangCompiler>        ShaderManager::s_pSlangCompiler;
 
 	void ShaderManager::Init()
 	{
+		s_pSlangCompiler = CreateUnique<SlangCompiler>();
 	}
 
 	void ShaderManager::Release()
 	{
 		s_Shaders.clear();
+		s_pSlangCompiler.reset();
 	}
 
 	PolyID ShaderManager::CreateShader(std::string_view path, FShaderStage shaderStage)
 	{
-		PolyID hash{std::hash<std::string_view>{}(path)};
+		// A .slang file holds every stage of a shader, so the path alone does not identify one
+		uint64 pathHash = std::hash<std::string_view>{}(path);
+		pathHash ^= std::hash<uint32>{}(static_cast<uint32>(shaderStage)) + 0x9e3779b97f4a7c15ull + (pathHash << 6) + (pathHash >> 2);
+		PolyID hash{pathHash};
 
 		std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_Shaders.contains(hash))
 			return hash;
 
-		const std::vector<byte> shaderCode = AssetLoader::LoadShader(path, shaderStage);
+		const CompiledShader compiled = s_pSlangCompiler->Compile(path, shaderStage);
 
 		ShaderDesc desc    = {};
 		desc.EntryPoint    = "main"; // TODO: Make customizable
-		desc.ShaderCode    = shaderCode;
+		desc.ShaderCode    = compiled.Code;
 		desc.ShaderStage   = shaderStage;
 		Ref<Shader> shader = RenderAPI::CreateShader(&desc);
 
-		ShaderReflector  reflector(shaderCode);
-		ShaderReflection reflection = reflector.Reflect();
+		const ShaderReflection& reflection = compiled.Reflection;
 
 		//{
 		//	POLY_INFO("Reflection for shader at path {}", path);
@@ -68,8 +72,8 @@ namespace Poly
 	const ShaderData& ShaderManager::GetShader(PolyID shaderID)
 	{
 		std::lock_guard<std::mutex> lock(s_Mutex);
-		const auto& shaderData = s_Shaders.find(shaderID);
-		const bool  exist      = shaderData != s_Shaders.end();
+		const auto&                 shaderData = s_Shaders.find(shaderID);
+		const bool                  exist      = shaderData != s_Shaders.end();
 		POLY_VALIDATE(exist, "Shader data cannot be gotten, shaderID {} is invalid", shaderID);
 
 		if (exist)

@@ -1,7 +1,5 @@
 #include "PassDeclaration.h"
 
-#include "Poly/Resources/PathUtils.h"
-
 namespace Poly
 {
 	PassDeclaration::PassDeclaration(std::string_view name)
@@ -11,21 +9,6 @@ namespace Poly
 	PassDeclaration& PassDeclaration::WithShader(std::string_view shaderPath, FShaderStage stage)
 	{
 		m_Shaders.emplace_back(std::string(shaderPath), stage);
-		return *this;
-	}
-
-	PassDeclaration& PassDeclaration::WithShader(std::string_view shaderPath)
-	{
-		const std::string extension = PathUtils::GetExtension(shaderPath);
-
-		if (extension == ".vert")
-			return WithShader(shaderPath, FShaderStage::VERTEX);
-		if (extension == ".frag")
-			return WithShader(shaderPath, FShaderStage::FRAGMENT);
-		if (extension == ".comp")
-			return WithShader(shaderPath, FShaderStage::COMPUTE);
-
-		POLY_CORE_ERROR("Pass '{}': cannot tell the stage of shader '{}' from its extension, pass the stage explicitly; skipping.", m_Name, shaderPath);
 		return *this;
 	}
 

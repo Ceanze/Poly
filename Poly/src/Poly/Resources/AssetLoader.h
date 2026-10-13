@@ -37,8 +37,6 @@ namespace Poly
 		static void Init();
 		static void Release();
 
-		static std::vector<byte> LoadShader(std::string_view path, FShaderStage shaderStage);
-
 		static std::vector<byte> LoadRawImage(const std::string& path);
 
 		static Ref<Texture> LoadTexture(const std::string& path, EFormat format);
@@ -55,7 +53,6 @@ namespace Poly
 		static Ref<Material> ProcessMaterial(aiMaterial* pMaterial, const aiScene* pScene, Model* pModel, uint32 index, const std::string& folder);
 		static glm::mat4     ConvertAiMatToGLM(const void* pMat);
 
-		inline static bool s_GLSLInit = false;
 		;
 
 		inline static Ref<CommandPool>     s_TransferCommandPool;

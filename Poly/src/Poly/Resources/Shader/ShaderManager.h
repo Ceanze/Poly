@@ -9,6 +9,7 @@
 namespace Poly
 {
 	class Shader;
+	class SlangCompiler;
 
 	struct ShaderData
 	{
@@ -37,5 +38,6 @@ namespace Poly
 		// RenderProgramInstance's per-pass lazy pipeline creation during multithreaded recording.
 		static std::mutex                   s_Mutex;
 		static std::map<PolyID, ShaderData> s_Shaders;
+		static Unique<SlangCompiler>        s_pSlangCompiler;
 	};
 } // namespace Poly
