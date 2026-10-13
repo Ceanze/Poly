@@ -1,6 +1,43 @@
 Version: 1
 World: TestWorld
 Entities:
+  - ID: 5873112906591998661
+    Components:
+      Name:
+        Name: Entity
+      Transform:
+        Translation: [0, 0, 0]
+        Scale: [1, 1, 1]
+        Orientation: [0, 0, 0, 1]
+      Camera:
+        FieldOfView: 60
+        NearPlane: 0.01
+        FarPlane: 1000
+        Primary: true
+  - ID: 12391967652994927799
+    Components:
+      Name:
+        Name: Entity
+      Transform:
+        Translation: [1.45, 0.65, 0]
+        Scale: [1, 0.8, 1]
+        Orientation: [-4.8545456E-8, 0.9930705, -4.8545456E-8, -0.117520064]
+      Camera:
+        FieldOfView: 60
+        NearPlane: 0.01
+        FarPlane: 1000
+        Primary: true
+  - ID: 7311954820146673001
+    Components:
+      Name:
+        Name: Light
+      Transform:
+        Translation: [0, 2.85, -1]
+        Scale: [1, 1, 1]
+        Orientation: [0, 0, 0, 1]
+      PointLight:
+        Color: [1, 1, 1]
+        Intensity: 100
   - ID: 16539924218602337522
     Components:
       Name:
@@ -1135,14 +1172,3 @@ Entities:
         Mesh: 'assets/models/sponza/gltf/sponza.gltf#meshes[0]-102'
       Material:
         Material: 'assets/models/sponza/gltf/sponza.gltf#4'
-  - ID: 7311954820146673001
-    Components:
-      Name:
-        Name: Light
-      Transform:
-        Translation: [0, 1, -1]
-        Scale: [1, 1, 1]
-        Orientation: [0, 0, 0, 1]
-      PointLight:
-        Color: [1, 1, 1]
-        Intensity: 100

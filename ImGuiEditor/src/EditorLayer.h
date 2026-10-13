@@ -17,7 +17,8 @@ namespace Editor
 	/*
 	 * The editor: owns the API context holding the world, renders the world and draws the editor UI.
 	 * The UI only ever goes through the API, the world itself is only touched here to render it.
-	 * The world is rendered to a texture, which is shown in the viewport panel.
+	 * The world is rendered to textures shown in two panels: the viewport, seen from the free camera of the editor,
+	 * and the game view, seen from the primary camera of the world.
 	 */
 	class EditorLayer : public Poly::Layer
 	{
@@ -35,8 +36,26 @@ namespace Editor
 	private:
 		void DrawMenuBar();
 		void DrawPathPopup();
-		void DrawViewport();
-		void ResizeViewport(uint32 width, uint32 height);
+		// A panel showing the world, rendered by its own view to a texture following the size of the panel
+		struct Viewport
+		{
+			const char*                 pName = "";
+			Poly::Ref<Poly::RenderView> pView;
+			Poly::TextureHandle         Texture;
+			uint32                      Width   = 0;
+			uint32                      Height  = 0;
+			bool                        Visible = false;
+		};
+
+		/**
+		 * Draws the panel of a viewport
+		 * @param viewport - viewport to draw
+		 * @param pPlaceholder - text to show instead of the rendered world, nullptr to show the world
+		 */
+		void DrawViewport(Viewport& viewport, const char* pPlaceholder = nullptr);
+		void ResizeViewport(Viewport& viewport, uint32 width, uint32 height);
+		void SubmitViewport(Viewport& viewport, const Poly::RenderCamera& camera);
+		void DestroyViewport(Viewport& viewport);
 		void HandleShortcuts();
 		void Save();
 
@@ -68,11 +87,10 @@ namespace Editor
 		Poly::Ref<Poly::RenderCatalog> m_pCatalog = Poly::CreateRef<Poly::RenderCatalog>();
 		Poly::RenderGraph              m_Graph{m_pCatalog};
 
-		// The view rendering the world and the texture it renders to, which follows the size of the viewport panel
-		Poly::Ref<Poly::RenderView> m_pView;
-		Poly::TextureHandle         m_ViewportTexture;
-		uint32                      m_ViewportWidth   = 0;
-		uint32                      m_ViewportHeight  = 0;
-		bool                        m_ViewportVisible = false;
+		// Seen from m_pCamera
+		Viewport m_EditorViewport{.pName = "Viewport"};
+
+		// Seen from the primary camera of the world, shows nothing while the world has none
+		Viewport m_GameViewport{.pName = "Game"};
 	};
 } // namespace Editor

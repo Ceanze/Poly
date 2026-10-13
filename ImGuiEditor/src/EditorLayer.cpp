@@ -8,6 +8,7 @@
 #include <Poly/RenderGraph/RenderCatalog.h>
 #include <Poly/Rendering/Features/GeometryFeature.h>
 #include <Poly/Rendering/Renderer.h>
+#include <Poly/World/Systems/CameraSystem.h>
 #include <Poly/World/Systems/LightSystem.h>
 #include <Poly/World/Systems/RenderSystem.h>
 
@@ -31,6 +32,7 @@ namespace Editor
 
 		m_Context.GetWorld().AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
 		m_Context.GetWorld().AddSystem<Poly::LightSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
+		m_Context.GetWorld().AddSystem<Poly::CameraSystem>(Poly::World::Phase::PostUpdate);
 
 		Poly::GeometryFeature::Register(*m_pCatalog);
 		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
@@ -47,8 +49,10 @@ namespace Editor
 		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
 		pRenderer->SetRenderPlan(pPlan);
 
-		// The target is set once the viewport panel knows its size
-		m_pView = pRenderer->CreateView({.DebugName = "Editor Viewport", .Stage = SCENE_STAGE_NAME, .pWorld = &m_Context.GetWorld()});
+		// Both views belong to the same stage, so the world is rendered the same way in both.
+		// The targets are set once the panels know their size
+		m_EditorViewport.pView = pRenderer->CreateView({.DebugName = "Editor Viewport", .Stage = SCENE_STAGE_NAME, .pWorld = &m_Context.GetWorld()});
+		m_GameViewport.pView   = pRenderer->CreateView({.DebugName = "Game Viewport", .Stage = SCENE_STAGE_NAME, .pWorld = &m_Context.GetWorld()});
 
 		m_EventSubscription = m_Context.Events().Subscribe([this](const Poly::API::ApiEvent& event) { OnApiEvent(event); });
 
@@ -61,8 +65,8 @@ namespace Editor
 
 	void EditorLayer::OnDetach()
 	{
-		m_pView.reset();
-		Poly::ResourceManager::Destroy(m_ViewportTexture);
+		DestroyViewport(m_EditorViewport);
+		DestroyViewport(m_GameViewport);
 
 		delete m_pCamera;
 	}
@@ -75,19 +79,23 @@ namespace Editor
 		DrawPathPopup();
 		m_HierarchyPanel.Draw(m_Context, m_State);
 		m_InspectorPanel.Draw(m_Context, m_State);
-		DrawViewport();
+
+		// As of the last update of the world, which is what the game view shows this frame as well if the camera is gone by now
+		const Poly::CameraSystem* pCameraSystem  = m_Context.GetWorld().GetSystem<Poly::CameraSystem>();
+		const bool                hasWorldCamera = pCameraSystem && pCameraSystem->GetPrimaryCamera().has_value();
+
+		DrawViewport(m_EditorViewport);
+		DrawViewport(m_GameViewport, hasWorldCamera ? nullptr : "The world has no primary camera");
 
 		m_pCamera->Update(dt);
 
 		m_Context.Tick();
 
-		// Nothing is rendered of the world while the viewport panel is hidden
-		if (m_ViewportVisible)
-		{
-			m_pView->SetWorld(&m_Context.GetWorld());
-			m_pView->SetCamera(m_pCamera->GetRenderCamera());
-			Poly::Application::Get().GetRenderer()->SubmitView(m_pView);
-		}
+		// A view is only submitted while its panel is showing the world, nothing is rendered for a hidden panel
+		SubmitViewport(m_EditorViewport, m_pCamera->GetRenderCamera());
+
+		if (pCameraSystem && pCameraSystem->GetPrimaryCamera().has_value())
+			SubmitViewport(m_GameViewport, *pCameraSystem->GetPrimaryCamera());
 	}
 
 	void EditorLayer::OnEvent(Poly::Event& event)
@@ -178,39 +186,66 @@ namespace Editor
 		ImGui::EndPopup();
 	}
 
-	void EditorLayer::DrawViewport()
+	void EditorLayer::DrawViewport(Viewport& viewport, const char* pPlaceholder)
 	{
-		ImGui::SetNextWindowPos(ImVec2(360.0f, 60.0f), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(960.0f, 540.0f), ImGuiCond_FirstUseEver);
+		// The game view starts out as a smaller panel next to the viewport
+		const bool isGameViewport = &viewport == &m_GameViewport;
+		ImGui::SetNextWindowPos(isGameViewport ? ImVec2(1140.0f, 60.0f) : ImVec2(360.0f, 60.0f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(isGameViewport ? ImVec2(420.0f, 260.0f) : ImVec2(760.0f, 460.0f), ImGuiCond_FirstUseEver);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-		m_ViewportVisible = ImGui::Begin("Viewport");
-		if (m_ViewportVisible)
+		viewport.Visible = false;
+		if (ImGui::Begin(viewport.pName))
 		{
-			const ImVec2 available = ImGui::GetContentRegionAvail();
-			ResizeViewport(static_cast<uint32>(std::max(available.x, 1.0f)), static_cast<uint32>(std::max(available.y, 1.0f)));
+			if (pPlaceholder)
+			{
+				ImGui::TextUnformatted(pPlaceholder);
+			}
+			else
+			{
+				const ImVec2 available = ImGui::GetContentRegionAvail();
+				ResizeViewport(viewport, static_cast<uint32>(std::max(available.x, 1.0f)), static_cast<uint32>(std::max(available.y, 1.0f)));
 
-			ImGui::Image(m_ViewportTexture.Get(), ImVec2(static_cast<float>(m_ViewportWidth), static_cast<float>(m_ViewportHeight)));
+				ImGui::Image(viewport.Texture.Get(), ImVec2(static_cast<float>(viewport.Width), static_cast<float>(viewport.Height)));
+				viewport.Visible = true;
+			}
 		}
 
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}
 
-	void EditorLayer::ResizeViewport(uint32 width, uint32 height)
+	void EditorLayer::ResizeViewport(Viewport& viewport, uint32 width, uint32 height)
 	{
-		if (m_ViewportTexture.IsValid() && width == m_ViewportWidth && height == m_ViewportHeight)
+		if (viewport.Texture.IsValid() && width == viewport.Width && height == viewport.Height)
 			return;
 
 		// The resource manager keeps the old texture alive for the frames still using it
-		Poly::ResourceManager::Destroy(m_ViewportTexture);
+		Poly::ResourceManager::Destroy(viewport.Texture);
 
-		m_ViewportTexture = Poly::ResourceManager::CreateTexture2D(width, height, Poly::EFormat::R8G8B8A8_UNORM,
-		                                                           Poly::FTextureUsage::COLOR_ATTACHMENT | Poly::FTextureUsage::SAMPLED, "Editor Viewport");
-		m_ViewportWidth   = width;
-		m_ViewportHeight  = height;
+		viewport.Texture = Poly::ResourceManager::CreateTexture2D(width, height, Poly::EFormat::R8G8B8A8_UNORM,
+		                                                          Poly::FTextureUsage::COLOR_ATTACHMENT | Poly::FTextureUsage::SAMPLED, viewport.pName);
+		viewport.Width   = width;
+		viewport.Height  = height;
 
-		m_pView->SetTarget(m_ViewportTexture);
+		viewport.pView->SetTarget(viewport.Texture);
+	}
+
+	void EditorLayer::SubmitViewport(Viewport& viewport, const Poly::RenderCamera& camera)
+	{
+		if (!viewport.Visible)
+			return;
+
+		viewport.pView->SetWorld(&m_Context.GetWorld());
+		viewport.pView->SetCamera(camera);
+		Poly::Application::Get().GetRenderer()->SubmitView(viewport.pView);
+	}
+
+	void EditorLayer::DestroyViewport(Viewport& viewport)
+	{
+		viewport.pView.reset();
+		Poly::ResourceManager::Destroy(viewport.Texture);
+		viewport.Texture = {};
 	}
 
 	void EditorLayer::HandleShortcuts()
