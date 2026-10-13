@@ -26,23 +26,33 @@ namespace Poly
 
 	PolyID ShaderManager::CreateShader(std::string_view path, FShaderStage shaderStage)
 	{
-		PolyID hash{std::hash<std::string_view>{}(path)};
+		// A .slang file holds every stage of a shader, so the path alone does not identify one
+		uint64 pathHash = std::hash<std::string_view>{}(path);
+		pathHash ^= std::hash<uint32>{}(static_cast<uint32>(shaderStage)) + 0x9e3779b97f4a7c15ull + (pathHash << 6) + (pathHash >> 2);
+		PolyID hash{pathHash};
 
 		std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_Shaders.contains(hash))
 			return hash;
 
-		const bool              isSlang    = PathUtils::GetExtension(path) == ".slang";
-		const std::vector<byte> shaderCode = isSlang ? s_pSlangCompiler->Compile(path, shaderStage) : AssetLoader::LoadShader(path, shaderStage);
+		CompiledShader compiled;
+		if (PathUtils::GetExtension(path) == ".slang")
+		{
+			compiled = s_pSlangCompiler->Compile(path, shaderStage);
+		}
+		else
+		{
+			compiled.Code       = AssetLoader::LoadShader(path, shaderStage);
+			compiled.Reflection = ShaderReflector(compiled.Code).Reflect();
+		}
 
 		ShaderDesc desc    = {};
 		desc.EntryPoint    = "main"; // TODO: Make customizable
-		desc.ShaderCode    = shaderCode;
+		desc.ShaderCode    = compiled.Code;
 		desc.ShaderStage   = shaderStage;
 		Ref<Shader> shader = RenderAPI::CreateShader(&desc);
 
-		ShaderReflector  reflector(shaderCode);
-		ShaderReflection reflection = reflector.Reflect();
+		const ShaderReflection& reflection = compiled.Reflection;
 
 		//{
 		//	POLY_INFO("Reflection for shader at path {}", path);
@@ -74,8 +84,8 @@ namespace Poly
 	const ShaderData& ShaderManager::GetShader(PolyID shaderID)
 	{
 		std::lock_guard<std::mutex> lock(s_Mutex);
-		const auto& shaderData = s_Shaders.find(shaderID);
-		const bool  exist      = shaderData != s_Shaders.end();
+		const auto&                 shaderData = s_Shaders.find(shaderID);
+		const bool                  exist      = shaderData != s_Shaders.end();
 		POLY_VALIDATE(exist, "Shader data cannot be gotten, shaderID {} is invalid", shaderID);
 
 		if (exist)

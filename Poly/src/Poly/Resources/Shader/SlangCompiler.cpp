@@ -1,5 +1,6 @@
 #include "SlangCompiler.h"
 
+#include "Poly/Resources/Shader/ShaderReflector.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
 #include "polypch.h"
 
@@ -182,7 +183,7 @@ namespace Poly
 		slang::shutdown();
 	}
 
-	std::vector<byte> SlangCompiler::Compile(std::string_view path, FShaderStage shaderStage)
+	CompiledShader SlangCompiler::Compile(std::string_view path, FShaderStage shaderStage)
 	{
 		slang::IModule* pModule = LoadModule(path);
 		if (!pModule)
@@ -236,8 +237,11 @@ namespace Poly
 		if (SLANG_FAILED(result))
 			return {};
 
-		const byte* pData = static_cast<const byte*>(pCode->getBufferPointer());
-		return std::vector<byte>(pData, pData + pCode->getBufferSize());
+		const byte*    pData = static_cast<const byte*>(pCode->getBufferPointer());
+		CompiledShader compiled;
+		compiled.Code       = std::vector<byte>(pData, pData + pCode->getBufferSize());
+		compiled.Reflection = ShaderReflector(compiled.Code).Reflect();
+		return compiled;
 	}
 
 	slang::IModule* SlangCompiler::LoadModule(std::string_view path)

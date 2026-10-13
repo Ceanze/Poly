@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
+#include "Poly/Resources/Shader/CompiledShader.h"
 
 #include <unordered_map>
 
@@ -30,9 +31,9 @@ namespace Poly
 		 * The module (and everything it imports) is loaded once and reused for the other stages in the file.
 		 * @param path - VFS path of the .slang file
 		 * @param shaderStage - stage of the entry point to compile, the module must define exactly one for it
-		 * @return SPIR-V code with the entry point named "main", empty on failure
+		 * @return SPIR-V code with the entry point named "main" and its reflection, the code is empty on failure
 		 */
-		std::vector<byte> Compile(std::string_view path, FShaderStage shaderStage);
+		CompiledShader Compile(std::string_view path, FShaderStage shaderStage);
 
 	private:
 		slang::IModule* LoadModule(std::string_view path);
