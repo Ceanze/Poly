@@ -20,14 +20,11 @@ namespace Poly
 		virtual ~IPassDeclaration() = default;
 
 		/*
-		 * Adds a shader to the pass. Multiple shaders can be added, but only one per stage.
+		 * Adds a stage of a .slang shader to the pass. Multiple stages can be added, from the same file or not, but only one per stage.
+		 * @param shaderPath The path of the .slang file.
+		 * @param stage The stage to use, the file must have exactly one entry point marked [shader("...")] for it.
 		 */
 		virtual IPassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) = 0;
-
-		/*
-		 * Adds a shader to the pass, with the stage taken from the file extension (.vert, .frag or .comp).
-		 */
-		virtual IPassDeclaration& WithShader(std::string_view shaderPath) = 0;
 
 		/*
 		 * Add a setup function executed when the render program is compiled.

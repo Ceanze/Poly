@@ -154,7 +154,7 @@ namespace Poly
 		sessionDesc.searchPaths        = &SHADER_SEARCH_PATH;
 		sessionDesc.searchPathCount    = 1;
 		sessionDesc.fileSystem         = m_pFileSystem.get();
-		// Matches glm and the GLSL shaders
+		// Matches glm
 		sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
 		// 41012: "entry point uses additional capabilities that are not part of the specified profile", reported for
