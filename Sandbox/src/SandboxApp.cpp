@@ -12,7 +12,7 @@
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
-#include "Poly/Scene/Entity.h"
+#include "Poly/World/Entity.h"
 #include "Poly/World/Serialization/WorldSerializer.h"
 #include "Poly/World/Systems/CameraSystem.h"
 #include "Poly/World/Systems/LightSystem.h"

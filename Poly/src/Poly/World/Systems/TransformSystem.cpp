@@ -1,6 +1,6 @@
 #include "TransformSystem.h"
 
-#include "Poly/Scene/Components.h"
+#include "Poly/World/Components.h"
 #include "Poly/World/World.h"
 
 #include <utility>

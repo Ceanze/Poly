@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Poly/Core/Result.h"
-#include "Poly/Scene/Entity.h"
+#include "Poly/World/Entity.h"
 
 #include <functional>
 #include <string_view>

@@ -8,9 +8,9 @@
 #include "Poly/Resources/AssetTypes/MeshAsset.h"
 #include "Poly/Resources/AssetTypes/TextureAsset.h"
 #include "Poly/Resources/GeometryPool.h"
-#include "Poly/Scene/Components.h"
-#include "Poly/Scene/Components/MaterialComponent.h"
-#include "Poly/Scene/Components/MeshAssetComponent.h"
+#include "Poly/World/Components.h"
+#include "Poly/World/Components/MaterialComponent.h"
+#include "Poly/World/Components/MeshAssetComponent.h"
 #include "Poly/World/World.h"
 
 #include <cstring>

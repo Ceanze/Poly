@@ -2,7 +2,7 @@
 
 #include "Poly/API/Types.h"
 #include "Poly/Core/Result.h"
-#include "Poly/Scene/Entity.h"
+#include "Poly/World/Entity.h"
 
 namespace Poly::API
 {
