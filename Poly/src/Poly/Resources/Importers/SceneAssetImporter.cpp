@@ -1,7 +1,7 @@
 #include "SceneAssetImporter.h"
 
-#include "Poly/Model/Vertex.h"
 #include "Poly/Poly/Format.h"
+#include "Poly/RenderGraph/Shader/Vertex.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/MaterialAsset.h"
 #include "Poly/Resources/AssetTypes/MeshAsset.h"
@@ -29,44 +29,44 @@ namespace
 		                 mat.a4, mat.b4, mat.c4, mat.d4);
 	}
 
-	Poly::Material::Type ConvertTextureType(aiTextureType aiType)
+	Poly::EMaterialTextureType ConvertTextureType(aiTextureType aiType)
 	{
 		using namespace Poly;
 
 		switch (aiType)
 		{
 		case aiTextureType_BASE_COLOR:
-			return Material::Type::ALBEDO;
+			return EMaterialTextureType::ALBEDO;
 		case aiTextureType_DIFFUSE:
-			return Material::Type::ALBEDO;
+			return EMaterialTextureType::ALBEDO;
 
 		case aiTextureType_NORMAL_CAMERA:
-			return Material::Type::NORMAL;
+			return EMaterialTextureType::NORMAL;
 		case aiTextureType_NORMALS:
-			return Material::Type::NORMAL;
+			return EMaterialTextureType::NORMAL;
 		case aiTextureType_HEIGHT:
-			return Material::Type::NORMAL;
+			return EMaterialTextureType::NORMAL;
 
 		case aiTextureType_AMBIENT_OCCLUSION:
-			return Material::Type::AMBIENT_OCCLUSION;
+			return EMaterialTextureType::AMBIENT_OCCLUSION;
 		case aiTextureType_AMBIENT:
-			return Material::Type::AMBIENT_OCCLUSION;
+			return EMaterialTextureType::AMBIENT_OCCLUSION;
 
 		case aiTextureType_METALNESS:
-			return Material::Type::METALIC;
+			return EMaterialTextureType::METALIC;
 		case aiTextureType_REFLECTION:
-			return Material::Type::METALIC;
+			return EMaterialTextureType::METALIC;
 
 		case aiTextureType_DIFFUSE_ROUGHNESS:
-			return Material::Type::ROUGHNESS;
+			return EMaterialTextureType::ROUGHNESS;
 		case aiTextureType_SHININESS:
-			return Material::Type::ROUGHNESS;
+			return EMaterialTextureType::ROUGHNESS;
 
 		case aiTextureType_UNKNOWN:
-			return Material::Type::COMBINED;
+			return EMaterialTextureType::COMBINED;
 
 		default:
-			return Material::Type::NONE;
+			return EMaterialTextureType::NONE;
 		}
 	}
 
@@ -115,8 +115,8 @@ namespace Poly
 		SceneAsset sceneAsset(AssetID{vfsPath});
 		for (unsigned i = 0u; i < pScene->mNumMeshes; i++)
 		{
-			aiMesh* pMesh = pScene->mMeshes[i];
-			std::string path = Poly::Format("{}#{}", vfsPath, pMesh->mName.length > 0 ? pMesh->mName.C_Str() : std::to_string(i));
+			aiMesh*     pMesh = pScene->mMeshes[i];
+			std::string path  = Poly::Format("{}#{}", vfsPath, pMesh->mName.length > 0 ? pMesh->mName.C_Str() : std::to_string(i));
 			AssetID     assetID(path);
 			if (registry.IsLoaded<MeshAsset>(assetID))
 				POLY_CORE_WARN("Mesh '{}' in {} shares its sub-asset path with another mesh, references to it by path will be ambiguous", pMesh->mName.C_Str(), vfsPath);
@@ -127,7 +127,7 @@ namespace Poly
 		for (unsigned i = 0u; i < pScene->mNumMaterials; i++)
 		{
 			aiMaterial* pMaterial = pScene->mMaterials[i];
-			std::string path = Poly::Format("{}#{}", vfsPath, pMaterial->GetName().length > 0 ? pMaterial->GetName().C_Str() : std::to_string(i));
+			std::string path      = Poly::Format("{}#{}", vfsPath, pMaterial->GetName().length > 0 ? pMaterial->GetName().C_Str() : std::to_string(i));
 			AssetID     assetID(path);
 			if (registry.IsLoaded<MaterialAsset>(assetID))
 				POLY_CORE_WARN("Material '{}' in {} shares its sub-asset path with another material, references to it by path will be ambiguous", pMaterial->GetName().C_Str(), vfsPath);
@@ -176,42 +176,42 @@ namespace Poly
 		// Textures
 		// Albedo
 		if (pMaterial->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
-			materialAsset.SetTexture(Material::Type::ALBEDO, LoadAssimpMaterial(pMaterial, aiTextureType_BASE_COLOR, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::ALBEDO, LoadAssimpMaterial(pMaterial, aiTextureType_BASE_COLOR, 0, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 1)
-			materialAsset.SetTexture(Material::Type::ALBEDO, LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 1, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::ALBEDO, LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 1, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-			materialAsset.SetTexture(Material::Type::ALBEDO, LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::ALBEDO, LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE, 0, vfsPath));
 
 		// Normal
 		if (pMaterial->GetTextureCount(aiTextureType_NORMAL_CAMERA) > 0)
-			materialAsset.SetTexture(Material::Type::NORMAL, LoadAssimpMaterial(pMaterial, aiTextureType_NORMAL_CAMERA, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::NORMAL, LoadAssimpMaterial(pMaterial, aiTextureType_NORMAL_CAMERA, 0, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_NORMALS) > 0)
-			materialAsset.SetTexture(Material::Type::NORMAL, LoadAssimpMaterial(pMaterial, aiTextureType_NORMALS, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::NORMAL, LoadAssimpMaterial(pMaterial, aiTextureType_NORMALS, 0, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_HEIGHT) > 0)
-			materialAsset.SetTexture(Material::Type::NORMAL, LoadAssimpMaterial(pMaterial, aiTextureType_HEIGHT, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::NORMAL, LoadAssimpMaterial(pMaterial, aiTextureType_HEIGHT, 0, vfsPath));
 
 		// Ambient Occlusion
 		if (pMaterial->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
-			materialAsset.SetTexture(Material::Type::AMBIENT_OCCLUSION, LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT_OCCLUSION, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::AMBIENT_OCCLUSION, LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT_OCCLUSION, 0, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_AMBIENT) > 0)
-			materialAsset.SetTexture(Material::Type::AMBIENT_OCCLUSION, LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::AMBIENT_OCCLUSION, LoadAssimpMaterial(pMaterial, aiTextureType_AMBIENT, 0, vfsPath));
 
 		// Metallic
 		if (pMaterial->GetTextureCount(aiTextureType_METALNESS) > 0)
-			materialAsset.SetTexture(Material::Type::METALIC, LoadAssimpMaterial(pMaterial, aiTextureType_METALNESS, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::METALIC, LoadAssimpMaterial(pMaterial, aiTextureType_METALNESS, 0, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_REFLECTION) > 0)
-			materialAsset.SetTexture(Material::Type::METALIC, LoadAssimpMaterial(pMaterial, aiTextureType_REFLECTION, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::METALIC, LoadAssimpMaterial(pMaterial, aiTextureType_REFLECTION, 0, vfsPath));
 
 		// Roughness
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
-			materialAsset.SetTexture(Material::Type::ROUGHNESS, LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::ROUGHNESS, LoadAssimpMaterial(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS, 0, vfsPath));
 		else if (pMaterial->GetTextureCount(aiTextureType_SHININESS) > 0)
-			materialAsset.SetTexture(Material::Type::ROUGHNESS, LoadAssimpMaterial(pMaterial, aiTextureType_SHININESS, 0, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::ROUGHNESS, LoadAssimpMaterial(pMaterial, aiTextureType_SHININESS, 0, vfsPath));
 
 		// Combined occlusion metallic roughness
 		if (pMaterial->GetTextureCount(aiTextureType_UNKNOWN) > 0)
 		{
-			materialAsset.SetTexture(Material::Type::COMBINED, LoadAssimpMaterial(pMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, vfsPath));
+			materialAsset.SetTexture(EMaterialTextureType::COMBINED, LoadAssimpMaterial(pMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, vfsPath));
 			materialValues.IsCombined = 1.0;
 		}
 

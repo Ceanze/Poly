@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Poly/Model/Mesh.h"
 #include "Poly/RenderGraph/BufferArena.h"
+#include "Poly/RenderGraph/Shader/Vertex.h"
+#include "Poly/Resources/AssetTypes/MeshAsset.h"
 
 #include <vector>
 

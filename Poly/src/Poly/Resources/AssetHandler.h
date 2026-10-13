@@ -10,7 +10,6 @@ namespace Poly
 {
 	class IAssetImporter;
 
-	// TODO: Rename to AssetManager once the old asset manager is removed
 	class AssetHandler
 	{
 	public:

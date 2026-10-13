@@ -12,7 +12,7 @@ namespace Poly
 		return m_Values;
 	}
 
-	AssetHandle<TextureAsset> MaterialAsset::GetTexture(Material::Type type) const
+	AssetHandle<TextureAsset> MaterialAsset::GetTexture(EMaterialTextureType type) const
 	{
 		return m_Textures[static_cast<size_t>(type)];
 	}
@@ -22,7 +22,7 @@ namespace Poly
 		m_Values = std::move(materialValues);
 	}
 
-	void MaterialAsset::SetTexture(Material::Type type, AssetHandle<TextureAsset> texture)
+	void MaterialAsset::SetTexture(EMaterialTextureType type, AssetHandle<TextureAsset> texture)
 	{
 		m_Textures[static_cast<size_t>(type)] = std::move(texture);
 	}

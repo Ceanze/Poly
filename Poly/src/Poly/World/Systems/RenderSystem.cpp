@@ -17,9 +17,9 @@
 
 namespace
 {
-	constexpr Poly::Material::Type kMaterialTextureOrder[6] = {
-	    Poly::Material::Type::ALBEDO, Poly::Material::Type::METALIC, Poly::Material::Type::NORMAL,
-	    Poly::Material::Type::ROUGHNESS, Poly::Material::Type::AMBIENT_OCCLUSION, Poly::Material::Type::COMBINED};
+	constexpr Poly::EMaterialTextureType kMaterialTextureOrder[6] = {
+	    Poly::EMaterialTextureType::ALBEDO, Poly::EMaterialTextureType::METALIC, Poly::EMaterialTextureType::NORMAL,
+	    Poly::EMaterialTextureType::ROUGHNESS, Poly::EMaterialTextureType::AMBIENT_OCCLUSION, Poly::EMaterialTextureType::COMBINED};
 
 	// TODO: Point this at a real default texture (white/flat-normal) once ResourceManager has one.
 	constexpr uint32 kInvalidTextureIndex = ~0u;
