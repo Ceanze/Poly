@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Poly/API/Command.h"
-#include "Poly/Scene/Entity.h"
+#include "Poly/World/Entity.h"
 #include "Poly/World/Serialization/WorldSerializer.h"
 
 namespace Poly::API

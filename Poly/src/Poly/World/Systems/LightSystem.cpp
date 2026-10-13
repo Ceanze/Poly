@@ -3,8 +3,8 @@
 #include "Platform/API/Buffer.h"
 #include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/Shader/GPULightData.h"
-#include "Poly/Scene/Components.h"
-#include "Poly/Scene/Components/PointLightComponent.h"
+#include "Poly/World/Components.h"
+#include "Poly/World/Components/PointLightComponent.h"
 #include "Poly/World/World.h"
 
 #include <cstring>

@@ -4,8 +4,6 @@
 #include "Poly/Core/Input/InputManager.h"
 #include "Poly/Reflection/ComponentRegistry.h"
 #include "Poly/Resources/AssetHandler.h"
-#include "Poly/Resources/AssetLoader.h"
-#include "Poly/Resources/AssetManager.h"
 #include "Poly/Resources/GeometryPool.h"
 #include "Poly/Resources/Importers/SceneAssetImporter.h"
 #include "Poly/Resources/Importers/TextureAssetImporter.h"
@@ -38,7 +36,6 @@ namespace Poly
 
 		ThreadPool::Init();
 		VirtualFileSystem::Mount("assets/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR "/assets"), EMountMode::ReadWrite, 0);
-		// VirtualFileSystem::Mount("compat/", CreateUnique<FileDirectoryBackend>(POLY_ROOT_DIR), EMountMode::ReadWrite, 0); // TODO: Remove when the project.polyres file is gone from the asset importer
 
 		AssetHandler::Init();
 		AssetHandler::RegisterImporter(CreateUnique<TextureAssetImporter>());
@@ -51,8 +48,6 @@ namespace Poly
 
 		ShaderManager::Init();
 		GeometryPool::Init();
-		AssetLoader::Init();
-		AssetManager::Init();
 	}
 
 	void Engine::Run(Application* pApp)
@@ -89,8 +84,6 @@ namespace Poly
 		ThreadPool::Release();
 
 		ShaderManager::Release();
-		AssetLoader::Release();
-		AssetManager::Release();
 		GeometryPool::Release();
 		RenderAPI::Release();
 		AssetHandler::Release();

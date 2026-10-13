@@ -3,7 +3,7 @@
 #include "Poly/Poly/Format.h"
 #include "Poly/Reflection/ComponentRegistry.h"
 #include "Poly/Resources/VFS/VirtualFileSystem.h"
-#include "Poly/Scene/Components.h"
+#include "Poly/World/Components.h"
 
 #include <glaze/glaze.hpp>
 #include <glaze/yaml.hpp>

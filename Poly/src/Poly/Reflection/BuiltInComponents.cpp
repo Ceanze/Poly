@@ -1,12 +1,12 @@
 #include "Poly/Reflection/ComponentRegistration.h"
 #include "Poly/Resources/AssetTypes/MaterialAsset.h"
 #include "Poly/Resources/AssetTypes/MeshAsset.h"
-#include "Poly/Scene/Components.h"
-#include "Poly/Scene/Components/CameraComponent.h"
-#include "Poly/Scene/Components/MaterialComponent.h"
-#include "Poly/Scene/Components/MeshAssetComponent.h"
-#include "Poly/Scene/Components/NameComponent.h"
-#include "Poly/Scene/Components/PointLightComponent.h"
+#include "Poly/World/Components.h"
+#include "Poly/World/Components/CameraComponent.h"
+#include "Poly/World/Components/MaterialComponent.h"
+#include "Poly/World/Components/MeshAssetComponent.h"
+#include "Poly/World/Components/NameComponent.h"
+#include "Poly/World/Components/PointLightComponent.h"
 
 template<>
 struct glz::meta<Poly::MeshAssetComponent>

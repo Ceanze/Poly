@@ -2,7 +2,7 @@
 
 #include "Poly/RenderGraph/RenderResourceTable.h"
 #include "Poly/Resources/AssetHandle.h"
-#include "Poly/Scene/Entity.h"
+#include "Poly/World/Entity.h"
 
 #include <array>
 #include <functional>

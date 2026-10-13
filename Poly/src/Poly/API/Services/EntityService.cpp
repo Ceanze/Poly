@@ -5,7 +5,7 @@
 #include "Poly/API/EngineContext.h"
 #include "Poly/Reflection/ComponentRegistry.h"
 #include "Poly/Reflection/JsonHelpers.h"
-#include "Poly/Scene/Components/NameComponent.h"
+#include "Poly/World/Components/NameComponent.h"
 
 namespace Poly::API
 {

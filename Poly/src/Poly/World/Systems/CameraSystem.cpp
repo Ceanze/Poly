@@ -1,7 +1,7 @@
 #include "CameraSystem.h"
 
-#include "Poly/Scene/Components.h"
-#include "Poly/Scene/Components/CameraComponent.h"
+#include "Poly/World/Components.h"
+#include "Poly/World/Components/CameraComponent.h"
 #include "Poly/World/World.h"
 
 namespace Poly

@@ -4,8 +4,6 @@
 
 namespace Poly
 {
-	class Scene;
-
 	class Entity
 	{
 	public:
@@ -51,9 +49,6 @@ namespace Poly
 		 */
 		void MarkDirty() { m_Handle.emplace_or_replace<DirtyTag>(); }
 
-		// TODO: Consider removal
-		Scene* GetScene() const { return m_Handle.registry()->ctx().get<Scene*>(); }
-
 		template<typename Component>
 		bool HasComponent() const
 		{
@@ -89,7 +84,6 @@ namespace Poly
 		bool operator==(const Entity& other) const { return other.m_Handle == m_Handle; }
 
 	private:
-		friend class Scene;
 		friend class World;
 
 		Entity(entt::handle handle)

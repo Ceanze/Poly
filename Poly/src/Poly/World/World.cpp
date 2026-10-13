@@ -2,9 +2,9 @@
 
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
-#include "Poly/Scene/Components/MaterialComponent.h"
-#include "Poly/Scene/Components/MeshAssetComponent.h"
-#include "Poly/Scene/Components/NameComponent.h"
+#include "Poly/World/Components/MaterialComponent.h"
+#include "Poly/World/Components/MeshAssetComponent.h"
+#include "Poly/World/Components/NameComponent.h"
 #include "Poly/World/Systems/TransformSystem.h"
 
 namespace Poly

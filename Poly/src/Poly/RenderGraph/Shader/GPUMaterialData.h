@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Poly/Model/Material.h"
+#include "Poly/Resources/AssetTypes/MaterialAsset.h"
 
 namespace Poly
 {

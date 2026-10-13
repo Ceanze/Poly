@@ -1,12 +1,31 @@
 #pragma once
 
-#include "Poly/Model/Material.h" // TODO: Remove, contains MaterialValues for now
 #include "Poly/Resources/AssetHandle.h"
 #include "Poly/Resources/AssetTypes/IAsset.h"
 
 namespace Poly
 {
 	class TextureAsset;
+
+	struct MaterialValues
+	{
+		glm::vec4 Albedo     = {1.0, 1.0, 1.0, 1.0};
+		float     AO         = 1.0;
+		float     Metallic   = 1.0;
+		float     Roughness  = 1.0;
+		float     IsCombined = 0.0;
+	};
+
+	enum class EMaterialTextureType
+	{
+		NONE,
+		ALBEDO,
+		METALIC,
+		NORMAL,
+		ROUGHNESS,
+		AMBIENT_OCCLUSION,
+		COMBINED
+	};
 
 	class MaterialAsset : public IAsset
 	{
@@ -15,10 +34,10 @@ namespace Poly
 		explicit MaterialAsset(AssetID assetID);
 
 		const MaterialValues&     GetValues() const;
-		AssetHandle<TextureAsset> GetTexture(Material::Type type) const;
+		AssetHandle<TextureAsset> GetTexture(EMaterialTextureType type) const;
 
 		void SetMaterialValues(MaterialValues&& materialValues);
-		void SetTexture(Material::Type type, AssetHandle<TextureAsset> texture);
+		void SetTexture(EMaterialTextureType type, AssetHandle<TextureAsset> texture);
 
 	private:
 		MaterialValues                           m_Values;

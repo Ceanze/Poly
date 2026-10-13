@@ -1,10 +1,16 @@
 #pragma once
 
-#include "Poly/Model/Mesh.h" // TODO: Remove, contains MeshRange for now
+#include "Poly/RenderGraph/BufferRange.h"
 #include "Poly/Resources/AssetTypes/IAsset.h"
 
 namespace Poly
 {
+	struct MeshRange
+	{
+		BufferRange Vertices;
+		BufferRange Indices;
+	};
+
 	class MeshAsset : public IAsset
 	{
 	public:
