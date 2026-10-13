@@ -7,9 +7,6 @@
 
 namespace Poly
 {
-	class Model;
-	class Material;
-
 	// Tags
 	struct DirtyTag
 	{};
@@ -39,18 +36,6 @@ namespace Poly
 	struct WorldTransformComponent
 	{
 		glm::mat4 Matrix = glm::mat4(1.0f);
-	};
-
-	// TODO: Remove in favor of MeshAssetComponent
-	struct MeshComponent
-	{
-		MeshComponent(Model* pModel, uint32 meshIndex)
-		    : pModel(pModel)
-		    , MeshIndex(meshIndex)
-		{}
-
-		Model* pModel;
-		uint32 MeshIndex;
 	};
 
 	struct IDComponent

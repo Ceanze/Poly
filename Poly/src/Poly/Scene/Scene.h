@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Poly/Model/Model.h" // TODO: See if this can be removed
 #include "Poly/Resources/AssetHandle.h"
 
 #include <entt/entt.hpp>
@@ -22,12 +21,6 @@ namespace Poly
 		static constexpr const char* METALLIC_TEX_RESOURCE_NAME  = "metallicTex";
 		static constexpr const char* ROUGHNESS_TEX_RESOURCE_NAME = "roughnessTex";
 		static constexpr const char* AO_TEX_RESOURCE_NAME        = "aoTex";
-
-		struct DrawData
-		{
-			MeshInstance MeshInstance;
-			uint32       InstanceCount;
-		};
 
 	public:
 		Scene(const std::string& name);

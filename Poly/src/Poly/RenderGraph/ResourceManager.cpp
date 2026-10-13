@@ -437,8 +437,7 @@ namespace Poly
 			return;
 		}
 
-		// TODO: assumes 4 bytes/pixel (RGBA8), same simplification AssetLoader::LoadTextureFromMemory
-		// makes today - format/channels should determine the real stride instead.
+		// TODO: assumes 4 bytes/pixel (RGBA8) - format/channels should determine the real stride instead.
 		PendingTextureUpload upload;
 		upload.Handle      = handle;
 		upload.Width       = width;
