@@ -132,6 +132,18 @@ function useGlaze()
 	filter {}
 end
 
+-- Slang is only shipped as a shared library in the Vulkan SDK, the executables need it next to them
+function copySlangBinaries()
+	filter "system:windows"
+		postbuildcommands
+		{
+			'copy /Y "' .. path.translate(vkPath .. "/Bin/slang.dll", "\\") .. '" "%{cfg.buildtarget.directory}"',
+			'copy /Y "' .. path.translate(vkPath .. "/Bin/slang-glslang.dll", "\\") .. '" "%{cfg.buildtarget.directory}"'
+		}
+
+	filter {}
+end
+
 
 -- Projects
 project "Poly"
@@ -142,13 +154,15 @@ project "Poly"
 	filter "system:macosx"
 	    links
 	    {
-	        "libvulkan"
+	        "libvulkan",
+	        "libslang"
 	    }
 
 	filter "system:windows"
 	    links
 	    {
-	        "vulkan-1"
+	        "vulkan-1",
+	        "slang"
 	    }
     filter {}
 
@@ -223,6 +237,7 @@ project "Sandbox"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	copySlangBinaries()
 
 	forceincludes
 	{
@@ -254,7 +269,8 @@ project "Sandbox"
 			"Metal.framework",
 			"IOSurface.framework",
 			"QuartzCore.framework",
-			"vulkan"
+			"vulkan",
+			"slang"
 		}
 		libdirs
 		{
@@ -277,6 +293,7 @@ project "ImGuiEditor"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	copySlangBinaries()
 
 	-- Engine headers are not self-contained; they rely on the engine's pch
 	forceincludes
@@ -314,7 +331,8 @@ project "ImGuiEditor"
 			"Metal.framework",
 			"IOSurface.framework",
 			"QuartzCore.framework",
-			"vulkan"
+			"vulkan",
+			"slang"
 		}
 		libdirs
 		{

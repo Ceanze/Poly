@@ -4,19 +4,23 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Resources/AssetLoader.h"
 #include "Poly/Resources/Shader/ShaderReflector.h"
+#include "Poly/Resources/Shader/SlangCompiler.h"
 
 namespace Poly
 {
 	std::mutex                   ShaderManager::s_Mutex   = {};
 	std::map<PolyID, ShaderData> ShaderManager::s_Shaders = {};
+	Unique<SlangCompiler>        ShaderManager::s_pSlangCompiler;
 
 	void ShaderManager::Init()
 	{
+		s_pSlangCompiler = CreateUnique<SlangCompiler>();
 	}
 
 	void ShaderManager::Release()
 	{
 		s_Shaders.clear();
+		s_pSlangCompiler.reset();
 	}
 
 	PolyID ShaderManager::CreateShader(std::string_view path, FShaderStage shaderStage)
