@@ -1,5 +1,5 @@
 #include "RenderCatalog.h"
-#include "RenderProgramBuilder.h"
+#include "RenderPlanBuilder.h"
 
 namespace Poly
 {
@@ -10,7 +10,11 @@ namespace Poly
 		explicit RenderGraph(Ref<RenderCatalog> catalog);
 		~RenderGraph() = default;
 
-		RenderProgramBuilder Begin();
+		/*
+		 * Starts a render plan: the description of what a frame renders, which the renderer compiles together
+		 * with the views submitted each frame. See RenderPlanBuilder.
+		 */
+		RenderPlanBuilder BeginRenderPlan();
 
 		IPassDeclaration& RegisterPass(std::string_view name);
 
@@ -29,15 +33,4 @@ namespace Poly
 	private:
 		Ref<RenderCatalog> m_Catalog;
 	};
-
-	// {
-	// 	RenderCatalog catalog;
-	// 	catalog.RegisterPass("imgui").WithShader(...).WithExecuteFn(...);
-	// 	catalog.RegisterFeature("debug").WithPass("imgui");
-	//
-	// 	RenderGraph graph(catalog);
-	// 	graph.RegisterResource("SceneAlbedo")
-	// 	    .WithType(Type::Texture2D)
-	// 	    .WithInitialState(ResourceState::ShaderResource);
-	// }
 } // namespace Poly

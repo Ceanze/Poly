@@ -224,6 +224,11 @@ project "Sandbox"
 	srcFiles()
 	useGlaze()
 
+	forceincludes
+	{
+		"polypch.h"
+	}
+
 	externalincludedirs
 	{
 		get_vulkan_include_dir(vkPath),

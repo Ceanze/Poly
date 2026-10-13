@@ -10,9 +10,9 @@ namespace Poly
 	    : m_Catalog(std::move(catalog))
 	{}
 
-	RenderProgramBuilder RenderGraph::Begin()
+	RenderPlanBuilder RenderGraph::BeginRenderPlan()
 	{
-		return RenderProgramBuilder(m_Catalog);
+		return RenderPlanBuilder(m_Catalog);
 	}
 
 	IPassDeclaration& RenderGraph::RegisterPass(std::string_view name)

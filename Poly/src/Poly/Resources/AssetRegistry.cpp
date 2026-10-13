@@ -11,7 +11,7 @@ namespace Poly
 		// "/" finds all files on all mounted backends
 		for (const std::string& path : VirtualFileSystem::EnumerateFiles("/"))
 		{
-			if (PathUtils::GetExtension(path) == "meta")
+			if (PathUtils::GetExtension(path) == ".meta")
 			{
 				std::string sourcePath = path.substr(0, path.size() - std::string_view(".meta").size());
 				if (VirtualFileSystem::Exists(sourcePath))

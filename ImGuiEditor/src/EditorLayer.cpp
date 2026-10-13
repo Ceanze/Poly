@@ -1,36 +1,20 @@
 #include "EditorLayer.h"
 
-#include <Platform/API/CommandBuffer.h>
+#include <imgui/imgui.h>
+
 #include <Poly/Core/Application.h>
 #include <Poly/Core/Window.h>
 #include <Poly/ImGui/ImGuiLayer.h>
-#include <Poly/RenderGraph/ExecuteContext.h>
-#include <Poly/RenderGraph/Feature/FeaturePort.h>
 #include <Poly/RenderGraph/RenderCatalog.h>
+#include <Poly/Rendering/Features/GeometryFeature.h>
 #include <Poly/Rendering/Renderer.h>
+#include <Poly/World/Systems/CameraSystem.h>
+#include <Poly/World/Systems/LightSystem.h>
 #include <Poly/World/Systems/RenderSystem.h>
-
-#include <imgui/imgui.h>
 
 namespace
 {
-	struct CameraBuffer
-	{
-		glm::mat4 Mat;
-		glm::vec4 Pos;
-	};
-
-	struct PointLight
-	{
-		glm::vec4 Color    = {100.0f, 100.0f, 100.0f, 1.0f};
-		glm::vec4 Position = {0.0f, 1.0f, -1.0f, 1.0f};
-	};
-
-	struct LightBuffer
-	{
-		glm::vec4  LightCount = {1.0f, 0.0f, 0.0f, 0.0f};
-		PointLight PointLight = {};
-	};
+	constexpr const char* SCENE_STAGE_NAME = "Scene";
 } // namespace
 
 namespace Editor
@@ -41,36 +25,34 @@ namespace Editor
 
 	void EditorLayer::OnAttach()
 	{
-		Poly::Window* pWindow = Poly::Application::Get().GetWindow();
-
 		m_pCamera = new Poly::Camera();
-		m_pCamera->SetAspect(static_cast<float>(pWindow->GetWidth()) / pWindow->GetHeight());
 		m_pCamera->SetMouseSense(2.f);
 		m_pCamera->SetMovementSpeed(1.f);
 		m_pCamera->SetSprintSpeed(5.f);
 
-		// Registers the scene resources in the catalog, so it has to be added before the render program is built
 		m_Context.GetWorld().AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
+		m_Context.GetWorld().AddSystem<Poly::LightSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
+		m_Context.GetWorld().AddSystem<Poly::CameraSystem>(Poly::World::Phase::PostUpdate);
 
-		RegisterGeometryFeature();
+		Poly::GeometryFeature::Register(*m_pCatalog);
 		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
 
-		Poly::Ref<Poly::RenderProgram> pProgram = m_Graph.Begin()
-		                                              .AddFeature("geometry")
-		                                              .AddFeature(Poly::ImGuiLayer::FEATURE_NAME)
-		                                              .WithFinalState(Poly::ToSemanticName(Poly::EFeaturePort::Color), Poly::FResourceState::Present)
-		                                              .Build();
+		// clang-format off
+		Poly::Ref<Poly::RenderPlan> pPlan = m_Graph.BeginRenderPlan()
+		                                        .AddViewStage(SCENE_STAGE_NAME)
+		                                            .AddFeature(Poly::GeometryFeature::FEATURE_NAME)
+		                                        .EndStage()
+		                                        .AddFrameFeature(Poly::ImGuiLayer::FEATURE_NAME)
+		                                        .Build();
+		// clang-format on
 
-		Poly::Application::Get().GetRenderer()->SetRenderProgram(pProgram);
+		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
+		pRenderer->SetRenderPlan(pPlan);
 
-		m_CameraBufferHandle = Poly::ResourceManager::CreateUniformBuffer(sizeof(CameraBuffer), "Camera");
-		m_LightsBufferHandle = Poly::ResourceManager::CreateStorageBuffer(sizeof(LightBuffer), Poly::EMemoryUsage::CPU_VISIBLE, "Lights");
-
-		LightBuffer lights = {};
-		Poly::ResourceManager::UploadBufferData(m_LightsBufferHandle, &lights, sizeof(LightBuffer));
-
-		m_ViewResources.Set("Camera", m_CameraBufferHandle);
-		m_ViewResources.Set("Lights", m_LightsBufferHandle);
+		// Both views belong to the same stage, so the world is rendered the same way in both.
+		// The targets are set once the panels know their size
+		m_EditorViewport.pView = pRenderer->CreateView({.DebugName = "Editor Viewport", .Stage = SCENE_STAGE_NAME, .pWorld = &m_Context.GetWorld()});
+		m_GameViewport.pView   = pRenderer->CreateView({.DebugName = "Game Viewport", .Stage = SCENE_STAGE_NAME, .pWorld = &m_Context.GetWorld()});
 
 		m_EventSubscription = m_Context.Events().Subscribe([this](const Poly::API::ApiEvent& event) { OnApiEvent(event); });
 
@@ -83,6 +65,9 @@ namespace Editor
 
 	void EditorLayer::OnDetach()
 	{
+		DestroyViewport(m_EditorViewport);
+		DestroyViewport(m_GameViewport);
+
 		delete m_pCamera;
 	}
 
@@ -95,67 +80,29 @@ namespace Editor
 		m_HierarchyPanel.Draw(m_Context, m_State);
 		m_InspectorPanel.Draw(m_Context, m_State);
 
-		m_Context.Tick();
-		Poly::Application::Get().GetRenderer()->Submit({.pWorld         = &m_Context.GetWorld(),
-		                                                .pViewResources = &m_ViewResources});
+		// As of the last update of the world, which is what the game view shows this frame as well if the camera is gone by now
+		const Poly::CameraSystem* pCameraSystem  = m_Context.GetWorld().GetSystem<Poly::CameraSystem>();
+		const bool                hasWorldCamera = pCameraSystem && pCameraSystem->GetPrimaryCamera().has_value();
+
+		DrawViewport(m_EditorViewport);
+		DrawViewport(m_GameViewport, hasWorldCamera ? nullptr : "The world has no primary camera");
 
 		m_pCamera->Update(dt);
-		CameraBuffer cameraData = {m_pCamera->GetMatrix(), m_pCamera->GetPosition()};
-		Poly::ResourceManager::UploadBufferData(m_CameraBufferHandle, &cameraData, sizeof(CameraBuffer));
+
+		m_Context.Tick();
+
+		// A view is only submitted while its panel is showing the world, nothing is rendered for a hidden panel
+		SubmitViewport(m_EditorViewport, m_pCamera->GetRenderCamera());
+
+		if (pCameraSystem && pCameraSystem->GetPrimaryCamera().has_value())
+			SubmitViewport(m_GameViewport, *pCameraSystem->GetPrimaryCamera());
 	}
 
 	void EditorLayer::OnEvent(Poly::Event& event)
 	{
 		Poly::EventDispatcher eventDispatcher(event);
-		eventDispatcher.Dispatch<Poly::Events::WindowResized>([this](Poly::Events::WindowResized& event) { return OnWindowResized(event); });
 		eventDispatcher.Dispatch<Poly::Events::MouseButtonPressed>([this](Poly::Events::MouseButtonPressed& event) { return OnMouseButton(event.GetButton(), true); });
 		eventDispatcher.Dispatch<Poly::Events::MouseButtonReleased>([this](Poly::Events::MouseButtonReleased& event) { return OnMouseButton(event.GetButton(), false); });
-	}
-
-	// Same geometry pass as the Sandbox, see the notes there about the order of the MapGlobal() calls
-	void EditorLayer::RegisterGeometryFeature()
-	{
-		m_Graph.RegisterResource("Camera").WithType(Poly::EResourceType::UniformBuffer);
-		m_Graph.RegisterResource("Lights").WithType(Poly::EResourceType::StorageBuffer);
-
-		m_Graph.RegisterPass("pbr")
-		    .WithShader("assets/shaders/pbr_bindless.vert", Poly::FShaderStage::VERTEX)
-		    .WithShader("assets/shaders/pbr_bindless.frag", Poly::FShaderStage::FRAGMENT)
-		    .MapResource(Poly::EFeaturePort::Color, "out_Color")
-		    .MapResource(Poly::EFeaturePort::Depth, "depth")
-		    .MapGlobal("Camera", "camera")
-		    .MapGlobal(Poly::RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
-		    .MapGlobal(Poly::RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
-		    .MapGlobal("Lights", "lights")
-		    .MapGlobal(Poly::RenderSystem::MATERIAL_RESOURCE_NAME, "materialProps")
-		    .WithGraphicsPipeline()
-		    .Topology(Poly::ETopology::TRIANGLE_LIST)
-		    .PolygonMode(Poly::EPolygonMode::FILL)
-		    .CullMode(Poly::ECullMode::BACK)
-		    .ClockwiseFrontFace(false)
-		    .DepthTestEnable(true)
-		    .DepthWriteEnable(true)
-		    .DepthCompareOp(Poly::ECompareOp::LESS_OR_EQUAL)
-		    .AddColorBlendAttachment()
-		    .BlendEnable(false)
-		    .ColorWriteMask(Poly::FColorComponentFlag::RED | Poly::FColorComponentFlag::GREEN | Poly::FColorComponentFlag::BLUE |
-			                Poly::FColorComponentFlag::ALPHA)
-		    .FinishColorBlendAttachment()
-		    .FinishPipeline()
-		    .WithExecuteFn([](Poly::ExecuteContext& ctx) {
-			    const Poly::World*        pWorld        = ctx.GetWorld();
-			    const Poly::RenderSystem* pRenderSystem = pWorld ? pWorld->GetSystem<Poly::RenderSystem>() : nullptr;
-			    // An empty world has nothing to draw, and no geometry might have been loaded yet for the index buffer to exist
-			    if (!pRenderSystem || pRenderSystem->GetDrawBatches().empty())
-				    return;
-
-			    Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
-			    pCmd->BindIndexBuffer(pRenderSystem->GetIndexBuffer(), 0, Poly::EIndexType::UINT32);
-			    for (const Poly::DrawBatch& batch : pRenderSystem->GetDrawBatches())
-				    pCmd->DrawIndexedInstanced(batch.IndexCount, batch.InstanceCount, batch.BaseIndex, batch.BaseVertex, batch.FirstInstance);
-		    });
-
-		m_Graph.RegisterFeature("geometry").WithPass("pbr");
 	}
 
 	void EditorLayer::DrawMenuBar()
@@ -239,6 +186,68 @@ namespace Editor
 		ImGui::EndPopup();
 	}
 
+	void EditorLayer::DrawViewport(Viewport& viewport, const char* pPlaceholder)
+	{
+		// The game view starts out as a smaller panel next to the viewport
+		const bool isGameViewport = &viewport == &m_GameViewport;
+		ImGui::SetNextWindowPos(isGameViewport ? ImVec2(1140.0f, 60.0f) : ImVec2(360.0f, 60.0f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(isGameViewport ? ImVec2(420.0f, 260.0f) : ImVec2(760.0f, 460.0f), ImGuiCond_FirstUseEver);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		viewport.Visible = false;
+		if (ImGui::Begin(viewport.pName))
+		{
+			if (pPlaceholder)
+			{
+				ImGui::TextUnformatted(pPlaceholder);
+			}
+			else
+			{
+				const ImVec2 available = ImGui::GetContentRegionAvail();
+				ResizeViewport(viewport, static_cast<uint32>(std::max(available.x, 1.0f)), static_cast<uint32>(std::max(available.y, 1.0f)));
+
+				ImGui::Image(viewport.Texture.Get(), ImVec2(static_cast<float>(viewport.Width), static_cast<float>(viewport.Height)));
+				viewport.Visible = true;
+			}
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+	}
+
+	void EditorLayer::ResizeViewport(Viewport& viewport, uint32 width, uint32 height)
+	{
+		if (viewport.Texture.IsValid() && width == viewport.Width && height == viewport.Height)
+			return;
+
+		// The resource manager keeps the old texture alive for the frames still using it
+		Poly::ResourceManager::Destroy(viewport.Texture);
+
+		viewport.Texture = Poly::ResourceManager::CreateTexture2D(width, height, Poly::EFormat::R8G8B8A8_UNORM,
+		                                                          Poly::FTextureUsage::COLOR_ATTACHMENT | Poly::FTextureUsage::SAMPLED, viewport.pName);
+		viewport.Width   = width;
+		viewport.Height  = height;
+
+		viewport.pView->SetTarget(viewport.Texture);
+	}
+
+	void EditorLayer::SubmitViewport(Viewport& viewport, const Poly::RenderCamera& camera)
+	{
+		if (!viewport.Visible)
+			return;
+
+		viewport.pView->SetWorld(&m_Context.GetWorld());
+		viewport.pView->SetCamera(camera);
+		Poly::Application::Get().GetRenderer()->SubmitView(viewport.pView);
+	}
+
+	void EditorLayer::DestroyViewport(Viewport& viewport)
+	{
+		viewport.pView.reset();
+		Poly::ResourceManager::Destroy(viewport.Texture);
+		viewport.Texture = {};
+	}
+
 	void EditorLayer::HandleShortcuts()
 	{
 		// Typing in a text field has its own undo and delete
@@ -277,12 +286,6 @@ namespace Editor
 		// The selection can be destroyed by anything, including an undo or a newly loaded world
 		if (!m_Context.Entities().Exists(m_State.Selection))
 			m_State.Selection = Poly::PolyID::None();
-	}
-
-	bool EditorLayer::OnWindowResized(Poly::Events::WindowResized& event)
-	{
-		m_pCamera->SetAspect(static_cast<float>(event.GetWidth()) / event.GetHeight());
-		return true;
 	}
 
 	bool EditorLayer::OnMouseButton(Poly::EKey button, bool pressed)

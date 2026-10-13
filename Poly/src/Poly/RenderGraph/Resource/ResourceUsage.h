@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/RenderGraph/Resource/ResourceType.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
@@ -36,11 +37,11 @@ namespace Poly
 	bool IsBufferResourceType(EResourceType type);
 
 	/*
-	 * Determines if a resolved name corresponds to a semantic attachment port ("$Color"/"$Depth"/"$Stencil").
-	 * @param resolvedName The resolved name of the port to check.
-	 * @return True if the resolved name is a semantic attachment port; false otherwise.
+	 * Determines if a port is a semantic attachment port ("$Color"/"$Depth"/"$Stencil").
+	 * @param semantic The feature port the pass port was mapped to, EFeaturePort::None if it was not.
+	 * @return True if the port is a semantic attachment port; false otherwise.
 	 */
-	bool IsAttachmentSemanticPort(const std::string& resolvedName);
+	bool IsAttachmentSemanticPort(EFeaturePort semantic);
 
 	/*
 	 * ORs together the pipeline stages implied by a pass's declared shaders (vertex/fragment/compute).
@@ -54,19 +55,17 @@ namespace Poly
 	 * whether it's a semantic attachment port ("$Color"/"$Depth"/"$Stencil").
 	 * @param type The resource type of the port.
 	 * @param isWrite True if the port is written to; false if it is read from.
-	 * @param resolvedName The resolved name of the port.
+	 * @param semantic The feature port the pass port was mapped to, EFeaturePort::None if it was not.
 	 * @param passShaderStages The combined pipeline stages for the pass.
 	 * @return The derived resource usage.
 	 */
-	ResourceUsage DeriveResourceUsage(EResourceType type, bool isWrite, const std::string& resolvedName,
-	                                  FPipelineStage passShaderStages);
+	ResourceUsage DeriveResourceUsage(EResourceType type, bool isWrite, EFeaturePort semantic, FPipelineStage passShaderStages);
 
 	/*
 	 * Converts a declared FResourceState into the equivalent barrier-planning state. Used both to seed a
-	 * resource's tracked state on first use (RenderProgramBuilder::WithInitialState(), instead of assuming
-	 * ETextureLayout::UNDEFINED) and to require a resource end up in a specific state after its last use
-	 * in the program (RenderProgramBuilder::WithFinalState(), e.g. FResourceState::Present for a swapchain
-	 * image before vkQueuePresentKHR).
+	 * resource's tracked state on first use (IResourceDeclaration::WithInitialState(), instead of assuming
+	 * ETextureLayout::UNDEFINED) and to leave a render target in a specific state after its last use
+	 * in the program (e.g. FResourceState::Present for a swapchain image before vkQueuePresentKHR).
 	 * @param state The resource state to convert.
 	 * @return The converted resource usage.
 	 */

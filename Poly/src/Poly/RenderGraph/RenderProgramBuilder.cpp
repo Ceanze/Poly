@@ -1,12 +1,7 @@
 #include "RenderProgramBuilder.h"
 
-#include "Feature/FeatureDeclaration.h"
 #include "Feature/FeaturePort.h"
-#include "Pass/PassDeclaration.h"
-#include "Poly/Resources/Shader/ShaderManager.h"
-#include "Resource/ResourceDeclaration.h"
 #include "Resource/ResourceUsage.h"
-#include "SetupContext.h"
 
 #include <algorithm>
 #include <functional>
@@ -22,135 +17,87 @@ namespace Poly
 		bool                mandatory = false;
 	};
 
-	RenderProgramBuilder::RenderProgramBuilder(Ref<RenderCatalog> catalog)
-	    : m_Catalog(std::move(catalog))
-	{}
-
-	RenderProgramBuilder& RenderProgramBuilder::AddFeature(std::string_view name)
+	namespace
 	{
-		if (!m_Catalog->GetFeatureRegistry().Get(name))
+		// The window is target slot 0 and keeps the plain semantic name
+		std::string ToTargetName(uint32 targetSlot)
 		{
-			POLY_CORE_ERROR("Feature '{}' not found in render catalog.", name);
-			return *this;
+			const std::string colorName(ToSemanticName(EFeaturePort::Color));
+			return targetSlot == 0 ? colorName : "target#" + std::to_string(targetSlot) + "." + colorName;
 		}
 
-		m_Features.emplace_back(name);
-		return *this;
-	}
-
-	RenderProgramBuilder& RenderProgramBuilder::WithInitialState(std::string_view resolvedName, FResourceState state)
-	{
-		m_InitialStates[std::string(resolvedName)] = state;
-		return *this;
-	}
-
-	RenderProgramBuilder& RenderProgramBuilder::WithFinalState(std::string_view resolvedName, FResourceState state)
-	{
-		m_FinalStates[std::string(resolvedName)] = state;
-		return *this;
-	}
-
-	// Phase 1: Expand features into an ordered flat list of passes with resolved port names.
-	// Import/export resource names are scoped per feature instance ("featureName#N.resName")
-	// so that two uses of the same feature don't share internal resource connections.
-	// Semantic ports (EFeaturePort) and global mappings are intentionally left unscoped.
-	std::vector<ResolvedPass> RenderProgramBuilder::FlattenFeatures()
-	{
-		std::vector<ResolvedPass>               flat;
-		std::unordered_map<std::string, size_t> instanceCount;
-
-		for (const auto& featureName : m_Features)
+		// Gives the ports of a pass the names they are known by in the program, see ResolvedPort::ResolvedName
+		void ScopePorts(ResolvedPass& pass, uint32 viewSlot, const ProgramViewDesc* pView)
 		{
-			const FeatureDeclaration* feature = m_Catalog->GetFeatureRegistry().Get(featureName);
-			if (!feature)
-			{
-				POLY_CORE_ERROR("Feature '{}' not found during compilation.", featureName);
-				continue;
-			}
+			pass.ViewSlot = viewSlot;
 
-			const size_t      instanceIdx = instanceCount[featureName]++;
-			const std::string scope       = featureName + "#" + std::to_string(instanceIdx) + ".";
-
-			for (const auto& passName : feature->GetPasses())
+			for (ResolvedPort& port : pass.Ports)
 			{
-				PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
-				if (!pass)
+				if (port.Semantic == EFeaturePort::Color)
 				{
-					POLY_CORE_ERROR("Pass '{}' referenced by feature '{}' not found during compilation.",
-					                passName, featureName);
+					port.TargetSlot   = pView ? pView->TargetSlot : 0;
+					port.ResolvedName = ToTargetName(port.TargetSlot);
 					continue;
 				}
 
-				SetupContext setupCtx(*pass);
-				pass->CallSetupFn(setupCtx);
-
-				ResolvedPass resolved;
-				resolved.Name         = passName;
-				resolved.Shaders      = pass->GetShaders();
-				resolved.PipelineDesc = pass->GetGraphicsPipeline().GetDesc();
-				resolved.ExecuteFn    = pass->GetExecuteFn();
-				resolved.Queue        = pass->GetQueue();
-
-				for (const ResourceMapping& mapping : pass->GetResourceMappings())
+				// Passes of frame features have no view or world to scope by
+				if (!pView || port.Scope == EResourceScope::Global)
 				{
-					ResolvedPort port;
-					port.ShaderName     = mapping.ShaderResourceName;
-					port.ResolvedName   = std::string(ToSemanticName(mapping.Port));
-					port.IsWrite        = true;
-					port.LoadOpOverride = mapping.LoadOpOverride;
-					resolved.Ports.push_back(std::move(port));
+					port.ResolvedName = port.Name;
+					continue;
 				}
 
-				for (const auto& [globalName, shaderName] : pass->GetGlobalMappings())
-					resolved.Ports.push_back({shaderName, globalName, /*IsWrite=*/false});
-
-				for (const auto& [resName, shaderName] : pass->GetImportedResources())
-					resolved.Ports.push_back({shaderName, scope + resName, /*IsWrite=*/false});
-
-				for (const auto& [resName, shaderName] : pass->GetExportedResources())
-					resolved.Ports.push_back({shaderName, scope + resName, /*IsWrite=*/true});
-
-				// Read/WriteResource ports: graph dependency + barrier state only, no shader binding (empty ShaderName).
-				// These must reference a registered resource, otherwise the name would silently fall through to a
-				// transient render-target-sized texture below.
-				for (const ResourceUse& use : pass->GetResourceUses())
+				if (port.Scope == EResourceScope::World)
 				{
-					if (!m_Catalog->GetResourceRegistry().Get(use.Name))
+					port.ResolvedName = "world#" + std::to_string(pView->WorldIndex) + "." + port.Name;
+					continue;
+				}
+
+				// A texture the view has bound to the target of another view is that target, which makes the
+				// pass depend on the passes rendering to it
+				if (!port.IsWrite && port.IsExternal && IsTextureResourceType(port.ResourceType))
+				{
+					const auto it = std::ranges::find_if(pView->TargetReads, [&port](const auto& read) { return read.first == port.Name; });
+					if (it != pView->TargetReads.end())
 					{
-						POLY_CORE_ERROR("Pass '{}' uses resource '{}' via Read/WriteResource, but it is not registered on the render graph; skipping.",
-						                passName, use.Name);
+						port.TargetSlot   = it->second;
+						port.ResolvedName = ToTargetName(port.TargetSlot);
+						port.IsExternal   = false;
 						continue;
 					}
-
-					ResolvedPort port;
-					port.ResolvedName = use.Name;
-					port.IsWrite      = use.IsWrite;
-					port.UsageState   = use.State;
-					resolved.Ports.push_back(std::move(port));
 				}
 
-				// A port whose resolved name matches a resource registered on the RenderGraph with an
-				// explicit size is graph-owned/allocated at that fixed size (e.g. a shadow map); one
-				// registered without a size is assumed externally owned, supplied per-frame via
-				// RenderProgramInstance::UpdateResource(). Everything unregistered is transient and
-				// sized to the render target by the RenderProgramInstance.
-				for (auto& p : resolved.Ports)
-				{
-					if (const ResourceDeclaration* resDecl = m_Catalog->GetResourceRegistry().Get(p.ResolvedName))
-					{
-						p.ResourceType = resDecl->GetResourceType();
-						p.InitialState = resDecl->GetInitialState();
-						p.Width        = resDecl->GetWidth();
-						p.Height       = resDecl->GetHeight();
-						p.IsExternal   = !resDecl->HasSize();
-					}
+				port.ResolvedName = "view#" + std::to_string(viewSlot) + "." + port.Name;
+			}
+		}
+	} // namespace
 
-					// Builder-level override
-					if (auto it = m_InitialStates.find(p.ResolvedName); it != m_InitialStates.end())
-						p.InitialState = it->second;
-				}
+	// Phase 1: Lay out the passes of the plan in order: the passes of a frame feature once, the passes of a
+	// view stage once for every view of the stage.
+	std::vector<ResolvedPass> RenderProgramBuilder::InstantiatePasses(const RenderPlan& plan, const ProgramKey& key)
+	{
+		std::vector<ResolvedPass> flat;
 
-				flat.push_back(std::move(resolved));
+		const auto& entries = plan.GetEntries();
+		for (uint32 entryIndex = 0; entryIndex < entries.size(); entryIndex++)
+		{
+			const RenderPlanEntry& entry = entries[entryIndex];
+
+			if (entry.Type == RenderPlanEntry::EType::FrameFeature)
+			{
+				for (const ResolvedPass& pass : entry.Passes)
+					ScopePorts(flat.emplace_back(pass), 0, nullptr);
+
+				continue;
+			}
+
+			for (uint32 viewIndex = 0; viewIndex < key.size(); viewIndex++)
+			{
+				if (key[viewIndex].EntryIndex != entryIndex)
+					continue;
+
+				for (const ResolvedPass& pass : entry.Passes)
+					ScopePorts(flat.emplace_back(pass), viewIndex + 1, &key[viewIndex]);
 			}
 		}
 
@@ -158,32 +105,27 @@ namespace Poly
 	}
 
 	// Phase 2: Build a culled dependency graph.
-	// Passes that don't contribute to the final $Color output or are marked non-mandatory are excluded.
-	std::vector<PassNode> RenderProgramBuilder::BuildDAG(const std::vector<ResolvedPass>& flat) const
+	// Passes that don't contribute to a color target are excluded.
+	std::vector<PassNode> RenderProgramBuilder::BuildDAG(const std::vector<ResolvedPass>& flat)
 	{
 		const size_t          n = flat.size();
 		std::vector<PassNode> nodes(n);
 		for (size_t i = 0; i < n; ++i)
 			nodes[i].flatIndex = i;
 
-		// Seed: the last pass that writes $Color is the mandatory sink
+		// Seed: the last pass that writes a color target (the window or an offscreen target of a view) is a mandatory sink
+		std::unordered_set<std::string> seenTargets;
 		for (int i = static_cast<int>(n) - 1; i >= 0; --i)
 		{
 			for (const auto& port : flat[i].Ports)
 			{
-				if (port.IsWrite && port.ResolvedName == "$Color")
-				{
+				if (port.IsWrite && port.Semantic == EFeaturePort::Color && seenTargets.insert(port.ResolvedName).second)
 					nodes[i].mandatory = true;
-					break;
-				}
 			}
-
-			if (nodes[i].mandatory)
-				break;
 		}
 
-		// availableInputs: resolvedName -> index of the mandatory pass that reads it
-		std::unordered_map<std::string, size_t> availableInputs;
+		// availableInputs: resolvedName -> indices of the mandatory passes that read it and have no producer yet
+		std::unordered_map<std::string, std::vector<size_t>> availableInputs;
 
 		// Reverse scan: pull in producers of resources that mandatory passes need
 		for (int i = static_cast<int>(n) - 1; i >= 0; --i)
@@ -217,7 +159,9 @@ namespace Poly
 				auto it = availableInputs.find(port.ResolvedName);
 				if (it != availableInputs.end())
 				{
-					nodes[it->second].dependsOn.push_back((size_t)i);
+					for (size_t consumer : it->second)
+						nodes[consumer].dependsOn.push_back((size_t)i);
+
 					availableInputs.erase(it);
 				}
 			}
@@ -225,7 +169,11 @@ namespace Poly
 			// Register all ports as pending: explicit reads and write-passthroughs.
 			// An earlier pass that writes the same resource name will satisfy the passthrough.
 			for (const auto& port : pass.Ports)
-				availableInputs.emplace(port.ResolvedName, (size_t)i);
+			{
+				std::vector<size_t>& consumers = availableInputs[port.ResolvedName];
+				if (consumers.empty() || consumers.back() != (size_t)i)
+					consumers.push_back((size_t)i);
+			}
 		}
 
 		return nodes;
@@ -234,7 +182,7 @@ namespace Poly
 	// Phase 3: Topological sort, scheduled as-late-as-possible (ALAP).
 	// Passes with deeper dependency chains are scheduled first so resources
 	// have the shortest possible lifetime.
-	std::vector<ResolvedPass> RenderProgramBuilder::TopoSortALAP(const std::vector<PassNode>& nodes, const std::vector<ResolvedPass>& flat) const
+	std::vector<ResolvedPass> RenderProgramBuilder::TopoSortALAP(const std::vector<PassNode>& nodes, const std::vector<ResolvedPass>& flat)
 	{
 		const size_t n = nodes.size();
 
@@ -296,109 +244,6 @@ namespace Poly
 		return result;
 	}
 
-	// Bindless slot assignment: walk each pass's ports in declaration order (the same order they
-	// were pushed in FlattenFeatures - ImportResource/ExportResource/MapResource/MapGlobal calls,
-	// in the order the pass author wrote them) and assign the next free textureIndices[]/
-	// bufferAddresses[] slot to each texture-/buffer-shaped port. Each shader stage is a separately
-	// compiled SPIR-V module, so a stage that never includes the shared BINDLESS_PUSH_CONSTANTS macro
-	// (e.g. a vertex shader with no bindless needs while the fragment shader has some) simply won't
-	// report a BindlessLayout - reflecting only one stage would silently miss slots another stage
-	// needs. So every stage is reflected and merged: the layout is present if any stage declares it,
-	// and PushConstantSize is the max across stages in case one stage's push-constant block has
-	// trailing fields beyond the shared macro that another stage's doesn't. Offsets/counts still come
-	// from the one shared macro and so are expected to agree wherever more than one stage declares
-	// them; a mismatch is logged rather than silently picking one. Passes whose shaders don't use the
-	// macro in any stage are left with empty slots and PushConstantSize == 0.
-	void RenderProgramBuilder::AssignBindlessSlots(std::vector<ResolvedPass>& passes) const
-	{
-		for (ResolvedPass& pass : passes)
-		{
-			if (pass.Shaders.empty())
-				continue;
-
-			ShaderBindlessLayout layout;
-			for (const auto& [shaderPath, shaderStage] : pass.Shaders)
-			{
-				const PolyID                shaderID    = ShaderManager::CreateShader(shaderPath, shaderStage);
-				const ShaderData&           shaderData  = ShaderManager::GetShader(shaderID);
-				const ShaderBindlessLayout& stageLayout = shaderData.Reflection.BindlessLayout;
-
-				if (stageLayout.HasTextureSlots)
-				{
-					if (layout.HasTextureSlots && (layout.TextureSlotsOffset != stageLayout.TextureSlotsOffset ||
-					                               layout.TextureSlotCount != stageLayout.TextureSlotCount))
-						POLY_CORE_ERROR("Pass '{}' shader stages disagree on textureIndices[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
-						                pass.Name, layout.TextureSlotCount, layout.TextureSlotsOffset,
-						                stageLayout.TextureSlotCount, stageLayout.TextureSlotsOffset);
-
-					layout.HasTextureSlots    = true;
-					layout.TextureSlotsOffset = stageLayout.TextureSlotsOffset;
-					layout.TextureSlotCount   = stageLayout.TextureSlotCount;
-				}
-
-				if (stageLayout.HasBufferSlots)
-				{
-					if (layout.HasBufferSlots && (layout.BufferSlotsOffset != stageLayout.BufferSlotsOffset ||
-					                              layout.BufferSlotCount != stageLayout.BufferSlotCount))
-						POLY_CORE_ERROR("Pass '{}' shader stages disagree on bufferAddresses[] layout ({} slots @ offset {} vs {} slots @ offset {}).",
-						                pass.Name, layout.BufferSlotCount, layout.BufferSlotsOffset,
-						                stageLayout.BufferSlotCount, stageLayout.BufferSlotsOffset);
-
-					layout.HasBufferSlots    = true;
-					layout.BufferSlotsOffset = stageLayout.BufferSlotsOffset;
-					layout.BufferSlotCount   = stageLayout.BufferSlotCount;
-				}
-
-				for (const auto& pushConstant : shaderData.Reflection.PushConstants)
-					pass.PushConstantSize = std::max(pass.PushConstantSize, pushConstant.Offset + pushConstant.Size);
-			}
-
-			if (!layout.HasTextureSlots && !layout.HasBufferSlots)
-				continue;
-
-			pass.BufferSlotsOffset  = layout.BufferSlotsOffset;
-			pass.TextureSlotsOffset = layout.TextureSlotsOffset;
-
-			for (const ResolvedPort& port : pass.Ports)
-			{
-				// Read/WriteResource ports have no shader variable, so they don't occupy a bindless slot.
-				if (port.ShaderName.empty() && port.UsageState != FResourceState::Unknown)
-					continue;
-
-				if (IsTextureResourceType(port.ResourceType))
-				{
-					if (!layout.HasTextureSlots)
-						continue;
-
-					const uint32 slot = static_cast<uint32>(pass.TextureSlots.size());
-					if (slot >= layout.TextureSlotCount)
-					{
-						POLY_CORE_ERROR("Pass '{}' has more texture resources ({}) than its shader's textureIndices[] array supports ({}); '{}' was not assigned a slot.",
-						                pass.Name, slot + 1, layout.TextureSlotCount, port.ResolvedName);
-						continue;
-					}
-
-					pass.TextureSlots.push_back({slot, port.ResolvedName});
-				}
-				else if (IsBufferResourceType(port.ResourceType))
-				{
-					if (!layout.HasBufferSlots)
-						continue;
-
-					const uint32 slot = static_cast<uint32>(pass.BufferSlots.size());
-					if (slot >= layout.BufferSlotCount)
-					{
-						POLY_CORE_ERROR("Pass '{}' has more buffer resources ({}) than its shader's bufferAddresses[] array supports ({}); '{}' was not assigned a slot.",
-						                pass.Name, slot + 1, layout.BufferSlotCount, port.ResolvedName);
-						continue;
-					}
-
-					pass.BufferSlots.push_back({slot, port.ResolvedName});
-				}
-			}
-		}
-	}
-
 	// Phase 4: Plan explicit synchronization for the sorted pass list.
 	// Tracks, per resolved resource name, the last known layout/access/stage/owning-queue and compares
 	// it against what each port needs. Same-queue transitions batch into one BarrierGroup per consuming
@@ -419,7 +264,7 @@ namespace Poly
 		size_t         LastPassIndex = 0;
 	};
 
-	SyncPlan RenderProgramBuilder::PlanSynchronization(const std::vector<ResolvedPass>& passes) const
+	SyncPlan RenderProgramBuilder::PlanSynchronization(const std::vector<ResolvedPass>& passes, const FinalStates& finalStates)
 	{
 		std::unordered_map<std::string, ResourceTrackState>                      state;
 		std::unordered_map<FQueueType, uint64_t>                                 queueSubmitCounter;
@@ -449,7 +294,7 @@ namespace Poly
 					continue;
 				}
 
-				const bool isAttachmentSemantic = IsAttachmentSemanticPort(port.ResolvedName);
+				const bool isAttachmentSemantic = IsAttachmentSemanticPort(port.Semantic);
 				const bool isTexture            = isAttachmentSemantic || IsTextureResourceType(port.ResourceType);
 
 				if (!isAttachmentSemantic && port.ResourceType == EResourceType::None)
@@ -458,7 +303,7 @@ namespace Poly
 
 				const ResourceUsage needed = port.UsageState != FResourceState::Unknown
 				                                 ? ConvertResourceState(port.UsageState)
-				                                 : DeriveResourceUsage(port.ResourceType, port.IsWrite, port.ResolvedName, passStages);
+				                                 : DeriveResourceUsage(port.ResourceType, port.IsWrite, port.Semantic, passStages);
 
 				ResourceTrackState& rs           = state[port.ResolvedName];
 				const bool          isFirstTouch = !rs.IsTracked;
@@ -531,14 +376,14 @@ namespace Poly
 			}
 		}
 
-		// Closing transitions: for each resolved name with a declared WithFinalState(), leave it in that
-		// state after its last use in the program (e.g. "$Color" -> Present)
-		for (const auto& [resolvedName, finalState] : m_FinalStates)
+		// Closing transitions: leave each resource with a final state in that state after its last use
+		// in the program (e.g. "$Color" -> Present)
+		for (const auto& [resolvedName, finalState] : finalStates)
 		{
 			auto it = state.find(resolvedName);
 			if (it == state.end() || !it->second.IsTracked)
 			{
-				POLY_CORE_WARN("WithFinalState was declared for '{}', but no pass in this program touches it.", resolvedName);
+				POLY_CORE_WARN("A final state is required for '{}', but no pass in this program touches it.", resolvedName);
 				continue;
 			}
 
@@ -560,13 +405,25 @@ namespace Poly
 		return SyncPlan(std::move(passPlans));
 	}
 
-	Ref<RenderProgram> RenderProgramBuilder::Build()
+	Ref<RenderProgram> RenderProgramBuilder::Build(const RenderPlan& plan, const ProgramKey& key)
 	{
-		auto flat   = FlattenFeatures();
+		auto flat   = InstantiatePasses(plan, key);
 		auto nodes  = BuildDAG(flat);
 		auto sorted = TopoSortALAP(nodes, flat);
-		AssignBindlessSlots(sorted);
-		auto syncPlan = PlanSynchronization(sorted);
+
+		// What a color target is left as follows from what it is: the window is presented, an offscreen
+		// target is sampled by a later program or by the UI
+		FinalStates finalStates;
+		for (const ResolvedPass& pass : sorted)
+		{
+			for (const ResolvedPort& port : pass.Ports)
+			{
+				if (port.IsWrite && port.Semantic == EFeaturePort::Color)
+					finalStates[port.ResolvedName] = port.TargetSlot == 0 ? FResourceState::Present : FResourceState::ShaderResource;
+			}
+		}
+
+		auto syncPlan = PlanSynchronization(sorted, finalStates);
 		return CreateRef<RenderProgram>(std::move(sorted), std::move(syncPlan));
 	}
 } // namespace Poly

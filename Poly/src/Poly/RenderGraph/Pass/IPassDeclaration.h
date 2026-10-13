@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BlendMode.h"
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
 #include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
@@ -12,7 +13,6 @@ namespace Poly
 	class SetupContext;
 	class ExecuteContext;
 	class PassDeclaration;
-	class IPassDeclarationGraphicsPipeline;
 
 	class IPassDeclaration
 	{
@@ -23,6 +23,11 @@ namespace Poly
 		 * Adds a shader to the pass. Multiple shaders can be added, but only one per stage.
 		 */
 		virtual IPassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) = 0;
+
+		/*
+		 * Adds a shader to the pass, with the stage taken from the file extension (.vert, .frag or .comp).
+		 */
+		virtual IPassDeclaration& WithShader(std::string_view shaderPath) = 0;
 
 		/*
 		 * Add a setup function executed when the render program is compiled.
@@ -42,10 +47,85 @@ namespace Poly
 		 */
 		virtual IPassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) = 0;
 
+		// --- Pipeline state ---
+		// Everything below is optional. A pass that sets none of it draws filled, back face culled, counter clockwise
+		// triangle lists without blending, and depth tests (LESS_OR_EQUAL) and writes if it maps EFeaturePort::Depth.
+
 		/*
-		 * Starts a pipeline override declaration. Finish with .FinishPipeline() to return here.
+		 * Sets how vertices are assembled into primitives. Defaults to ETopology::TRIANGLE_LIST.
 		 */
-		virtual IPassDeclarationGraphicsPipeline& WithGraphicsPipeline() = 0;
+		virtual IPassDeclaration& WithTopology(ETopology topology) = 0;
+
+		/*
+		 * Sets how polygons are rasterized. Defaults to EPolygonMode::FILL.
+		 */
+		virtual IPassDeclaration& WithPolygonMode(EPolygonMode mode) = 0;
+
+		/*
+		 * Sets which faces are culled. Defaults to ECullMode::BACK.
+		 */
+		virtual IPassDeclaration& WithCullMode(ECullMode mode) = 0;
+
+		/*
+		 * Sets the winding order of front faces. Defaults to counter clockwise.
+		 */
+		virtual IPassDeclaration& WithFrontFaceClockwise(bool clockwise = true) = 0;
+
+		/*
+		 * Overrides depth testing. Defaults to enabled if the pass maps EFeaturePort::Depth, otherwise disabled.
+		 */
+		virtual IPassDeclaration& WithDepthTest(bool enable) = 0;
+
+		/*
+		 * Overrides depth writing. Defaults to following the depth test.
+		 */
+		virtual IPassDeclaration& WithDepthWrite(bool enable) = 0;
+
+		/*
+		 * Sets the depth comparison. Defaults to ECompareOp::LESS_OR_EQUAL.
+		 */
+		virtual IPassDeclaration& WithDepthCompareOp(ECompareOp op) = 0;
+
+		/*
+		 * Enables depth bias, e.g. for shadow maps.
+		 * @param constantFactor Constant depth added to each fragment.
+		 * @param slopeFactor Depth added to each fragment scaled by its slope.
+		 * @param clamp Maximum (or minimum, if negative) bias of a fragment, 0 for no clamp.
+		 */
+		virtual IPassDeclaration& WithDepthBias(float constantFactor, float slopeFactor, float clamp = 0.0f) = 0;
+
+		/*
+		 * Sets how the pass's color output is blended with the attachment. Defaults to EBlendMode::Opaque.
+		 */
+		virtual IPassDeclaration& WithBlend(EBlendMode mode) = 0;
+
+		/*
+		 * Sets a custom blend state for the pass's color output, for when no EBlendMode fits.
+		 */
+		virtual IPassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) = 0;
+
+		/*
+		 * Declares the vertex buffer the pass binds. Only needed together with WithVertexAttribute, passes that
+		 * read their vertices from a mapped buffer (vertex pulling) have no vertex layout.
+		 * @param stride The size of one vertex, in bytes.
+		 * @param inputRate Whether the buffer advances per vertex or per instance.
+		 */
+		virtual IPassDeclaration& WithVertexLayout(uint32 stride, EVertexInputRate inputRate = EVertexInputRate::VERTEX) = 0;
+
+		/*
+		 * Adds a vertex attribute read from the vertex buffer declared by WithVertexLayout.
+		 * @param location The location of the input in the vertex shader.
+		 * @param format The format of the attribute in the vertex buffer.
+		 * @param offset The offset of the attribute from the start of a vertex, in bytes.
+		 */
+		virtual IPassDeclaration& WithVertexAttribute(uint32 location, EFormat format, uint32 offset) = 0;
+
+		/*
+		 * Escape hatch for pipeline state without a setter (stencil, logic op, static viewport/scissor, ...).
+		 * Called with the fully resolved pipeline description when the render program is built, after every
+		 * default and setter has been applied.
+		 */
+		virtual IPassDeclaration& WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn) = 0;
 
 		/*
 		 * Maps a feature port to a shader resource of the pass. This works as a connection between the stricter feature pipeline

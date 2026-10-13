@@ -20,7 +20,7 @@ namespace Poly
 	{
 		uint32           Binding         = 0;
 		uint32           Stride          = 0;
-		EVertexInputRate VertexInputRate = EVertexInputRate::NONE;
+		EVertexInputRate VertexInputRate = EVertexInputRate::VERTEX;
 		uint32           Location        = 0;
 		EFormat          Format          = EFormat::UNDEFINED;
 		uint32           Offset          = 0;
@@ -28,7 +28,7 @@ namespace Poly
 
 	struct InputAssemblyDesc
 	{
-		ETopology Topology         = ETopology::NONE;
+		ETopology Topology         = ETopology::TRIANGLE_LIST;
 		bool      RestartPrimitive = false;
 	};
 
@@ -56,9 +56,9 @@ namespace Poly
 	{
 		bool         DepthClampEnable     = false;
 		bool         DiscardEnable        = false;
-		EPolygonMode PolygonMode          = EPolygonMode::NONE;
+		EPolygonMode PolygonMode          = EPolygonMode::FILL;
 		float        LineWidth            = 1.0f;
-		ECullMode    CullMode             = ECullMode::NONE;
+		ECullMode    CullMode             = ECullMode::BACK;
 		bool         ClockwiseFrontFace   = false;
 		bool         DepthBiasEnable      = false;
 		float        DepthBiasFactor      = 0.0f;
@@ -81,7 +81,7 @@ namespace Poly
 	{
 		bool               DepthTestEnable       = false;
 		bool               DepthWriteEnable      = false;
-		ECompareOp         DepthCompareOp        = ECompareOp::NEVER;
+		ECompareOp         DepthCompareOp        = ECompareOp::LESS_OR_EQUAL;
 		bool               DepthBoundsTestEnable = false;
 		bool               StencilTestEnable     = false;
 		StencilOpStateDesc Front                 = {};
@@ -93,13 +93,13 @@ namespace Poly
 	struct ColorBlendAttachmentDesc
 	{
 		bool                BlendEnable         = false;
-		EBlendFactor        SrcColorBlendFactor = EBlendFactor::ZERO;
+		EBlendFactor        SrcColorBlendFactor = EBlendFactor::ONE;
 		EBlendFactor        DstColorBlendFactor = EBlendFactor::ZERO;
-		EBlendOp            ColorBlendOp        = EBlendOp::NONE;
-		EBlendFactor        SrcAlphaBlendFactor = EBlendFactor::ZERO;
+		EBlendOp            ColorBlendOp        = EBlendOp::ADD;
+		EBlendFactor        SrcAlphaBlendFactor = EBlendFactor::ONE;
 		EBlendFactor        DstAlphaBlendFactor = EBlendFactor::ZERO;
-		EBlendOp            AlphaBlendOp        = EBlendOp::NONE;
-		FColorComponentFlag ColorWriteMask      = FColorComponentFlag::NONE;
+		EBlendOp            AlphaBlendOp        = EBlendOp::ADD;
+		FColorComponentFlag ColorWriteMask      = FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
 	};
 
 	struct ColorBlendStateDesc
@@ -107,7 +107,7 @@ namespace Poly
 		std::vector<ColorBlendAttachmentDesc> ColorBlendAttachments;
 		bool                                  LogicOpEnable = false;
 		ELogicOp                              LogicOp       = ELogicOp::NONE;
-		float                                 BlendConstants[4];
+		float                                 BlendConstants[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	};
 
 	struct GraphicsPipelineDesc : public PipelineDesc

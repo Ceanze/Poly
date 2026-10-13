@@ -36,7 +36,7 @@ namespace Poly
 	 *
 	 *   // Note: Must be before render graph building due to resource needing to be registered in the catalog
 	 *   // TODO: Make order agnostic
-	 *   world.AddSystem<RenderSystem>(World::Phase::PostUpdate, catalog); // before building the render program
+	 *   world.AddSystem<RenderSystem>(World::Phase::PostUpdate, catalog); // before building the render plan
 	 *
 	 *   pass.MapGlobal(RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
 	 *       .MapGlobal(RenderSystem::INSTANCE_RESOURCE_NAME, "instances")

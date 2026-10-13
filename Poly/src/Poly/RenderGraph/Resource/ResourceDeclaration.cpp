@@ -24,4 +24,10 @@ namespace Poly
 		m_Height = height;
 		return *this;
 	}
+
+	ResourceDeclaration& ResourceDeclaration::WithScope(EResourceScope scope)
+	{
+		m_Scope = scope;
+		return *this;
+	}
 } // namespace Poly
