@@ -19,6 +19,8 @@ namespace
 {
 	constexpr const char* GLOBALS_RESOURCE_NAME      = "UIGlobals";
 	constexpr const char* FONT_TEXTURE_RESOURCE_NAME = "FontTexture";
+	constexpr const char* VERTICES_RESOURCE_NAME     = "ui.vertices";
+	constexpr const char* INDICES_RESOURCE_NAME      = "ui.indices";
 
 	// Mirrors UIGlobalsBuffer in shaders/ui_bindless.slang byte-for-byte.
 	struct UIGlobalsBuffer
@@ -113,6 +115,58 @@ namespace
 		if (imguiKey != ImGuiKey_None)
 			io.AddKeyEvent(imguiKey, down);
 	}
+
+	void ExecuteImGui(Poly::ExecuteContext& ctx)
+	{
+		ImDrawData* pDrawData = ImGui::GetDrawData();
+		if (!pDrawData || !pDrawData->Valid || pDrawData->CmdListsCount == 0)
+			return;
+
+		Poly::Buffer* pVertexBuffer = ctx.GetBuffer(VERTICES_RESOURCE_NAME);
+		Poly::Buffer* pIndexBuffer  = ctx.GetBuffer(INDICES_RESOURCE_NAME);
+		if (!pVertexBuffer || !pIndexBuffer)
+			return;
+
+		// Every texture is sampled with the sampler the font atlas is provided with
+		Poly::SamplerHandle              sampler;
+		const Poly::RenderResourceTable* pGlobalResources = ctx.GetView().pGlobalResources;
+		if (pGlobalResources)
+		{
+			auto it = pGlobalResources->GetEntries().find(FONT_TEXTURE_RESOURCE_NAME);
+			if (it != pGlobalResources->GetEntries().end())
+				sampler = it->second.SamplerHnd;
+		}
+
+		Poly::CommandBuffer* pCmd = ctx.GetCommandBuffer();
+		pCmd->BindVertexBuffer(pVertexBuffer, 0, 1, 0);
+		pCmd->BindIndexBuffer(pIndexBuffer, 0, Poly::EIndexType::UINT16);
+
+		uint32 vertexOffset = 0;
+		uint32 indexOffset  = 0;
+		for (int i = 0; i < pDrawData->CmdListsCount; i++)
+		{
+			const ImDrawList* pCmdList = pDrawData->CmdLists[i];
+			for (int j = 0; j < pCmdList->CmdBuffer.Size; j++)
+			{
+				const ImDrawCmd* pImCmd = &pCmdList->CmdBuffer[j];
+
+				Poly::ScissorDesc scissor = {};
+				scissor.OffsetX           = std::max(static_cast<int>(pImCmd->ClipRect.x), 0);
+				scissor.OffsetY           = std::max(static_cast<int>(pImCmd->ClipRect.y), 0);
+				scissor.Width             = static_cast<uint32>(pImCmd->ClipRect.z - pImCmd->ClipRect.x);
+				scissor.Height            = static_cast<uint32>(pImCmd->ClipRect.w - pImCmd->ClipRect.y);
+				pCmd->SetScissor(&scissor);
+
+				ImTextureID         texID = pImCmd->TexRef.GetTexID();
+				Poly::TextureHandle textureHandle(static_cast<uint32>(texID));
+				ctx.SetTexture("sTexture", textureHandle, sampler);
+
+				pCmd->DrawIndexedInstanced(pImCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
+				indexOffset += pImCmd->ElemCount;
+			}
+			vertexOffset += pCmdList->VtxBuffer.Size;
+		}
+	}
 } // namespace
 
 namespace Poly
@@ -163,6 +217,8 @@ namespace Poly
 		RenderResourceTable& globalResources = Application::Get().GetRenderer()->GetGlobalResources();
 		globalResources.Set(FONT_TEXTURE_RESOURCE_NAME, m_FontTextureHandle, m_FontSamplerHandle);
 		globalResources.Set(GLOBALS_RESOURCE_NAME, m_GlobalsBufferHandle);
+		globalResources.Set(VERTICES_RESOURCE_NAME, m_VertexBufferHandle);
+		globalResources.Set(INDICES_RESOURCE_NAME, m_IndexBufferHandle);
 	}
 
 	void ImGuiLayer::BeginFrame()
@@ -214,6 +270,10 @@ namespace Poly
 	{
 		catalog.RegisterResource(GLOBALS_RESOURCE_NAME).WithType(EResourceType::UniformBuffer);
 		catalog.RegisterResource(FONT_TEXTURE_RESOURCE_NAME).WithType(EResourceType::SampledImage);
+		catalog.RegisterResource(VERTICES_RESOURCE_NAME).WithType(EResourceType::VertexBuffer);
+		catalog.RegisterResource(INDICES_RESOURCE_NAME).WithType(EResourceType::IndexBuffer);
+
+		catalog.GetExecutorRegistry().Register(EXECUTOR_NAME, "Draws the ImGui draw data of the frame", ExecuteImGui);
 
 		// clang-format off
 		catalog.RegisterPass("ui")
@@ -228,41 +288,9 @@ namespace Poly
 		    .WithVertexAttribute(2, EFormat::R8G8B8A8_UNORM, offsetof(ImDrawVert, col))
 		    .WithCullMode(ECullMode::NONE)
 		    .WithBlend(EBlendMode::AlphaBlend)
-		    .WithExecuteFn([this](ExecuteContext& ctx) {
-			    ImDrawData* pDrawData = ImGui::GetDrawData();
-			    if (!pDrawData || !pDrawData->Valid || pDrawData->CmdListsCount == 0)
-				    return;
-
-			    CommandBuffer* pCmd = ctx.GetCommandBuffer();
-			    pCmd->BindVertexBuffer(ResourceManager::Resolve(m_VertexBufferHandle), 0, 1, 0);
-			    pCmd->BindIndexBuffer(ResourceManager::Resolve(m_IndexBufferHandle), 0, EIndexType::UINT16);
-
-			    uint32 vertexOffset = 0;
-			    uint32 indexOffset  = 0;
-			    for (int i = 0; i < pDrawData->CmdListsCount; i++)
-			    {
-				    const ImDrawList* pCmdList = pDrawData->CmdLists[i];
-				    for (int j = 0; j < pCmdList->CmdBuffer.Size; j++)
-				    {
-					    const ImDrawCmd* pImCmd = &pCmdList->CmdBuffer[j];
-
-					    ScissorDesc scissor = {};
-					    scissor.OffsetX     = std::max(static_cast<int>(pImCmd->ClipRect.x), 0);
-					    scissor.OffsetY     = std::max(static_cast<int>(pImCmd->ClipRect.y), 0);
-					    scissor.Width       = static_cast<uint32>(pImCmd->ClipRect.z - pImCmd->ClipRect.x);
-					    scissor.Height      = static_cast<uint32>(pImCmd->ClipRect.w - pImCmd->ClipRect.y);
-					    pCmd->SetScissor(&scissor);
-
-					    ImTextureID   texID = pImCmd->TexRef.GetTexID();
-					    TextureHandle textureHandle(static_cast<uint32>(texID));
-					    ctx.SetTexture("sTexture", textureHandle, m_FontSamplerHandle);
-
-					    pCmd->DrawIndexedInstanced(pImCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
-					    indexOffset += pImCmd->ElemCount;
-				    }
-				    vertexOffset += pCmdList->VtxBuffer.Size;
-			    }
-		    });
+		    .ReadResource(VERTICES_RESOURCE_NAME, FResourceState::VertexBuffer)
+		    .ReadResource(INDICES_RESOURCE_NAME, FResourceState::IndexBuffer)
+		    .WithExecutor(EXECUTOR_NAME);
 		// clang-format on
 
 		catalog.RegisterFeature(FEATURE_NAME).WithPass("ui");

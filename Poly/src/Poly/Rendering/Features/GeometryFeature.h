@@ -26,8 +26,11 @@ namespace Poly
 
 		static constexpr const char* FEATURE_NAME = "geometry";
 
+		// Draws the batches of the RenderSystem of the world being rendered
+		static constexpr const char* SCENE_RASTER_EXECUTOR = "SceneRaster";
+
 		/*
-		 * Registers the camera resource, the "pbr" pass and the FEATURE_NAME feature in the catalog.
+		 * Registers the camera resource, the SCENE_RASTER_EXECUTOR executor, the "pbr" pass and the FEATURE_NAME feature in the catalog.
 		 * @param catalog - catalog the render plan will be built from
 		 */
 		static void Register(RenderCatalog& catalog);
