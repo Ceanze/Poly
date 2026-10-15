@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
+#include "Poly/RenderGraph/Pass/PassDesc.h"
 #include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/RenderGraph/Resource/ResourceType.h"
 #include "Poly/Rendering/Core/API/GraphicsTypes.h"
@@ -48,7 +49,7 @@ namespace Poly
 	 * @param shaders The list of shaders declared for the pass.
 	 * @return The combined pipeline stages.
 	 */
-	FPipelineStage DerivePassShaderStages(const std::vector<std::pair<std::string, FShaderStage>>& shaders);
+	FPipelineStage DerivePassShaderStages(const std::vector<PassShader>& shaders);
 
 	/*
 	 * Derives the layout/access/stage/aspect a port needs to be in, based on its resource type and

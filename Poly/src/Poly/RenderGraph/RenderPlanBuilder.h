@@ -55,6 +55,13 @@ namespace Poly
 		explicit RenderPlanBuilder(Ref<RenderCatalog> catalog);
 
 		/*
+		 * Continues from an existing description, e.g. one read from a plan file.
+		 * @param catalog The catalog the features of the plan are registered in.
+		 * @param desc The entries the plan starts with.
+		 */
+		RenderPlanBuilder(Ref<RenderCatalog> catalog, RenderPlanDesc desc);
+
+		/*
 		 * Adds a feature rendered once every frame to the window, whether or not any view is submitted.
 		 * A frame feature has no view and no world, its passes can only use resources of EResourceScope::Global.
 		 * @param name The name of the feature, as registered in the render catalog.
@@ -77,22 +84,20 @@ namespace Poly
 		 */
 		Ref<RenderPlan> Build();
 
+		/*
+		 * Gets the description of the plan as added so far, which is the data a plan is saved as.
+		 */
+		const RenderPlanDesc& GetDesc() const { return m_Desc; }
+
 	private:
 		friend class ViewStageBuilder;
 
-		struct Entry
-		{
-			RenderPlanEntry::EType   Type;
-			std::string              Name;
-			std::vector<std::string> Features;
-		};
-
 		// Expands the features of an entry into passes with unscoped port names. Returns false if the entry is invalid
-		bool FlattenFeatures(const Entry& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const;
+		bool FlattenFeatures(const RenderPlanEntryDesc& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const;
 		// Binds the ports of each pass to the push constant fields of its shaders with the same name
 		void ResolveBindlessBindings(std::vector<ResolvedPass>& passes) const;
 
 		Ref<RenderCatalog> m_Catalog;
-		std::vector<Entry> m_Entries;
+		RenderPlanDesc     m_Desc;
 	};
 } // namespace Poly

@@ -32,7 +32,7 @@ namespace Poly
 		return semantic == EFeaturePort::Color || semantic == EFeaturePort::Depth || semantic == EFeaturePort::Stencil;
 	}
 
-	FPipelineStage DerivePassShaderStages(const std::vector<std::pair<std::string, FShaderStage>>& shaders)
+	FPipelineStage DerivePassShaderStages(const std::vector<PassShader>& shaders)
 	{
 		FPipelineStage stages = FPipelineStage::NONE;
 		for (const auto& [path, stage] : shaders)

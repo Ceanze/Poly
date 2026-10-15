@@ -1,9 +1,9 @@
 #pragma once
 
 #include "IPassDeclaration.h"
+#include "PassDesc.h"
 #include "Platform/API/GraphicsPipeline.h"
 
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -26,24 +26,6 @@ namespace Poly
 {
 	class SetupContext;
 	class ExecuteContext;
-
-	// A mapped feature port, plus an optional attachment load-op override. LoadOpOverride left at
-	// ELoadOp::NONE means "auto" - RenderProgramBuilder infers CLEAR on a resource's first write in
-	// the program and LOAD on subsequent writes (see PlanSynchronization).
-	struct ResourceMapping
-	{
-		EFeaturePort Port;
-		std::string  ShaderResourceName;
-		ELoadOp      LoadOpOverride = ELoadOp::NONE;
-	};
-
-	// A resource used by a pass without a shader binding, see IPassDeclaration::ReadResource/WriteResource.
-	struct ResourceUse
-	{
-		std::string    Name;
-		FResourceState State;
-		bool           IsWrite;
-	};
 
 	class PassDeclaration : public IPassDeclaration
 	{
@@ -77,20 +59,25 @@ namespace Poly
 		PassDeclaration& ReadResource(std::string_view resourceName, FResourceState state) override;
 		PassDeclaration& WriteResource(std::string_view resourceName, FResourceState state) override;
 
-		std::string_view GetName() const { return m_Name; }
-		FQueueType       GetQueue() const { return m_Queue; }
+		std::string_view GetName() const { return m_Desc.Name; }
+		FQueueType       GetQueue() const { return m_Desc.Queue; }
 
-		const std::vector<std::pair<std::string, FShaderStage>>& GetShaders() const { return m_Shaders; }
-		const std::function<void(ExecuteContext&)>&              GetExecuteFn() const { return m_ExecuteFn; }
+		/*
+		 * Gets the data of the pass, everything but its functions.
+		 */
+		const PassDesc& GetDesc() const { return m_Desc; }
+
+		const std::vector<PassShader>&              GetShaders() const { return m_Desc.Shaders; }
+		const std::function<void(ExecuteContext&)>& GetExecuteFn() const { return m_ExecuteFn; }
 
 		void CallSetupFn(SetupContext& ctx) const;
 		void CallExecuteFn(ExecuteContext& ctx) const;
 
-		const std::vector<ResourceMapping>&                     GetResourceMappings() const { return m_ResourceMappings; }
-		const std::vector<std::pair<std::string, std::string>>& GetGlobalMappings() const { return m_GlobalMappings; }
-		const std::vector<std::pair<std::string, std::string>>& GetImportedResources() const { return m_ImportedResources; }
-		const std::vector<std::pair<std::string, std::string>>& GetExportedResources() const { return m_ExportedResources; }
-		const std::vector<ResourceUse>&                         GetResourceUses() const { return m_ResourceUses; }
+		const std::vector<ResourceMapping>& GetResourceMappings() const { return m_Desc.ResourceMappings; }
+		const std::vector<ResourceBinding>& GetGlobalMappings() const { return m_Desc.GlobalMappings; }
+		const std::vector<ResourceBinding>& GetImportedResources() const { return m_Desc.ImportedResources; }
+		const std::vector<ResourceBinding>& GetExportedResources() const { return m_Desc.ExportedResources; }
+		const std::vector<ResourceUse>&     GetResourceUses() const { return m_Desc.ResourceUses; }
 
 		/*
 		 * Resolves the pipeline state of the pass: the defaults, what follows from the mapped feature ports (depth
@@ -99,26 +86,10 @@ namespace Poly
 		GraphicsPipelineDesc BuildPipelineDesc() const;
 
 	private:
-		const std::string m_Name;
-		FQueueType        m_Queue = FQueueType::GRAPHICS;
+		PassDesc m_Desc;
 
-		std::vector<std::pair<std::string, FShaderStage>> m_Shaders;
-		std::function<void(SetupContext&)>                m_SetupFn;
-		std::function<void(ExecuteContext&)>              m_ExecuteFn;
-
-		// Explicitly set pipeline state. Depth test/write, blend attachments and the vertex binding are resolved in BuildPipelineDesc()
-		GraphicsPipelineDesc                       m_PipelineDesc;
-		std::optional<bool>                        m_DepthTest;
-		std::optional<bool>                        m_DepthWrite;
-		ColorBlendAttachmentDesc                   m_Blend;
-		uint32                                     m_VertexStride    = 0;
-		EVertexInputRate                           m_VertexInputRate = EVertexInputRate::VERTEX;
+		std::function<void(SetupContext&)>         m_SetupFn;
+		std::function<void(ExecuteContext&)>       m_ExecuteFn;
 		std::function<void(GraphicsPipelineDesc&)> m_PipelineOverrideFn;
-
-		std::vector<ResourceMapping>                     m_ResourceMappings;
-		std::vector<std::pair<std::string, std::string>> m_GlobalMappings;
-		std::vector<std::pair<std::string, std::string>> m_ImportedResources;
-		std::vector<std::pair<std::string, std::string>> m_ExportedResources;
-		std::vector<ResourceUse>                         m_ResourceUses;
 	};
 } // namespace Poly

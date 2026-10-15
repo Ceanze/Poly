@@ -3,31 +3,32 @@
 namespace Poly
 {
 	ResourceDeclaration::ResourceDeclaration(std::string_view name)
-	    : m_Name(name)
-	{}
+	{
+		m_Desc.Name = name;
+	}
 
 	ResourceDeclaration& ResourceDeclaration::WithType(EResourceType type)
 	{
-		m_ResourceType = type;
+		m_Desc.Type = type;
 		return *this;
 	}
 
 	ResourceDeclaration& ResourceDeclaration::WithInitialState(FResourceState state)
 	{
-		m_InitialState = state;
+		m_Desc.InitialState = state;
 		return *this;
 	}
 
 	ResourceDeclaration& ResourceDeclaration::WithSize(uint32 width, uint32 height)
 	{
-		m_Width  = width;
-		m_Height = height;
+		m_Desc.Width  = width;
+		m_Desc.Height = height;
 		return *this;
 	}
 
 	ResourceDeclaration& ResourceDeclaration::WithScope(EResourceScope scope)
 	{
-		m_Scope = scope;
+		m_Desc.Scope = scope;
 		return *this;
 	}
 } // namespace Poly

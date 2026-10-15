@@ -19,7 +19,7 @@ namespace Poly
 
 	ViewStageBuilder& ViewStageBuilder::AddFeature(std::string_view name)
 	{
-		m_PlanBuilder.m_Entries[m_EntryIndex].Features.emplace_back(name);
+		m_PlanBuilder.m_Desc.Entries[m_EntryIndex].Features.emplace_back(name);
 		return *this;
 	}
 
@@ -32,16 +32,21 @@ namespace Poly
 	    : m_Catalog(std::move(catalog))
 	{}
 
+	RenderPlanBuilder::RenderPlanBuilder(Ref<RenderCatalog> catalog, RenderPlanDesc desc)
+	    : m_Catalog(std::move(catalog))
+	    , m_Desc(std::move(desc))
+	{}
+
 	RenderPlanBuilder& RenderPlanBuilder::AddFrameFeature(std::string_view name)
 	{
-		m_Entries.push_back({RenderPlanEntry::EType::FrameFeature, std::string(name), {std::string(name)}});
+		m_Desc.Entries.push_back({RenderPlanEntry::EType::FrameFeature, std::string(name), {std::string(name)}});
 		return *this;
 	}
 
 	ViewStageBuilder RenderPlanBuilder::AddViewStage(std::string_view name)
 	{
-		m_Entries.push_back({RenderPlanEntry::EType::ViewStage, std::string(name), {}});
-		return ViewStageBuilder(*this, m_Entries.size() - 1);
+		m_Desc.Entries.push_back({RenderPlanEntry::EType::ViewStage, std::string(name), {}});
+		return ViewStageBuilder(*this, m_Desc.Entries.size() - 1);
 	}
 
 	Ref<RenderPlan> RenderPlanBuilder::Build()
@@ -49,7 +54,7 @@ namespace Poly
 		std::vector<RenderPlanEntry>            entries;
 		std::unordered_map<std::string, size_t> featureInstanceCount;
 
-		for (const Entry& entry : m_Entries)
+		for (const RenderPlanEntryDesc& entry : m_Desc.Entries)
 		{
 			const bool isStage = entry.Type == RenderPlanEntry::EType::ViewStage;
 
@@ -87,7 +92,7 @@ namespace Poly
 	// it is known which views the passes are rendered for (RenderProgramBuilder). Import/export resource names
 	// are prefixed per feature instance ("featureName#N.resName") so that two uses of the same feature don't
 	// share internal resource connections.
-	bool RenderPlanBuilder::FlattenFeatures(const Entry& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const
+	bool RenderPlanBuilder::FlattenFeatures(const RenderPlanEntryDesc& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const
 	{
 		const bool isStage = entry.Type == RenderPlanEntry::EType::ViewStage;
 
