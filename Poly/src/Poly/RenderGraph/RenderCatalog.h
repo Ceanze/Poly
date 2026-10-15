@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ExecutorRegistry.h"
 #include "Registry.h"
 #include "Pass/PassDeclaration.h"
 #include "Feature/FeatureDeclaration.h"
@@ -29,10 +30,13 @@ namespace Poly
 		const PassRegistry&     GetPassRegistry() const { return m_PassRegistry; }
 		const FeatureRegistry&  GetFeatureRegistry() const { return m_FeatureRegistry; }
 		const ResourceRegistry& GetResourceRegistry() const { return m_ResourceRegistry; }
+		ExecutorRegistry&       GetExecutorRegistry() { return m_ExecutorRegistry; }
+		const ExecutorRegistry& GetExecutorRegistry() const { return m_ExecutorRegistry; }
 
 	private:
 		PassRegistry     m_PassRegistry;
 		FeatureRegistry  m_FeatureRegistry;
 		ResourceRegistry m_ResourceRegistry;
+		ExecutorRegistry m_ExecutorRegistry;
 	};
 } // namespace Poly

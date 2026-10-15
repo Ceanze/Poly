@@ -20,6 +20,7 @@ namespace Poly
 		IOError,
 		NothingToUndo,
 		NothingToRedo,
+		ExecutorNotFound,
 	};
 
 	struct Error

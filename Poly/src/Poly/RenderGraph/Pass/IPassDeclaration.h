@@ -41,8 +41,18 @@ namespace Poly
 
 		/*
 		 * Add an execute function called every frame during render program execution.
+		 * A pass with an execute function cannot be saved to file, prefer WithExecutor(). Replaces the executor of the pass.
 		 */
 		virtual IPassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) = 0;
+
+		/*
+		 * Uses a registered executor as the execute function of the pass, see ExecutorRegistry. The executor has to be
+		 * registered by the time the render plan is built. Replaces the execute function of the pass.
+		 * @param executorName The name of the executor.
+		 * @param paramsJson The parameters given to the executor, as a json object. Empty for none.
+		 * @return A reference to this for chaining.
+		 */
+		virtual IPassDeclaration& WithExecutor(std::string_view executorName, std::string_view paramsJson = "") = 0;
 
 		// --- Pipeline state ---
 		// Everything below is optional. A pass that sets none of it draws filled, back face culled, counter clockwise

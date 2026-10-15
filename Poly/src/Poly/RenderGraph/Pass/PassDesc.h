@@ -44,6 +44,13 @@ namespace Poly
 		bool           IsWrite = false;
 	};
 
+	// A registered executor used by a pass, see IPassDeclaration::WithExecutor and ExecutorRegistry
+	struct PassExecutor
+	{
+		std::string Name; // Empty if the pass has no executor
+		std::string ParamsJson;
+	};
+
 	struct PassVertexAttribute
 	{
 		uint32  Location = 0;
@@ -105,7 +112,6 @@ namespace Poly
 
 	/*
 	 * Everything about a pass that is data: what PassDeclaration builds up and what is written to a pass file.
-	 * The functions of a pass (execute, setup, pipeline override) are not part of it.
 	 */
 	struct PassDesc
 	{
@@ -113,6 +119,7 @@ namespace Poly
 		FQueueType  Queue = FQueueType::GRAPHICS;
 
 		std::vector<PassShader> Shaders;
+		PassExecutor            Executor;
 
 		std::vector<ResourceMapping> ResourceMappings;
 		std::vector<ResourceBinding> GlobalMappings;

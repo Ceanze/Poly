@@ -125,8 +125,25 @@ namespace Poly
 				resolved.Name         = passName;
 				resolved.Shaders      = pass->GetShaders();
 				resolved.PipelineDesc = pass->BuildPipelineDesc();
-				resolved.ExecuteFn    = pass->GetExecuteFn();
 				resolved.Queue        = pass->GetQueue();
+
+				const PassExecutor& executor = pass->GetDesc().Executor;
+				if (executor.Name.empty())
+				{
+					resolved.ExecuteFn = pass->GetExecuteFn();
+				}
+				else
+				{
+					Result<ExecuteFn> executeFn = m_Catalog->GetExecutorRegistry().Create(executor.Name, executor.ParamsJson);
+					if (!executeFn)
+					{
+						POLY_CORE_ERROR("Pass '{}' of feature '{}' has no valid executor: {}. '{}' is left out of the render plan.",
+						                passName, featureName, executeFn.error().Message, entry.Name);
+						return false;
+					}
+
+					resolved.ExecuteFn = std::move(*executeFn);
+				}
 
 				// Semantic ports. Depth and stencil belong to the view, the color target is resolved per view
 				// by the RenderProgramBuilder since several views can share one.

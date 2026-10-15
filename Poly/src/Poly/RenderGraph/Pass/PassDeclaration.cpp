@@ -21,7 +21,15 @@ namespace Poly
 
 	PassDeclaration& PassDeclaration::WithExecuteFn(std::function<void(ExecuteContext&)> executeFn)
 	{
-		m_ExecuteFn = std::move(executeFn);
+		m_ExecuteFn     = std::move(executeFn);
+		m_Desc.Executor = {};
+		return *this;
+	}
+
+	PassDeclaration& PassDeclaration::WithExecutor(std::string_view executorName, std::string_view paramsJson)
+	{
+		m_Desc.Executor = {std::string(executorName), std::string(paramsJson)};
+		m_ExecuteFn     = nullptr;
 		return *this;
 	}
 

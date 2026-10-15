@@ -19,7 +19,7 @@ RenderGraph.RegisterPass("imgui")
     .WithVertexAttribute(2, EFormat::R8G8B8A8_UNORM, offsetof(ImDrawVert, col))
     .WithCullMode(ECullMode::NONE)
     .WithBlend(EBlendMode::AlphaBlend)
-    .WithExecuteFn( ... );
+    .WithExecutor("ImGui");
 */
 
 namespace Poly
@@ -36,6 +36,7 @@ namespace Poly
 		PassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) override;
 		PassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) override;
 		PassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) override;
+		PassDeclaration& WithExecutor(std::string_view executorName, std::string_view paramsJson = "") override;
 		PassDeclaration& OnQueue(FQueueType queue) override;
 
 		PassDeclaration& WithTopology(ETopology topology) override;
