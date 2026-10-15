@@ -21,7 +21,6 @@ RenderGraph.RegisterPass("imgui")
 
 namespace Poly
 {
-	class SetupContext;
 	class ExecuteContext;
 	struct VertexLayout;
 
@@ -32,7 +31,6 @@ namespace Poly
 		~PassDeclaration() = default;
 
 		PassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) override;
-		PassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) override;
 		PassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) override;
 		PassDeclaration& WithExecutor(std::string_view executorName, std::string_view paramsJson = "") override;
 		PassDeclaration& OnQueue(FQueueType queue) override;
@@ -47,8 +45,10 @@ namespace Poly
 		PassDeclaration& WithDepthBias(float constantFactor, float slopeFactor, float clamp = 0.0f) override;
 		PassDeclaration& WithBlend(EBlendMode mode) override;
 		PassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) override;
+		PassDeclaration& WithStencil(const StencilOpStateDesc& state) override;
+		PassDeclaration& WithStencil(const StencilOpStateDesc& front, const StencilOpStateDesc& back) override;
+		PassDeclaration& WithLogicOp(ELogicOp op) override;
 		PassDeclaration& WithVertexLayout(std::string_view layoutName) override;
-		PassDeclaration& WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn) override;
 
 		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName, ELoadOp loadOp = ELoadOp::NONE) override;
 		PassDeclaration& MapGlobal(std::string_view globalName, std::string_view shaderGlobalName) override;
@@ -68,8 +68,6 @@ namespace Poly
 		const std::vector<PassShader>&              GetShaders() const { return m_Desc.Shaders; }
 		const std::function<void(ExecuteContext&)>& GetExecuteFn() const { return m_ExecuteFn; }
 
-		void CallSetupFn(SetupContext& ctx) const;
-		void CallExecuteFn(ExecuteContext& ctx) const;
 
 		const std::vector<ResourceMapping>& GetResourceMappings() const { return m_Desc.ResourceMappings; }
 		const std::vector<ResourceBinding>& GetGlobalMappings() const { return m_Desc.GlobalMappings; }
@@ -87,8 +85,6 @@ namespace Poly
 	private:
 		PassDesc m_Desc;
 
-		std::function<void(SetupContext&)>         m_SetupFn;
-		std::function<void(ExecuteContext&)>       m_ExecuteFn;
-		std::function<void(GraphicsPipelineDesc&)> m_PipelineOverrideFn;
+		std::function<void(ExecuteContext&)> m_ExecuteFn;
 	};
 } // namespace Poly

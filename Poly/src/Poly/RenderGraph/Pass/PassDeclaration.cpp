@@ -15,12 +15,6 @@ namespace Poly
 		return *this;
 	}
 
-	PassDeclaration& PassDeclaration::WithSetupFn(std::function<void(SetupContext&)> setupFn)
-	{
-		m_SetupFn = std::move(setupFn);
-		return *this;
-	}
-
 	PassDeclaration& PassDeclaration::WithExecuteFn(std::function<void(ExecuteContext&)> executeFn)
 	{
 		m_ExecuteFn     = std::move(executeFn);
@@ -109,9 +103,20 @@ namespace Poly
 		return *this;
 	}
 
-	PassDeclaration& PassDeclaration::WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn)
+	PassDeclaration& PassDeclaration::WithStencil(const StencilOpStateDesc& state)
 	{
-		m_PipelineOverrideFn = std::move(overrideFn);
+		return WithStencil(state, state);
+	}
+
+	PassDeclaration& PassDeclaration::WithStencil(const StencilOpStateDesc& front, const StencilOpStateDesc& back)
+	{
+		m_Desc.Pipeline.Stencil = PassStencilState{.Front = front, .Back = back};
+		return *this;
+	}
+
+	PassDeclaration& PassDeclaration::WithLogicOp(ELogicOp op)
+	{
+		m_Desc.Pipeline.LogicOp = op;
 		return *this;
 	}
 
@@ -217,27 +222,6 @@ namespace Poly
 			desc.ColorBlendState.LogicOp       = *state.LogicOp;
 		}
 
-		if (state.Viewport)
-			desc.Viewport = *state.Viewport;
-		if (state.Scissor)
-			desc.Scissor = *state.Scissor;
-
-		if (m_PipelineOverrideFn)
-			m_PipelineOverrideFn(desc);
-
 		return desc;
 	}
-
-	void PassDeclaration::CallSetupFn(SetupContext& ctx) const
-	{
-		if (m_SetupFn)
-			m_SetupFn(ctx);
-	}
-
-	void PassDeclaration::CallExecuteFn(ExecuteContext& ctx) const
-	{
-		if (m_ExecuteFn)
-			m_ExecuteFn(ctx);
-	}
-
 } // namespace Poly

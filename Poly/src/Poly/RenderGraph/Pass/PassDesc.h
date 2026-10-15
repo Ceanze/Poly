@@ -89,10 +89,6 @@ namespace Poly
 
 		// Setting it enables the logic op
 		std::optional<ELogicOp> LogicOp;
-
-		// Static viewport/scissor, dynamic if unset
-		std::optional<ViewportDesc> Viewport;
-		std::optional<ScissorDesc>  Scissor;
 	};
 
 	/*

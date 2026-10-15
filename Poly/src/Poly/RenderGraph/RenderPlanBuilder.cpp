@@ -6,7 +6,6 @@
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "Resource/ResourceDeclaration.h"
 #include "Resource/ResourceUsage.h"
-#include "SetupContext.h"
 
 #include <algorithm>
 
@@ -110,16 +109,13 @@ namespace Poly
 
 			for (const auto& passName : feature->GetPasses())
 			{
-				PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
+				const PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
 				if (!pass)
 				{
 					POLY_CORE_ERROR("Pass '{}' referenced by feature '{}' not found in the render catalog, '{}' is left out of the render plan.",
 					                passName, featureName, entry.Name);
 					return false;
 				}
-
-				SetupContext setupCtx(*pass);
-				pass->CallSetupFn(setupCtx);
 
 				ResolvedPass resolved;
 				resolved.Name         = passName;

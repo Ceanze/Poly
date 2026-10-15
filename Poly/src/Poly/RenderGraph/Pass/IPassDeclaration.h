@@ -10,7 +10,6 @@
 
 namespace Poly
 {
-	class SetupContext;
 	class ExecuteContext;
 	class PassDeclaration;
 
@@ -25,11 +24,6 @@ namespace Poly
 		 * @param stage The stage to use, the file must have exactly one entry point marked [shader("...")] for it.
 		 */
 		virtual IPassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) = 0;
-
-		/*
-		 * Add a setup function executed when the render program is compiled.
-		 */
-		virtual IPassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) = 0;
 
 		/*
 		 * Declares which queue this pass should execute on. Defaults to FQueueType::GRAPHICS if never called.
@@ -112,6 +106,25 @@ namespace Poly
 		virtual IPassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) = 0;
 
 		/*
+		 * Enables the stencil test, with the same state for front and back faces. The pass has to map EFeaturePort::Stencil.
+		 * @param state The stencil operations, compare op, masks and reference value.
+		 */
+		virtual IPassDeclaration& WithStencil(const StencilOpStateDesc& state) = 0;
+
+		/*
+		 * Enables the stencil test, with separate states for front and back faces. The pass has to map EFeaturePort::Stencil.
+		 * @param front The state used for front faces.
+		 * @param back The state used for back faces.
+		 */
+		virtual IPassDeclaration& WithStencil(const StencilOpStateDesc& front, const StencilOpStateDesc& back) = 0;
+
+		/*
+		 * Enables a logical operation between the pass's color output and the attachment, used instead of blending.
+		 * @param op The logical operation.
+		 */
+		virtual IPassDeclaration& WithLogicOp(ELogicOp op) = 0;
+
+		/*
 		 * Declares the vertex buffer the pass binds with a registered vertex layout, see VertexLayoutRegistry. The layout
 		 * has to be registered by the time the render plan is built. Passes that read their vertices from a mapped buffer
 		 * (vertex pulling) have no vertex layout.
@@ -119,13 +132,6 @@ namespace Poly
 		 * @return A reference to this for chaining.
 		 */
 		virtual IPassDeclaration& WithVertexLayout(std::string_view layoutName) = 0;
-
-		/*
-		 * Escape hatch for pipeline state without a setter (stencil, logic op, static viewport/scissor, ...).
-		 * Called with the fully resolved pipeline description when the render program is built, after every
-		 * default and setter has been applied.
-		 */
-		virtual IPassDeclaration& WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn) = 0;
 
 		/*
 		 * Maps a feature port to a shader resource of the pass. This works as a connection between the stricter feature pipeline
