@@ -2,6 +2,7 @@
 
 #include "ExecutorRegistry.h"
 #include "Registry.h"
+#include "VertexLayoutRegistry.h"
 #include "Pass/PassDeclaration.h"
 #include "Feature/FeatureDeclaration.h"
 #include "Resource/ResourceDeclaration.h"
@@ -33,10 +34,14 @@ namespace Poly
 		ExecutorRegistry&       GetExecutorRegistry() { return m_ExecutorRegistry; }
 		const ExecutorRegistry& GetExecutorRegistry() const { return m_ExecutorRegistry; }
 
+		VertexLayoutRegistry&       GetVertexLayoutRegistry() { return m_VertexLayoutRegistry; }
+		const VertexLayoutRegistry& GetVertexLayoutRegistry() const { return m_VertexLayoutRegistry; }
+
 	private:
 		PassRegistry     m_PassRegistry;
 		FeatureRegistry  m_FeatureRegistry;
 		ResourceRegistry m_ResourceRegistry;
-		ExecutorRegistry m_ExecutorRegistry;
+		ExecutorRegistry     m_ExecutorRegistry;
+		VertexLayoutRegistry m_VertexLayoutRegistry;
 	};
 } // namespace Poly

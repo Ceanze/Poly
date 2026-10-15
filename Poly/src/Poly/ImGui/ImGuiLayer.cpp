@@ -274,6 +274,11 @@ namespace Poly
 		catalog.RegisterResource(INDICES_RESOURCE_NAME).WithType(EResourceType::IndexBuffer);
 
 		catalog.GetExecutorRegistry().Register(EXECUTOR_NAME, "Draws the ImGui draw data of the frame", ExecuteImGui);
+		catalog.GetVertexLayoutRegistry().Register(VERTEX_LAYOUT_NAME,
+		                                           {.Stride     = sizeof(ImDrawVert),
+		                                            .Attributes = {{0, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, pos)},
+		                                                           {1, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, uv)},
+		                                                           {2, EFormat::R8G8B8A8_UNORM, offsetof(ImDrawVert, col)}}});
 
 		// clang-format off
 		catalog.RegisterPass("ui")
@@ -282,10 +287,7 @@ namespace Poly
 		    .MapResource(EFeaturePort::Color, "out_Color") // auto-inferred LOAD op: an earlier feature already wrote $Color first
 		    .MapGlobal(GLOBALS_RESOURCE_NAME, "globals")
 		    .MapGlobal(FONT_TEXTURE_RESOURCE_NAME, "sTexture")
-		    .WithVertexLayout(sizeof(ImDrawVert))
-		    .WithVertexAttribute(0, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, pos))
-		    .WithVertexAttribute(1, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, uv))
-		    .WithVertexAttribute(2, EFormat::R8G8B8A8_UNORM, offsetof(ImDrawVert, col))
+		    .WithVertexLayout(VERTEX_LAYOUT_NAME)
 		    .WithCullMode(ECullMode::NONE)
 		    .WithBlend(EBlendMode::AlphaBlend)
 		    .ReadResource(VERTICES_RESOURCE_NAME, FResourceState::VertexBuffer)

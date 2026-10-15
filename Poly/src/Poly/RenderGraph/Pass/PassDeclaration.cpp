@@ -1,5 +1,7 @@
 #include "PassDeclaration.h"
 
+#include "Poly/RenderGraph/VertexLayoutRegistry.h"
+
 namespace Poly
 {
 	PassDeclaration::PassDeclaration(std::string_view name)
@@ -101,16 +103,9 @@ namespace Poly
 		return *this;
 	}
 
-	PassDeclaration& PassDeclaration::WithVertexLayout(uint32 stride, EVertexInputRate inputRate)
+	PassDeclaration& PassDeclaration::WithVertexLayout(std::string_view layoutName)
 	{
-		m_Desc.VertexLayout.Stride    = stride;
-		m_Desc.VertexLayout.InputRate = inputRate;
-		return *this;
-	}
-
-	PassDeclaration& PassDeclaration::WithVertexAttribute(uint32 location, EFormat format, uint32 offset)
-	{
-		m_Desc.VertexLayout.Attributes.push_back({.Location = location, .Format = format, .Offset = offset});
+		m_Desc.VertexLayoutName = layoutName;
 		return *this;
 	}
 
@@ -156,24 +151,22 @@ namespace Poly
 		return *this;
 	}
 
-	GraphicsPipelineDesc PassDeclaration::BuildPipelineDesc() const
+	GraphicsPipelineDesc PassDeclaration::BuildPipelineDesc(const VertexLayout* pVertexLayout) const
 	{
-		const PassPipelineState& state  = m_Desc.Pipeline;
-		const PassVertexLayout&  layout = m_Desc.VertexLayout;
+		const PassPipelineState& state = m_Desc.Pipeline;
 
 		GraphicsPipelineDesc desc = {};
 
-		// The backend has a single vertex binding, shared by every attribute
-		if (!layout.Attributes.empty() && layout.Stride == 0)
-			POLY_CORE_ERROR("Pass '{}' declares vertex attributes without a vertex layout, call WithVertexLayout().", m_Desc.Name);
-
-		for (const PassVertexAttribute& attribute : layout.Attributes)
+		if (pVertexLayout)
 		{
-			desc.VertexInputs.push_back({.Stride          = layout.Stride,
-			                             .VertexInputRate = layout.InputRate,
-			                             .Location        = attribute.Location,
-			                             .Format          = attribute.Format,
-			                             .Offset          = attribute.Offset});
+			for (const VertexAttribute& attribute : pVertexLayout->Attributes)
+			{
+				desc.VertexInputs.push_back({.Stride          = pVertexLayout->Stride,
+				                             .VertexInputRate = pVertexLayout->InputRate,
+				                             .Location        = attribute.Location,
+				                             .Format          = attribute.Format,
+				                             .Offset          = attribute.Offset});
+			}
 		}
 
 		if (state.Topology)

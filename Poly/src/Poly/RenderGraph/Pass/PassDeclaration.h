@@ -13,10 +13,7 @@ RenderGraph.RegisterPass("imgui")
     .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::VERTEX)
     .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::FRAGMENT)
     .MapResource(EFeaturePort::Color, "out_Color")
-    .WithVertexLayout(sizeof(ImDrawVert))
-    .WithVertexAttribute(0, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, pos))
-    .WithVertexAttribute(1, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, uv))
-    .WithVertexAttribute(2, EFormat::R8G8B8A8_UNORM, offsetof(ImDrawVert, col))
+    .WithVertexLayout("ImDrawVert")
     .WithCullMode(ECullMode::NONE)
     .WithBlend(EBlendMode::AlphaBlend)
     .WithExecutor("ImGui");
@@ -26,6 +23,7 @@ namespace Poly
 {
 	class SetupContext;
 	class ExecuteContext;
+	struct VertexLayout;
 
 	class PassDeclaration : public IPassDeclaration
 	{
@@ -49,8 +47,7 @@ namespace Poly
 		PassDeclaration& WithDepthBias(float constantFactor, float slopeFactor, float clamp = 0.0f) override;
 		PassDeclaration& WithBlend(EBlendMode mode) override;
 		PassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) override;
-		PassDeclaration& WithVertexLayout(uint32 stride, EVertexInputRate inputRate = EVertexInputRate::VERTEX) override;
-		PassDeclaration& WithVertexAttribute(uint32 location, EFormat format, uint32 offset) override;
+		PassDeclaration& WithVertexLayout(std::string_view layoutName) override;
 		PassDeclaration& WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn) override;
 
 		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName, ELoadOp loadOp = ELoadOp::NONE) override;
@@ -83,8 +80,9 @@ namespace Poly
 		/*
 		 * Resolves the pipeline state of the pass: the defaults, what follows from the mapped feature ports (depth
 		 * test/write, one blend attachment per color output) and whatever was set explicitly.
+		 * @param pVertexLayout The registered vertex layout of the pass, nullptr if the pass binds no vertex buffer.
 		 */
-		GraphicsPipelineDesc BuildPipelineDesc() const;
+		GraphicsPipelineDesc BuildPipelineDesc(const VertexLayout* pVertexLayout) const;
 
 	private:
 		PassDesc m_Desc;

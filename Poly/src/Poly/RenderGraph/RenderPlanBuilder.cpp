@@ -124,7 +124,20 @@ namespace Poly
 				ResolvedPass resolved;
 				resolved.Name         = passName;
 				resolved.Shaders      = pass->GetShaders();
-				resolved.PipelineDesc = pass->BuildPipelineDesc();
+				const PassDesc&     passDesc      = pass->GetDesc();
+				const VertexLayout* pVertexLayout = nullptr;
+				if (!passDesc.VertexLayoutName.empty())
+				{
+					pVertexLayout = m_Catalog->GetVertexLayoutRegistry().Get(passDesc.VertexLayoutName);
+					if (!pVertexLayout)
+					{
+						POLY_CORE_ERROR("Pass '{}' of feature '{}' uses the vertex layout '{}', which is not registered. '{}' is left out of the render plan.",
+						                passName, featureName, passDesc.VertexLayoutName, entry.Name);
+						return false;
+					}
+				}
+
+				resolved.PipelineDesc = pass->BuildPipelineDesc(pVertexLayout);
 				resolved.Queue        = pass->GetQueue();
 
 				const PassExecutor& executor = pass->GetDesc().Executor;

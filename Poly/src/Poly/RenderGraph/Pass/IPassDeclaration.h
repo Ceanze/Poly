@@ -112,20 +112,13 @@ namespace Poly
 		virtual IPassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) = 0;
 
 		/*
-		 * Declares the vertex buffer the pass binds. Only needed together with WithVertexAttribute, passes that
-		 * read their vertices from a mapped buffer (vertex pulling) have no vertex layout.
-		 * @param stride The size of one vertex, in bytes.
-		 * @param inputRate Whether the buffer advances per vertex or per instance.
+		 * Declares the vertex buffer the pass binds with a registered vertex layout, see VertexLayoutRegistry. The layout
+		 * has to be registered by the time the render plan is built. Passes that read their vertices from a mapped buffer
+		 * (vertex pulling) have no vertex layout.
+		 * @param layoutName The name of the vertex layout.
+		 * @return A reference to this for chaining.
 		 */
-		virtual IPassDeclaration& WithVertexLayout(uint32 stride, EVertexInputRate inputRate = EVertexInputRate::VERTEX) = 0;
-
-		/*
-		 * Adds a vertex attribute read from the vertex buffer declared by WithVertexLayout.
-		 * @param location The location of the input in the vertex shader.
-		 * @param format The format of the attribute in the vertex buffer.
-		 * @param offset The offset of the attribute from the start of a vertex, in bytes.
-		 */
-		virtual IPassDeclaration& WithVertexAttribute(uint32 location, EFormat format, uint32 offset) = 0;
+		virtual IPassDeclaration& WithVertexLayout(std::string_view layoutName) = 0;
 
 		/*
 		 * Escape hatch for pipeline state without a setter (stencil, logic op, static viewport/scissor, ...).

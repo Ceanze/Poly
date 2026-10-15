@@ -51,21 +51,6 @@ namespace Poly
 		std::string ParamsJson;
 	};
 
-	struct PassVertexAttribute
-	{
-		uint32  Location = 0;
-		EFormat Format   = EFormat::UNDEFINED;
-		uint32  Offset   = 0;
-	};
-
-	// The vertex buffer a pass binds, see IPassDeclaration::WithVertexLayout/WithVertexAttribute
-	struct PassVertexLayout
-	{
-		uint32                           Stride    = 0;
-		EVertexInputRate                 InputRate = EVertexInputRate::VERTEX;
-		std::vector<PassVertexAttribute> Attributes;
-	};
-
 	struct PassDepthBias
 	{
 		float ConstantFactor = 0.0f;
@@ -127,7 +112,8 @@ namespace Poly
 		std::vector<ResourceBinding> ExportedResources;
 		std::vector<ResourceUse>     ResourceUses;
 
-		PassVertexLayout  VertexLayout;
+		// Name of the registered vertex layout of the pass, see VertexLayoutRegistry. Empty if the pass binds no vertex buffer
+		std::string       VertexLayoutName;
 		PassPipelineState Pipeline;
 	};
 } // namespace Poly
