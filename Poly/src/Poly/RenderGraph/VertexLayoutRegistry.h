@@ -4,7 +4,7 @@
 
 #include <string>
 #include <string_view>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace Poly
@@ -43,9 +43,9 @@ namespace Poly
 
 		const VertexLayout* Get(std::string_view name) const;
 
-		const std::unordered_map<std::string, VertexLayout>& GetAll() const { return m_Layouts; }
+		const std::map<std::string, VertexLayout, std::less<>>& GetAll() const { return m_Layouts; }
 
 	private:
-		std::unordered_map<std::string, VertexLayout> m_Layouts;
+		std::map<std::string, VertexLayout, std::less<>> m_Layouts;
 	};
 } // namespace Poly

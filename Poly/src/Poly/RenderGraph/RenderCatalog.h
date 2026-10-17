@@ -23,13 +23,26 @@ namespace Poly
 		RenderCatalog()  = default;
 		~RenderCatalog() = default;
 
-		IPassDeclaration&     RegisterPass(std::string_view name);
-		IFeatureDeclaration&  RegisterFeature(std::string_view name);
-		IResourceDeclaration& RegisterResource(std::string_view name);
+		/*
+		 * Registers a new, empty declaration, replacing one already registered with the same name.
+		 * @param name The name of the declaration.
+		 * @param source The path of the file the declaration is read from, empty if registered from code.
+		 */
+		IPassDeclaration&     RegisterPass(std::string_view name, std::string_view source = {});
+		IFeatureDeclaration&  RegisterFeature(std::string_view name, std::string_view source = {});
+		IResourceDeclaration& RegisterResource(std::string_view name, std::string_view source = {});
+
+		/*
+		 * Removes every pass, feature and resource registered from a file, e.g. before the file is read again.
+		 * @param source The path of the file.
+		 */
+		void RemoveFromSource(std::string_view source);
 
 		PassRegistry&           GetPassRegistry() { return m_PassRegistry; }
 		const PassRegistry&     GetPassRegistry() const { return m_PassRegistry; }
+		FeatureRegistry&        GetFeatureRegistry() { return m_FeatureRegistry; }
 		const FeatureRegistry&  GetFeatureRegistry() const { return m_FeatureRegistry; }
+		ResourceRegistry&       GetResourceRegistry() { return m_ResourceRegistry; }
 		const ResourceRegistry& GetResourceRegistry() const { return m_ResourceRegistry; }
 		ExecutorRegistry&       GetExecutorRegistry() { return m_ExecutorRegistry; }
 		const ExecutorRegistry& GetExecutorRegistry() const { return m_ExecutorRegistry; }
@@ -38,9 +51,9 @@ namespace Poly
 		const VertexLayoutRegistry& GetVertexLayoutRegistry() const { return m_VertexLayoutRegistry; }
 
 	private:
-		PassRegistry     m_PassRegistry;
-		FeatureRegistry  m_FeatureRegistry;
-		ResourceRegistry m_ResourceRegistry;
+		PassRegistry         m_PassRegistry{"Pass"};
+		FeatureRegistry      m_FeatureRegistry{"Feature"};
+		ResourceRegistry     m_ResourceRegistry{"Resource"};
 		ExecutorRegistry     m_ExecutorRegistry;
 		VertexLayoutRegistry m_VertexLayoutRegistry;
 	};

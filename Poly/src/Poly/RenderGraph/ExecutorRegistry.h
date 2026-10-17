@@ -5,7 +5,7 @@
 #include <functional>
 #include <string>
 #include <string_view>
-#include <unordered_map>
+#include <map>
 
 namespace Poly
 {
@@ -66,9 +66,9 @@ namespace Poly
 		 */
 		Result<ExecuteFn> Create(std::string_view name, std::string_view paramsJson) const;
 
-		const std::unordered_map<std::string, ExecutorDesc>& GetAll() const { return m_Executors; }
+		const std::map<std::string, ExecutorDesc, std::less<>>& GetAll() const { return m_Executors; }
 
 	private:
-		std::unordered_map<std::string, ExecutorDesc> m_Executors;
+		std::map<std::string, ExecutorDesc, std::less<>> m_Executors;
 	};
 } // namespace Poly

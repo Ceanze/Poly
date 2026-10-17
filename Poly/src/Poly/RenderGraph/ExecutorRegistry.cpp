@@ -35,7 +35,7 @@ namespace Poly
 
 	const ExecutorDesc* ExecutorRegistry::Get(std::string_view name) const
 	{
-		auto it = m_Executors.find(std::string(name));
+		auto it = m_Executors.find(name);
 		return it != m_Executors.end() ? &it->second : nullptr;
 	}
 

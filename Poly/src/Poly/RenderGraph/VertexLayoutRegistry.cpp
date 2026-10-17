@@ -17,7 +17,7 @@ namespace Poly
 
 	const VertexLayout* VertexLayoutRegistry::Get(std::string_view name) const
 	{
-		auto it = m_Layouts.find(std::string(name));
+		auto it = m_Layouts.find(name);
 		return it != m_Layouts.end() ? &it->second : nullptr;
 	}
 } // namespace Poly
