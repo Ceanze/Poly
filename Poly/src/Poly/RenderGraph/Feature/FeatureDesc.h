@@ -19,5 +19,7 @@ namespace Poly
 
 		// Resources the feature owns, for the ones no system or other code registers (e.g. a shadow map)
 		std::vector<ResourceDesc> Resources;
+
+		bool operator==(const FeatureDesc&) const = default;
 	};
 } // namespace Poly

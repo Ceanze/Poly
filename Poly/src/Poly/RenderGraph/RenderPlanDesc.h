@@ -21,10 +21,14 @@ namespace Poly
 
 		// Names of the features of the entry, in execution order. A frame feature has exactly one, itself
 		std::vector<std::string> Features;
+
+		bool operator==(const RenderPlanEntryDesc&) const = default;
 	};
 
 	struct RenderPlanDesc
 	{
 		std::vector<RenderPlanEntryDesc> Entries;
+
+		bool operator==(const RenderPlanDesc&) const = default;
 	};
 } // namespace Poly

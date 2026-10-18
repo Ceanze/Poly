@@ -17,6 +17,8 @@ namespace Poly
 	{
 		std::string  Path;
 		FShaderStage Stage = FShaderStage::NONE;
+
+		bool operator==(const PassShader&) const = default;
 	};
 
 	// A mapped feature port, plus an optional attachment load-op override. LoadOpOverride left at
@@ -27,6 +29,8 @@ namespace Poly
 		EFeaturePort Port = EFeaturePort::None;
 		std::string  ShaderResourceName;
 		ELoadOp      LoadOpOverride = ELoadOp::NONE;
+
+		bool operator==(const ResourceMapping&) const = default;
 	};
 
 	// A named resource bound to a shader variable of a pass, see IPassDeclaration::MapGlobal/ImportResource/ExportResource
@@ -34,6 +38,8 @@ namespace Poly
 	{
 		std::string ResourceName;
 		std::string ShaderResourceName;
+
+		bool operator==(const ResourceBinding&) const = default;
 	};
 
 	// A resource used by a pass without a shader binding, see IPassDeclaration::ReadResource/WriteResource.
@@ -42,6 +48,8 @@ namespace Poly
 		std::string    Name;
 		FResourceState State   = FResourceState::Unknown;
 		bool           IsWrite = false;
+
+		bool operator==(const ResourceUse&) const = default;
 	};
 
 	// A registered executor used by a pass, see IPassDeclaration::WithExecutor and ExecutorRegistry
@@ -49,6 +57,8 @@ namespace Poly
 	{
 		std::string Name; // Empty if the pass has no executor
 		std::string ParamsJson;
+
+		bool operator==(const PassExecutor&) const = default;
 	};
 
 	struct PassDepthBias
@@ -56,12 +66,16 @@ namespace Poly
 		float ConstantFactor = 0.0f;
 		float SlopeFactor    = 0.0f;
 		float Clamp          = 0.0f;
+
+		bool operator==(const PassDepthBias&) const = default;
 	};
 
 	struct PassStencilState
 	{
 		StencilOpStateDesc Front = {};
 		StencilOpStateDesc Back  = {};
+
+		bool operator==(const PassStencilState&) const = default;
 	};
 
 	/*
@@ -89,6 +103,8 @@ namespace Poly
 
 		// Setting it enables the logic op
 		std::optional<ELogicOp> LogicOp;
+
+		bool operator==(const PassPipelineState&) const = default;
 	};
 
 	/*
@@ -111,5 +127,7 @@ namespace Poly
 		// Name of the registered vertex layout of the pass, see VertexLayoutRegistry. Empty if the pass binds no vertex buffer
 		std::string       VertexLayoutName;
 		PassPipelineState Pipeline;
+
+		bool operator==(const PassDesc&) const = default;
 	};
 } // namespace Poly
