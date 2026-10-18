@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GlazeEnums.h"
 #include "Poly/Core/Handle.h"
 #include "Poly/Resources/AssetHandler.h"
 
@@ -13,6 +14,7 @@
 // - glm vectors and quaternions are arrays, quaternions in [x, y, z, w] order. Flow sequences in yaml
 // - PolyID is a string, 64 bit integers do not survive json readers that store numbers as doubles
 // - Asset handles are the VFS path of the asset, reading one loads the asset if it is not already
+// - Enums are the names of their values, see GlazeEnums.h
 //
 // Heavy include, only use from the source files that register components or serialize
 
