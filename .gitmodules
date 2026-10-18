@@ -22,3 +22,6 @@
 [submodule "Poly/libs/glaze"]
 	path = Poly/libs/glaze
 	url = https://github.com/stephenberry/glaze.git
+[submodule "Poly/libs/magic_enum"]
+	path = Poly/libs/magic_enum
+	url = https://github.com/Neargye/magic_enum.git

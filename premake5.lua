@@ -122,6 +122,13 @@ function useGlaze()
 	filter {}
 end
 
+function useMagicEnum()
+	externalincludedirs
+	{
+		"Poly/libs/magic_enum/include"
+	}
+end
+
 -- Slang is only shipped as a shared library in the Vulkan SDK, the executables need it next to them
 function copySlangBinaries()
 	filter "system:windows"
@@ -184,6 +191,7 @@ project "Poly"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	useMagicEnum()
 
 	forceincludes
 	{
@@ -222,6 +230,7 @@ project "Sandbox"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	useMagicEnum()
 	copySlangBinaries()
 
 	forceincludes
@@ -278,6 +287,7 @@ project "ImGuiEditor"
 	setDirs()
 	srcFiles()
 	useGlaze()
+	useMagicEnum()
 	copySlangBinaries()
 
 	-- Engine headers are not self-contained; they rely on the engine's pch
