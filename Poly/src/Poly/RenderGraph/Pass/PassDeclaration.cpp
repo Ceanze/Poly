@@ -9,6 +9,13 @@ namespace Poly
 		m_Desc.Name = name;
 	}
 
+	void PassDeclaration::SetDesc(PassDesc desc)
+	{
+		POLY_VALIDATE(desc.Name == m_Desc.Name, "Description of pass '{}' is for pass '{}'", m_Desc.Name, desc.Name);
+		m_Desc      = std::move(desc);
+		m_ExecuteFn = nullptr;
+	}
+
 	PassDeclaration& PassDeclaration::WithShader(std::string_view shaderPath, FShaderStage stage)
 	{
 		m_Desc.Shaders.push_back({std::string(shaderPath), stage});

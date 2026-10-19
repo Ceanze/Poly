@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExecutorRegistry.h"
+#include "Poly/Core/Result.h"
 #include "Registry.h"
 #include "VertexLayoutRegistry.h"
 #include "Pass/PassDeclaration.h"
@@ -31,6 +32,22 @@ namespace Poly
 		IPassDeclaration&     RegisterPass(std::string_view name, std::string_view source = {});
 		IFeatureDeclaration&  RegisterFeature(std::string_view name, std::string_view source = {});
 		IResourceDeclaration& RegisterResource(std::string_view name, std::string_view source = {});
+
+		/*
+		 * Registers every pass (.polypass) and feature (.polyfeature, with the resources it owns) of a directory and its
+		 * subdirectories, with its file as source. A file that cannot be read, or that declares a name already registered
+		 * by code or by another file, is logged and left out.
+		 * @param vfsDirectory VFS path of the directory, e.g. "assets/render/".
+		 * @return True if every file was registered.
+		 */
+		bool LoadDirectory(std::string_view vfsDirectory);
+
+		/*
+		 * Registers the pass or feature of a file, replacing what was registered from the same file before. Nothing is
+		 * registered if the file cannot be read, or if it declares a name already registered by code or another file.
+		 * @param vfsPath VFS path of a .polypass or .polyfeature file.
+		 */
+		Result<void> LoadFile(std::string_view vfsPath);
 
 		/*
 		 * Removes every pass, feature and resource registered from a file, e.g. before the file is read again.

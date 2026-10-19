@@ -15,6 +15,11 @@ namespace Poly
 		return RenderPlanBuilder(m_Catalog);
 	}
 
+	RenderPlanBuilder RenderGraph::BeginRenderPlan(RenderPlanDesc desc)
+	{
+		return RenderPlanBuilder(m_Catalog, std::move(desc));
+	}
+
 	IPassDeclaration& RenderGraph::RegisterPass(std::string_view name)
 	{
 		return m_Catalog->RegisterPass(name);

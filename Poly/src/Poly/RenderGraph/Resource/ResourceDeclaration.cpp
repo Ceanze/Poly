@@ -7,6 +7,12 @@ namespace Poly
 		m_Desc.Name = name;
 	}
 
+	void ResourceDeclaration::SetDesc(ResourceDesc desc)
+	{
+		POLY_VALIDATE(desc.Name == m_Desc.Name, "Description of resource '{}' is for resource '{}'", m_Desc.Name, desc.Name);
+		m_Desc = std::move(desc);
+	}
+
 	ResourceDeclaration& ResourceDeclaration::WithType(EResourceType type)
 	{
 		m_Desc.Type = type;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "RenderCatalog.h"
 #include "RenderPlanBuilder.h"
 
@@ -15,6 +17,11 @@ namespace Poly
 		 * with the views submitted each frame. See RenderPlanBuilder.
 		 */
 		RenderPlanBuilder BeginRenderPlan();
+
+		/*
+		 * Starts a render plan from a description, e.g. one read with RenderGraphSerializer::ReadPlan().
+		 */
+		RenderPlanBuilder BeginRenderPlan(RenderPlanDesc desc);
 
 		IPassDeclaration& RegisterPass(std::string_view name);
 

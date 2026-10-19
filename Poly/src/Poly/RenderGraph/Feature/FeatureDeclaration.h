@@ -25,6 +25,12 @@ namespace Poly
 		 */
 		const FeatureDesc& GetDesc() const { return m_Desc; }
 
+		/*
+		 * Replaces everything about the feature with a description, e.g. one read from a feature file. The name of the
+		 * feature and of the description must match. The resources of the description are not registered by this.
+		 */
+		void SetDesc(FeatureDesc desc);
+
 	private:
 		FeatureDesc m_Desc;
 	};

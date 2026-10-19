@@ -65,6 +65,12 @@ namespace Poly
 		 */
 		const PassDesc& GetDesc() const { return m_Desc; }
 
+		/*
+		 * Replaces everything about the pass with a description, e.g. one read from a pass file. The name of the pass and
+		 * of the description must match. Removes the execute function of the pass.
+		 */
+		void SetDesc(PassDesc desc);
+
 		const std::vector<PassShader>&              GetShaders() const { return m_Desc.Shaders; }
 		const std::function<void(ExecuteContext&)>& GetExecuteFn() const { return m_ExecuteFn; }
 

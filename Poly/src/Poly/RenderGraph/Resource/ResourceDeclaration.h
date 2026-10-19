@@ -23,6 +23,11 @@ namespace Poly
 		 */
 		const ResourceDesc& GetDesc() const { return m_Desc; }
 
+		/*
+		 * Replaces everything about the resource with a description. The name of the resource and of the description must match.
+		 */
+		void SetDesc(ResourceDesc desc);
+
 		EResourceType  GetResourceType() const override { return m_Desc.Type; }
 		FResourceState GetInitialState() const override { return m_Desc.InitialState; }
 		EResourceScope GetScope() const override { return m_Desc.Scope; }
