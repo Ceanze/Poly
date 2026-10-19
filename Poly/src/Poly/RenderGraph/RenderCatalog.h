@@ -1,12 +1,16 @@
 #pragma once
 
 #include "ExecutorRegistry.h"
+#include "Feature/FeatureDeclaration.h"
+#include "Pass/PassDeclaration.h"
 #include "Poly/Core/Result.h"
 #include "Registry.h"
-#include "VertexLayoutRegistry.h"
-#include "Pass/PassDeclaration.h"
-#include "Feature/FeatureDeclaration.h"
+#include "RenderPlanDesc.h"
 #include "Resource/ResourceDeclaration.h"
+#include "VertexLayoutRegistry.h"
+
+#include <string>
+#include <vector>
 
 namespace Poly
 {
@@ -17,6 +21,19 @@ namespace Poly
 	using PassRegistry     = Registry<PassDeclaration>;
 	using FeatureRegistry  = Registry<FeatureDeclaration>;
 	using ResourceRegistry = Registry<ResourceDeclaration>;
+
+	struct CatalogIssue
+	{
+		enum class ESeverity
+		{
+			Warning,
+			Error
+		};
+
+		ESeverity   Severity = ESeverity::Error;
+		std::string Source;
+		std::string Message;
+	};
 
 	class RenderCatalog
 	{
@@ -38,7 +55,9 @@ namespace Poly
 		 * subdirectories, with its file as source. A file that cannot be read, or that declares a name already registered
 		 * by code or by another file, is logged and left out.
 		 * @param vfsDirectory VFS path of the directory, e.g. "assets/render/".
-		 * @return True if every file was registered.
+		 * The passes and features of the files are validated once all of them are registered, see Validate(), and the
+		 * problems logged. Register everything the files use from code (executors, vertex layouts, resources) first.
+		 * @return True if every file was registered without validation errors.
 		 */
 		bool LoadDirectory(std::string_view vfsDirectory);
 
@@ -48,6 +67,21 @@ namespace Poly
 		 * @param vfsPath VFS path of a .polypass or .polyfeature file.
 		 */
 		Result<void> LoadFile(std::string_view vfsPath);
+
+		/*
+		 * Checks that every name the passes and features use is registered (executors, vertex layouts, resources,
+		 * passes) and that their shader files exist. Nothing is changed, problems are only reported. Names may be
+		 * registered in any order, so validate once everything is registered.
+		 * @return The problems found, empty if there are none.
+		 */
+		std::vector<CatalogIssue> Validate() const;
+
+		/*
+		 * Checks that every feature a plan uses is registered and that its entries are valid. The features themselves are
+		 * checked by Validate().
+		 * @return The problems found, empty if there are none.
+		 */
+		std::vector<CatalogIssue> ValidatePlan(const RenderPlanDesc& plan) const;
 
 		/*
 		 * Removes every pass, feature and resource registered from a file, e.g. before the file is read again.
