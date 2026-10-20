@@ -46,14 +46,7 @@ public:
 		Poly::GeometryFeature::Register(*m_pCatalog);
 		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
 
-		// clang-format off
-		Poly::Ref<Poly::RenderPlan> pPlan = m_Graph.BeginRenderPlan()
-		                                        .AddViewStage(SCENE_STAGE_NAME)
-		                                            .AddFeature(Poly::GeometryFeature::FEATURE_NAME)
-		                                        .EndStage()
-		                                        .AddFrameFeature(Poly::ImGuiLayer::FEATURE_NAME)
-		                                        .Build();
-		// clang-format on
+		Poly::Ref<Poly::RenderPlan> pPlan = m_Graph.LoadRenderPlan("assets/render/Game.polyplan");
 
 		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
 		pRenderer->SetRenderPlan(pPlan);
