@@ -6,7 +6,6 @@
 namespace Poly
 {
 	class World;
-	class RenderCatalog;
 
 	/*
 	 * Builds the GPU-side light data for all lights of a world and provides it to the render graph through
@@ -15,7 +14,7 @@ namespace Poly
 	 *
 	 * Usage:
 	 *
-	 *   world.AddSystem<LightSystem>(World::Phase::PostUpdate, catalog);
+	 *   world.AddSystem<LightSystem>(World::Phase::PostUpdate);
 	 *
 	 *   pass.MapGlobal(LightSystem::LIGHTS_RESOURCE_NAME, "lights");
 	 */
@@ -24,20 +23,14 @@ namespace Poly
 	public:
 		static constexpr const char* LIGHTS_RESOURCE_NAME = "scene.lights";
 
-		/**
-		 * @param catalog - catalog to register the provided resources in
-		 */
-		explicit LightSystem(RenderCatalog& catalog);
+		LightSystem()  = default;
 		~LightSystem() = default;
 		CLASS_REMOVE_COPY(LightSystem);
 
-		void OnInit(World& world);
 		void Update(World& world);
 		void OnShutdown(World& world);
 
 	private:
-		RenderCatalog& m_Catalog;
-
 		bool m_NeedsRebuild = true;
 
 		BufferHandle m_LightsBufferHandle;

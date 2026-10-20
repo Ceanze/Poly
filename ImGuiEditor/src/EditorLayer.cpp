@@ -5,8 +5,7 @@
 #include <Poly/Core/Application.h>
 #include <Poly/Core/Window.h>
 #include <Poly/ImGui/ImGuiLayer.h>
-#include <Poly/RenderGraph/RenderCatalog.h>
-#include <Poly/Rendering/Features/GeometryFeature.h>
+#include <Poly/RenderGraph/RenderGraph.h>
 #include <Poly/Rendering/Renderer.h>
 #include <Poly/World/Systems/CameraSystem.h>
 #include <Poly/World/Systems/LightSystem.h>
@@ -30,16 +29,13 @@ namespace Editor
 		m_pCamera->SetMovementSpeed(1.f);
 		m_pCamera->SetSprintSpeed(5.f);
 
-		m_Context.GetWorld().AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
-		m_Context.GetWorld().AddSystem<Poly::LightSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
+		m_Context.GetWorld().AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate);
+		m_Context.GetWorld().AddSystem<Poly::LightSystem>(Poly::World::Phase::PostUpdate);
 		m_Context.GetWorld().AddSystem<Poly::CameraSystem>(Poly::World::Phase::PostUpdate);
 
-		Poly::GeometryFeature::Register(*m_pCatalog);
-		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
-
-		Poly::Ref<Poly::RenderPlan> pPlan = m_Graph.LoadRenderPlan("assets/render/Editor.polyplan");
-
-		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
+		Poly::Renderer*             pRenderer = Poly::Application::Get().GetRenderer();
+		Poly::RenderGraph           graph;
+		Poly::Ref<Poly::RenderPlan> pPlan = graph.LoadRenderPlan("assets/render/Editor.polyplan");
 		pRenderer->SetRenderPlan(pPlan);
 
 		// Both views belong to the same stage, so the world is rendered the same way in both.

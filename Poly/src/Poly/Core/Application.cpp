@@ -35,6 +35,7 @@ namespace Poly
 			if (g_ImGuiEnabled)
 			{
 				m_pImGuiLayer = new ImGuiLayer;
+				m_pImGuiLayer->RegisterRenderFeature(*m_pRenderer->GetRenderCatalog());
 				PushOverlay(m_pImGuiLayer);
 			}
 		}

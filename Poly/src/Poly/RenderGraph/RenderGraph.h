@@ -8,7 +8,14 @@ namespace Poly
 	class RenderGraph
 	{
 	public:
+		/*
+		 * Uses the catalog of the application's Renderer, which holds what the engine registers.
+		 */
 		RenderGraph();
+
+		/*
+		 * Uses another catalog, e.g. when there is no application or renderer.
+		 */
 		explicit RenderGraph(Ref<RenderCatalog> catalog);
 		~RenderGraph() = default;
 

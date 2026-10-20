@@ -1,7 +1,6 @@
 #include "LightSystem.h"
 
 #include "Platform/API/Buffer.h"
-#include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/Shader/GPULightData.h"
 #include "Poly/World/Components.h"
 #include "Poly/World/Components/PointLightComponent.h"
@@ -11,15 +10,6 @@
 
 namespace Poly
 {
-	LightSystem::LightSystem(RenderCatalog& catalog)
-	    : m_Catalog(catalog)
-	{}
-
-	void LightSystem::OnInit(World& world)
-	{
-		m_Catalog.RegisterResource(LIGHTS_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
-	}
-
 	void LightSystem::Update(World& world)
 	{
 		if (!m_NeedsRebuild && !world.HasPendingChanges())

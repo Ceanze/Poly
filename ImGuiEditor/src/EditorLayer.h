@@ -8,7 +8,6 @@
 #include <Poly/Core/Camera.h>
 #include <Poly/Core/Layer.h>
 #include <Poly/Events/MouseEvent.h>
-#include <Poly/RenderGraph/RenderGraph.h>
 #include <Poly/RenderGraph/ResourceManager.h>
 #include <Poly/Rendering/RenderView.h>
 
@@ -83,9 +82,7 @@ namespace Editor
 		std::string m_LastError;
 		std::string m_StartupWorldPath;
 
-		Poly::Camera*                  m_pCamera  = nullptr;
-		Poly::Ref<Poly::RenderCatalog> m_pCatalog = Poly::CreateRef<Poly::RenderCatalog>();
-		Poly::RenderGraph              m_Graph{m_pCatalog};
+		Poly::Camera* m_pCamera = nullptr;
 
 		// Seen from m_pCamera
 		Viewport m_EditorViewport{.pName = "Viewport"};

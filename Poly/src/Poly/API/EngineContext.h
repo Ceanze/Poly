@@ -21,7 +21,7 @@ namespace Poly::API
 	 * Usage:
 	 * @code
 	 * API::EngineContext context;
-	 * context.GetWorld().AddSystem<RenderSystem>(World::Phase::PostUpdate, catalog);
+	 * context.GetWorld().AddSystem<RenderSystem>(World::Phase::PostUpdate);
 	 *
 	 * Result<PolyID> entity = context.Entities().Create(PolyID::None(), "Light");
 	 * context.Components().SetField(*entity, "Transform", "Translation", "[0, 2, 0]");

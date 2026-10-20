@@ -28,11 +28,13 @@ namespace
 
 namespace Poly
 {
-	// Scene resources (scene.*) are registered by the RenderSystem and the LightSystem.
-	// The shader names passed to MapGlobal() are the names of the pointers in the push constants of pbr_bindless.slang.
 	void GeometryFeature::Register(RenderCatalog& catalog)
 	{
 		catalog.RegisterResource(Renderer::CAMERA_RESOURCE_NAME).WithType(EResourceType::UniformBuffer).WithScope(EResourceScope::View);
+		catalog.RegisterResource(RenderSystem::VERTICES_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
+		catalog.RegisterResource(RenderSystem::INSTANCE_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
+		catalog.RegisterResource(RenderSystem::MATERIAL_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
+		catalog.RegisterResource(LightSystem::LIGHTS_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
 
 		catalog.GetExecutorRegistry().Register(SCENE_RASTER_EXECUTOR, "Draws the batches of the RenderSystem of the world being rendered", ExecuteSceneRaster);
 
