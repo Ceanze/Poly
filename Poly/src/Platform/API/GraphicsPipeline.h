@@ -75,6 +75,8 @@ namespace Poly
 		uint32     CompareMask = 0;
 		uint32     WriteMask   = 0;
 		uint32     Reference   = 0;
+
+		bool operator==(const StencilOpStateDesc&) const = default;
 	};
 
 	struct DepthStencilDesc
@@ -100,6 +102,8 @@ namespace Poly
 		EBlendFactor        DstAlphaBlendFactor = EBlendFactor::ZERO;
 		EBlendOp            AlphaBlendOp        = EBlendOp::ADD;
 		FColorComponentFlag ColorWriteMask      = FColorComponentFlag::RED | FColorComponentFlag::GREEN | FColorComponentFlag::BLUE | FColorComponentFlag::ALPHA;
+
+		bool operator==(const ColorBlendAttachmentDesc&) const = default;
 	};
 
 	struct ColorBlendStateDesc

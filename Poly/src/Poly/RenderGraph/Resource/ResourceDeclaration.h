@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IResourceDeclaration.h"
+#include "ResourceDesc.h"
 
 namespace Poly
 {
@@ -15,22 +16,26 @@ namespace Poly
 		ResourceDeclaration& WithSize(uint32 width, uint32 height) override;
 		ResourceDeclaration& WithScope(EResourceScope scope) override;
 
-		std::string_view GetName() const { return m_Name; }
+		std::string_view GetName() const { return m_Desc.Name; }
 
-		EResourceType  GetResourceType() const override { return m_ResourceType; }
-		FResourceState GetInitialState() const override { return m_InitialState; }
-		EResourceScope GetScope() const override { return m_Scope; }
-		uint32         GetWidth() const override { return m_Width; }
-		uint32         GetHeight() const override { return m_Height; }
-		bool           HasSize() const override { return m_Width != 0 && m_Height != 0; }
+		/*
+		 * Gets the data of the resource.
+		 */
+		const ResourceDesc& GetDesc() const { return m_Desc; }
+
+		/*
+		 * Replaces everything about the resource with a description. The name of the resource and of the description must match.
+		 */
+		void SetDesc(ResourceDesc desc);
+
+		EResourceType  GetResourceType() const override { return m_Desc.Type; }
+		FResourceState GetInitialState() const override { return m_Desc.InitialState; }
+		EResourceScope GetScope() const override { return m_Desc.Scope; }
+		uint32         GetWidth() const override { return m_Desc.Width; }
+		uint32         GetHeight() const override { return m_Desc.Height; }
+		bool           HasSize() const override { return m_Desc.Width != 0 && m_Desc.Height != 0; }
 
 	private:
-		const std::string m_Name;
-
-		EResourceType  m_ResourceType{EResourceType::None};
-		FResourceState m_InitialState{FResourceState::Unknown};
-		EResourceScope m_Scope{EResourceScope::Global};
-		uint32         m_Width  = 0;
-		uint32         m_Height = 0;
+		ResourceDesc m_Desc;
 	};
 } // namespace Poly

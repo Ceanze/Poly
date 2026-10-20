@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderPlanDesc.h"
 #include "RenderProgram.h"
 
 #include <string>
@@ -14,11 +15,7 @@ namespace Poly
 	 */
 	struct RenderPlanEntry
 	{
-		enum class EType
-		{
-			FrameFeature, // Rendered once per frame, to the window
-			ViewStage     // Rendered once for every view submitted to the stage
-		};
+		using EType = ERenderPlanEntryType;
 
 		EType                     Type = EType::FrameFeature;
 		std::string               Name; // Name of the feature or of the stage

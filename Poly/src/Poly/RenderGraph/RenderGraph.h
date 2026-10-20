@@ -1,3 +1,5 @@
+#pragma once
+
 #include "RenderCatalog.h"
 #include "RenderPlanBuilder.h"
 
@@ -15,6 +17,19 @@ namespace Poly
 		 * with the views submitted each frame. See RenderPlanBuilder.
 		 */
 		RenderPlanBuilder BeginRenderPlan();
+
+		/*
+		 * Starts a render plan from a description, e.g. one read with RenderGraphSerializer::ReadPlan().
+		 */
+		RenderPlanBuilder BeginRenderPlan(RenderPlanDesc desc);
+
+		/*
+		 * Reads a plan file (.polyplan) and builds the plan. The features it uses have to be registered by now, see
+		 * RenderCatalog::LoadDirectory(). Problems are logged.
+		 * @param vfsPath VFS path of the plan file.
+		 * @return The plan, nullptr if the file could not be read.
+		 */
+		Ref<RenderPlan> LoadRenderPlan(std::string_view vfsPath);
 
 		IPassDeclaration& RegisterPass(std::string_view name);
 

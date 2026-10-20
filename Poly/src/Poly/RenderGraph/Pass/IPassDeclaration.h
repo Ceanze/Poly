@@ -10,7 +10,6 @@
 
 namespace Poly
 {
-	class SetupContext;
 	class ExecuteContext;
 	class PassDeclaration;
 
@@ -27,11 +26,6 @@ namespace Poly
 		virtual IPassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) = 0;
 
 		/*
-		 * Add a setup function executed when the render program is compiled.
-		 */
-		virtual IPassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) = 0;
-
-		/*
 		 * Declares which queue this pass should execute on. Defaults to FQueueType::GRAPHICS if never called.
 		 *
 		 * @param queue The queue to run this pass on.
@@ -41,8 +35,18 @@ namespace Poly
 
 		/*
 		 * Add an execute function called every frame during render program execution.
+		 * A pass with an execute function cannot be saved to file, prefer WithExecutor(). Replaces the executor of the pass.
 		 */
 		virtual IPassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) = 0;
+
+		/*
+		 * Uses a registered executor as the execute function of the pass, see ExecutorRegistry. The executor has to be
+		 * registered by the time the render plan is built. Replaces the execute function of the pass.
+		 * @param executorName The name of the executor.
+		 * @param paramsJson The parameters given to the executor, as a json object. Empty for none.
+		 * @return A reference to this for chaining.
+		 */
+		virtual IPassDeclaration& WithExecutor(std::string_view executorName, std::string_view paramsJson = "") = 0;
 
 		// --- Pipeline state ---
 		// Everything below is optional. A pass that sets none of it draws filled, back face culled, counter clockwise
@@ -102,27 +106,32 @@ namespace Poly
 		virtual IPassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) = 0;
 
 		/*
-		 * Declares the vertex buffer the pass binds. Only needed together with WithVertexAttribute, passes that
-		 * read their vertices from a mapped buffer (vertex pulling) have no vertex layout.
-		 * @param stride The size of one vertex, in bytes.
-		 * @param inputRate Whether the buffer advances per vertex or per instance.
+		 * Enables the stencil test, with the same state for front and back faces. The pass has to map EFeaturePort::Stencil.
+		 * @param state The stencil operations, compare op, masks and reference value.
 		 */
-		virtual IPassDeclaration& WithVertexLayout(uint32 stride, EVertexInputRate inputRate = EVertexInputRate::VERTEX) = 0;
+		virtual IPassDeclaration& WithStencil(const StencilOpStateDesc& state) = 0;
 
 		/*
-		 * Adds a vertex attribute read from the vertex buffer declared by WithVertexLayout.
-		 * @param location The location of the input in the vertex shader.
-		 * @param format The format of the attribute in the vertex buffer.
-		 * @param offset The offset of the attribute from the start of a vertex, in bytes.
+		 * Enables the stencil test, with separate states for front and back faces. The pass has to map EFeaturePort::Stencil.
+		 * @param front The state used for front faces.
+		 * @param back The state used for back faces.
 		 */
-		virtual IPassDeclaration& WithVertexAttribute(uint32 location, EFormat format, uint32 offset) = 0;
+		virtual IPassDeclaration& WithStencil(const StencilOpStateDesc& front, const StencilOpStateDesc& back) = 0;
 
 		/*
-		 * Escape hatch for pipeline state without a setter (stencil, logic op, static viewport/scissor, ...).
-		 * Called with the fully resolved pipeline description when the render program is built, after every
-		 * default and setter has been applied.
+		 * Enables a logical operation between the pass's color output and the attachment, used instead of blending.
+		 * @param op The logical operation.
 		 */
-		virtual IPassDeclaration& WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn) = 0;
+		virtual IPassDeclaration& WithLogicOp(ELogicOp op) = 0;
+
+		/*
+		 * Declares the vertex buffer the pass binds with a registered vertex layout, see VertexLayoutRegistry. The layout
+		 * has to be registered by the time the render plan is built. Passes that read their vertices from a mapped buffer
+		 * (vertex pulling) have no vertex layout.
+		 * @param layoutName The name of the vertex layout.
+		 * @return A reference to this for chaining.
+		 */
+		virtual IPassDeclaration& WithVertexLayout(std::string_view layoutName) = 0;
 
 		/*
 		 * Maps a feature port to a shader resource of the pass. This works as a connection between the stricter feature pipeline

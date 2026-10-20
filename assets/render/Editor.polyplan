@@ -1,0 +1,6 @@
+Version: 1
+Entries:
+  - Stage: Scene
+    Features:
+      - geometry
+  - FrameFeature: ui

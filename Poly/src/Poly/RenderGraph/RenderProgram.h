@@ -2,6 +2,7 @@
 
 #include "Platform/API/GraphicsPipeline.h"
 #include "Poly/RenderGraph/Feature/FeaturePort.h"
+#include "Poly/RenderGraph/Pass/PassDesc.h"
 #include "Poly/RenderGraph/Resource/ResourceScope.h"
 #include "Poly/RenderGraph/Resource/ResourceState.h"
 #include "Poly/RenderGraph/Resource/ResourceType.h"
@@ -86,9 +87,9 @@ namespace Poly
 		// 1 and up for the views of the program, in the order of its ProgramKey
 		uint32 ViewSlot = 0;
 
-		std::vector<std::pair<std::string, FShaderStage>> Shaders;
-		GraphicsPipelineDesc                              PipelineDesc;
-		std::function<void(ExecuteContext&)>              ExecuteFn;
+		std::vector<PassShader>              Shaders;
+		GraphicsPipelineDesc                 PipelineDesc;
+		std::function<void(ExecuteContext&)> ExecuteFn;
 
 		FQueueType Queue = FQueueType::GRAPHICS;
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "IPassDeclaration.h"
+#include "PassDesc.h"
 #include "Platform/API/GraphicsPipeline.h"
 
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -13,37 +13,16 @@ RenderGraph.RegisterPass("imgui")
     .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::VERTEX)
     .WithShader("assets/shaders/ui_bindless.slang", FShaderStage::FRAGMENT)
     .MapResource(EFeaturePort::Color, "out_Color")
-    .WithVertexLayout(sizeof(ImDrawVert))
-    .WithVertexAttribute(0, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, pos))
-    .WithVertexAttribute(1, EFormat::R32G32_SFLOAT, offsetof(ImDrawVert, uv))
-    .WithVertexAttribute(2, EFormat::R8G8B8A8_UNORM, offsetof(ImDrawVert, col))
+    .WithVertexLayout("ImDrawVert")
     .WithCullMode(ECullMode::NONE)
     .WithBlend(EBlendMode::AlphaBlend)
-    .WithExecuteFn( ... );
+    .WithExecutor("ImGui");
 */
 
 namespace Poly
 {
-	class SetupContext;
 	class ExecuteContext;
-
-	// A mapped feature port, plus an optional attachment load-op override. LoadOpOverride left at
-	// ELoadOp::NONE means "auto" - RenderProgramBuilder infers CLEAR on a resource's first write in
-	// the program and LOAD on subsequent writes (see PlanSynchronization).
-	struct ResourceMapping
-	{
-		EFeaturePort Port;
-		std::string  ShaderResourceName;
-		ELoadOp      LoadOpOverride = ELoadOp::NONE;
-	};
-
-	// A resource used by a pass without a shader binding, see IPassDeclaration::ReadResource/WriteResource.
-	struct ResourceUse
-	{
-		std::string    Name;
-		FResourceState State;
-		bool           IsWrite;
-	};
+	struct VertexLayout;
 
 	class PassDeclaration : public IPassDeclaration
 	{
@@ -52,8 +31,8 @@ namespace Poly
 		~PassDeclaration() = default;
 
 		PassDeclaration& WithShader(std::string_view shaderPath, FShaderStage stage) override;
-		PassDeclaration& WithSetupFn(std::function<void(SetupContext&)> setupFn) override;
 		PassDeclaration& WithExecuteFn(std::function<void(ExecuteContext&)> executeFn) override;
+		PassDeclaration& WithExecutor(std::string_view executorName, std::string_view paramsJson = "") override;
 		PassDeclaration& OnQueue(FQueueType queue) override;
 
 		PassDeclaration& WithTopology(ETopology topology) override;
@@ -66,9 +45,10 @@ namespace Poly
 		PassDeclaration& WithDepthBias(float constantFactor, float slopeFactor, float clamp = 0.0f) override;
 		PassDeclaration& WithBlend(EBlendMode mode) override;
 		PassDeclaration& WithBlend(const ColorBlendAttachmentDesc& blend) override;
-		PassDeclaration& WithVertexLayout(uint32 stride, EVertexInputRate inputRate = EVertexInputRate::VERTEX) override;
-		PassDeclaration& WithVertexAttribute(uint32 location, EFormat format, uint32 offset) override;
-		PassDeclaration& WithPipelineOverride(std::function<void(GraphicsPipelineDesc&)> overrideFn) override;
+		PassDeclaration& WithStencil(const StencilOpStateDesc& state) override;
+		PassDeclaration& WithStencil(const StencilOpStateDesc& front, const StencilOpStateDesc& back) override;
+		PassDeclaration& WithLogicOp(ELogicOp op) override;
+		PassDeclaration& WithVertexLayout(std::string_view layoutName) override;
 
 		PassDeclaration& MapResource(EFeaturePort resourceName, std::string_view shaderResourceName, ELoadOp loadOp = ELoadOp::NONE) override;
 		PassDeclaration& MapGlobal(std::string_view globalName, std::string_view shaderGlobalName) override;
@@ -77,48 +57,40 @@ namespace Poly
 		PassDeclaration& ReadResource(std::string_view resourceName, FResourceState state) override;
 		PassDeclaration& WriteResource(std::string_view resourceName, FResourceState state) override;
 
-		std::string_view GetName() const { return m_Name; }
-		FQueueType       GetQueue() const { return m_Queue; }
+		std::string_view GetName() const { return m_Desc.Name; }
+		FQueueType       GetQueue() const { return m_Desc.Queue; }
 
-		const std::vector<std::pair<std::string, FShaderStage>>& GetShaders() const { return m_Shaders; }
-		const std::function<void(ExecuteContext&)>&              GetExecuteFn() const { return m_ExecuteFn; }
+		/*
+		 * Gets the data of the pass, everything but its functions.
+		 */
+		const PassDesc& GetDesc() const { return m_Desc; }
 
-		void CallSetupFn(SetupContext& ctx) const;
-		void CallExecuteFn(ExecuteContext& ctx) const;
+		/*
+		 * Replaces everything about the pass with a description, e.g. one read from a pass file. The name of the pass and
+		 * of the description must match. Removes the execute function of the pass.
+		 */
+		void SetDesc(PassDesc desc);
 
-		const std::vector<ResourceMapping>&                     GetResourceMappings() const { return m_ResourceMappings; }
-		const std::vector<std::pair<std::string, std::string>>& GetGlobalMappings() const { return m_GlobalMappings; }
-		const std::vector<std::pair<std::string, std::string>>& GetImportedResources() const { return m_ImportedResources; }
-		const std::vector<std::pair<std::string, std::string>>& GetExportedResources() const { return m_ExportedResources; }
-		const std::vector<ResourceUse>&                         GetResourceUses() const { return m_ResourceUses; }
+		const std::vector<PassShader>&              GetShaders() const { return m_Desc.Shaders; }
+		const std::function<void(ExecuteContext&)>& GetExecuteFn() const { return m_ExecuteFn; }
+
+
+		const std::vector<ResourceMapping>& GetResourceMappings() const { return m_Desc.ResourceMappings; }
+		const std::vector<ResourceBinding>& GetGlobalMappings() const { return m_Desc.GlobalMappings; }
+		const std::vector<ResourceBinding>& GetImportedResources() const { return m_Desc.ImportedResources; }
+		const std::vector<ResourceBinding>& GetExportedResources() const { return m_Desc.ExportedResources; }
+		const std::vector<ResourceUse>&     GetResourceUses() const { return m_Desc.ResourceUses; }
 
 		/*
 		 * Resolves the pipeline state of the pass: the defaults, what follows from the mapped feature ports (depth
 		 * test/write, one blend attachment per color output) and whatever was set explicitly.
+		 * @param pVertexLayout The registered vertex layout of the pass, nullptr if the pass binds no vertex buffer.
 		 */
-		GraphicsPipelineDesc BuildPipelineDesc() const;
+		GraphicsPipelineDesc BuildPipelineDesc(const VertexLayout* pVertexLayout) const;
 
 	private:
-		const std::string m_Name;
-		FQueueType        m_Queue = FQueueType::GRAPHICS;
+		PassDesc m_Desc;
 
-		std::vector<std::pair<std::string, FShaderStage>> m_Shaders;
-		std::function<void(SetupContext&)>                m_SetupFn;
-		std::function<void(ExecuteContext&)>              m_ExecuteFn;
-
-		// Explicitly set pipeline state. Depth test/write, blend attachments and the vertex binding are resolved in BuildPipelineDesc()
-		GraphicsPipelineDesc                       m_PipelineDesc;
-		std::optional<bool>                        m_DepthTest;
-		std::optional<bool>                        m_DepthWrite;
-		ColorBlendAttachmentDesc                   m_Blend;
-		uint32                                     m_VertexStride    = 0;
-		EVertexInputRate                           m_VertexInputRate = EVertexInputRate::VERTEX;
-		std::function<void(GraphicsPipelineDesc&)> m_PipelineOverrideFn;
-
-		std::vector<ResourceMapping>                     m_ResourceMappings;
-		std::vector<std::pair<std::string, std::string>> m_GlobalMappings;
-		std::vector<std::pair<std::string, std::string>> m_ImportedResources;
-		std::vector<std::pair<std::string, std::string>> m_ExportedResources;
-		std::vector<ResourceUse>                         m_ResourceUses;
+		std::function<void(ExecuteContext&)> m_ExecuteFn;
 	};
 } // namespace Poly

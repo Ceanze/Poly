@@ -6,7 +6,6 @@
 #include "Poly/Resources/Shader/ShaderManager.h"
 #include "Resource/ResourceDeclaration.h"
 #include "Resource/ResourceUsage.h"
-#include "SetupContext.h"
 
 #include <algorithm>
 
@@ -19,7 +18,7 @@ namespace Poly
 
 	ViewStageBuilder& ViewStageBuilder::AddFeature(std::string_view name)
 	{
-		m_PlanBuilder.m_Entries[m_EntryIndex].Features.emplace_back(name);
+		m_PlanBuilder.m_Desc.Entries[m_EntryIndex].Features.emplace_back(name);
 		return *this;
 	}
 
@@ -32,16 +31,21 @@ namespace Poly
 	    : m_Catalog(std::move(catalog))
 	{}
 
+	RenderPlanBuilder::RenderPlanBuilder(Ref<RenderCatalog> catalog, RenderPlanDesc desc)
+	    : m_Catalog(std::move(catalog))
+	    , m_Desc(std::move(desc))
+	{}
+
 	RenderPlanBuilder& RenderPlanBuilder::AddFrameFeature(std::string_view name)
 	{
-		m_Entries.push_back({RenderPlanEntry::EType::FrameFeature, std::string(name), {std::string(name)}});
+		m_Desc.Entries.push_back({RenderPlanEntry::EType::FrameFeature, std::string(name), {std::string(name)}});
 		return *this;
 	}
 
 	ViewStageBuilder RenderPlanBuilder::AddViewStage(std::string_view name)
 	{
-		m_Entries.push_back({RenderPlanEntry::EType::ViewStage, std::string(name), {}});
-		return ViewStageBuilder(*this, m_Entries.size() - 1);
+		m_Desc.Entries.push_back({RenderPlanEntry::EType::ViewStage, std::string(name), {}});
+		return ViewStageBuilder(*this, m_Desc.Entries.size() - 1);
 	}
 
 	Ref<RenderPlan> RenderPlanBuilder::Build()
@@ -49,7 +53,7 @@ namespace Poly
 		std::vector<RenderPlanEntry>            entries;
 		std::unordered_map<std::string, size_t> featureInstanceCount;
 
-		for (const Entry& entry : m_Entries)
+		for (const RenderPlanEntryDesc& entry : m_Desc.Entries)
 		{
 			const bool isStage = entry.Type == RenderPlanEntry::EType::ViewStage;
 
@@ -87,7 +91,7 @@ namespace Poly
 	// it is known which views the passes are rendered for (RenderProgramBuilder). Import/export resource names
 	// are prefixed per feature instance ("featureName#N.resName") so that two uses of the same feature don't
 	// share internal resource connections.
-	bool RenderPlanBuilder::FlattenFeatures(const Entry& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const
+	bool RenderPlanBuilder::FlattenFeatures(const RenderPlanEntryDesc& entry, std::unordered_map<std::string, size_t>& featureInstanceCount, std::vector<ResolvedPass>& outPasses) const
 	{
 		const bool isStage = entry.Type == RenderPlanEntry::EType::ViewStage;
 
@@ -105,7 +109,7 @@ namespace Poly
 
 			for (const auto& passName : feature->GetPasses())
 			{
-				PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
+				const PassDeclaration* pass = m_Catalog->GetPassRegistry().Get(passName);
 				if (!pass)
 				{
 					POLY_CORE_ERROR("Pass '{}' referenced by feature '{}' not found in the render catalog, '{}' is left out of the render plan.",
@@ -113,15 +117,42 @@ namespace Poly
 					return false;
 				}
 
-				SetupContext setupCtx(*pass);
-				pass->CallSetupFn(setupCtx);
-
 				ResolvedPass resolved;
 				resolved.Name         = passName;
 				resolved.Shaders      = pass->GetShaders();
-				resolved.PipelineDesc = pass->BuildPipelineDesc();
-				resolved.ExecuteFn    = pass->GetExecuteFn();
+				const PassDesc&     passDesc      = pass->GetDesc();
+				const VertexLayout* pVertexLayout = nullptr;
+				if (!passDesc.VertexLayoutName.empty())
+				{
+					pVertexLayout = m_Catalog->GetVertexLayoutRegistry().Get(passDesc.VertexLayoutName);
+					if (!pVertexLayout)
+					{
+						POLY_CORE_ERROR("Pass '{}' of feature '{}' uses the vertex layout '{}', which is not registered. '{}' is left out of the render plan.",
+						                passName, featureName, passDesc.VertexLayoutName, entry.Name);
+						return false;
+					}
+				}
+
+				resolved.PipelineDesc = pass->BuildPipelineDesc(pVertexLayout);
 				resolved.Queue        = pass->GetQueue();
+
+				const PassExecutor& executor = pass->GetDesc().Executor;
+				if (executor.Name.empty())
+				{
+					resolved.ExecuteFn = pass->GetExecuteFn();
+				}
+				else
+				{
+					Result<ExecuteFn> executeFn = m_Catalog->GetExecutorRegistry().Create(executor.Name, executor.ParamsJson);
+					if (!executeFn)
+					{
+						POLY_CORE_ERROR("Pass '{}' of feature '{}' has no valid executor: {}. '{}' is left out of the render plan.",
+						                passName, featureName, executeFn.error().Message, entry.Name);
+						return false;
+					}
+
+					resolved.ExecuteFn = std::move(*executeFn);
+				}
 
 				// Semantic ports. Depth and stencil belong to the view, the color target is resolved per view
 				// by the RenderProgramBuilder since several views can share one.

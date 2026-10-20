@@ -34,6 +34,10 @@ namespace Poly
 	public:
 		static constexpr const char* FEATURE_NAME = "ui";
 
+		static constexpr const char* EXECUTOR_NAME = "ImGui";
+
+		static constexpr const char* VERTEX_LAYOUT_NAME = "ImDrawVert";
+
 		ImGuiLayer();
 		~ImGuiLayer();
 
@@ -52,7 +56,8 @@ namespace Poly
 		void EndFrame();
 
 		/*
-		 * Registers the UI resources, the "ui" pass and the FEATURE_NAME feature in the catalog.
+		 * Registers the UI resources, the EXECUTOR_NAME executor, the VERTEX_LAYOUT_NAME vertex layout, the "ui" pass and
+		 * the FEATURE_NAME feature in the catalog.
 		 * @param catalog - catalog the render plan will be built from
 		 */
 		void RegisterRenderFeature(RenderCatalog& catalog);

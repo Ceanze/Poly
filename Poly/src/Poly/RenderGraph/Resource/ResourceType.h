@@ -16,9 +16,11 @@ namespace Poly
 		UniformBuffer,          // ConstantBuffer
 		DynamicUniformBuffer,   // VolatileConstantBuffer
 		IndirectBuffer,         // Draw/dispatch arguments - never shader-bound, only used via Read/WriteResource
+		VertexBuffer,           // Bound as vertex buffer - never shader-bound, only used via Read/WriteResource
+		IndexBuffer,            // Bound as index buffer - never shader-bound, only used via Read/WriteResource
 		Sampler,
 		AccelerationStructure, // RayTracingAccelStruct
 		PushConstants,
 		SamplerFeedback, // SamplerFeedbackTexture_UAV
 	};
-}
+} // namespace Poly
