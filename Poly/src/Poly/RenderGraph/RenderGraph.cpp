@@ -1,11 +1,13 @@
 #include "RenderGraph.h"
 
+#include "Poly/Core/Application.h"
+#include "Poly/Rendering/Renderer.h"
 #include "Serialization/RenderGraphSerializer.h"
 
 namespace Poly
 {
 	RenderGraph::RenderGraph()
-	    : m_Catalog(std::make_shared<RenderCatalog>())
+	    : m_Catalog(Application::Get().GetRenderer()->GetRenderCatalog())
 	{}
 
 	RenderGraph::RenderGraph(Ref<RenderCatalog> catalog)

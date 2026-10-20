@@ -12,6 +12,7 @@ namespace Poly
 	class Window;
 	class Event;
 	class RenderPlan;
+	class RenderCatalog;
 	class RenderProgram;
 	class RenderProgramInstance;
 
@@ -24,6 +25,7 @@ namespace Poly
 	 * Usage:
 	 *
 	 *   // Init
+	 *   RenderGraph graph; // uses the catalog of the renderer
 	 *   pRenderer->SetRenderPlan(graph.BeginRenderPlan()...Build());
 	 *   Ref<RenderView> pView = pRenderer->CreateView({.DebugName = "Game", .Stage = "Scene", .pWorld = &world});
 	 *
@@ -56,6 +58,12 @@ namespace Poly
 		 * @param pView - the view to render
 		 */
 		void SubmitView(const Ref<RenderView>& pView);
+
+		/**
+		 * Gets the catalog render plans are built from, holding what the engine registers. Applications register their
+		 * own passes, features and resources in it too.
+		 */
+		const Ref<RenderCatalog>& GetRenderCatalog() const { return m_pCatalog; }
 
 		/**
 		 * Gets the resources provided to the passes of every view and frame feature, for the resources
@@ -124,6 +132,8 @@ namespace Poly
 		static constexpr size_t MAX_CACHED_PROGRAMS = 16;
 
 		std::vector<WindowContext> m_Windows;
+
+		Ref<RenderCatalog> m_pCatalog;
 
 		Ref<RenderPlan> m_pRenderPlan;
 

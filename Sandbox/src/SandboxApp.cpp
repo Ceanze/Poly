@@ -5,10 +5,8 @@
 #include "Poly/Core/Window.h"
 #include "Poly/Events/MouseEvent.h"
 #include "Poly/ImGui/ImGuiLayer.h"
-#include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/RenderGraph.h"
 #include "Poly/RenderGraph/ResourceManager.h"
-#include "Poly/Rendering/Features/GeometryFeature.h"
 #include "Poly/Rendering/Renderer.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/SceneAsset.h"
@@ -31,9 +29,8 @@ public:
 		m_pCamera->SetMovementSpeed(1.f);
 		m_pCamera->SetSprintSpeed(5.f);
 
-		// Registers the scene resources in the catalog, so they have to be added before the render plan is built
-		m_World.AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
-		m_World.AddSystem<Poly::LightSystem>(Poly::World::Phase::PostUpdate, *m_pCatalog);
+		m_World.AddSystem<Poly::RenderSystem>(Poly::World::Phase::PostUpdate);
+		m_World.AddSystem<Poly::LightSystem>(Poly::World::Phase::PostUpdate);
 		m_World.AddSystem<Poly::CameraSystem>(Poly::World::Phase::PostUpdate);
 
 		// auto sponzaHandle = Poly::AssetHandler::Load<Poly::SceneAsset>("assets/models/sponza/gltf/sponza.gltf");
@@ -43,12 +40,9 @@ public:
 		// serializer.Save(m_World, "assets/worlds/TestWorld.polyworld");
 		serializer.Load(m_World, "assets/worlds/TestWorld.polyworld");
 
-		Poly::GeometryFeature::Register(*m_pCatalog);
-		Poly::Application::Get().GetImGuiLayer()->RegisterRenderFeature(*m_pCatalog);
-
-		Poly::Ref<Poly::RenderPlan> pPlan = m_Graph.LoadRenderPlan("assets/render/Game.polyplan");
-
-		Poly::Renderer* pRenderer = Poly::Application::Get().GetRenderer();
+		Poly::Renderer*             pRenderer = Poly::Application::Get().GetRenderer();
+		Poly::RenderGraph           graph;
+		Poly::Ref<Poly::RenderPlan> pPlan = graph.LoadRenderPlan("assets/render/Game.polyplan");
 		pRenderer->SetRenderPlan(pPlan);
 
 		// Renders the world to the window, the UI is drawn on top of it
@@ -131,11 +125,9 @@ private:
 
 	static constexpr const char* SCENE_STAGE_NAME = "Scene";
 
-	Poly::Camera*                  m_pCamera  = nullptr;
-	Poly::Ref<Poly::RenderCatalog> m_pCatalog = Poly::CreateRef<Poly::RenderCatalog>();
-	Poly::RenderGraph              m_Graph{m_pCatalog};
-	Poly::World                    m_World{"TestWorld"};
-	Poly::Ref<Poly::RenderView>    m_pView;
+	Poly::Camera*               m_pCamera = nullptr;
+	Poly::World                 m_World{"TestWorld"};
+	Poly::Ref<Poly::RenderView> m_pView;
 
 	bool m_UseWorldCamera = false;
 };

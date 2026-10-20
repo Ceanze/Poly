@@ -14,7 +14,6 @@ namespace Poly
 {
 	class World;
 	class Buffer;
-	class RenderCatalog;
 	class MaterialAsset;
 	class TextureAsset;
 
@@ -34,9 +33,7 @@ namespace Poly
 	 *
 	 * Usage:
 	 *
-	 *   // Note: Must be before render graph building due to resource needing to be registered in the catalog
-	 *   // TODO: Make order agnostic
-	 *   world.AddSystem<RenderSystem>(World::Phase::PostUpdate, catalog); // before building the render plan
+	 *   world.AddSystem<RenderSystem>(World::Phase::PostUpdate);
 	 *
 	 *   pass.MapGlobal(RenderSystem::VERTICES_RESOURCE_NAME, "vertices")
 	 *       .MapGlobal(RenderSystem::INSTANCE_RESOURCE_NAME, "instances")
@@ -60,14 +57,10 @@ namespace Poly
 		static constexpr const char* INSTANCE_RESOURCE_NAME = "scene.instances";
 		static constexpr const char* MATERIAL_RESOURCE_NAME = "scene.materials";
 
-		/**
-		 * @param catalog - catalog to register the provided resources in
-		 */
-		explicit RenderSystem(RenderCatalog& catalog);
+		RenderSystem()  = default;
 		~RenderSystem() = default;
 		CLASS_REMOVE_COPY(RenderSystem);
 
-		void OnInit(World& world);
 		void Update(World& world);
 		void OnShutdown(World& world);
 
@@ -79,8 +72,6 @@ namespace Poly
 		GPUMaterialData BuildMaterialData(AssetHandle<MaterialAsset> materialHandle);
 		uint32          PackTextureIndex(AssetHandle<TextureAsset> textureHandle);
 		void            UploadInstanceAndMaterialBuffers(const std::vector<GPUInstanceData>& instances, const std::vector<GPUMaterialData>& materials);
-
-		RenderCatalog& m_Catalog;
 
 		// Forces a rebuild on the first update, even if the world has no dirty entities by the time the system is added
 		bool m_NeedsRebuild = true;

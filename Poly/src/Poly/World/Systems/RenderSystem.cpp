@@ -1,7 +1,6 @@
 #include "RenderSystem.h"
 
 #include "Platform/API/Buffer.h"
-#include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/ResourceManager.h"
 #include "Poly/Resources/AssetHandler.h"
 #include "Poly/Resources/AssetTypes/MaterialAsset.h"
@@ -39,17 +38,6 @@ namespace
 
 namespace Poly
 {
-	RenderSystem::RenderSystem(RenderCatalog& catalog)
-	    : m_Catalog(catalog)
-	{}
-
-	void RenderSystem::OnInit(World& world)
-	{
-		m_Catalog.RegisterResource(VERTICES_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
-		m_Catalog.RegisterResource(INSTANCE_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
-		m_Catalog.RegisterResource(MATERIAL_RESOURCE_NAME).WithType(EResourceType::StorageBuffer).WithScope(EResourceScope::World);
-	}
-
 	void RenderSystem::Update(World& world)
 	{
 		if (!m_NeedsRebuild && !world.HasPendingChanges())

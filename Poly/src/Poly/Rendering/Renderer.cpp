@@ -5,10 +5,12 @@
 #include "Poly/Core/RenderAPI.h"
 #include "Poly/Core/Window.h"
 #include "Poly/Events/WindowEvent.h"
+#include "Poly/RenderGraph/RenderCatalog.h"
 #include "Poly/RenderGraph/RenderPlan.h"
 #include "Poly/RenderGraph/RenderProgramInstance.h"
 #include "Poly/RenderGraph/RenderViewContext.h"
 #include "Poly/RenderGraph/ResourceManager.h"
+#include "Poly/Rendering/Features/GeometryFeature.h"
 #include "polypch.h"
 
 #include <algorithm>
@@ -30,7 +32,11 @@ namespace Poly
 		}
 	} // namespace
 
-	Renderer::Renderer() {}
+	Renderer::Renderer()
+	    : m_pCatalog(CreateRef<RenderCatalog>())
+	{
+		GeometryFeature::Register(*m_pCatalog);
+	}
 
 	Renderer::~Renderer()
 	{
